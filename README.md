@@ -129,7 +129,7 @@ bun run start daemon stop --json
 
 TCP listenerは開かず、Unix socketを0600で作成します。同socketの2重起動や既存file/symlinkの置換を拒否します。stop・SIGTERM・SIGINTで終了し、自分が作成したsocket/lockを解放します。SIGKILL等で残ったsocket/lockは自動削除しません。稼働中プロセスがないことを確認してから手動で整理してください。
 
-Agent/Task/Room/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。scheduler、Task実行のretry、Workflow・Sandbox等のCLIとTUIは未実装です。
+Agent/Task/Room/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。同じPOSIX process groupの子孫を終了させます。daemon自身のSIGKILLと別groupへ離脱した子孫の監督は後続です。scheduler、Task実行のretry、Workflow・Sandbox等のCLIとTUIは未実装です。
 
 ## 検証とレビュー
 

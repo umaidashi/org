@@ -398,3 +398,11 @@
 - 実daemon/SQLite/CLIでrunning→failedの履歴追記、work_itemとwaiting_approvalの保持をRED→GREEN。fixture版番号は初期0を見落とし4と期待したため3へ訂正。自動再試行や過去の出力を消す操作は行わない。
 - 全131テスト・型・lint・AST成功。[全検査](verification/2026-10-04-task-recovery/check.txt)。実Jev682対象・errorsなし。[実レビュー](verification/2026-10-04-task-recovery/semantic.txt)。独立ReviewerはCritical/Important/Minorなし、DB不要2UTを別途成功確認。
 - Next: 強制終了後のsocket/lock復旧とRuntime子孫processの停止。現在のsocketは既存pathを保守的に拒否する。プロセス全体の停止保証を先に検証し、stale pathを無条件削除する方法は採用しない。全体のApproval/Scheduler/Workflow等は引き続き未完了。
+
+## Runtime process group停止
+
+- [計画](superpowers/plans/2026-10-04-runtime-process-group.md)。実driverが孫processを作りstdoutを継承するtimeout/cancel/通常終了を3件RED再現。Bun.spawn detachedでgroup単位停止し3件GREEN。既存入力/env/出力量の3テストも維持した。
+- Darwinの高速終了groupではreap前にEPERMが返ることをfixtureで確認。直接childを終了/回収してgroup停止を再試行し、ESRCHのみ終了済として許容する。初回GREEN実行はこの競合で失敗し、対処後6件成功。[GREEN](verification/2026-10-04-runtime-process-group/green.txt)。調査でpsのsandbox制限により終了できなかったfixtureはPIDを特定してcleanup済み。
+- 全134テスト・型・lint・AST成功。[全検査](verification/2026-10-04-runtime-process-group/check.txt)。実Jev690対象、missing/unsure0・errors/degradedなし。[実レビュー](verification/2026-10-04-runtime-process-group/semantic.txt)。独立Reviewerも6テスト成功、Critical/Importantなし。
+- Final: minor (deferred): Linuxで孤児zombie未回収の場合、テストのkill(pid,0)が生存扱いとなりfalse failureになり得る。現Darwinは成功。Linux実機対応時に終了判定を調整する。
+- Next: daemon自身をSIGKILLした時にもRuntimeが残らない、pipeを使った監督processの最小e2eを進める。groupを離脱するprocessの隔離はSandbox段階で扱う。stale socketの無条件削除は行わない。

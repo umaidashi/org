@@ -1,0 +1,436 @@
+$ bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+$ bun --no-env-file node_modules/oxfmt/bin/oxfmt --check src tests scripts package.json tsconfig.json .oxlintrc.json .oxfmtrc.json
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 7ms on 123 files using 8 threads.
+$ ast-grep scan src --report-style short --color never
+bun test v1.3.4 (5eb2145b)
+
+tests/semantic-runner.test.ts:
+invalid JSON
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":1},"errors":["network failure"],"degraded":[]}
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":0},"errors":[],"degraded":[]}
+(pass) semantic process runner rejects exit failures and incomplete or malformed output [93.18ms]
+
+tests/runtime-process.test.ts:
+(pass) process runner passes explicit input/environment and captures exit without shell interpretation [23.45ms]
+(pass) process runner terminates timeout and cancellation and refuses oversized output [120.23ms]
+(pass) process limits reject timer overflow and retain a UTF-8 output prefix within the byte budget [37.00ms]
+
+tests/room-runtime.test.ts:
+(pass) Room runtime uses history through the source and persists an Agent reply only after success [2.29ms]
+(pass) Room context bounds UTF-8 bytes and reports omitted history, rejecting oversized sources before runtime [12.74ms]
+(pass) Room context includes only active current scopes and excludes another Agent or Room Memory [0.51ms]
+
+tests/semantic-review.test.ts:
+(pass) semantic review accepts complete warning-only results [0.02ms]
+(pass) semantic review rejects incomplete results even when warnings exist [0.20ms]
+
+tests/task-domain.test.ts:
+(pass) pure task decisions preserve identity and reject illegal state changes [0.31ms]
+(pass) task domain rejects invalid values and snapshots do not alias input arrays [0.24ms]
+(pass) pure graph validation rejects parent cycles, dependency cycles and unfinished prerequisites [0.28ms]
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp [0.22ms]
+(pass) agent construction rejects each missing textual value [0.19ms]
+
+tests/session-sqlite.test.ts:
+(pass) Session state and immutable history persist atomically and reject stale writers [38.56ms]
+(pass) Session store refuses a fabricated completion without a running turn [0.52ms]
+
+tests/claude-turn.test.ts:
+(pass) Claude command uses explicit system context, stdin, bare mode and the chosen resume session [0.17ms]
+(pass) Claude response rejects failed, missing and inconsistent result envelopes [0.49ms]
+(pass) Claude turn uses process DI and rejects process failure even with a success-looking reply [0.32ms]
+(pass) Claude resumed turn refreshes changed role and instruction instead of reusing a system prompt snapshot
+
+tests/memory-service.test.ts:
+(pass) Memory capture verifies original Message references through injected ports before saving [0.13ms]
+
+tests/event-domain.test.ts:
+(pass) event patterns match whole segments and JSON filters ignore object key order [0.65ms]
+(pass) event creation copies payload and rejects malformed event names and patterns [0.15ms]
+
+tests/runtime-config.test.ts:
+(pass) Runtime config admits explicit executable/workspace and selects only named environment values [0.39ms]
+
+tests/public-content.test.ts:
+(pass) public content gate rejects credential files and secret values without disclosing them [0.17ms]
+
+tests/runtime-manager.test.ts:
+(pass) Runtime manager selects driver, persists start/resume, and blocks resume until stop has drained [2.09ms]
+(pass) Runtime owns an active turn before a driver startup callback requests shutdown [0.64ms]
+(pass) Runtime shutdown drains every driver even when one stop cannot persist and rejects future starts [0.74ms]
+
+tests/daemon-cleanup.test.ts:
+(pass) resource release attempts every close and propagates collected close failures [0.20ms]
+
+tests/memory-sqlite.test.ts:
+(pass) Memory projection preserves original evidence and atomically supersedes active same-scope records [9.36ms]
+
+tests/task-cli.test.ts:
+(pass) work item and internal execution task persist separately with parent and assignment history [529.69ms]
+(pass) invalid transitions and references leave persistent task and history unchanged [449.96ms]
+(pass) dependencies and cycles are enforced across independent CLI processes [365.07ms]
+(pass) task comments and output artifacts can be written and retrieved via separate CLI processes [167.30ms]
+(pass) task parser rejects malformed options before touching storage [345.60ms]
+(pass) failed tasks retain their original history and reject subsequent state changes [202.96ms]
+(pass) mistaken dependencies and parent links can be removed to unblock a task [302.57ms]
+
+tests/session-service.test.ts:
+(pass) Session service validates references before creation and runs explicit provider resume via minimal Ports [0.08ms]
+(pass) Session failure and restart recovery preserve provider identity without persisting external error text [0.30ms]
+(pass) Session stop wins over a late runtime response and parallel turns are rejected [0.72ms]
+
+tests/daemon-cli.test.ts:
+(pass) daemon once creates assigned ExecutionTask and restart does not duplicate or reassign it [474.85ms]
+(pass) two concurrent CLI workers create only one Task and two original history snapshots [273.50ms]
+
+tests/daemon-server.test.ts:
+(pass) SIGINT releases the daemon while preserving replacement socket and lock entries [62.28ms]
+(pass) continuous daemon polls new Events, serves local clients and releases socket across restart [553.02ms]
+(pass) daemon refuses to replace an existing file and client failure creates no database [94.89ms]
+{"state":"ready","socket":"/tmp/org-server-cleanup-AJHjAd/org.sock"}
+(pass) adapter close failure still releases owned socket, lock and process umask [4.10ms]
+{"state":"ready","socket":"/tmp/org-server-poll-Jww5RP/org.sock"}
+(pass) poll errors remain visible through status and periodic polling recovers without restart [25.62ms]
+
+tests/codex-turn.test.ts:
+(pass) Codex command injects role and instructions via stdin and resumes only the requested session [0.15ms]
+(pass) Codex response requires a completed turn and rejects protocol failures or inconsistent sessions [0.27ms]
+(pass) Codex turn runner uses the injected process boundary and never accepts failed process output [0.29ms]
+(pass) Codex resumed response cannot succeed without a completed assistant reply
+
+tests/event-cli.test.ts:
+(pass) events persist without recipients and subscriptions match independently across CLI processes [528.17ms]
+(pass) malformed event inputs return usage error before creating a database [117.10ms]
+
+tests/daemon-long-command.test.ts:
+{"state":"ready","socket":"/tmp/org-long-command-Eu669d/org.sock"}
+(pass) daemon command preserves long Session replies even with options before the noun [11061.36ms]
+
+tests/daemon-poll.test.ts:
+(pass) injected poll failures are explicitly degraded and the next successful poll recovers [0.09ms]
+
+tests/public-history.test.ts:
+(pass) public history gate catches a credential removed from the ref tip [281.83ms]
+Reachable public history checked: 1 file versions
+Public content checked: 0 files
+(pass) history-only public review does not read an unstaged deletion from the worktree [118.61ms]
+
+tests/room-domain.test.ts:
+(pass) Room types require their participant composition and default to coordinator [0.51ms]
+(pass) Messages require membership and same-room replies; archive preserves the original Room [0.20ms]
+
+tests/task-recovery.test.ts:
+(pass) recovery fails only running executions using the observed version and injected time [0.17ms]
+(pass) recovery propagates write conflicts instead of accepting new commands with stale state [0.15ms]
+
+tests/runtime-env.test.ts:
+(pass) project Bun configuration prevents dotenv autoload while explicit loading remains possible [52.74ms]
+
+tests/history-replace.test.ts:
+(pass) Room immutable Message rejects replacement through id and sequence aliases with recursive triggers disabled [5.81ms]
+(pass) Event immutable payload rejects replacement through id and sequence aliases [4.44ms]
+(pass) Session immutable snapshots reject explicit rowid replacement under a new composite key [18.71ms]
+(pass) Memory invalidation preserves its original reason against explicit rowid replacement [8.31ms]
+(pass) Reopening a legacy Room database installs replacement guards without changing existing Message history [11.61ms]
+
+tests/task-recovery-cli.test.ts:
+(pass) daemon startup records interrupted executions without changing work items or review results [364.16ms]
+
+tests/room-cli.test.ts:
+(pass) malformed Room creation is rejected before creating a database or directory [130.13ms]
+(pass) multiple rooms with the same Agent keep separate persistent replies and archived histories [875.71ms]
+
+tests/task-sqlite.test.ts:
+(pass) task state and immutable history rollback together on storage failure [10.44ms]
+(pass) comments and artifact references persist without rewriting existing task history [9.95ms]
+(pass) comment and artifact originals cannot be modified and artifact linking rolls back with history [8.92ms]
+(pass) converging dependency graphs do not repeatedly load the same completed subtree [2.29ms]
+
+tests/room-service.test.ts:
+(pass) Room registration validates Agent through a small injected Port before saving [0.35ms]
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [2.92ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.38ms]
+
+tests/daemon-recovery.test.ts:
+(pass) overlapping Workflow deferrals converge on the same deferred receipt [0.96ms]
+(pass) real Task commit survives receipt failure and retry finishes receipt without duplicate history [10.34ms]
+
+tests/event-service.test.ts:
+(pass) publishing needs only an injected writer; Agent subscription validates before saving [0.16ms]
+
+tests/local-hooks.test.ts:
+(pass) pre-commit reads staged contents even when the worktree contains a passing replacement [36.38ms]
+(pass) pre-push reads the selected commit rather than staged or working changes [77.65ms]
+(pass) pre-push parses all actual local commits and skips remote deletions [1.11ms]
+(pass) snapshot refuses invalid object ids without running a check [15.33ms]
+(pass) the actual pre-commit gate blocks bad staged code without modifying the worktree [263.79ms]
+(pass) documentation-only bootstrap trees skip runtime gates but source trees require a manifest [1.03ms]
+(pass) configured pre-push job executes even when the pushed revision contains documentation only [334.28ms]
+
+tests/event-sqlite.test.ts:
+(pass) Event log remains immutable when subscription changes or insertion fails [6.99ms]
+
+tests/daemon-database.test.ts:
+(pass) Another daemon on a different socket cannot recover or own the active database [170.91ms]
+
+tests/quality-ast.test.ts:
+(pass) every architecture rule fixture runs and detects its planted violations [26.41ms]
+
+tests/daemon-service.test.ts:
+(pass) pure delivery identity is stable and unambiguous, and disabled subscriptions do not dispatch [0.21ms]
+(pass) receipt failure after Task success retries the same identity through injected Ports [0.20ms]
+
+tests/cli-transport.test.ts:
+(pass) transport extracts global options without removing option-like data or escaped positional values [0.45ms]
+(pass) command client rejects malformed or incomplete success envelopes
+
+tests/session-domain.test.ts:
+(pass) Session identity stays separate while turn lifecycle rejects concurrent starts and provider replacement [0.22ms]
+
+tests/task-execution.test.ts:
+(pass) ExecutionTask persists running before the runtime and stages its result for human review [0.56ms]
+(pass) ExecutionTask rejects reused Room replies before running and records failure without overwriting concurrent decisions [0.35ms]
+
+tests/session-parser.test.ts:
+(pass) Session CLI requires explicit identity and messages and rejects conflicting options before storage
+
+tests/session-cli.test.ts:
+(pass) Session CLI runs configured daemon runtime and cancels pending turns before daemon stop and restart recovery [2584.35ms]
+
+tests/task-service.test.ts:
+(pass) assignment rejects missing Agent before invoking the injected writer [0.23ms]
+(pass) assignment forwards identity and time through injected ports and propagates persistence failure [0.11ms]
+
+tests/agent-service.test.ts:
+(pass) invalid Agent inputs never reach the injected persistence port [0.08ms]
+(pass) Agent registration propagates injected persistence failures
+
+tests/task-dispatch.test.ts:
+(pass) idempotent assigned creation rolls back both snapshots and never reassigns advanced Task [8.39ms]
+
+tests/cli-client.test.ts:
+(pass) normal CLI uses daemon for Agent Task Room and Event without opening client-selected DB [601.21ms]
+(pass) normal CLI with unavailable daemon fails without creating DB and direct mode remains explicit [67.95ms]
+(pass) different database filenames in the same directory never silently share a daemon [201.44ms]
+
+tests/session-runtime.test.ts:
+(pass) Session codex lifecycle manager connects SQLite to real fixture process for start resume and stop [36.37ms]
+(pass) Session claude lifecycle manager connects SQLite to real fixture process for start resume and stop [35.95ms]
+
+tests/memory-cli.test.ts:
+(pass) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [346.98ms]
+
+tests/runtime-process-group.test.ts:
+(pass) runtime timeout terminates a descendant that inherits its output pipes [507.29ms]
+(pass) runtime cancelled terminates a descendant that inherits its output pipes [35.51ms]
+(pass) runtime exited terminates a descendant that inherits its output pipes [22.34ms]
+
+tests/memory-domain.test.ts:
+(pass) Typed Memory keeps evidence and validates scope, confidence and replacement identity
+
+tests/quality-lint.test.ts:
+(pass) lint rejects unsafe generated code and infrastructure imports in domain code [188.07ms]
+(pass) lint accepts a pure function with explicit typed inputs [104.14ms]
+
+tests/cli.test.ts:
+(pass) empty registry reports no agents and returns an empty JSON array [62.62ms]
+(pass) agents survive separate CLI processes with stable identity and name ordering [127.00ms]
+(pass) duplicate registration fails without replacing the existing agent [160.15ms]
+(pass) text output includes id name role and runtime [119.39ms]
+(pass) empty or whitespace-only identity fields cannot register an agent [388.42ms]
+(pass) missing database parent directories are created [67.56ms]
+(pass) storage errors return failure on stderr without a stack trace [55.27ms]
+(pass) unicode and quote characters are saved as values rather than SQL [129.23ms]
+(pass) default database is persisted only under the isolated HOME [64.97ms]
+(pass) invalid arguments fail before creating a database and help succeeds [290.65ms]
+(pass) an explicitly empty database path cannot silently register an ephemeral agent [56.47ms]
+(pass) a corrupted database is reported as storage failure rather than an empty registry [28.63ms]
+
+tests/database-lease.test.ts:
+(pass) Database lease rejects live owners across aliases and releases only its own token [5.01ms]
+(pass) A terminated process leaves a lease that the real liveness check can safely reacquire [23.60ms]
+
+tests/daemon-parser.test.ts:
+(pass) socket flags cannot silently target a different database in once mode [0.23ms]
+
+tests/task-result.test.ts:
+(pass) Task result atomically links artifact and waiting approval history, preserving running on rollback [10.24ms]
+
+tests/quality-types.test.ts:
+(pass) native type checker rejects a bad assignment and accepts a strictly typed module [184.74ms]
+
+tests/room-sqlite.test.ts:
+(pass) SQLite preserves immutable Messages and rejects insertion failure without affecting history [6.27ms]
+
+ 134 pass
+ 0 fail
+Ran 134 tests across 60 files. [25.42s]
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using <REPO>/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 690,
+  "cached": 677,
+  "requests": 9,
+  "tokens": 21726,
+  "usd": 0.000912492,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "src/runtime/process.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3227,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/process.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3687,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/process.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 3510,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/process.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2480,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/process.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2286,
+      "degraded": null
+    },
+    {
+      "file": "tests/runtime-process-group.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1411,
+      "degraded": null
+    },
+    {
+      "file": "tests/runtime-process-group.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2384,
+      "degraded": null
+    },
+    {
+      "file": "tests/runtime-process-group.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 947,
+      "degraded": null
+    },
+    {
+      "file": "tests/runtime-process-group.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1794,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "org-functional-core",
+      "subjects": 3,
+      "requests": 2,
+      "tokens": 6071,
+      "usd": 0.000254982,
+      "share": 0.2794347786062782
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 4,
+      "requests": 2,
+      "tokens": 4638,
+      "usd": 0.000194796,
+      "share": 0.21347694007180337
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 1,
+      "requests": 1,
+      "tokens": 3510,
+      "usd": 0.00014742000000000002,
+      "share": 0.1615575807787904
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 3,
+      "requests": 2,
+      "tokens": 3427,
+      "usd": 0.000143934,
+      "share": 0.1577372733130811
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 1,
+      "requests": 1,
+      "tokens": 2286,
+      "usd": 0.000096012,
+      "share": 0.1052195526097763
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 1,
+      "requests": 1,
+      "tokens": 1794,
+      "usd": 0.00007534800000000001,
+      "share": 0.08257387462027065
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-declaration"
+  ]
+}

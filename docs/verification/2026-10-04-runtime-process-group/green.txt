@@ -1,0 +1,15 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-process.test.ts:
+(pass) process runner passes explicit input/environment and captures exit without shell interpretation [24.61ms]
+(pass) process runner terminates timeout and cancellation and refuses oversized output [131.50ms]
+(pass) process limits reject timer overflow and retain a UTF-8 output prefix within the byte budget [60.89ms]
+
+tests/runtime-process-group.test.ts:
+(pass) runtime timeout terminates a descendant that inherits its output pipes [510.68ms]
+(pass) runtime cancelled terminates a descendant that inherits its output pipes [23.78ms]
+(pass) runtime exited terminates a descendant that inherits its output pipes [22.48ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 2 files. [920.00ms]

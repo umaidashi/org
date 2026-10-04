@@ -1,0 +1,67 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-process-group.test.ts:
+23 |       assert.ok(existsSync(marker), 'driver started descendant');
+24 |       descendant = Number(readFileSync(marker, 'utf8'));
+25 |       assert.ok(Number.isSafeInteger(descendant) && descendant > 0);
+26 |       if (mode === 'cancelled') controller.abort();
+27 |       for (let attempts = 0; alive(descendant) && attempts < 100; attempts++) await new Promise((resolve) => setTimeout(resolve, 10));
+28 |       assert.equal(alive(descendant), false, 'descendant must terminate');
+                  ^
+AssertionError: descendant must terminate
+
+true !== false
+
+ generatedMessage: false,
+     actual: true,
+   expected: false,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/runtime-process-group.test.ts:28:14
+      at processTicksAndRejections (native:7:39)
+(fail) runtime timeout terminates a descendant that inherits its output pipes [1221.76ms]
+23 |       assert.ok(existsSync(marker), 'driver started descendant');
+24 |       descendant = Number(readFileSync(marker, 'utf8'));
+25 |       assert.ok(Number.isSafeInteger(descendant) && descendant > 0);
+26 |       if (mode === 'cancelled') controller.abort();
+27 |       for (let attempts = 0; alive(descendant) && attempts < 100; attempts++) await new Promise((resolve) => setTimeout(resolve, 10));
+28 |       assert.equal(alive(descendant), false, 'descendant must terminate');
+                  ^
+AssertionError: descendant must terminate
+
+true !== false
+
+ generatedMessage: false,
+     actual: true,
+   expected: false,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/runtime-process-group.test.ts:28:14
+      at processTicksAndRejections (native:7:39)
+(fail) runtime cancelled terminates a descendant that inherits its output pipes [1157.84ms]
+23 |       assert.ok(existsSync(marker), 'driver started descendant');
+24 |       descendant = Number(readFileSync(marker, 'utf8'));
+25 |       assert.ok(Number.isSafeInteger(descendant) && descendant > 0);
+26 |       if (mode === 'cancelled') controller.abort();
+27 |       for (let attempts = 0; alive(descendant) && attempts < 100; attempts++) await new Promise((resolve) => setTimeout(resolve, 10));
+28 |       assert.equal(alive(descendant), false, 'descendant must terminate');
+                  ^
+AssertionError: descendant must terminate
+
+true !== false
+
+ generatedMessage: false,
+     actual: true,
+   expected: false,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/runtime-process-group.test.ts:28:14
+      at processTicksAndRejections (native:7:39)
+(fail) runtime exited terminates a descendant that inherits its output pipes [1168.57ms]
+
+ 0 pass
+ 3 fail
+Ran 3 tests across 1 file. [3.57s]

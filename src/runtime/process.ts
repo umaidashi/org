@@ -22,19 +22,58 @@ export async function runProcess(input: ProcessInput): Promise<ProcessResult> {
   if (input.timeoutMs > 2147483647)
     throw new Error('Process timeout must be at most 2147483647 milliseconds');
   if (input.signal?.aborted) return { reason: 'cancelled', exitCode: null, stdout: '', stderr: '' };
+  if (process.platform === 'win32') throw new Error('Runtime process groups require POSIX');
   const child = Bun.spawn([...input.argv], {
+    detached: true,
     cwd: input.cwd,
     env: { ...input.env },
     stdin: new Blob([input.input]),
     stdout: 'pipe',
     stderr: 'pipe',
   });
+  const groupId = child.pid;
   let reason: ProcessResult['reason'] = 'exited';
   let remaining = input.maxOutputBytes;
+  let groupStop: Promise<void> | undefined;
+  const stopGroup = (): Promise<void> => {
+    groupStop ??= (async () => {
+      try {
+        process.kill(-groupId, 'SIGKILL');
+      } catch (error) {
+        if (error !== null && typeof error === 'object' && 'code' in error) {
+          if (error.code === 'ESRCH') return;
+          if (error.code === 'EPERM' && process.platform === 'darwin') {
+            // Darwin can report EPERM for a group containing only an unreaped zombie.
+            child.kill('SIGKILL');
+            await child.exited;
+            try {
+              process.kill(-groupId, 'SIGKILL');
+              return;
+            } catch (retry) {
+              if (
+                retry !== null &&
+                typeof retry === 'object' &&
+                'code' in retry &&
+                retry.code === 'ESRCH'
+              )
+                return;
+              throw retry;
+            }
+          }
+        }
+        throw error;
+      }
+    })();
+    return groupStop;
+  };
+  const exited = child.exited.then(async (code) => {
+    await stopGroup();
+    return code;
+  });
   const terminate = (cause: ProcessResult['reason']) => {
     if (reason !== 'exited') return;
     reason = cause;
-    child.kill('SIGKILL');
+    void stopGroup().catch(() => child.kill('SIGKILL'));
   };
   const cancel = () => terminate('cancelled');
   input.signal?.addEventListener('abort', cancel, { once: true });
@@ -71,13 +110,13 @@ export async function runProcess(input: ProcessInput): Promise<ProcessResult> {
     const [stdout, stderr, exitCode] = await Promise.all([
       collect(child.stdout),
       collect(child.stderr),
-      child.exited,
+      exited,
     ]);
     return { reason, exitCode, stdout, stderr };
   } finally {
     clearTimeout(timer);
     input.signal?.removeEventListener('abort', cancel);
-    child.kill('SIGKILL');
-    await child.exited;
+    await stopGroup();
+    await exited;
   }
 }
