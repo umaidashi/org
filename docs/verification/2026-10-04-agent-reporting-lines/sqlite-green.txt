@@ -1,0 +1,16 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-reporting-sqlite.test.ts:
+(pass) legacy Agent identities gain atomic reporting lines without cycles or mutable history [11.93ms]
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [4.26ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.46ms]
+
+tests/agent-reporting.test.ts:
+(pass) reporting line preserves identity and rejects missing managers and direct or indirect cycles [0.21ms]
+(pass) reporting line service rejects invalid graph before writing and uses the injected timestamp [0.23ms]
+
+ 5 pass
+ 0 fail
+Ran 5 tests across 3 files. [130.00ms]

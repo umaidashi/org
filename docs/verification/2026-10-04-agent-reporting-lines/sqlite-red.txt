@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-reporting-sqlite.test.ts:
+11 |   const first = new SqliteAgentRepository(path);
+12 |   const second = new SqliteAgentRepository(path);
+13 |   try {
+14 |     const original = first.list();
+15 |     assert.deepEqual(changeReportingLine(original, 'chief', 'cto').reportsTo, 'cto');
+16 |     assert.equal(second.setReportsTo('cto', 'chief', 'changed').reportsTo, 'chief');
+                             ^
+TypeError: second.setReportsTo is not a function. (In 'second.setReportsTo("cto", "chief", "changed")', 'second.setReportsTo' is undefined)
+      at <anonymous> (<REPO>/tests/agent-reporting-sqlite.test.ts:16:25)
+(fail) legacy Agent identities gain atomic reporting lines without cycles or mutable history [8.30ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [46.00ms]

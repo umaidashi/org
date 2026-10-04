@@ -238,3 +238,15 @@ org task reviews TASK_ID --json
 ```
 
 却下は`--decision reject`を指定します。古いversion、未完了の依存Taskがある承認、成果物がないTaskは拒否します。判断記録と状態・履歴は一緒に保存され、失敗時はrollbackします。actorはローカル操作側が指定する記録値です。本人認証や外部操作のPermission/Approvalは後続です。
+
+### Agentの組織関係
+
+```sh
+org agent create cto --role CTO --runtime codex --reports-to CHIEF_ID
+org agent report CTO_ID --to CHIEF_ID --json
+org agent report CTO_ID --clear --json
+org agent reporting-history CTO_ID --json
+org agent list --json
+```
+
+上司がいるAgentのJSONには`reportsTo`が含まれます。存在しない上司や循環は拒否し、変更と履歴を一緒に保存します。同じ関係の再設定は履歴を増やしません。上司関係は組織の記録であり、実行権限や自動委譲は別の境界です。

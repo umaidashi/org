@@ -445,3 +445,11 @@
 
 - mainへfast-forwardし通常push成功。remote/local mainは390475626e3b1c85d693cc7a87fed0657cbba8f5で一致。公開内容/送信履歴・全141テスト・静的検査・実Jevのpre-pushゲートが32.51秒で成功。[hook記録](verification/2026-10-04-main-review-push/prepush.txt)。
 - 次のAgent組織についてNotion01を再取得。page_last_edited_at 2026-10-04T01:51:58.336Z、保存済みsnapshotと同じ。reportsTo、Chief→専門Agent、coordinatorとtyped A2Aを再確認。まずreportsToの保存/循環防止/履歴に絞り小さく進める。
+
+## Agent reportsToと組織関係
+
+- [計画](superpowers/plans/2026-10-04-agent-reporting-lines.md)。optional reportsToとpure/DI変更判断をRED→2UT GREEN。存在しないAgent/上司・自己/間接循環を拒否し、解除時はreportsToを省略、既存ID/名前/role/runtime/createdAtを保持する。
+- Agent所有SQLiteのnullable columnと追記履歴をadditive migration。constructor migration、作成時の上司参照/初回履歴、変更時graph再読込/検証をBEGIN IMMEDIATE内で実施。stale service判断でも相互cycleを通さず、同一関係no-op、失敗rollback、旧Python schema互換・全unique/rowid REPLACE/UPDATE/DELETE拒否を実DB RED→GREENで確認。
+- create --reports-to、report --to|--clear、reporting-history、list JSONを実daemon CLIでRED→GREEN。action別option拒否とclear/to排他も確認。初回型検査はSQL bindのnull型を漏らし修正、lintはnullable未知値のString変換を検出し明示text検証へ修正。
+- 全145テスト・型・lint・AST成功。[全検査](verification/2026-10-04-agent-reporting-lines/check.txt)。実Jev736対象、missing/unsure0・errors/degradedなし。[実レビュー](verification/2026-10-04-agent-reporting-lines/semantic.txt)。独立Reviewer3UT成功、Critical/Important/Minorなし。
+- Next: typed A2Aのdelegate/request/result/question/decision/blocker/cancelを不変Room Messageに載せ、宛先・Task・correlation参照を検証する。自動Agent wake-up/委譲やPermissionは組織登録だけで付与せず、次の境界として実装する。全体ゴールは保持し継続。

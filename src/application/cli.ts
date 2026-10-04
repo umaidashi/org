@@ -7,7 +7,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import type { AgentInput } from '../agents/domain.js';
-import { registerAgent } from '../agents/service.js';
+import { registerAgent, setReportingLine } from '../agents/service.js';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
 import { parseTaskCommand, runTaskCommand } from '../tasks/cli.js';
 import type { TaskCommand } from '../tasks/cli.js';
@@ -20,6 +20,8 @@ import type { CommandResult } from './port.js';
 
 export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
        org [--db PATH] agent list [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org agent reporting-history ID [--json]
        org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
        org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
        org [--db PATH] room create|list|get|archive|send|messages [OPTIONS]
@@ -49,7 +51,9 @@ export type ApplicationCommand =
   | { kind: 'room'; command: RoomCommand }
   | { kind: 'event'; command: EventCommand }
   | { kind: 'create'; db: string; input: AgentInput }
-  | { kind: 'list'; db: string; json: boolean };
+  | { kind: 'list'; db: string; json: boolean }
+  | { kind: 'report'; db: string; json: boolean; id: string; manager: string | null }
+  | { kind: 'reporting-history'; db: string; json: boolean; id: string };
 
 export function parseApplicationCommand(argv: string[]): ApplicationCommand {
   const probe = parseArgs({
@@ -73,6 +77,9 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
       db: { type: 'string' },
       role: { type: 'string' },
       runtime: { type: 'string' },
+      'reports-to': { type: 'string' },
+      to: { type: 'string' },
+      clear: { type: 'boolean' },
       json: { type: 'boolean' },
       help: { type: 'boolean', short: 'h' },
     },
@@ -84,6 +91,37 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
   if (!db.trim()) throw new UsageError('The database path must not be empty');
   const [command, action, name, ...extra] = parsed.positionals;
   if (command !== 'agent' || extra.length > 0) throw new UsageError('Expected agent command');
+  const allowed: Record<string, readonly string[]> = {
+    create: ['role', 'runtime', 'reports-to'],
+    list: [],
+    report: ['to', 'clear'],
+    'reporting-history': [],
+  };
+  const actionOptions = action === undefined ? undefined : allowed[action];
+  if (!actionOptions) throw new UsageError('Expected agent create/list/report/reporting-history');
+  for (const option of Object.keys(parsed.values))
+    if (!['db', 'json', 'help', ...actionOptions].includes(option))
+      throw new UsageError(`Unexpected --${option} for agent ${action}`);
+  if (action === 'reporting-history')
+    return {
+      kind: 'reporting-history',
+      db,
+      json: parsed.values.json ?? false,
+      id: required(name, 'agent id'),
+    };
+  if (action === 'report') {
+    if ((parsed.values.to !== undefined) === Boolean(parsed.values.clear))
+      throw new UsageError('Choose --to or --clear');
+    const manager = parsed.values.clear ? null : required(parsed.values.to, 'manager id');
+    if (manager !== null && !manager.trim()) throw new UsageError('Manager id must not be empty');
+    return {
+      kind: 'report',
+      db,
+      json: parsed.values.json ?? false,
+      id: required(name, 'agent id'),
+      manager,
+    };
+  }
   if (action === 'create') {
     if (parsed.values.json) throw new UsageError('--json is only available for list');
     return {
@@ -93,6 +131,9 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
         name: required(name, 'name'),
         role: required(parsed.values.role, '--role'),
         runtime: required(parsed.values.runtime, '--runtime'),
+        ...(parsed.values['reports-to'] !== undefined
+          ? { reportsTo: parsed.values['reports-to'] }
+          : {}),
       },
     };
   } else if (action === 'list') {
@@ -159,7 +200,19 @@ async function runApplication(
   let repository: SqliteAgentRepository | undefined;
   try {
     repository = new SqliteAgentRepository(db);
-    if (command.kind === 'create') {
+    if (command.kind === 'report') {
+      output(
+        JSON.stringify(
+          setReportingLine(repository, command.id, command.manager, new Date().toISOString()),
+          null,
+          command.json ? undefined : 2,
+        ),
+      );
+    } else if (command.kind === 'reporting-history') {
+      output(
+        JSON.stringify(repository.reportingHistory(command.id), null, command.json ? undefined : 2),
+      );
+    } else if (command.kind === 'create') {
       const agent = registerAgent(repository, command.input, {
         id: randomUUID(),
         createdAt: new Date().toISOString(),

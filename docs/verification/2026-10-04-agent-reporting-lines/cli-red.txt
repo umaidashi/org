@@ -1,0 +1,27 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-reporting-cli.test.ts:
+14 |   const json=(args:string[])=>{const result=run([...args,'--json']);assert.equal(result.status,0,result.stderr);const value:unknown=JSON.parse(result.stdout);return value;};
+15 |   try {
+16 |     await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Not ready: '+error)),5000);daemon.stdout.on('data',(value:Buffer)=>{if(value.toString().includes('"ready"')){clearTimeout(timer);resolve();}});});
+17 |     assert.equal(run(['agent','create','chief','--role','Chief','--runtime','claude']).status,0);
+18 |     const roots=json(['agent','list']);assert.ok(Array.isArray(roots));const root:unknown=roots[0];assert.ok(record(root)&&typeof root.id==='string');
+19 |     assert.equal(run(['agent','create','cto','--role','CTO','--runtime','codex','--reports-to',root.id]).status,0);
+                ^
+AssertionError: Expected values to be strictly equal:
+
+2 !== 0
+
+ generatedMessage: true,
+     actual: 2,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/agent-reporting-cli.test.ts:19:12
+      at processTicksAndRejections (native:7:39)
+(fail) Agent CLI creates, changes and clears reporting lines through the daemon without cyclic history [425.16ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [452.00ms]

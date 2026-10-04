@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-reporting-cli.test.ts:
+(pass) Agent CLI creates, changes and clears reporting lines through the daemon without cyclic history [631.55ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [653.00ms]
