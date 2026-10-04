@@ -11,6 +11,9 @@ const complete = {
 
 await test('semantic review accepts complete warning-only results', () => {
   assert.doesNotThrow(() => validateSemanticReview(complete));
+  assert.doesNotThrow(() =>
+    validateSemanticReview({ ...complete, findings: [{ severity: 'hint' }] }),
+  );
 });
 
 await test('semantic review rejects incomplete results even when warnings exist', () => {
@@ -20,6 +23,7 @@ await test('semantic review rejects incomplete results even when warnings exist'
     { ...complete, degraded: ['fallback'] },
     { ...complete, stats: { subjects: 0, missing: 0 } },
     { ...complete, findings: [{ severity: 'error' }] },
+    { ...complete, findings: [{ severity: ['warning'] }] },
     {},
     null,
   ]) {

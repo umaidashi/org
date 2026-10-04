@@ -123,6 +123,8 @@
 
 ### 未完了
 
+- 独立再レビューはCritical/Importantの残存なし、承認可能と判定した。Minorのseverity schemaについて文字列型を厳密に確認し、jev-lint正規値のhintも許可した。配列severity拒否・hint受理を回帰検証へ追加し、全26テストと全静的検査を再度成功した。
+
 - 独立ReviewerがAgent移行の分離・互換性・実CLI検証を確認。重要指摘：jev-lint 0.7.0はwarningと通信エラーが混在すると終了0になり得るため、終了コードだけでは不完全な意味レビューを通す。
 - 先に不完全結果を拒否するテストを書き、未実装による型検査失敗を記録。その後 `semantic-result.ts` と共通runnerを実装し、Agent実行とpre-pushの両方で対象ゼロ・missing・errors・degraded・error指摘を拒否した。[RED](verification/2026-10-04-typescript/semantic-gate-red.txt)、[実API GREEN](verification/2026-10-04-typescript/semantic-gate-green.txt)。全26テストと全静的検査が成功。
 - 実hookがグローバルLefthook 1.10.4を優先していたため、公式の `lefthook` 設定でローカル固定版2.1.16を指定した。過去の生成済みprepare-commit-msgが古い版を呼んだため、中身がLefthook呼び出しのみであることを確認して不要hookを除去。実pre-commitが2.1.16で成功した。

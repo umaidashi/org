@@ -36,32 +36,32 @@ All matched files use Prettier code style!
 > org-kernel@0.1.0 clean
 > node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
 
-✔ agent construction preserves values and uses the supplied identity and timestamp (0.756334ms)
-✔ agent construction rejects each missing textual value (0.2925ms)
-✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (6.327916ms)
-✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (1.519ms)
-✔ empty registry reports no agents and returns an empty JSON array (92.228875ms)
-✔ agents survive separate CLI processes with stable identity and name ordering (179.119333ms)
-✔ duplicate registration fails without replacing the existing agent (193.000166ms)
-✔ text output includes id name role and runtime (164.384333ms)
-✔ empty or whitespace-only identity fields cannot register an agent (670.417708ms)
-✔ missing database parent directories are created (86.881208ms)
-✔ storage errors return failure on stderr without a stack trace (84.904042ms)
-✔ unicode and quote characters are saved as values rather than SQL (187.227292ms)
-✔ default database is persisted only under the isolated HOME (139.168709ms)
-✔ invalid arguments fail before creating a database and help succeeds (463.727167ms)
-✔ an explicitly empty database path cannot silently register an ephemeral agent (79.679875ms)
-✔ a corrupted database is reported as storage failure rather than an empty registry (41.546625ms)
-✔ pre-commit reads staged contents even when the worktree contains a passing replacement (86.297ms)
-✔ pre-push reads the selected commit rather than staged or working changes (106.712042ms)
-✔ pre-push parses all actual local commits and skips remote deletions (0.717542ms)
-✔ snapshot refuses invalid object ids without running a check (17.26125ms)
-✔ the actual pre-commit gate blocks bad staged code without modifying the worktree (584.510166ms)
-✔ every architecture rule fixture runs and detects its planted violations (13.317333ms)
-✔ lint rejects unsafe generated code and infrastructure imports in domain code (1156.018042ms)
-✔ lint accepts a pure function with explicit typed inputs (997.438125ms)
-✔ semantic review accepts complete warning-only results (0.46875ms)
-✔ semantic review rejects incomplete results even when warnings exist (0.172292ms)
+✔ agent construction preserves values and uses the supplied identity and timestamp (1.14425ms)
+✔ agent construction rejects each missing textual value (0.282625ms)
+✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (10.327375ms)
+✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (0.561541ms)
+✔ empty registry reports no agents and returns an empty JSON array (91.421375ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (185.937042ms)
+✔ duplicate registration fails without replacing the existing agent (231.313417ms)
+✔ text output includes id name role and runtime (174.937375ms)
+✔ empty or whitespace-only identity fields cannot register an agent (580.338459ms)
+✔ missing database parent directories are created (90.656375ms)
+✔ storage errors return failure on stderr without a stack trace (85.194709ms)
+✔ unicode and quote characters are saved as values rather than SQL (183.431083ms)
+✔ default database is persisted only under the isolated HOME (110.292583ms)
+✔ invalid arguments fail before creating a database and help succeeds (436.906625ms)
+✔ an explicitly empty database path cannot silently register an ephemeral agent (80.582625ms)
+✔ a corrupted database is reported as storage failure rather than an empty registry (41.016833ms)
+✔ pre-commit reads staged contents even when the worktree contains a passing replacement (80.133667ms)
+✔ pre-push reads the selected commit rather than staged or working changes (108.739958ms)
+✔ pre-push parses all actual local commits and skips remote deletions (0.697542ms)
+✔ snapshot refuses invalid object ids without running a check (17.086375ms)
+✔ the actual pre-commit gate blocks bad staged code without modifying the worktree (582.324833ms)
+✔ every architecture rule fixture runs and detects its planted violations (12.074042ms)
+✔ lint rejects unsafe generated code and infrastructure imports in domain code (1108.43575ms)
+✔ lint accepts a pure function with explicit typed inputs (988.788375ms)
+✔ semantic review accepts complete warning-only results (0.495583ms)
+✔ semantic review rejects incomplete results even when warnings exist (0.181833ms)
 ℹ tests 26
 ℹ suites 0
 ℹ pass 26
@@ -69,7 +69,7 @@ All matched files use Prettier code style!
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 2464.173541
+ℹ duration_ms 2387.925666
 
 > org-kernel@0.1.0 review:plan
 > jev-lint check src tests scripts --dry-run --json
@@ -78,34 +78,26 @@ using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
 {
   "dryRun": true,
   "subjects": 75,
-  "cached": 64,
-  "requests": 8,
-  "tokens": 13266,
-  "usd": 0.000557172,
+  "cached": 69,
+  "requests": 5,
+  "tokens": 8784,
+  "usd": 0.00036892800000000003,
   "retry": 1,
   "batches": [
     {
-      "file": "scripts/review-semantic.ts",
+      "file": "scripts/semantic-result.ts",
       "rule": null,
       "subjects": 1,
-      "arm": "local",
-      "tokens": 807,
+      "arm": "located",
+      "tokens": 1012,
       "degraded": null
     },
     {
       "file": "scripts/semantic-result.ts",
       "rule": null,
-      "subjects": 2,
+      "subjects": 1,
       "arm": "located",
-      "tokens": 1618,
-      "degraded": null
-    },
-    {
-      "file": "scripts/semantic-result.ts",
-      "rule": null,
-      "subjects": 2,
-      "arm": "located",
-      "tokens": 2363,
+      "tokens": 1924,
       "degraded": null
     },
     {
@@ -113,23 +105,7 @@ using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
       "rule": null,
       "subjects": 1,
       "arm": "paired",
-      "tokens": 1663,
-      "degraded": null
-    },
-    {
-      "file": "scripts/semantic-review.ts",
-      "rule": null,
-      "subjects": 1,
-      "arm": "located",
-      "tokens": 997,
-      "degraded": null
-    },
-    {
-      "file": "scripts/semantic-review.ts",
-      "rule": null,
-      "subjects": 1,
-      "arm": "located",
-      "tokens": 1913,
+      "tokens": 1736,
       "degraded": null
     },
     {
@@ -137,7 +113,7 @@ using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
       "rule": null,
       "subjects": 1,
       "arm": "paired",
-      "tokens": 1687,
+      "tokens": 1739,
       "degraded": null
     },
     {
@@ -145,50 +121,50 @@ using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
       "rule": null,
       "subjects": 2,
       "arm": "bare",
-      "tokens": 2218,
+      "tokens": 2373,
       "degraded": null
     }
   ],
   "byRule": [
     {
-      "rule": "org-functional-core",
-      "subjects": 3,
-      "requests": 2,
-      "tokens": 4276,
-      "usd": 0.000179592,
-      "share": 0.32232775516357604
-    },
-    {
       "rule": "tests-cover-failure-paths",
       "subjects": 2,
       "requests": 2,
-      "tokens": 3350,
-      "usd": 0.0001407,
-      "share": 0.25252525252525254
-    },
-    {
-      "rule": "fn-name-promises",
-      "subjects": 3,
-      "requests": 2,
-      "tokens": 2615,
-      "usd": 0.00010983000000000001,
-      "share": 0.19712045831448816
+      "tokens": 3475,
+      "usd": 0.00014595,
+      "share": 0.3956056466302368
     },
     {
       "rule": "test-name-verifies-claim",
       "subjects": 2,
       "requests": 1,
-      "tokens": 2218,
-      "usd": 0.000093156,
-      "share": 0.16719433137343584
+      "tokens": 2373,
+      "usd": 0.000099666,
+      "share": 0.2701502732240437
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 1,
+      "requests": 1,
+      "tokens": 1924,
+      "usd": 0.000080808,
+      "share": 0.21903460837887068
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 1,
+      "requests": 1,
+      "tokens": 1012,
+      "usd": 0.000042504000000000005,
+      "share": 0.11520947176684881
     },
     {
       "rule": "catch-hides-failure",
-      "subjects": 1,
-      "requests": 1,
-      "tokens": 807,
-      "usd": 0.000033894000000000004,
-      "share": 0.0608322026232474
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
     },
     {
       "rule": "comment-describes-block",

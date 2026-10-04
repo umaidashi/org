@@ -17,7 +17,11 @@ export function validateSemanticReview(value: unknown): void {
   }
   if (!Array.isArray(value.findings)) throw new Error('Invalid semantic review findings');
   for (const finding of value.findings) {
-    if (!isRecord(finding) || !['warning', 'info'].includes(String(finding.severity))) {
+    if (
+      !isRecord(finding) ||
+      typeof finding.severity !== 'string' ||
+      !['warning', 'info', 'hint'].includes(finding.severity)
+    ) {
       throw new Error('Semantic review contains an error or invalid finding');
     }
   }
