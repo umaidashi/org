@@ -300,3 +300,6 @@
 - ユーザーがmainへのpushを明示承認。remote mainをfetchし、cfb450aでlocal mainと一致を確認。
 - featureの過去24blobに削除対象の固有名/ローカルパスが残る一方、main過去履歴の対象一致は0。remote履歴を書き換えず、現在の洗浄済みfeature treeをsquashでmainへ取り込む。featureとそのremote refは変更しない。
 - 公開情報ゲートと送信tipの全ローカル検査・実jevをpre-pushで実行する。送信成功はremote refとHEAD一致で確認する。全体目標の完了は主張せず、実AI e2e・Session結線・Memory/権限/Workflow/外部連携/TUI等を継続対象とする。
+
+- mainの2250bf8をorigin/mainへ通常push成功。実pre-push jobは実行され全98テスト・静的検査・実jevが成功。[送信出力](verification/2026-10-04-main-push/prepush.txt)。main全reachable blobの指定固有名/ローカルパス一致は0。featureのremote履歴は変更していない。
+- この公開結果ログもmainへ記録・送信する。全体目標は引き続き未達成。
