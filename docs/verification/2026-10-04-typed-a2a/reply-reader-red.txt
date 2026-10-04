@@ -1,0 +1,23 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-service.test.ts:
+(pass) A2A service verifies Agent and Task references before writing through the injected Room port [2.81ms]
+(pass) A2A reading leaves ordinary Room messages alone and rejects a malformed reserved envelope [0.15ms]
+(pass) A2A reading validates referenced Tasks instead of trusting arbitrary reserved metadata [0.10ms]
+26 |   assert.throws(()=>listA2AMessages({get:()=>room,messages:()=>[message]},room.id,{get:()=>{throw new Error('Task not found');}}),/Task not found/);
+27 | });
+28 | test('A2A reading rejects a reply whose correlation differs from its source', () => {
+29 |   const parent=createA2AMessage(room,input,{id:'request',createdAt:'sent'});
+30 |   const forged=createMessage(room,{sender:{kind:'agent',id:'cto'},content:'Result',replyTo:parent.id,metadata:{a2a:{version:1,from:'cto',to:'chief',type:'result',payload:null,taskId:'task',correlationId:'other'}}},{id:'reply',createdAt:'replied'},parent);
+31 |   assert.throws(()=>listA2AMessages({get:()=>room,messages:()=>[parent,forged]},room.id,{get:()=>undefined}),/A2A.*reference/);
+              ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/a2a-service.test.ts:31:10)
+(fail) A2A reading rejects a reply whose correlation differs from its source [1.69ms]
+
+ 3 pass
+ 1 fail
+Ran 4 tests across 1 file. [110.00ms]

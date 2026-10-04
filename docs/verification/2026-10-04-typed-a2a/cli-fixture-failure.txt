@@ -1,0 +1,60 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-service.test.ts:
+(pass) A2A service verifies Agent and Task references before writing through the injected Room port [3.43ms]
+(pass) A2A reading leaves ordinary Room messages alone and rejects a malformed reserved envelope [0.96ms]
+(pass) A2A reading validates referenced Tasks instead of trusting arbitrary reserved metadata [0.11ms]
+(pass) A2A reading rejects a reply whose correlation differs from its source [0.18ms]
+
+tests/a2a-cli.test.ts:
+(pass) malformed A2A payload and options fail before database creation [620.00ms]
+53 |   daemon.stderr.on('data', (value: Buffer) => {
+54 |     error += value.toString();
+55 |   });
+56 |   const json = (args: string[]): unknown => {
+57 |     const result = run([...args, '--json']);
+58 |     assert.equal(result.status, 0, result.stderr);
+                ^
+AssertionError: Error: --direct cannot be used with --socket
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages [OPTIONS]
+       org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org a2a send|get|list [OPTIONS]
+       org memory capture|get|list|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
+       org daemon status|dispatch|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+ generatedMessage: false,
+     actual: 2,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at json (<REPO>/tests/a2a-cli.test.ts:58:12)
+      at <REPO>/tests/a2a-cli.test.ts:176:22
+      at processTicksAndRejections (native:7:39)
+(fail) A2A request and result retain correlation, Task and immutable Room evidence across daemon and reopened CLI [1995.59ms]
+
+tests/a2a-domain.test.ts:
+(pass) A2A JSON validation rejects non-JSON objects and non-finite values [0.10ms]
+(pass) typed A2A stores every protocol type and copies its payload into immutable Room evidence [0.36ms]
+(pass) A2A replies reverse endpoints and retain Task and correlation instead of accepting inconsistent references [0.11ms]
+(pass) Task Room A2A inherits its Task and rejects a different explicit Task reference [0.09ms]
+
+ 9 pass
+ 1 fail
+Ran 10 tests across 3 files. [2.70s]

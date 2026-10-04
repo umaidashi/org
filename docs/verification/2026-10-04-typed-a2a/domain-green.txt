@@ -1,0 +1,11 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-domain.test.ts:
+(pass) A2A JSON validation rejects non-JSON objects and non-finite values [2.07ms]
+(pass) typed A2A stores every protocol type and copies its payload into immutable Room evidence [0.49ms]
+(pass) A2A replies reverse endpoints and retain Task and correlation instead of accepting inconsistent references [0.39ms]
+(pass) Task Room A2A inherits its Task and rejects a different explicit Task reference [0.21ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 1 file. [23.00ms]

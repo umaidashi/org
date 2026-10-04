@@ -1,0 +1,25 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-domain.test.ts:
+(pass) A2A JSON validation rejects non-JSON objects and non-finite values [1.01ms]
+(pass) typed A2A stores every protocol type and copies its payload into immutable Room evidence [0.73ms]
+(pass) A2A replies reverse endpoints and retain Task and correlation instead of accepting inconsistent references [0.22ms]
+24 |   assert.throws(()=>readA2AMessage({...first,sender:{kind:'human',id:'chief'}}));
+25 | });
+26 | test('Task Room A2A inherits its Task and rejects a different explicit Task reference', () => {
+27 |   const taskRoom = { ...room, type: 'task' as const, taskId: 'task' };
+28 |   const message = createA2AMessage(taskRoom, { from:'chief',to:'cto',type:'request',payload:null }, {id:'message',createdAt:'sent'});
+29 |   assert.equal(readA2AMessage(message).taskId, 'task');
+              ^
+AssertionError: Expected values to be strictly equal:
+
+null !== 'task'
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/a2a-domain.test.ts:29:10)
+(fail) Task Room A2A inherits its Task and rejects a different explicit Task reference [1.32ms]
+
+ 3 pass
+ 1 fail
+Ran 4 tests across 1 file. [34.00ms]

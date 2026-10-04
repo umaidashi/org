@@ -8,10 +8,10 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで145テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで155テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAt・optional reportsToを実装。legacy schema/root JSON互換・循環/不存在拒否・同時変更時再検証・不変履歴/rollback・実CLIを検証。capabilities/permissions/memoryPolicyは未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | reportsToによるChief→専門Agentの関係と変更履歴を保存。自動委譲は未完了 |
-| A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | 未完了 |
+| A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | version付きRoom Message・CLI send/get/listを実装。宛先/Task/返信/correlationを検証。実daemon request→resultと再openを確認。自動委譲・wake-upは後続 |
 | Room | Direct/Group/Agent/Task、同じAgentの複数Room、参加者・archive | Local SQLiteとCLIを実装。種類別参加者構成・Agent/Task参照・archiveを検証。Human認証は未完了 |
 | Message | Roomごとの永続履歴、replyTo・sender・metadata | 追記専用SQLite履歴とCLI。別プロセス読み直し・同Room返信・sender参加・metadata・archive後拒否・原本UPDATE/DELETE/REPLACE拒否・INSERT失敗後の復旧を検証 |
 | Activation | coordinator既定、直接mention、mention_only/all/rule_based | 未完了 |

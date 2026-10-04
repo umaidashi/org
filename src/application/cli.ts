@@ -1,3 +1,5 @@
+import { parseA2ACommand, runA2ACommand } from '../a2a/cli.js';
+import type { A2ACommand } from '../a2a/cli.js';
 import { parseMemoryCommand, runMemoryCommand } from '../memory/cli.js';
 import type { MemoryCommand } from '../memory/cli.js';
 import { parseSessionCommand, runSessionCommand } from '../sessions/cli.js';
@@ -26,6 +28,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
        org [--db PATH] room create|list|get|archive|send|messages [OPTIONS]
        org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org a2a send|get|list [OPTIONS]
        org memory capture|get|list|invalidate [OPTIONS]
        org session start|send|resume|reply|stop|get|list|history [OPTIONS]
        org [--db PATH] daemon --once [--json]
@@ -44,6 +47,7 @@ function required(value: string | undefined, name: string): string {
 }
 
 export type ApplicationCommand =
+  | { readonly kind: 'a2a'; readonly command: A2ACommand }
   | { readonly kind: 'memory'; readonly command: MemoryCommand }
   | { kind: 'session'; command: SessionCommand }
   | { kind: 'help' }
@@ -62,6 +66,7 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
     strict: false,
     options: { db: { type: 'string' } },
   });
+  if (probe.positionals[0] === 'a2a') return { kind: 'a2a', command: parseA2ACommand(argv) };
   if (probe.positionals[0] === 'memory')
     return { kind: 'memory', command: parseMemoryCommand(argv) };
   if (probe.positionals[0] === 'session')
@@ -160,6 +165,10 @@ async function runApplication(
   output: (line: string) => void,
   sessions?: ApplicationContext,
 ): Promise<void> {
+  if (command.kind === 'a2a') {
+    runA2ACommand({ ...command.command, db }, output);
+    return;
+  }
   if (command.kind === 'memory') {
     runMemoryCommand({ ...command.command, db }, output);
     return;

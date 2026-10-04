@@ -453,3 +453,15 @@
 - create --reports-to、report --to|--clear、reporting-history、list JSONを実daemon CLIでRED→GREEN。action別option拒否とclear/to排他も確認。初回型検査はSQL bindのnull型を漏らし修正、lintはnullable未知値のString変換を検出し明示text検証へ修正。
 - 全145テスト・型・lint・AST成功。[全検査](verification/2026-10-04-agent-reporting-lines/check.txt)。実Jev736対象、missing/unsure0・errors/degradedなし。[実レビュー](verification/2026-10-04-agent-reporting-lines/semantic.txt)。独立Reviewer3UT成功、Critical/Important/Minorなし。
 - Next: typed A2Aのdelegate/request/result/question/decision/blocker/cancelを不変Room Messageに載せ、宛先・Task・correlation参照を検証する。自動Agent wake-up/委譲やPermissionは組織登録だけで付与せず、次の境界として実装する。全体ゴールは保持し継続。
+
+## typed A2Aの不変Message（2026-10-05継続）
+
+- [計画](superpowers/plans/2026-10-04-typed-a2a.md)。7種類のA2A envelopeをRoom Messageのmetadataへ保存し、原本を二重管理しない。純粋domainとAgent/Room/Taskの必要操作だけを注入するserviceを実装。返信時はTask/correlationを引き継ぎ、宛先逆転・同Room・Task Room参照を検証する。
+- DB不要8UT RED→GREEN。service最初のREDはBun loaderのunknown errorであり、振る舞いの失敗証拠ではない。Task参照/readerのcorrelation検証等は個別REDを保存した。
+- 実daemonのCLI request→resultが未実装--fromで失敗するREDを確認。send/get/listを配線後、fixtureが--direct/--socketを併用して失敗。fixtureのtransport選択を訂正し10/10成功。archive後の再open、非参加Agent・不存在Task・correlation不一致の拒否と原本不変を検証。
+- CLIはJSONをunknownから有限JSONへ検証し、誤ったtype/options/payloadをDB作成前に拒否。A2Aは現時点で記録/参照の機能であり、認証保証・自動Task委譲・Agent起動ではない。
+- 全155テスト・tsgo/type-aware Oxlint/Oxfmt/AST成功。[全検査](verification/2026-10-04-typed-a2a/check.txt)。実Jev782判定、errors/degradedなし。[実レビュー](verification/2026-10-04-typed-a2a/semantic.txt)。CLI parse/runのfailure-path候補を独立レビューと合わせて判定する。
+- 次のActivation設計のためNotion02を再取得し、保存済み内容と同じRoom/Session分離と4つのactivation policyを確認。自動起動を全Agentへ無条件に広げず、coordinator・明示宛先・重複防止を境界で設計する。
+- Final: 独立ReviewerはA2A全4source/app差分/3test/計画/README/要件をアクセス障害前に読了。Critical/Important/Minorなし。独立UTはBun Unexpectedで終了、その後OS側Operation not permittedとなり独立GREENとは扱わない。補助failure-path候補は入力/type/JSON/options/参照/保存拒否を既存e2e/UTで確認し、非阻害と判断。
+- 一時的なOS側アクセス拒否でcommit前に停止。通常・明示cwd権限付き読取りも拒否、git親とrepoがerrno1、tmpは読み書き可能だった。復旧後にdiff/保存済み検証記録を確認。資格情報探索・権限制約の回避は行わない。復旧後に全ゲートを再実行してcommitする。
+- 復旧後の全155テスト・静的ゲート再実行成功。[復旧後検査](verification/2026-10-04-typed-a2a/recovered-check.txt)。独立レビューの読了範囲と実行不能を別記した。Next: 通常main push後、Room coordinator指定と明示mention/A2A宛先のActivation判断をTDDで実装する。

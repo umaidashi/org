@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-service.test.ts:
+(pass) A2A service verifies Agent and Task references before writing through the injected Room port [1.47ms]
+(pass) A2A reading leaves ordinary Room messages alone and rejects a malformed reserved envelope [0.15ms]
+(pass) A2A reading validates referenced Tasks instead of trusting arbitrary reserved metadata [0.09ms]
+(pass) A2A reading rejects a reply whose correlation differs from its source [0.14ms]
+
+tests/a2a-domain.test.ts:
+(pass) A2A JSON validation rejects non-JSON objects and non-finite values [0.07ms]
+(pass) typed A2A stores every protocol type and copies its payload into immutable Room evidence [0.49ms]
+(pass) A2A replies reverse endpoints and retain Task and correlation instead of accepting inconsistent references
+(pass) Task Room A2A inherits its Task and rejects a different explicit Task reference [0.08ms]
+
+ 8 pass
+ 0 fail
+Ran 8 tests across 2 files. [22.00ms]

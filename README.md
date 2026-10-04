@@ -83,6 +83,19 @@ bun run start room archive ROOM_ID --json
 
 MessageはRoom別の追記履歴です。senderは参加者、返信先は同じRoomのMessageに限定します。`--metadata`はJSON objectを指定できます。archive後は投稿できず、既存履歴は読めます。この操作ではAgentの起動、Activationの実行、Humanの認証は行いません。
 
+## Agent間のA2A
+
+```sh
+bun run start a2a send ROOM_ID --from CHIEF_ID --to CTO_ID --type request --payload '{"objective":"Research"}' --task TASK_ID --json
+bun run start a2a send ROOM_ID --from CTO_ID --to CHIEF_ID --type result --payload '{"evidence":["complete"]}' --reply-to REQUEST_ID --json
+bun run start a2a list ROOM_ID --json
+bun run start a2a get ROOM_ID MESSAGE_ID --json
+```
+
+種類はdelegate/request/result/question/decision/blocker/cancelです。宛先は同じRoomのAgentに限定し、Taskを指定した場合は存在を検証します。Task RoomではTask参照を継承します。返信は元Messageの宛先を逆転し、Taskとcorrelationを引き継ぎます。矛盾する参照は保存前に拒否します。
+
+原本はRoomの不変Messageです。通常のMessageと共存し、archive後も読めます。この段階では送信に伴うAgent起動・Task委譲は行いません。Agent識別子はローカル操作側が指定する値で、本人認証ではありません。
+
 ## Event・Subscription
 
 ```sh
@@ -129,7 +142,7 @@ bun run start daemon stop --json
 
 TCP listenerは開かず、Unix socketを0600で作成します。同socketの2重起動や既存file/symlinkの置換を拒否します。stop・SIGTERM・SIGINTで終了し、自分が作成したsocket/lockを解放します。SIGKILL等で残ったsocket/lockは自動削除しません。稼働中プロセスがないことを確認してから手動で整理してください。
 
-Agent/Task/Room/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。同じPOSIX process groupの子孫を終了させます。daemon自身のSIGKILL時も監督pipeの切断で同groupを停止します。別groupへ離脱する子孫の隔離は後続です。scheduler、Task実行のretry、Workflow・Sandbox等のCLIとTUIは未実装です。
+Agent/Task/Room/A2A/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。同じPOSIX process groupの子孫を終了させます。daemon自身のSIGKILL時も監督pipeの切断で同groupを停止します。別groupへ離脱する子孫の隔離は後続です。scheduler、Task実行のretry、Workflow・Sandbox等のCLIとTUIは未実装です。
 
 ## 検証とレビュー
 

@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-service.test.ts:
+(pass) A2A service verifies Agent and Task references before writing through the injected Room port [1.63ms]
+(pass) A2A reading leaves ordinary Room messages alone and rejects a malformed reserved envelope [0.18ms]
+21 |   assert.deepEqual(listA2AMessages({get:()=>room,messages:()=>[ordinary]},room.id),[]);
+22 |   assert.throws(()=>listA2AMessages({get:()=>room,messages:()=>[{...ordinary,metadata:{a2a:{version:1}}}]},room.id),/Invalid A2A/);
+23 | });
+24 | test('A2A reading validates referenced Tasks instead of trusting arbitrary reserved metadata', () => {
+25 |   const message = createA2AMessage(room,input,{id:'request',createdAt:'sent'});
+26 |   assert.throws(()=>listA2AMessages({get:()=>room,messages:()=>[message]},room.id,{get:()=>{throw new Error('Task not found');}}),/Task not found/);
+              ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/a2a-service.test.ts:26:10)
+(fail) A2A reading validates referenced Tasks instead of trusting arbitrary reserved metadata [2.13ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [34.00ms]

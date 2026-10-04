@@ -1,0 +1,24 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-domain.test.ts:
+1 | import assert from 'node:assert/strict';
+2 | import { test } from 'bun:test';
+3 | import { createRoom } from '../src/rooms/domain.js';
+4 | import { createA2AMessage, readA2AMessage, a2aTypes, isJsonValue } from '../src/a2a/domain.js';
+5 | test('A2A JSON validation rejects non-JSON objects and non-finite values', () => {
+6 |   for (const value of [new Date(), new Map(), undefined, 1n, Infinity, { value: NaN }]) assert.equal(isJsonValue(value), false);
+                                                                                                   ^
+AssertionError: Expected values to be strictly equal:
+
+true !== false
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/a2a-domain.test.ts:6:96)
+(fail) A2A JSON validation rejects non-JSON objects and non-finite values [3.17ms]
+(pass) typed A2A stores every protocol type and copies its payload into immutable Room evidence [0.80ms]
+(pass) A2A replies reverse endpoints and retain Task and correlation instead of accepting inconsistent references [0.15ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [42.00ms]
