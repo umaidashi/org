@@ -188,3 +188,13 @@ bun run start session stop SESSION_ID --json
 ```
 
 AgentはRoomの参加者である必要があります。Sessionの開始・送信はRuntimeの完了まで待機し、別のterminalからstopできます。待機時間はRuntime設定で制限します。daemon停止時は実行中のturnを中止して終了を待ち、再起動時に残ったrunning状態はfailedへ復旧します。provider Session IDを維持してresumeします。Codexはread-only/approval never、Claudeはbareかつtools無効で起動します。自動e2eは実subprocessのfixtureを使用します。実Codexでも開始→同じprovider IDで再開→停止を別途確認済みです。実Claudeは未確認です。
+
+RoomのMessageに応答を残す場合は、保存済みのMessage IDを指定します。
+
+```sh
+bun run start room send ROOM_ID --human founder --content '質問' --json
+bun run start session reply SESSION_ID --room-message MESSAGE_ID --json
+bun run start room messages ROOM_ID --json
+```
+
+入力Messageまでの履歴を最大30件・64KiBに限定して渡し、省略数もContextに含めます。同じSession/Messageの保存済み返信を再利用します。provider実行と返信保存の間でprocessが落ちた場合のexactly-onceは未実装です。

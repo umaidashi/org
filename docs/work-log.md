@@ -331,3 +331,13 @@
 - 独立ReviewerのImportant 2件を修正。Bun既定idle timeoutで10秒超の応答が切れること、先頭オプションのSessionが短いclient timeoutになることを11秒の実socket応答でRED→GREEN確認。入力body検証後にrequest timeoutを無効化し、clientはparsed commandでSessionを識別。Session時間制限はRuntimeが所有し、管理者設定より先にclientで切らない。[RED](verification/2026-10-04-session-cli/long-red.txt)、[GREEN](verification/2026-10-04-session-cli/long-green.txt)。
 - 全110テスト、tsgo/Oxlint/Oxfmt/AST/jev dry-run成功。[出力](verification/2026-10-04-session-cli/check.txt)。signalのundefined指定をstrict型検査が拒否したためnullへ修正。実jev最終592対象、errorsなし。[出力](verification/2026-10-04-session-cli/semantic.txt)。
 - 実Codexを一時Git workspaceにread-only/approval neverで起動し、daemon/CLI経由の開始と再開で指定markerを受信。同じprovider IDとidleを確認し停止/daemon終了。raw応答・認証・個人パスは公開repoへ入れず、結果のみ保存。[実AI結果](verification/2026-10-04-session-cli/real-codex.txt)。実Claudeは未確認。RoomのMessage/summary/Memoryを用いた再構築、Task実行統合、Permission/Sandbox、Workflow等は継続対象。
+
+
+## Room履歴ContextとAgent返信
+
+- [計画](superpowers/plans/2026-10-04-room-runtime.md)。Session replyで既存Room Messageへ応答し、Agent sender/replyTo/session metadata付きの不変Messageを保存。別Room/非参加/archive/入力なしはRuntime前に拒否し、失敗時replyを書かない。Port/Runtime/identityを注入。
+- 入力までの履歴だけを最大30件/UTF-8 64KiBへ制限し、省略数を渡す。source自身が大きすぎる場合は実行前に拒否。provider実行と返信appendの途中crashのexactly-onceは保証しない。
+- service未実装RED→DB-free UT2件GREEN。[出力](verification/2026-10-04-room-runtime/green.txt)。実CLI/daemon/fixtureで返信保存・同じSession/Messageへの重複要求を同じreply IDで返すことを確認。全112テスト、静的検査と実jev missing/unsure0・errors/degradedなし。[全検証](verification/2026-10-04-room-runtime/check.txt)、[実jev](verification/2026-10-04-room-runtime/semantic.txt)。
+- 実Codex/一時workspaceでもRoom Message→指定markerのAgent返信→replyToリンク・保存済み2件を確認。[実AI判定](verification/2026-10-04-room-runtime/real-codex.txt)。raw応答や認証情報は公開ログへ入れない。
+- 独立Reviewer: Critical/Importantなし、UT2件を独立実行。Minor: Message.createdAtがturn開始時刻になるため応答完了時刻より早い。履歴はsequence順で壊れない。clockをappend直前に注入する改善を後続へ記録する。
+- 次はTyped Memoryのscope/source refs/status projectionを小さく実装し、Room Contextへ接続する。全体ゴールは未達成で継続する。

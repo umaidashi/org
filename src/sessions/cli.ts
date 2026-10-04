@@ -1,3 +1,4 @@
+import type { Message } from '../rooms/domain.js';
 import { parseArgs } from 'node:util';
 import type { SessionStore } from './port.js';
 import type { LocalAgentRuntime } from '../runtime/manager.js';
@@ -17,9 +18,17 @@ export type SessionCommand =
       readonly instruction: string;
       readonly json: boolean;
     }
+  | {
+      readonly action: 'reply';
+      readonly id: string;
+      readonly messageId: string;
+      readonly instruction: string;
+      readonly json: boolean;
+    }
   | { readonly action: 'get' | 'stop' | 'history'; readonly id: string; readonly json: boolean }
   | { readonly action: 'list'; readonly json: boolean };
 export interface SessionContext {
+  readonly reply?: (id: string, messageId: string, instruction: string) => Promise<Message>;
   readonly store: Pick<SessionStore, 'get' | 'list' | 'history'>;
   readonly runtime: Pick<LocalAgentRuntime, 'start' | 'send' | 'resume' | 'stop'>;
 }
@@ -36,6 +45,7 @@ export function parseSessionCommand(argv: string[]): SessionCommand {
       agent: { type: 'string' },
       room: { type: 'string' },
       message: { type: 'string' },
+      'room-message': { type: 'string' },
       instruction: { type: 'string' },
       json: { type: 'boolean' },
     },
@@ -43,6 +53,23 @@ export function parseSessionCommand(argv: string[]): SessionCommand {
   const [noun, action, id, ...extra] = parsed.positionals;
   if (noun !== 'session' || extra.length) throw new Error('Expected session command');
   const json = parsed.values.json ?? false;
+  if (action !== 'reply' && parsed.values['room-message'] !== undefined)
+    throw new Error('Room Message requires session reply');
+  if (action === 'reply') {
+    if (
+      parsed.values.agent !== undefined ||
+      parsed.values.room !== undefined ||
+      parsed.values.message !== undefined
+    )
+      throw new Error('Unexpected reply options');
+    return {
+      action,
+      id: required(id, 'ID'),
+      messageId: required(parsed.values['room-message'], 'Room Message'),
+      instruction: parsed.values.instruction ?? '',
+      json,
+    };
+  }
   if (action === 'start') {
     if (id !== undefined) throw new Error('Unexpected Session ID');
     return {
@@ -82,6 +109,10 @@ export async function runSessionCommand(
 ): Promise<string> {
   let result: unknown;
   switch (command.action) {
+    case 'reply':
+      if (!context.reply) throw new Error('Room replies require daemon');
+      result = await context.reply(command.id, command.messageId, command.instruction);
+      break;
     case 'start':
       result = await context.runtime.start(command);
       break;

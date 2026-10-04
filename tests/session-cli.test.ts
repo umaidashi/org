@@ -113,6 +113,36 @@ test('Session CLI runs configured daemon runtime and cancels pending turns befor
     const resume = json(['--socket', socket, 'session', 'resume', id, '--message', 'again']);
     assert.ok(record(resume));
     assert.equal(resume.text, 'again');
+    const source = json([
+      '--socket',
+      socket,
+      'room',
+      'send',
+      room.id,
+      '--human',
+      'founder',
+      '--content',
+      'room question',
+    ]);
+    assert.ok(record(source) && typeof source.id === 'string');
+    const reply = json(['--socket', socket, 'session', 'reply', id, '--room-message', source.id]);
+    assert.ok(record(reply) && typeof reply.id === 'string');
+    assert.equal(reply.content, 'room question');
+    assert.equal(reply.replyTo, source.id);
+    const repeated = json([
+      '--socket',
+      socket,
+      'session',
+      'reply',
+      id,
+      '--room-message',
+      source.id,
+    ]);
+    assert.ok(record(repeated));
+    assert.equal(repeated.id, reply.id);
+    const conversation = json(['--socket', socket, 'room', 'messages', room.id]);
+    assert.ok(Array.isArray(conversation));
+    assert.equal(conversation.length, 2);
     const beginWait = () => {
       const child = spawn(process.execPath, [
         '--no-env-file',

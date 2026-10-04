@@ -8,7 +8,7 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで106テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで112テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAtを実装・検証。組織/権限/Memory属性は未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | 未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | 未完了 |
@@ -18,7 +18,7 @@
 | Session | Room/Identityとの分離、start/send/resume/stop、履歴から再構築 | 独立Session ID/provider ID・pure状態遷移・version競合拒否・SQLite状態/不変履歴の原子保存を実装。rollback/REPLACE拒否/別プロセス読込を検証。serviceによるRuntime turn結線とstop先保存/late応答保護、restart recovery関数を実装。両Adapter+SQLite+実Bun fixtureで開始/再開/停止を検証。CLI/daemon起動配線・起動時recovery・設定済みdriver・停止時drainを実装。実Codexの開始/再開/停止を確認。実Claude/履歴から再構築は未完了 |
 | Memory | semantic/episodic/procedural/relational、scope、根拠参照、confidence | 未完了 |
 | Memory更新 | extraction、dedup、conflict、supersede/invalidate、原履歴不変 | 未完了 |
-| Context | scope・type・tags/entity・recency・importance・full-textの選択、ContextBuilder | 未完了 |
+| Context | scope・type・tags/entity・recency・importance・full-textの選択、ContextBuilder | Room入力までの履歴を最大30件/64KiB・省略数付きで構成し、Runtime応答をreply Messageへ保存。実Codex/CLIで検証。summary/Typed Memory選択は未完了 |
 | Task | WorkItemと内部ExecutionTaskの分離、依存・owner・親・成果物 | kind別作成/取得/一覧、依存/owner/親、コメント/成果物URIを永続化。外部同期とArtifact回収は未完了 |
 | Task状態 | pending/assigned/running/blocked/waiting_approval/completed/failed | 純粋な遷移・参照/依存判断、SQLiteの原子的な状態/不変履歴、rollback/古いversion拒否を検証。Event由来Taskの冪等作成/割当/復旧を追加。実行とApprovalは未完了 |
 | TaskProvider | create/get/update/list/addComment/linkArtifact、Localと外部Adapter | PortとLocal SQLite Adapterを実装・検証。外部Adapterは未完了 |
@@ -27,7 +27,7 @@
 | Trigger | manual/internal/event/webhook/schedule | 未完了 |
 | Daemon | ローカルAPI/socket、polling、process管理、execution状態、retry/timeout | 常駐polling/Unix socketとstatus/dispatch/stop、--once/deliveriesを実装。実プロセスで新Event処理・停止/再起動・同時起動拒否・0600・原本保護・所有inode cleanup・poll失敗復旧を検証。Agent/Task/Room/Eventはdaemon client化済み。process管理/Execution retry/timeoutは未完了 |
 | Scheduler | 定期実行、Agent wake-up、再起動後の整合性 | 未完了 |
-| Runtime | Claude Code/Codex CLI Adapter、role/instruction injection | 明示argv/env/input・timeout/cancel・出力上限の実子プロセス境界を検証。Codex/Claudeのstart/resume引数生成・応答解析・process DI境界をUT検証。共通RuntimeTurn PortとLocalAgentRuntime start/send/resume/stop/shutdown、停止drain・同時実行拒否を実fixture/SQLiteで検証。実AI e2e/CLI配線/Task連携は未完了 |
+| Runtime | Claude Code/Codex CLI Adapter、role/instruction injection | 明示argv/env/input・timeout/cancel・出力上限の実子プロセス境界を検証。Codex/Claudeのstart/resume引数生成・応答解析・process DI境界をUT検証。共通RuntimeTurn PortとLocalAgentRuntime start/send/resume/stop/shutdown、停止drain・同時実行拒否を実fixture/SQLiteで検証。daemon/CLI配線と実Codexの開始/再開/Room返信を検証。実Claude/Task連携は未完了 |
 | Sandbox | local process/Docker、checkout/mount、資格情報の限定注入、destroy | 未完了 |
 | Artifact | 回収・永続参照・Taskとの関連付け | 未完了 |
 | Workflow | n8n invoke/status/cancel、Task/Agentから分離 | 未完了 |

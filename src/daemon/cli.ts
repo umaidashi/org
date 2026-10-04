@@ -1,3 +1,4 @@
+import { replyToRoomMessage } from '../rooms/runtime.js';
 import { randomUUID } from 'node:crypto';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
 import { SqliteSessionStore } from '../sessions/sqlite.js';
@@ -109,7 +110,19 @@ function openOperations(db: string, runtimeConfig?: string): DaemonOperations {
     return {
       dispatch: () => dispatchEvents(eventBus, agentRepository, taskProvider, journal),
       deliveries: () => journal.list(),
-      command: (argv) => executeApplication(argv, db, true, { store: sessionStore, runtime }),
+      command: (argv) =>
+        executeApplication(argv, db, true, {
+          store: sessionStore,
+          runtime,
+          reply: (id, messageId, instruction) =>
+            replyToRoomMessage(
+              roomRepository,
+              sessionStore,
+              runtime,
+              { sessionId: id, messageId, instruction },
+              { id: randomUUID(), at: new Date().toISOString() },
+            ),
+        }),
       shutdown: () => runtime.shutdown(),
       close: async () => {
         try {

@@ -30,7 +30,7 @@
     "hook:commit": "bun --no-env-file scripts/local-gate.ts pre-commit",
     "hook:push": "bun --no-env-file scripts/local-gate.ts pre-push",
     "verify:head": "bun --no-env-file scripts/local-gate.ts head",
-    "test:unit": "bun --no-env-file test ./tests/agent-domain.test.ts tests/agent-service.test.ts tests/task-domain.test.ts tests/task-service.test.ts tests/room-domain.test.ts tests/room-service.test.ts tests/semantic-review.test.ts tests/event-domain.test.ts tests/event-service.test.ts tests/daemon-service.test.ts tests/daemon-poll.test.ts tests/daemon-cleanup.test.ts tests/daemon-parser.test.ts tests/cli-transport.test.ts tests/codex-turn.test.ts tests/claude-turn.test.ts tests/session-domain.test.ts tests/session-service.test.ts tests/session-parser.test.ts tests/runtime-config.test.ts"
+    "test:unit": "bun --no-env-file test ./tests/agent-domain.test.ts tests/agent-service.test.ts tests/task-domain.test.ts tests/task-service.test.ts tests/room-domain.test.ts tests/room-service.test.ts tests/semantic-review.test.ts tests/event-domain.test.ts tests/event-service.test.ts tests/daemon-service.test.ts tests/daemon-poll.test.ts tests/daemon-cleanup.test.ts tests/daemon-parser.test.ts tests/cli-transport.test.ts tests/codex-turn.test.ts tests/claude-turn.test.ts tests/session-domain.test.ts tests/session-service.test.ts tests/session-parser.test.ts tests/runtime-config.test.ts tests/room-runtime.test.ts"
   },
   "devDependencies": {
     "@ast-grep/cli": "0.45.3",

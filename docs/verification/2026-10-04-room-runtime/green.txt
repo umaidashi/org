@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-runtime.test.ts:
+(pass) Room runtime uses history through the source and persists an Agent reply only after success [1.75ms]
+(pass) Room context bounds UTF-8 bytes and reports omitted history, rejecting oversized sources before runtime [11.64ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [33.00ms]

@@ -1,0 +1,1 @@
+{"start_received": true, "resume_received": true, "state": "idle", "provider_id_preserved": true, "start_marker": true, "resume_marker": true, "room_reply_marker": true, "room_reply_link": true, "room_message_count": 2}

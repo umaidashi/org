@@ -22,7 +22,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org [--db PATH] task list|get|assign|update|history [OPTIONS]
        org [--db PATH] room create|list|get|archive|send|messages [OPTIONS]
        org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
-       org session start|send|resume|stop|get|list|history [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
        org [--db PATH] daemon --once [--json]
        org [--db PATH] daemon deliveries [--json]
        org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
