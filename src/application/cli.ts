@@ -1,3 +1,5 @@
+import { parseMemoryCommand, runMemoryCommand } from '../memory/cli.js';
+import type { MemoryCommand } from '../memory/cli.js';
 import { parseSessionCommand, runSessionCommand } from '../sessions/cli.js';
 import type { SessionCommand, SessionContext } from '../sessions/cli.js';
 import { randomUUID } from 'node:crypto';
@@ -22,6 +24,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org [--db PATH] task list|get|assign|update|history [OPTIONS]
        org [--db PATH] room create|list|get|archive|send|messages [OPTIONS]
        org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org memory capture|get|list|invalidate [OPTIONS]
        org session start|send|resume|reply|stop|get|list|history [OPTIONS]
        org [--db PATH] daemon --once [--json]
        org [--db PATH] daemon deliveries [--json]
@@ -39,6 +42,7 @@ function required(value: string | undefined, name: string): string {
 }
 
 export type ApplicationCommand =
+  | { readonly kind: 'memory'; readonly command: MemoryCommand }
   | { kind: 'session'; command: SessionCommand }
   | { kind: 'help' }
   | { kind: 'task'; command: TaskCommand }
@@ -54,6 +58,8 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
     strict: false,
     options: { db: { type: 'string' } },
   });
+  if (probe.positionals[0] === 'memory')
+    return { kind: 'memory', command: parseMemoryCommand(argv) };
   if (probe.positionals[0] === 'session')
     return { kind: 'session', command: parseSessionCommand(argv) };
   if (probe.positionals[0] === 'task') return { kind: 'task', command: parseTaskCommand(argv) };
@@ -109,6 +115,10 @@ async function runApplication(
   output: (line: string) => void,
   sessions?: SessionContext,
 ): Promise<void> {
+  if (command.kind === 'memory') {
+    runMemoryCommand({ ...command.command, db }, output);
+    return;
+  }
   if (command.kind === 'session') {
     if (!sessions) throw new Error('Session commands require daemon');
     output(await runSessionCommand(command.command, sessions));

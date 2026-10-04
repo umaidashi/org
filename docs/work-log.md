@@ -341,3 +341,14 @@
 - 実Codex/一時workspaceでもRoom Message→指定markerのAgent返信→replyToリンク・保存済み2件を確認。[実AI判定](verification/2026-10-04-room-runtime/real-codex.txt)。raw応答や認証情報は公開ログへ入れない。
 - 独立Reviewer: Critical/Importantなし、UT2件を独立実行。Minor: Message.createdAtがturn開始時刻になるため応答完了時刻より早い。履歴はsequence順で壊れない。clockをappend直前に注入する改善を後続へ記録する。
 - 次はTyped Memoryのscope/source refs/status projectionを小さく実装し、Room Contextへ接続する。全体ゴールは未達成で継続する。
+
+
+## 根拠付きTyped Memoryとscope Context
+
+- Notion03を再取得しsnapshot一致を確認。[計画](superpowers/plans/2026-10-04-typed-memory.md)。4type/scope/confidence/Message source refsを純粋domainで検証。MemoryProviderとcapture serviceへPortを注入。原Messageを変更せず明示captureする。
+- SQLiteは原Memory本文を追記し、同scope/typeのactive predecessorを新記録でsupersedeする。invalidate理由/時刻も追記。statusは原記録から投影する。CLI capture/get/list/invalidate、別プロセス再openを検証。期間/自動extract/dedup/conflictは未完了。
+- domain/SQLite/CLI/Contextの先行RED→GREENを記録。capture参照UTは実装と同時追加で、先行RED証拠はない。scope境界UTはactiveの現在Room/Agent/Task/company/globalだけを選び、他Room/Agentと無効Memoryを除外する。最大20件とContext全体64KiB・省略数を実装。
+- daemon経由のMemory登録→Room返信Contextを実fixtureで確認。実Codexでも根拠Messageを直近30件から外した状態で、scope Memoryのmarkerを読み取り返信保存するe2e成功。[実AI](verification/2026-10-04-typed-memory/real-codex.txt)。秘密情報/raw応答は記録しない。
+- 全117テスト、tsgo/Oxlint/Oxfmt/AST/jev dry-run成功。[検証](verification/2026-10-04-typed-memory/check.txt)。実jev641対象、missing/unsure0、errors/degradedなし。[出力](verification/2026-10-04-typed-memory/semantic.txt)。独立Reviewerは6テスト成功、API経由Critical/Importantなし。
+- ReviewerのMinor（異なるidで同じsupersedesのINSERT OR REPLACEが原記録を消せる）を、不変historyの受入条件への違反としてImportantへ再評価し修正。全UNIQUEキー(id/sequence/supersedes)の衝突を追加triggerで拒否する。既存triggerを外す期間は作らない。実SQLのRED→GREENを保存。[RED](verification/2026-10-04-typed-memory/replace-red.txt)、[GREEN](verification/2026-10-04-typed-memory/replace-green.txt)。
+- 次はExecutionTask→Room/Session実行→結果をTaskへ記録する最小実務の縦断。Approval/Sandbox/Workflow/A2A等と全体目標は継続する。

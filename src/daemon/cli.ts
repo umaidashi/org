@@ -1,3 +1,4 @@
+import { SqliteMemoryProvider } from '../memory/sqlite.js';
 import { replyToRoomMessage } from '../rooms/runtime.js';
 import { randomUUID } from 'node:crypto';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
@@ -87,6 +88,7 @@ function openOperations(db: string, runtimeConfig?: string): DaemonOperations {
   let tasks: SqliteTaskProvider | undefined;
   let rooms: SqliteRoomRepository | undefined;
   let sessions: SqliteSessionStore | undefined;
+  let memory: SqliteMemoryProvider | undefined;
   try {
     const eventBus = new SqliteEventBus(db);
     events = eventBus;
@@ -106,6 +108,8 @@ function openOperations(db: string, runtimeConfig?: string): DaemonOperations {
       () => new Date().toISOString(),
       randomUUID,
     );
+    const memoryProvider = new SqliteMemoryProvider(db);
+    memory = memoryProvider;
     runtime.recover();
     return {
       dispatch: () => dispatchEvents(eventBus, agentRepository, taskProvider, journal),
@@ -121,6 +125,7 @@ function openOperations(db: string, runtimeConfig?: string): DaemonOperations {
               runtime,
               { sessionId: id, messageId, instruction },
               { id: randomUUID(), at: new Date().toISOString() },
+              memoryProvider,
             ),
         }),
       shutdown: () => runtime.shutdown(),
@@ -129,6 +134,7 @@ function openOperations(db: string, runtimeConfig?: string): DaemonOperations {
           await runtime.shutdown();
         } finally {
           releaseResources([
+            memoryProvider,
             sessionStore,
             roomRepository,
             taskProvider,
@@ -142,7 +148,7 @@ function openOperations(db: string, runtimeConfig?: string): DaemonOperations {
   } catch (error) {
     try {
       releaseResources(
-        [sessions, rooms, tasks, agents, events, journal].flatMap((resource) =>
+        [memory, sessions, rooms, tasks, agents, events, journal].flatMap((resource) =>
           resource ? [resource] : [],
         ),
       );

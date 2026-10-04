@@ -21,7 +21,7 @@ test('Session CLI runs configured daemon runtime and cancels pending turns befor
     executable,
     `#!${process.execPath}\nconst input = JSON.parse(await Bun.stdin.text());
     if (input.message === 'wait') { await Bun.write(${JSON.stringify(marker)}, 'ready'); setInterval(() => {}, 100); }
-    else { console.log(JSON.stringify({type:'thread.started',thread_id:'provider'})); console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:input.message}})); console.log(JSON.stringify({type:'turn.completed',usage:{}})); }\n`,
+    else { if(input.message === 'room question' && !JSON.parse(input.instruction).memories.some(m=>m.content === 'Room practice')) throw new Error('Scoped Memory missing'); console.log(JSON.stringify({type:'thread.started',thread_id:'provider'})); console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:input.message}})); console.log(JSON.stringify({type:'turn.completed',usage:{}})); }\n`,
     { mode: 0o700 },
   );
   writeFileSync(
@@ -125,6 +125,24 @@ test('Session CLI runs configured daemon runtime and cancels pending turns befor
       'room question',
     ]);
     assert.ok(record(source) && typeof source.id === 'string');
+    json([
+      '--socket',
+      socket,
+      'memory',
+      'capture',
+      '--type',
+      'procedural',
+      '--scope',
+      'room:' + room.id,
+      '--room',
+      room.id,
+      '--message',
+      source.id,
+      '--confidence',
+      '0.8',
+      '--content',
+      'Room practice',
+    ]);
     const reply = json(['--socket', socket, 'session', 'reply', id, '--room-message', source.id]);
     assert.ok(record(reply) && typeof reply.id === 'string');
     assert.equal(reply.content, 'room question');

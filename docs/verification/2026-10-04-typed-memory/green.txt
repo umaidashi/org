@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-runtime.test.ts:
+(pass) Room runtime uses history through the source and persists an Agent reply only after success [2.64ms]
+(pass) Room context bounds UTF-8 bytes and reports omitted history, rejecting oversized sources before runtime [12.32ms]
+(pass) Room context includes only active current scopes and excludes another Agent or Room Memory [0.21ms]
+
+tests/memory-service.test.ts:
+(pass) Memory capture verifies original Message references through injected ports before saving [0.55ms]
+
+tests/memory-sqlite.test.ts:
+(pass) Memory projection preserves original evidence and atomically supersedes active same-scope records [10.29ms]
+
+tests/memory-cli.test.ts:
+(pass) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [411.87ms]
+
+tests/memory-domain.test.ts:
+(pass) Typed Memory keeps evidence and validates scope, confidence and replacement identity [0.21ms]
+
+ 7 pass
+ 0 fail
+Ran 7 tests across 5 files. [470.00ms]

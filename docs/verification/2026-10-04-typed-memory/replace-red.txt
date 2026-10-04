@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-sqlite.test.ts:
+25 |       createMemory({ ...input, content: 'new', supersedes: 'one' }, { id: 'two', at: 'later' }),
+26 |     );
+27 |     assert.equal(store.get('one').status, 'superseded');
+28 |     assert.equal(store.get('one').content, 'old');
+29 |     assert.equal(store.get('two').status, 'active');
+30 |     assert.throws(() => db?.query('INSERT OR REPLACE INTO memory_records(id,data,supersedes) VALUES (?,?,?)').run('replacement',JSON.stringify({...first,id:'replacement',supersedes:'one'}),'one'));
+                ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/memory-sqlite.test.ts:30:12)
+(fail) Memory projection preserves original evidence and atomically supersedes active same-scope records [11.26ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [37.00ms]

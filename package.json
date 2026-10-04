@@ -16,7 +16,7 @@
     "build": "bun --no-env-file run clean && bun --no-env-file build src/cli.ts --target bun --outdir dist && bun --no-env-file -e \"import {chmodSync} from 'node:fs';chmodSync('dist/cli.js',0o755);\"",
     "typecheck": "bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit",
     "test": "bun --no-env-file test ./tests",
-    "test:e2e": "bun --no-env-file test ./tests/cli.test.ts tests/task-cli.test.ts tests/room-cli.test.ts tests/event-cli.test.ts tests/daemon-cli.test.ts tests/daemon-server.test.ts tests/cli-client.test.ts tests/session-runtime.test.ts tests/session-cli.test.ts tests/daemon-long-command.test.ts",
+    "test:e2e": "bun --no-env-file test ./tests/cli.test.ts tests/task-cli.test.ts tests/room-cli.test.ts tests/event-cli.test.ts tests/daemon-cli.test.ts tests/daemon-server.test.ts tests/cli-client.test.ts tests/session-runtime.test.ts tests/session-cli.test.ts tests/daemon-long-command.test.ts tests/memory-cli.test.ts",
     "check": "bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan",
     "start": "bun --no-env-file src/cli.ts",
     "lint": "bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings",
@@ -30,7 +30,7 @@
     "hook:commit": "bun --no-env-file scripts/local-gate.ts pre-commit",
     "hook:push": "bun --no-env-file scripts/local-gate.ts pre-push",
     "verify:head": "bun --no-env-file scripts/local-gate.ts head",
-    "test:unit": "bun --no-env-file test ./tests/agent-domain.test.ts tests/agent-service.test.ts tests/task-domain.test.ts tests/task-service.test.ts tests/room-domain.test.ts tests/room-service.test.ts tests/semantic-review.test.ts tests/event-domain.test.ts tests/event-service.test.ts tests/daemon-service.test.ts tests/daemon-poll.test.ts tests/daemon-cleanup.test.ts tests/daemon-parser.test.ts tests/cli-transport.test.ts tests/codex-turn.test.ts tests/claude-turn.test.ts tests/session-domain.test.ts tests/session-service.test.ts tests/session-parser.test.ts tests/runtime-config.test.ts tests/room-runtime.test.ts"
+    "test:unit": "bun --no-env-file test ./tests/agent-domain.test.ts tests/agent-service.test.ts tests/task-domain.test.ts tests/task-service.test.ts tests/room-domain.test.ts tests/room-service.test.ts tests/semantic-review.test.ts tests/event-domain.test.ts tests/event-service.test.ts tests/daemon-service.test.ts tests/daemon-poll.test.ts tests/daemon-cleanup.test.ts tests/daemon-parser.test.ts tests/cli-transport.test.ts tests/codex-turn.test.ts tests/claude-turn.test.ts tests/session-domain.test.ts tests/session-service.test.ts tests/session-parser.test.ts tests/runtime-config.test.ts tests/room-runtime.test.ts tests/memory-domain.test.ts tests/memory-service.test.ts"
   },
   "devDependencies": {
     "@ast-grep/cli": "0.45.3",

@@ -58,6 +58,7 @@ test('Room runtime uses history through the source and persists an Agent reply o
   const send = async (_id: string, message: string, instruction: string) => {
     calls++;
     assert.equal(message, 'question');
+    if (instruction === undefined) throw new Error('Context missing');
     const context: unknown = JSON.parse(instruction);
     assert.ok(
       context !== null &&
@@ -165,6 +166,7 @@ test('Room context bounds UTF-8 bytes and reports omitted history, rejecting ove
   const send = async (_id: string, _message: string, instruction: string) => {
     calls++;
     assert.ok(new TextEncoder().encode(instruction).byteLength <= 65536);
+    if (instruction === undefined) throw new Error('Context missing');
     const context: unknown = JSON.parse(instruction);
     assert.ok(
       context !== null &&
@@ -201,4 +203,82 @@ test('Room context bounds UTF-8 bytes and reports omitted history, rejecting ove
     ),
   );
   assert.equal(calls, 1);
+});
+
+test('Room context includes only active current scopes and excludes another Agent or Room Memory', async () => {
+  const room = createRoom(
+    {
+      title: 'work',
+      type: 'direct',
+      participants: [
+        { kind: 'human', id: 'h' },
+        { kind: 'agent', id: 'a' },
+      ],
+    },
+    { id: 'r', createdAt: 'now' },
+  );
+  const session = createSession(
+    { agentId: 'a', roomId: 'r', runtime: 'codex' },
+    { id: 's', at: 'now' },
+  );
+  const source = createMessage(
+    room,
+    { sender: { kind: 'human', id: 'h' }, content: 'question' },
+    { id: 'm', createdAt: 'now' },
+  );
+  const rooms = {
+    get: () => room,
+    messages: () => [source],
+    append: (
+      _id: string,
+      input: Parameters<typeof createMessage>[1],
+      identity: Parameters<typeof createMessage>[2],
+    ) => createMessage(room, input, identity, source),
+  };
+  const entry = (id: string, scope: string, status: 'active' | 'invalidated') => ({
+    id,
+    scope,
+    status,
+    type: 'semantic' as const,
+    content: id,
+    confidence: 1,
+    sourceRefs: [{ roomId: 'r', messageId: 'm' }],
+    supersedes: null,
+    createdAt: 'now',
+  });
+  const memory = {
+    list: () => [
+      entry('global', 'global', 'active'),
+      entry('agent', 'agent:a', 'active'),
+      entry('foreignAgent', 'agent:other', 'active'),
+      entry('room', 'room:r', 'active'),
+      entry('invalid', 'room:r', 'invalidated'),
+      entry('foreignRoom', 'room:other', 'active'),
+    ],
+  };
+  await replyToRoomMessage(
+    rooms,
+    { get: () => session },
+    {
+      send: async (_id, _message, instruction) => {
+        if (instruction === undefined) throw new Error('Context missing');
+        const context: unknown = JSON.parse(instruction);
+        assert.ok(
+          context !== null &&
+            typeof context === 'object' &&
+            'memories' in context &&
+            Array.isArray(context.memories),
+        );
+        const ids = context.memories.map((m: unknown) => {
+          assert.ok(m !== null && typeof m === 'object' && 'id' in m);
+          return m.id;
+        });
+        assert.deepEqual(ids, ['room', 'agent', 'global']);
+        return { session, text: 'answer' };
+      },
+    },
+    { sessionId: 's', messageId: 'm', instruction: '' },
+    { id: 'reply', at: 'later' },
+    memory,
+  );
 });

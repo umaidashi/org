@@ -1,6 +1,6 @@
 # org — AI Company Kernel
 
-Agent・Task・Room・Memory・Event・Runtimeを組み合わせ、AIの組織と実務をローカルで動かすTypeScriptプロジェクトです。現在はAgent registry、ローカルTaskProvider、Room・Message、Event・Subscription、EventからTaskを作る常駐daemonとローカルsocketが動きます。Sessionの永続化とCodex/Claude Runtimeへの接続も実装しています。Memory・外部連携などは未実装です。[要件と進捗](docs/requirements.md)を参照してください。
+Agent・Task・Room・Memory・Event・Runtimeを組み合わせ、AIの組織と実務をローカルで動かすTypeScriptプロジェクトです。現在はAgent registry、ローカルTaskProvider、Room・Message、Event・Subscription、EventからTaskを作る常駐daemonとローカルsocketが動きます。Sessionの永続化とCodex/Claude Runtimeへの接続も実装しています。Messageを根拠とするTyped Memoryとscope付きContextを実装しています。外部連携などは未実装です。[要件と進捗](docs/requirements.md)を参照してください。
 
 ## セットアップ
 
@@ -109,7 +109,7 @@ bun run start daemon deliveries --json
 
 単発workerが現在有効な購読を既存Eventにも照合し、Agent購読ごとに割当済みExecutionTaskを1件作ります。Taskの成果物や状態は通常のTask CLIで操作できます。配信記録の`delivered`はTask作成・割当の成功であり、Agent実行の完了ではありません。
 
-同じEvent/Subscriptionの再処理ではTaskと履歴を増やしません。Task保存後に配信記録が失敗しても次回実行で復旧し、進行中Taskを再割当しません。Workflow購読は理由付き`deferred`として表示します。Runtime起動は後続の実装です。
+同じEvent/Subscriptionの再処理ではTaskと履歴を増やしません。Task保存後に配信記録が失敗しても次回実行で復旧し、進行中Taskを再割当しません。Workflow購読は理由付き`deferred`として表示します。Event由来TaskのRuntime起動は後続の実装です。
 
 ## 常駐daemon
 
@@ -129,7 +129,7 @@ bun run start daemon stop --json
 
 TCP listenerは開かず、Unix socketを0600で作成します。同socketの2重起動や既存file/symlinkの置換を拒否します。stop・SIGTERM・SIGINTで終了し、自分が作成したsocket/lockを解放します。SIGKILL等で残ったsocket/lockは自動削除しません。稼働中プロセスがないことを確認してから手動で整理してください。
 
-Agent/Task/Room/Event CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。scheduler、Runtime process管理、Executionのretry/timeout、Workflow・Sandbox等のCLIとTUIは未実装です。
+Agent/Task/Room/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。scheduler、Task実行のretry、Workflow・Sandbox等のCLIとTUIは未実装です。
 
 ## 検証とレビュー
 
@@ -198,3 +198,16 @@ bun run start room messages ROOM_ID --json
 ```
 
 入力Messageまでの履歴を最大30件・64KiBに限定して渡し、省略数もContextに含めます。同じSession/Messageの保存済み返信を再利用します。provider実行と返信保存の間でprocessが落ちた場合のexactly-onceは未実装です。
+
+## Typed Memory
+
+原Messageを根拠にMemoryを明示的に登録します。scope・type・confidenceを指定し、本文と根拠は変更しません。更新は新しいMemoryで置き換え、無効化も理由付きで追記します。
+
+```sh
+bun run start memory capture --type semantic --scope room:ROOM_ID --room ROOM_ID --message MESSAGE_ID --confidence 0.8 --content '決定した内容' --json
+bun run start memory capture --type semantic --scope room:ROOM_ID --room ROOM_ID --message MESSAGE_ID --confidence 0.9 --content '新しい決定' --supersedes MEMORY_ID --json
+bun run start memory list --scope room:ROOM_ID --json
+bun run start memory invalidate MEMORY_ID --reason '根拠が失効した' --json
+```
+
+`session reply`は現在のRoom・Agent・Taskとcompany/globalのactive Memoryを選択し、scopeと新しさで最大20件に絞って渡します。Context全体の64KiB上限に合わせて省略数を記録します。自動抽出、意味的な重複・矛盾判定、期間/tag/entity/full-text retrievalは後続です。

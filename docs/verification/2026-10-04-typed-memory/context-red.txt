@@ -1,0 +1,30 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-runtime.test.ts:
+(pass) Room runtime uses history through the source and persists an Agent reply only after success [3.71ms]
+(pass) Room context bounds UTF-8 bytes and reports omitted history, rejecting oversized sources before runtime [13.43ms]
+209 |  const source=createMessage(room,{sender:{kind:'human',id:'h'},content:'question'},{id:'m',createdAt:'now'});
+210 |  const rooms={get:()=>room,messages:()=>[source],append:(_id:string,input:Parameters<typeof createMessage>[1],identity:Parameters<typeof createMessage>[2])=>createMessage(room,input,identity,source)};
+211 |  const entry=(id:string,scope:string,status:'active'|'invalidated')=>({id,scope,status,type:'semantic' as const,content:id,confidence:1,sourceRefs:[{roomId:'r',messageId:'m'}],supersedes:null,createdAt:'now'});
+212 |  const memory={list:()=>[entry('global','global','active'),entry('agent','agent:a','active'),entry('foreignAgent','agent:other','active'),entry('room','room:r','active'),entry('invalid','room:r','invalidated'),entry('foreignRoom','room:other','active')]};
+213 |  await replyToRoomMessage(rooms,{get:()=>session},{send:async(_id,_message,instruction)=>{
+214 |   const context:unknown=JSON.parse(instruction);assert.ok(context!==null && typeof context==='object' && 'memories' in context && Array.isArray(context.memories));
+                                                             ^
+AssertionError: false == true
+ generatedMessage: true,
+     actual: false,
+   expected: true,
+   operator: "==",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/room-runtime.test.ts:214:56
+      at send (<REPO>/tests/room-runtime.test.ts:213:63)
+      at replyToRoomMessage (<REPO>/src/rooms/runtime.ts:51:31)
+      at replyToRoomMessage (<REPO>/src/rooms/runtime.ts:16:84)
+      at <REPO>/tests/room-runtime.test.ts:213:8
+      at <REPO>/tests/room-runtime.test.ts:206:100
+(fail) Room context includes only active current scopes and excludes another Agent or Room Memory [1.28ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [44.00ms]
