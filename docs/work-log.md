@@ -123,6 +123,12 @@
 
 ### 未完了
 
+- 独立ReviewerがAgent移行の分離・互換性・実CLI検証を確認。重要指摘：jev-lint 0.7.0はwarningと通信エラーが混在すると終了0になり得るため、終了コードだけでは不完全な意味レビューを通す。
+- 先に不完全結果を拒否するテストを書き、未実装による型検査失敗を記録。その後 `semantic-result.ts` と共通runnerを実装し、Agent実行とpre-pushの両方で対象ゼロ・missing・errors・degraded・error指摘を拒否した。[RED](verification/2026-10-04-typescript/semantic-gate-red.txt)、[実API GREEN](verification/2026-10-04-typescript/semantic-gate-green.txt)。全26テストと全静的検査が成功。
+- 実hookがグローバルLefthook 1.10.4を優先していたため、公式の `lefthook` 設定でローカル固定版2.1.16を指定した。過去の生成済みprepare-commit-msgが古い版を呼んだため、中身がLefthook呼び出しのみであることを確認して不要hookを除去。実pre-commitが2.1.16で成功した。
+- コミット `dc6845a` にTS移行・指針・検査を記録、`cce9e4d` に不完全なレビューを拒否する修正を記録した。
+- 実際の `.git/hooks/pre-push` にGitと同じref更新stdinを与え、`cce9e4d` のcommit treeで26テスト・型・lint・format・AST・jev dry-run・実APIレビューまで終了0を確認した。Git pushは行っていない。[記録](verification/2026-10-04-typescript/committed-gate.txt)。
+
 - 実際のindex snapshotに対する `npm run hook:commit` が終了0。型・ESLint・format・ASTがすべて成功。[記録](verification/2026-10-04-typescript/staged-gate.txt)。ステージ一覧に秘密の `.env` がないことを確認した。
 - located contextでテスト名を3回再判定し、CLIの2候補は消えた。外部AST fixtureの候補は残った（13対象・missing 0・errorsなし）。fixture実行と件数のassertは維持し、未解決のモデル候補として記録する。[結果](verification/2026-10-04-typescript/jev-helper-context-review.json)。
 

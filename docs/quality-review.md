@@ -30,7 +30,7 @@ npm run review:semantic
 
 `org-functional-core` はプロジェクトのラベル付きcorpusで未校正。閾値2.5、severity warningとして候補を出し、ブロッキング条件には使わない。既定ルールの確率も人間または独立Reviewerが確認する。lintの成功だけでマージしない。
 
-実行結果は `docs/verification/` に記録する。verdictが欠ける・通信に失敗する・キーがない場合は未実施/不完全と記録し、正常な意味レビューとして扱わない。キャッシュの内容は送信対象コードを含むため自動コミットしない。
+実行結果は `docs/verification/` に記録する。verdictが欠ける・通信に失敗する・キーがない場合は未実施/不完全と記録し、正常な意味レビューとして扱わない。CLI終了コードに加えてJSONの対象数・missing・errors・degraded・指摘severityを検証し、対象ゼロや不完全な判定を拒否する。キャッシュの内容は送信対象コードを含むため自動コミットしない。
 
 ## 実行するタイミング
 

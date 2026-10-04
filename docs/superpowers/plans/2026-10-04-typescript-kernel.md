@@ -4,14 +4,14 @@
 
 ## 第一の検証単位：Agent CLI移行
 
-- [ ] package/lockfile、strict TypeScript、Node標準test runnerを設定する。
-- [ ] 既存9件と同じ別プロセスe2eをTSで書き、CLI未実装時の失敗を記録する。
-- [ ] Agent型・SQLite保存・CLIをTSに実装する。Python版SQLiteの列・名前・UUID・UTC作成日時を維持する。
-- [ ] 再起動相当の別プロセスから永続データを読む。重複・空値・保存失敗・Unicode・既定パスを検証する。
-- [ ] unit/integrationで入力検証・既存DB互換性・保存失敗を検証する。
-- [ ] npmのbinから実際に起動してcreate→listを確認する。
-- [ ] Pythonの製品コード・テスト・manifestを除去し、READMEをTS向けに更新する。過去のログは保存する。
-- [ ] 型検査・全テスト・ローカルLefthook・独立レビューと検証結果を記録してコミットする。
+- [x] package/lockfile、strict TypeScript、Node標準test runnerを設定する。
+- [x] 既存9件と同じ別プロセスe2eをTSで書き、CLI未実装時の失敗を記録する。
+- [x] Agent型・SQLite保存・CLIをTSに実装する。Python版SQLiteの列・名前・UUID・UTC作成日時を維持する。
+- [x] 再起動相当の別プロセスから永続データを読む。重複・空値・保存失敗・Unicode・既定パスを検証する。
+- [x] unit/integrationで入力検証・既存DB互換性・保存失敗を検証する。
+- [x] npmのbinから実際に起動してcreate→listを確認する。
+- [x] Pythonの製品コード・テスト・manifestを除去し、READMEをTS向けに更新する。過去のログは保存する。
+- [x] 型検査・全テスト・ローカルLefthook・独立レビューと検証結果を記録してコミットする。
 
 ## 第二の検証単位：Taskの作成・割当・取得・状態履歴
 

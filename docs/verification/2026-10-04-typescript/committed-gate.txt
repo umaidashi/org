@@ -6,7 +6,7 @@
 > org-kernel@0.1.0 hook:push
 > node scripts/local-gate.ts pre-push
 
-Verifying committed tree dc6845a8dd4c2362c2c1c61589066920fe490a2e
+Verifying committed tree cce9e4d08e528b3f63c5215df5ce6d1978c5f3b2
 
 > org-kernel@0.1.0 check
 > npm run check:static && npm test && npm run review:plan
@@ -45,49 +45,51 @@ All matched files use Prettier code style!
 > org-kernel@0.1.0 clean
 > node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
 
-✔ agent construction preserves values and uses the supplied identity and timestamp (1.829917ms)
-✔ agent construction rejects each missing textual value (0.308208ms)
-✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (7.8895ms)
-✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (0.874625ms)
-✔ empty registry reports no agents and returns an empty JSON array (93.512375ms)
-✔ agents survive separate CLI processes with stable identity and name ordering (197.010875ms)
-✔ duplicate registration fails without replacing the existing agent (263.184ms)
-✔ text output includes id name role and runtime (189.048042ms)
-✔ empty or whitespace-only identity fields cannot register an agent (650.071625ms)
-✔ missing database parent directories are created (92.967041ms)
-✔ storage errors return failure on stderr without a stack trace (87.789666ms)
-✔ unicode and quote characters are saved as values rather than SQL (174.796417ms)
-✔ default database is persisted only under the isolated HOME (123.481208ms)
-✔ invalid arguments fail before creating a database and help succeeds (571.664792ms)
-✔ an explicitly empty database path cannot silently register an ephemeral agent (81.257792ms)
-✔ a corrupted database is reported as storage failure rather than an empty registry (38.805417ms)
-✔ pre-commit reads staged contents even when the worktree contains a passing replacement (64.262042ms)
-✔ pre-push reads the selected commit rather than staged or working changes (114.390541ms)
-✔ pre-push parses all actual local commits and skips remote deletions (0.743416ms)
-✔ snapshot refuses invalid object ids without running a check (24.124292ms)
-✔ the actual pre-commit gate blocks bad staged code without modifying the worktree (717.381ms)
-✔ every architecture rule fixture runs and detects its planted violations (10.273167ms)
-✔ lint rejects unsafe generated code and infrastructure imports in domain code (1252.095375ms)
-✔ lint accepts a pure function with explicit typed inputs (1081.878541ms)
-ℹ tests 24
+✔ agent construction preserves values and uses the supplied identity and timestamp (0.744667ms)
+✔ agent construction rejects each missing textual value (0.270875ms)
+✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (9.56275ms)
+✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (0.720709ms)
+✔ empty registry reports no agents and returns an empty JSON array (93.380541ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (181.378417ms)
+✔ duplicate registration fails without replacing the existing agent (232.883875ms)
+✔ text output includes id name role and runtime (163.746625ms)
+✔ empty or whitespace-only identity fields cannot register an agent (658.495334ms)
+✔ missing database parent directories are created (97.939458ms)
+✔ storage errors return failure on stderr without a stack trace (86.44325ms)
+✔ unicode and quote characters are saved as values rather than SQL (194.848167ms)
+✔ default database is persisted only under the isolated HOME (100.184792ms)
+✔ invalid arguments fail before creating a database and help succeeds (483.359417ms)
+✔ an explicitly empty database path cannot silently register an ephemeral agent (80.26525ms)
+✔ a corrupted database is reported as storage failure rather than an empty registry (42.046291ms)
+✔ pre-commit reads staged contents even when the worktree contains a passing replacement (68.060291ms)
+✔ pre-push reads the selected commit rather than staged or working changes (114.809ms)
+✔ pre-push parses all actual local commits and skips remote deletions (4.516458ms)
+✔ snapshot refuses invalid object ids without running a check (23.285875ms)
+✔ the actual pre-commit gate blocks bad staged code without modifying the worktree (671.962417ms)
+✔ every architecture rule fixture runs and detects its planted violations (15.94275ms)
+✔ lint rejects unsafe generated code and infrastructure imports in domain code (1157.66825ms)
+✔ lint accepts a pure function with explicit typed inputs (1037.357208ms)
+✔ semantic review accepts complete warning-only results (0.472375ms)
+✔ semantic review rejects incomplete results even when warnings exist (0.191416ms)
+ℹ tests 26
 ℹ suites 0
-ℹ pass 24
+ℹ pass 26
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 2630.894791
+ℹ duration_ms 2489.807125
 
 > org-kernel@0.1.0 review:plan
 > jev-lint check src tests scripts --dry-run --json
 
 {
   "dryRun": true,
-  "subjects": 64,
+  "subjects": 75,
   "cached": 0,
-  "requests": 31,
-  "tokens": 87038,
-  "usd": 0.0036555960000000005,
+  "requests": 39,
+  "tokens": 100004,
+  "usd": 0.004200168,
   "retry": 1,
   "batches": [
     {
@@ -119,7 +121,7 @@ All matched files use Prettier code style!
       "rule": null,
       "subjects": 1,
       "arm": "located",
-      "tokens": 1366,
+      "tokens": 1216,
       "degraded": null
     },
     {
@@ -127,7 +129,7 @@ All matched files use Prettier code style!
       "rule": null,
       "subjects": 1,
       "arm": "located",
-      "tokens": 2295,
+      "tokens": 2145,
       "degraded": null
     },
     {
@@ -160,6 +162,62 @@ All matched files use Prettier code style!
       "subjects": 1,
       "arm": "paired",
       "tokens": 1616,
+      "degraded": null
+    },
+    {
+      "file": "scripts/review-semantic.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 807,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1618,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2363,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1663,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 997,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1913,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1687,
       "degraded": null
     },
     {
@@ -337,48 +395,56 @@ All matched files use Prettier code style!
       "arm": "bare",
       "tokens": 2897,
       "degraded": null
+    },
+    {
+      "file": "tests/semantic-review.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2218,
+      "degraded": null
     }
   ],
   "byRule": [
     {
       "rule": "test-name-verifies-claim",
-      "subjects": 24,
-      "requests": 6,
-      "tokens": 32165,
-      "usd": 0.00135093,
-      "share": 0.36955123049702426
+      "subjects": 26,
+      "requests": 7,
+      "tokens": 34383,
+      "usd": 0.001444086,
+      "share": 0.343816247350106
     },
     {
       "rule": "org-functional-core",
-      "subjects": 13,
-      "requests": 8,
-      "tokens": 21862,
-      "usd": 0.000918204,
-      "share": 0.25117764654518715
+      "subjects": 16,
+      "requests": 10,
+      "tokens": 25988,
+      "usd": 0.0010914960000000002,
+      "share": 0.2598696052157914
     },
     {
       "rule": "fn-name-promises",
-      "subjects": 17,
-      "requests": 9,
-      "tokens": 18837,
-      "usd": 0.0007911540000000001,
-      "share": 0.21642271191893195
+      "subjects": 20,
+      "requests": 11,
+      "tokens": 21302,
+      "usd": 0.0008946840000000001,
+      "share": 0.21301147954081837
     },
     {
       "rule": "tests-cover-failure-paths",
-      "subjects": 5,
-      "requests": 5,
-      "tokens": 8901,
-      "usd": 0.000373842,
-      "share": 0.10226567706059422
+      "subjects": 7,
+      "requests": 7,
+      "tokens": 12251,
+      "usd": 0.000514542,
+      "share": 0.12250509979600815
     },
     {
       "rule": "catch-hides-failure",
-      "subjects": 5,
-      "requests": 3,
-      "tokens": 5273,
-      "usd": 0.000221466,
-      "share": 0.06058273397826237
+      "subjects": 6,
+      "requests": 4,
+      "tokens": 6080,
+      "usd": 0.00025536000000000005,
+      "share": 0.06079756809727611
     },
     {
       "rule": "comment-describes-block",
@@ -417,6 +483,28 @@ All matched files use Prettier code style!
 }
 {
   "findings": [
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/semantic-review.ts",
+      "line": 6,
+      "endLine": 34,
+      "value": 0.91,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.338,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
     {
       "rule": "tests-cover-failure-paths",
       "severity": "warning",
@@ -508,13 +596,13 @@ All matched files use Prettier code style!
   ],
   "review": [],
   "stats": {
-    "subjects": 64,
-    "reported": 4,
+    "subjects": 75,
+    "reported": 5,
     "missing": 0,
     "unsure": 0,
     "review": 0,
     "byRule": {
-      "tests-cover-failure-paths": 1,
+      "tests-cover-failure-paths": 2,
       "test-name-verifies-claim": 3
     },
     "byFile": {
@@ -528,6 +616,18 @@ All matched files use Prettier code style!
       },
       "scripts/push-input.ts": {
         "findings": 0,
+        "subjects": 3
+      },
+      "scripts/review-semantic.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "scripts/semantic-result.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "scripts/semantic-review.ts": {
+        "findings": 1,
         "subjects": 3
       },
       "src/agents/domain.ts": {
@@ -569,6 +669,10 @@ All matched files use Prettier code style!
       "tests/quality-lint.test.ts": {
         "findings": 0,
         "subjects": 2
+      },
+      "tests/semantic-review.test.ts": {
+        "findings": 0,
+        "subjects": 2
       }
     }
   },
@@ -589,24 +693,24 @@ All matched files use Prettier code style!
   },
   "retry": 1,
   "spent": {
-    "calls": 3,
-    "inputTokens": 6719,
-    "outputTokens": 92,
-    "ms": 2252,
+    "calls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "ms": 0,
     "retried": 0,
     "rateLimited": 0,
     "tokensPerSecond": 200000,
     "splits": 0,
-    "usd": 0.000282198,
-    "wallMs": 958
+    "usd": 0,
+    "wallMs": 3
   },
   "errors": [],
-  "elapsedMs": 1007
+  "elapsedMs": 51
 }
 
 [38;2;56;56;56m  ────────────────────────────────────[m
-summary: (done in 10.33 seconds)
-✓ committed-tests-and-semantic-review (10.33 seconds)
-using /private/var/folders/16/v0d838s50tz0c096slhn5z_80000gn/T/org-git-check-nXNZpv/.jev-lint.yaml
-using /private/var/folders/16/v0d838s50tz0c096slhn5z_80000gn/T/org-git-check-nXNZpv/.jev-lint.yaml
-recorded 64 answer(s) to /Users/umaidashi/Documents/git/org/.jev-lint/latest-run.json
+summary: (done in 8.91 seconds)
+✓ committed-tests-and-semantic-review (8.91 seconds)
+using /private/var/folders/16/v0d838s50tz0c096slhn5z_80000gn/T/org-git-check-gRr4C1/.jev-lint.yaml
+using /private/var/folders/16/v0d838s50tz0c096slhn5z_80000gn/T/org-git-check-gRr4C1/.jev-lint.yaml
+recorded 75 answer(s) to /Users/umaidashi/Documents/git/org/.jev-lint/latest-run.json
