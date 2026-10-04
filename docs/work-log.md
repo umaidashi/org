@@ -414,3 +414,9 @@
 - 独立Reviewerも8件成功、大stdin timeoutと20回起動後FD数が増えないことを確認、Critical/Importantなし。Final: minor (deferred): guardian起動失敗のgeneric診断末尾が改行でなくliteral backslash+n。exit1と秘密非露出は維持される。
 - 実CodexでTask実行→Room返信→Artifact→waiting_approvalの実e2eを再検証、全boolean成功。[公開可能な結果](verification/2026-10-04-runtime-guardian/real-codex.txt)。raw応答・一時workspaceは公開ログへ含めない。
 - Next: この復旧/停止のまとまりをmainへ通常pushする。stale socketの安全な回収と、Approval/Agent組織・Scheduler等を小さく進める。setsidによるgroup離脱はSandboxの隔離で扱う。全体ゴールは未完了のまま継続。
+
+## main公開：復旧とRuntime監督
+
+- mainへfast-forwardし通常push成功。remote mainとlocal mainは1ea9cefdbae17bfd43467580695672b7ffccd3acで一致。force-pushなし。
+- Lefthook pre-pushの公開内容/送信履歴検査、全136テスト・静的検査・実Jevゲートが31.88秒で成功。[公開可能なhook記録](verification/2026-10-04-main-recovery-push/prepush.txt)。旧feature remote refの履歴改変は行わない。
+- 次はTask結果を人間が明示的に承認/却下し、その対象version・成果物・actor・理由を不変記録として残す小さなe2eを進める。これは結果確認であり、外部操作Permission/Approvalは後続。stale socketは安全なowner metadata/DB単一所有との整合設計を先に行い、現時点は既存pathを保守的に拒否する。
