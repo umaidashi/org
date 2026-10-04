@@ -172,10 +172,13 @@ Bun向けにCLIをbundleします。リポジトリとパッケージは公開�
 
 ## SessionとRuntime
 
-Sessionはdaemon経由で実行します。起動時の `--runtime-config PATH` に次のJSONを渡します。executable/cwdは絶対パス、envはdaemonの環境から渡す変数名だけを指定します。設定ファイルに秘密値は書きません。
+Sessionはdaemon経由で実行します。使用するRuntimeだけを設定してください。起動時の `--runtime-config PATH` に次のJSONを渡します。executable/cwdは絶対パス、envはdaemonの環境から渡す変数名だけを指定します。設定ファイルに秘密値は書きません。Claude Maxにはログイン済みのClaude Codeを使い、OS識別情報も明示して渡します。
 
 ```json
-{"codex":{"executable":"/absolute/path/to/codex","cwd":"/absolute/path/to/workspace","env":["PATH","HOME"],"timeoutMs":120000,"maxOutputBytes":1048576}}
+{
+  "codex": {"executable":"/absolute/path/to/codex","cwd":"/absolute/path/to/workspace","env":["PATH","HOME"],"timeoutMs":120000,"maxOutputBytes":1048576},
+  "claude": {"executable":"/absolute/path/to/claude","cwd":"/absolute/path/to/workspace","env":["PATH","HOME","USER","LOGNAME"],"timeoutMs":120000,"maxOutputBytes":1048576}
+}
 ```
 
 ```sh
@@ -187,7 +190,7 @@ bun run start session history SESSION_ID --json
 bun run start session stop SESSION_ID --json
 ```
 
-AgentはRoomの参加者である必要があります。Sessionの開始・送信はRuntimeの完了まで待機し、別のterminalからstopできます。待機時間はRuntime設定で制限します。daemon停止時は実行中のturnを中止して終了を待ち、再起動時に残ったrunning状態はfailedへ復旧します。provider Session IDを維持してresumeします。Codexはread-only/approval never、Claudeはbareかつtools無効で起動します。自動e2eは実subprocessのfixtureを使用します。実Codexでも開始→同じprovider IDで再開→停止を別途確認済みです。実Claudeは未確認です。
+AgentはRoomの参加者である必要があります。Sessionの開始・送信はRuntimeの完了まで待機し、別のterminalからstopできます。待機時間はRuntime設定で制限します。daemon停止時は実行中のturnを中止して終了を待ち、再起動時に残ったrunning状態はfailedへ復旧します。provider Session IDを維持してresumeします。Codexはread-only/approval never、ClaudeはMaxのログインを使えるsafe-modeで起動し、tools・custom hooks・MCP・slash commandsを無効にします。管理policyはClaude Codeの優先規則に従います。自動e2eは実subprocessのfixtureを使用します。実Codexでも開始→同じprovider IDで再開→停止を別途確認済みです。実Claude MaxでもAPIキーなしで開始→同じprovider IDで再開→Task実行→承認待ち→停止を確認済みです。
 
 RoomのMessageに応答を残す場合は、保存済みのMessage IDを指定します。
 

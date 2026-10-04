@@ -20,11 +20,16 @@ const options = {
   timeoutMs: 2000,
   maxOutputBytes: 1024,
 };
-test('Claude command uses explicit system context, stdin, bare mode and the chosen resume session', () => {
+test('Claude command preserves subscription authentication with isolated customizations and the chosen resume session', () => {
   const command = claudeCommand(turn, 'claude');
   assert.equal(command.input, '--unsafe');
   assert.ok(!command.argv.includes('--unsafe'));
-  assert.ok(command.argv.includes('--bare'));
+  assert.ok(!command.argv.includes('--bare'));
+  assert.ok(command.argv.includes('--safe-mode'));
+  assert.ok(command.argv.includes('--disable-slash-commands'));
+  assert.ok(command.argv.includes('--strict-mcp-config'));
+  assert.equal(command.argv[command.argv.indexOf('--mcp-config') + 1], '{"mcpServers":{}}');
+  assert.equal(command.argv[command.argv.indexOf('--settings') + 1], '{"disableAllHooks":true}');
   assert.ok(command.argv.includes('--print'));
   assert.equal(command.argv[command.argv.indexOf('--tools') + 1], '');
   const system = command.argv[command.argv.indexOf('--system-prompt') + 1];

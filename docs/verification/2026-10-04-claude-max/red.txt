@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/claude-turn.test.ts:
+21 |       actual: value,
+22 |       expected: !0,
+23 |       message,
+24 |       operator: "==",
+25 |       stackStartFn: fn
+26 |     throw err.generatedMessage = generatedMessage, err;
+                                                           ^
+AssertionError: false == true
+      at innerOk (internal:assert/utils:26:55)
+      at ok (node:assert:79:10)
+      at <anonymous> (<REPO>/tests/claude-turn.test.ts:27:10)
+(fail) Claude command preserves subscription authentication with isolated customizations and the chosen resume session [3.08ms]
+(pass) Claude response rejects failed, missing and inconsistent result envelopes [0.40ms]
+(pass) Claude turn uses process DI and rejects process failure even with a success-looking reply [0.46ms]
+(pass) Claude resumed turn refreshes changed role and instruction instead of reusing a system prompt snapshot [0.10ms]
+
+ 3 pass
+ 1 fail
+Ran 4 tests across 1 file. [33.00ms]

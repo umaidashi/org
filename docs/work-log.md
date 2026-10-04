@@ -420,3 +420,13 @@
 - mainへfast-forwardし通常push成功。remote mainとlocal mainは1ea9cefdbae17bfd43467580695672b7ffccd3acで一致。force-pushなし。
 - Lefthook pre-pushの公開内容/送信履歴検査、全136テスト・静的検査・実Jevゲートが31.88秒で成功。[公開可能なhook記録](verification/2026-10-04-main-recovery-push/prepush.txt)。旧feature remote refの履歴改変は行わない。
 - 次はTask結果を人間が明示的に承認/却下し、その対象version・成果物・actor・理由を不変記録として残す小さなe2eを進める。これは結果確認であり、外部操作Permission/Approvalは後続。stale socketは安全なowner metadata/DB単一所有との整合設計を先に行い、現時点は既存pathを保守的に拒否する。
+
+## Claude Max利用の訂正と実e2e
+
+- ユーザー指摘：Claude Maxを使う想定。bareを選んだことでAPIキーだけを要求していた実装上の制約を訂正し、API-only Agentに限定しない。[計画](superpowers/plans/2026-10-04-claude-max.md)。
+- Claude Code 2.1.289と公式認証/CLI docsを確認。auth statusは非秘密フィールドだけを出力しclaude.ai/max/loggedInを確認。safe-modeへ切替、tools/slash commands無効・disableAllHooks・strict empty MCP、resume時のsystem prompt再評価を維持。managed policyはClaude Codeの優先規則に従う。UT RED→4GREEN。
+- PATH/HOME等だけではMax認証がnoneとなった。広範なCLAUDE/SECURITY/KEYCHAIN系の環境値を試す操作は自動承認reviewによりcredential probingとして拒否され、中止した。より限定した非秘密OS情報USER/LOGNAMEだけの確認は承認されclaude.ai/maxの認証が見えた。資格情報探索・値の公開はしない。
+- 実daemonからAPIキー/tokenを渡さずClaude Max start→同provider Session resume→Task run→Room返信/Artifact→waiting_approval→stop成功。全marker/links true。[公開成否](verification/2026-10-04-claude-max/real.txt)。検証scriptの初回はAgent create通常文字出力をJSONとして読んだため失敗、修正。次はOS識別情報不足でCLI exit1、USER/LOGNAMEを含めて成功した。raw応答・認証情報は公開しない。
+- 作業treeの全138テスト（並行して保存したTask結果レビューのDB不要2UTを含む）・静的検査成功。[全検査](verification/2026-10-04-claude-max/check.txt)。実Jev707対象・missing/unsure0・errors/degradedなし。独立ReviewerもClaude4UT成功、Critical/Importantなし。
+- Final: minor (deferred): safe-modeはMax専用認証を強制しない。明示して渡されたAPI key/helper等はClaudeの認証優先順に従う。この検証はAPI key/tokenを渡さずMax認証で成功したという保証であり、全構成でMaxを強制する保証ではない。
+- Next: 保存中のTask成果物レビュー実装へ戻る。全体ゴールを維持し、確認待ちで止まらず続行。
