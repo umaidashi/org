@@ -64,3 +64,16 @@
 - 通常のユーザーDBには触れていない。テストで作ったDBは一時ディレクトリの終了時に削除された。
 - `git diff --check` は成功。DB・仮想環境・キャッシュはGitの対象外。
 - 実装計画の6ステップを実行した。最終の独立レビューは次に行う。
+
+### 独立レビューと完了
+
+- 実装と検証出力を `fae17ef` にコミットした。
+- task-doneによる再実行も9/9成功し、Task 1の完了を記録した。
+- 別コンテキストのReviewerが設計・計画・Review Focusを確認し、9/9成功とcheckout外からのインストール済みCLI実行を確認した。[レビュー記録](verification/2026-10-04-agent-registry/review.md)
+- Critical・Important指摘はなし。マージ可能との評価。
+- Final: minor (deferred): RED検証の原出力に末尾空白がある。範囲指定の `git diff --check cfb450a..fae17ef` は終了2。機能への影響はなく、Minor保留ルールに従って原出力のまま保存する。
+- 作業中の `git diff --check` は成功していたが、当時の未追跡ファイルはチェック対象外だった。レビューによるコミット範囲の検査結果は上記の通り。
+- ブランチは `feat/agent-registry`、基点は `main` の `cfb450a`。remoteは未設定。統合方法はユーザーの選択待ち。
+- 次の小さなe2e候補はTaskの作成・取得・状態保存。今回はAgentの登録・一覧表示まで完了。
+- 最終の `.venv/bin/python -m unittest discover -s tests -v` も9/9成功、終了コード0。[出力](verification/2026-10-04-agent-registry/final-tests.txt)
+- 作業用ledgerを[実行記録](verification/2026-10-04-agent-registry/execution-ledger.md)として保存した。
