@@ -390,3 +390,11 @@
 - lease module RED→unit GREEN、実daemon別socket RED→GREEN。symlink alias、他tokenを消さないcleanup、実終了BunプロセスのOS liveness確認で再取得を検証。macOSの/tmp→/private/tmpをテスト期待へ反映し失敗証拠も記録。[unit](verification/2026-10-04-database-ownership/unit-green.txt)、[実daemon](verification/2026-10-04-database-ownership/daemon-green.txt)。
 - 全128テスト・静的検査・jev dry-run成功。[検証](verification/2026-10-04-database-ownership/check.txt)。実jev676対象、missing/unsure0、errors/degradedなし。[実レビュー](verification/2026-10-04-database-ownership/semantic.txt)。独立Reviewerは製品Critical/Importantなし。期待値のcanonical path誤りを指摘、修正後全suiteで成功確認。再レビューは行わない。
 - PID reuseは生存扱いの保守的制約。stale socket/lock自動回収、running ExecutionTask復旧は後続。全体目標を保持して次へ進む。
+
+## 中断ExecutionTaskの起動時復旧
+
+- ユーザーの「Nextがある限り継続、迷わなければ確認不要」を受領。全体目標を維持する。[計画](superpowers/plans/2026-10-04-task-recovery.md)。
+- DB不要Portのrunning execution限定・注入時計・expectedVersion・競合伝播テストをRED→GREEN。DB所有lease取得後、Session復旧直後・socket受付前に配線した。保存失敗は起動を止める。
+- 実daemon/SQLite/CLIでrunning→failedの履歴追記、work_itemとwaiting_approvalの保持をRED→GREEN。fixture版番号は初期0を見落とし4と期待したため3へ訂正。自動再試行や過去の出力を消す操作は行わない。
+- 全131テスト・型・lint・AST成功。[全検査](verification/2026-10-04-task-recovery/check.txt)。実Jev682対象・errorsなし。[実レビュー](verification/2026-10-04-task-recovery/semantic.txt)。独立ReviewerはCritical/Important/Minorなし、DB不要2UTを別途成功確認。
+- Next: 強制終了後のsocket/lock復旧とRuntime子孫processの停止。現在のsocketは既存pathを保守的に拒否する。プロセス全体の停止保証を先に検証し、stale pathを無条件削除する方法は採用しない。全体のApproval/Scheduler/Workflow等は引き続き未完了。

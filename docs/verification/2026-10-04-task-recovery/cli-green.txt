@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-recovery-cli.test.ts:
+(pass) daemon startup records interrupted executions without changing work items or review results [162.80ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [184.00ms]

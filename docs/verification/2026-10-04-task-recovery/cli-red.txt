@@ -1,0 +1,29 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-recovery-cli.test.ts:
+27 |   try {
+28 |     await new Promise<void>((resolve, reject) => {
+29 |       const timer = setTimeout(() => reject(new Error('Not ready: ' + stderr)), 5000);
+30 |       daemon.stdout.on('data', (value: Buffer) => { if (value.toString().includes('"ready"')) { clearTimeout(timer); resolve(); } });
+31 |     });
+32 |     assert.equal(tasks.get('execution').status, 'failed');
+                ^
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ 'running'
+- 'failed'
+
+ generatedMessage: true,
+     actual: "running",
+   expected: "failed",
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/task-recovery-cli.test.ts:32:12
+      at processTicksAndRejections (native:7:39)
+(fail) daemon startup records interrupted executions without changing work items or review results [147.30ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [179.00ms]

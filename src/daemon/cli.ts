@@ -1,6 +1,7 @@
 import { acquireDatabaseLease } from './lease.js';
 import type { DatabaseLease } from './lease.js';
 import { runExecutionTask } from '../tasks/execution.js';
+import { recoverInterruptedExecutionTasks } from '../tasks/service.js';
 import { SqliteMemoryProvider } from '../memory/sqlite.js';
 import { replyToRoomMessage } from '../rooms/runtime.js';
 import { randomUUID } from 'node:crypto';
@@ -116,6 +117,7 @@ function openOperations(
     const memoryProvider = new SqliteMemoryProvider(db);
     memory = memoryProvider;
     runtime.recover();
+    recoverInterruptedExecutionTasks(taskProvider, () => new Date().toISOString());
     return {
       dispatch: () => dispatchEvents(eventBus, agentRepository, taskProvider, journal),
       deliveries: () => journal.list(),

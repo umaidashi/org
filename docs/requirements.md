@@ -8,7 +8,7 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで128テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで131テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAtを実装・検証。組織/権限/Memory属性は未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | 未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | 未完了 |
@@ -20,7 +20,7 @@
 | Memory更新 | extraction、dedup、conflict、supersede/invalidate、原履歴不変 | 同scope/typeのactiveを原記録不変のままsupersede、理由付きinvalidateを追記しstatusを投影。全UNIQUEキーのREPLACE/UPDATE/DELETE拒否と再openを検証。自動extraction/dedup/conflictは未完了 |
 | Context | scope・type・tags/entity・recency・importance・full-textの選択、ContextBuilder | Room入力までの履歴を最大30件/64KiB・省略数付きで構成し、Runtime応答をreply Messageへ保存。実Codex/CLIで検証。activeで現在のRoom/Agent/Task/company/globalのみ最大20件を選択。summary/期間/tag/entity/full-textは未完了 |
 | Task | WorkItemと内部ExecutionTaskの分離、依存・owner・親・成果物 | kind別作成/取得/一覧、依存/owner/親、コメント/成果物URIを永続化。外部同期とArtifact回収は未完了 |
-| Task状態 | pending/assigned/running/blocked/waiting_approval/completed/failed | 純粋な遷移・参照/依存判断、SQLiteの原子的な状態/不変履歴、rollback/古いversion拒否を検証。Event由来Taskの冪等作成/割当/復旧を追加。manual assigned ExecutionTaskをrunning先保存→Runtime/Room返信→結果Artifactとwaiting_approvalを原子保存。実Codex/CLI・failure/競合・rollbackを検証。再起動復旧/専用Approvalは未完了 |
+| Task状態 | pending/assigned/running/blocked/waiting_approval/completed/failed | 純粋な遷移・参照/依存判断、SQLiteの原子的な状態/不変履歴、rollback/古いversion拒否を検証。Event由来Taskの冪等作成/割当/復旧を追加。manual assigned ExecutionTaskをrunning先保存→Runtime/Room返信→結果Artifactとwaiting_approvalを原子保存。実Codex/CLI・failure/競合・rollbackを検証。単一DB所有のdaemon起動時にrunning ExecutionTaskをfailedへ復旧。専用Approvalは未完了 |
 | TaskProvider | create/get/update/list/addComment/linkArtifact、Localと外部Adapter | PortとLocal SQLite Adapterを実装・検証。外部Adapterは未完了 |
 | Event | 不変event log、受信者から独立したpublish、イベントとTaskの分離 | SQLiteとCLIのpublish/get/list。受信者不要・別プロセス読込・原本UPDATE/DELETE/REPLACE拒否・INSERT失敗後復旧を検証。daemon配信は未完了 |
 | Subscription | pattern・filter・enabled、Agent/Workflowへのルーティング | 純粋なpattern/filter判断とSQLite保存、CLI照合/有効無効を実装。Agent参照を公開Portで確認。単発workerでAgentのExecutionTaskを作成/割当。Workflow参照は保存/deferredのみ。実Runtime/Workflow起動は未完了 |

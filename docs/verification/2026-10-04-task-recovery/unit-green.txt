@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-recovery.test.ts:
+(pass) recovery fails only running executions using the observed version and injected time [2.19ms]
+(pass) recovery propagates write conflicts instead of accepting new commands with stale state [0.46ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [29.00ms]
