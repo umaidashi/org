@@ -1,0 +1,7 @@
+# 不変source表の全置換経路を閉じる
+
+Memory/Taskで再現したSQLite REPLACEのimplicit DELETEを、Room Message・Event・Session履歴・Memory invalidationにも照合する。所有APIはINSERTだけでも、原履歴不変というDB受入条件はUPDATE/DELETEだけでは成立しない。
+
+実SQLite recursive_triggers=OFFで、同id/複合キー・sequence/rowid衝突のINSERT OR REPLACEをRED→GREEN検証する。全original表の固有キーをINSERT triggerで拒否し、既存guardを外さず別名追加して既存DBにも適用する。Room/Subscription/Task/Session等の可変current stateは変更しない。削除/再作成やデータ移行は行わない。
+
+原データの内容と順序を再読込でassertし、後続の正規INSERTが可能であることを確認。全suite/実jev/独立レビューを行い、ログへ記録する。完了後はdaemonのDB所有権とrunning Task再起動復旧へ進む。

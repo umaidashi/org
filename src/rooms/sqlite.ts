@@ -83,6 +83,7 @@ export class SqliteRoomRepository implements RoomRepository {
         CREATE TABLE IF NOT EXISTS rooms(id TEXT PRIMARY KEY, data TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS room_messages(sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, room_id TEXT NOT NULL, data TEXT NOT NULL);
         CREATE INDEX IF NOT EXISTS room_messages_room ON room_messages(room_id, sequence);
+        CREATE TRIGGER IF NOT EXISTS room_messages_no_replace BEFORE INSERT ON room_messages WHEN EXISTS(SELECT 1 FROM room_messages WHERE id=NEW.id OR sequence=NEW.sequence) BEGIN SELECT RAISE(ABORT, 'Messages are immutable'); END;
         CREATE TRIGGER IF NOT EXISTS room_messages_no_update BEFORE UPDATE ON room_messages BEGIN SELECT RAISE(ABORT, 'Messages are immutable'); END;
         CREATE TRIGGER IF NOT EXISTS room_messages_no_delete BEFORE DELETE ON room_messages BEGIN SELECT RAISE(ABORT, 'Messages are immutable'); END;`);
     } catch (error) {

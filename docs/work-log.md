@@ -371,3 +371,13 @@
 - remote mainをfetchし2e7a65dでlocal mainと一致、worktree cleanを確認。feat/session-runtimeの検証済み6コミットをmainへfast-forwardし、通常push成功。履歴改変/force pushはしていない。
 - 送信先mainとlocal mainが952d833935739f69dc54e0ee76b29a22d92b6042で一致。Lefthook pre-pushが送信tipの公開履歴・全120テスト・静的検査・実jevを31秒で実行成功。[送信検証](verification/2026-10-04-main-runtime-push/prepush.txt)。
 - 実CodexのSession/Room/Memory/Task結果確認まで公開済み。全体目標は未完了で、残りの不変source表の置換防止とdaemon所有/再起動復旧を続ける。
+
+
+## 不変source履歴のREPLACE監査
+
+- [計画](superpowers/plans/2026-10-04-history-replace.md)。Room Message/Event原本、Session snapshotのrowid、Memory invalidateのrowidで直接SQL REPLACEが原履歴を消せることを実Bun SQLiteのrecursive_triggers OFFで4件RED確認。
+- 全固有キー/sequence/rowid衝突を追加INSERT triggerで拒否。既存guardを外さずmutable current表を変更しない。元内容・履歴順・その後の正規INSERTを確認。旧Room DBを再openして保護を追加する検証も成功。[GREEN](verification/2026-10-04-history-replace/green.txt)。
+- 全125テスト・静的検査・jev dry-run成功。[全検証](verification/2026-10-04-history-replace/check.txt)。実jev659対象、missing/unsure0、errors/degradedなし。[実レビュー](verification/2026-10-04-history-replace/semantic.txt)。独立Reviewer4件成功、Critical/Importantなし。
+- Minor互換性制約: 原記録は所有APIが生成する正のrowidを前提とする。raw SQLでrowid=-1を入れたDBは、SQLite BEFORE INSERTの省略時NEW.rowid=-1と衝突して後続INSERTも拒否される。任意SQL importの対応は後続とし、CLI/Port経由の既存DBを維持する。
+- 実Claudeのbare認証用APIキーの設定有無だけを確認（値は非表示）し未設定。公式headless docsのbare認証を再確認。ユーザーへ .env設定後に値を貼らず連絡するよう非同期で依頼。他の実装は継続する。[公式資料](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode)。
+- 次は同じDBを別socketのdaemonが同時所有/復旧しない境界とrunning ExecutionTask復旧を実装する。全体目標は未完了。

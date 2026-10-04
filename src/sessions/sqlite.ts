@@ -20,6 +20,7 @@ export class SqliteSessionStore implements SessionStore {
         CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY, version INTEGER NOT NULL, data TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS session_history(id TEXT NOT NULL, version INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY(id, version));
         CREATE TRIGGER IF NOT EXISTS session_history_no_replace BEFORE INSERT ON session_history WHEN EXISTS(SELECT 1 FROM session_history WHERE id=NEW.id AND version=NEW.version) BEGIN SELECT RAISE(ABORT, 'Session history immutable'); END;
+        CREATE TRIGGER IF NOT EXISTS session_history_no_rowid_replace BEFORE INSERT ON session_history WHEN EXISTS(SELECT 1 FROM session_history WHERE rowid=NEW.rowid) BEGIN SELECT RAISE(ABORT, 'Session history immutable'); END;
         CREATE TRIGGER IF NOT EXISTS session_history_no_update BEFORE UPDATE ON session_history BEGIN SELECT RAISE(ABORT, 'Session history immutable'); END;
         CREATE TRIGGER IF NOT EXISTS session_history_no_delete BEFORE DELETE ON session_history BEGIN SELECT RAISE(ABORT, 'Session history immutable'); END;`);
     } catch (error) {

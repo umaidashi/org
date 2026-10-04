@@ -1,0 +1,12 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/history-replace.test.ts:
+(pass) Room immutable Message rejects replacement through id and sequence aliases with recursive triggers disabled [8.69ms]
+(pass) Event immutable payload rejects replacement through id and sequence aliases [4.32ms]
+(pass) Session immutable snapshots reject explicit rowid replacement under a new composite key [3.95ms]
+(pass) Memory invalidation preserves its original reason against explicit rowid replacement [6.67ms]
+(pass) Reopening a legacy Room database installs replacement guards without changing existing Message history [5.83ms]
+
+ 5 pass
+ 0 fail
+Ran 5 tests across 1 file. [52.00ms]

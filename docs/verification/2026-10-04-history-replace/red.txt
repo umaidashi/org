@@ -1,0 +1,59 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/history-replace.test.ts:
+15 |  const f=fixture();const rooms=new SqliteRoomRepository(f.path);const db=new Database(f.path);
+16 |  try{
+17 |   db.exec('PRAGMA recursive_triggers=OFF');
+18 |   rooms.create(createRoom({title:'work',type:'direct',participants:[{kind:'human',id:'h'},{kind:'agent',id:'a'}]},{id:'r',createdAt:'now'}));
+19 |   const first=rooms.append('r',{sender:{kind:'human',id:'h'},content:'original'},{id:'m',createdAt:'now'});
+20 |   assert.throws(()=>db.query('INSERT OR REPLACE INTO room_messages(id,room_id,data) VALUES (?,?,?)').run('m','r',JSON.stringify({...first,content:'changed'})));
+              ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/history-replace.test.ts:20:10)
+(fail) Room immutable Message rejects replacement through id and sequence aliases with recursive triggers disabled [15.78ms]
+26 | test('Event immutable payload rejects replacement through id and sequence aliases',()=>{
+27 |  const f=fixture();const events=new SqliteEventBus(f.path);const db=new Database(f.path);
+28 |  try{
+29 |   db.exec('PRAGMA recursive_triggers=OFF');
+30 |   const first=events.publish(createEvent({type:'test.created',source:'manual'},{id:'e',createdAt:'now'}));
+31 |   assert.throws(()=>db.query('INSERT OR REPLACE INTO events(id,data) VALUES (?,?)').run('e',JSON.stringify({...first,type:'test.changed'})));
+              ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/history-replace.test.ts:31:10)
+(fail) Event immutable payload rejects replacement through id and sequence aliases [5.86ms]
+36 | });
+37 | test('Session immutable snapshots reject explicit rowid replacement under a new composite key',()=>{
+38 |  const f=fixture();const sessions=new SqliteSessionStore(f.path);const db=new Database(f.path);
+39 |  try{
+40 |   db.exec('PRAGMA recursive_triggers=OFF');const first=createSession({agentId:'a',roomId:'r',runtime:'codex'},{id:'s',at:'now'});sessions.create(first);
+41 |   assert.throws(()=>db.query('INSERT OR REPLACE INTO session_history(rowid,id,version,data) VALUES (?,?,?,?)').run(1,'other',0,JSON.stringify({...first,id:'other'})));
+              ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/history-replace.test.ts:41:10)
+(fail) Session immutable snapshots reject explicit rowid replacement under a new composite key [3.99ms]
+44 | });
+45 | test('Memory invalidation preserves its original reason against explicit rowid replacement',()=>{
+46 |  const f=fixture();const memories=new SqliteMemoryProvider(f.path);const db=new Database(f.path);
+47 |  try{
+48 |   db.exec('PRAGMA recursive_triggers=OFF');const input={type:'semantic' as const,scope:'global',content:'fact',confidence:.8,sourceRefs:[{roomId:'r',messageId:'m'}]};memories.create(createMemory(input,{id:'m',at:'now'}));memories.invalidate('m','original reason','later');
+49 |   assert.throws(()=>db.query('INSERT OR REPLACE INTO memory_invalidations(rowid,id,reason,at) VALUES (?,?,?,?)').run(1,'other','changed','later'));
+              ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/history-replace.test.ts:49:10)
+(fail) Memory invalidation preserves its original reason against explicit rowid replacement [6.48ms]
+
+ 0 pass
+ 4 fail
+Ran 4 tests across 1 file. [65.00ms]

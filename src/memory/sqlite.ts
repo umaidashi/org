@@ -23,6 +23,7 @@ export class SqliteMemoryProvider implements MemoryProvider {
    CREATE TRIGGER IF NOT EXISTS memory_records_no_update BEFORE UPDATE ON memory_records BEGIN SELECT RAISE(ABORT,'Memory immutable'); END;
    CREATE TRIGGER IF NOT EXISTS memory_records_no_delete BEFORE DELETE ON memory_records BEGIN SELECT RAISE(ABORT,'Memory immutable'); END;
    CREATE TRIGGER IF NOT EXISTS memory_invalidations_no_replace BEFORE INSERT ON memory_invalidations WHEN EXISTS(SELECT 1 FROM memory_invalidations WHERE id=NEW.id) BEGIN SELECT RAISE(ABORT,'Memory invalidation immutable'); END;
+   CREATE TRIGGER IF NOT EXISTS memory_invalidations_no_rowid_replace BEFORE INSERT ON memory_invalidations WHEN EXISTS(SELECT 1 FROM memory_invalidations WHERE rowid=NEW.rowid) BEGIN SELECT RAISE(ABORT,'Memory invalidation immutable'); END;
    CREATE TRIGGER IF NOT EXISTS memory_invalidations_no_update BEFORE UPDATE ON memory_invalidations BEGIN SELECT RAISE(ABORT,'Memory invalidation immutable'); END;
    CREATE TRIGGER IF NOT EXISTS memory_invalidations_no_delete BEFORE DELETE ON memory_invalidations BEGIN SELECT RAISE(ABORT,'Memory invalidation immutable'); END;`);
     } catch (error) {
