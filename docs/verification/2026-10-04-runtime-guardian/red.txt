@@ -1,0 +1,33 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-guardian.test.ts:
+27 |     for (const value of values) { assert.ok(typeof value === 'number' && Number.isSafeInteger(value) && value > 0); pids.push(value); }
+28 |     assert.equal(pids.length, 2);
+29 |     owner.kill('SIGKILL');
+30 |     await exited;
+31 |     for (let attempts = 0; pids.some(alive) && attempts < 100; attempts++) await new Promise((resolve) => setTimeout(resolve, 10));
+32 |     assert.deepEqual(pids.map(alive), [false, false]);
+                ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
++   true,
++   true
+-   false,
+-   false
+  ]
+
+ generatedMessage: true,
+     actual: [ true, true ],
+   expected: [ false, false ],
+   operator: "deepStrictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/runtime-guardian.test.ts:32:12
+      at processTicksAndRejections (native:7:39)
+(fail) killing the runtime owner also terminates its driver and descendant [1242.55ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [1272.00ms]

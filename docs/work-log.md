@@ -406,3 +406,11 @@
 - 全134テスト・型・lint・AST成功。[全検査](verification/2026-10-04-runtime-process-group/check.txt)。実Jev690対象、missing/unsure0・errors/degradedなし。[実レビュー](verification/2026-10-04-runtime-process-group/semantic.txt)。独立Reviewerも6テスト成功、Critical/Importantなし。
 - Final: minor (deferred): Linuxで孤児zombie未回収の場合、テストのkill(pid,0)が生存扱いとなりfalse failureになり得る。現Darwinは成功。Linux実機対応時に終了判定を調整する。
 - Next: daemon自身をSIGKILLした時にもRuntimeが残らない、pipeを使った監督processの最小e2eを進める。groupを離脱するprocessの隔離はSandbox段階で扱う。stale socketの無条件削除は行わない。
+
+## daemon強制終了時のRuntime監督
+
+- [計画](superpowers/plans/2026-10-04-runtime-guardian.md)。Runtime ownerだけSIGKILLするとdriverと孫が生存することをRED再現。Bun監督processのstdinをlifelineとして開いたまま保持し、EOF/reader errorでgroup停止。argv/input/envはstdin JSON行で渡し秘密をprocess argvへ載せない。driver stdin/output/exitCodeを維持した。
+- source・Bun bundle両方で強制終了e2e成功。既存process/groupテストと合わせ8件成功。全136テスト・型・lint・AST成功。[全検査](verification/2026-10-04-runtime-guardian/check.txt)。実Jev699対象、missing/unsure0・errors/degradedなし。failure-path補助指摘は未到達のOS権限error等を含むため、独立Reviewerで実停止/timeout/FDを確認し非阻害と判断。
+- 独立Reviewerも8件成功、大stdin timeoutと20回起動後FD数が増えないことを確認、Critical/Importantなし。Final: minor (deferred): guardian起動失敗のgeneric診断末尾が改行でなくliteral backslash+n。exit1と秘密非露出は維持される。
+- 実CodexでTask実行→Room返信→Artifact→waiting_approvalの実e2eを再検証、全boolean成功。[公開可能な結果](verification/2026-10-04-runtime-guardian/real-codex.txt)。raw応答・一時workspaceは公開ログへ含めない。
+- Next: この復旧/停止のまとまりをmainへ通常pushする。stale socketの安全な回収と、Approval/Agent組織・Scheduler等を小さく進める。setsidによるgroup離脱はSandboxの隔離で扱う。全体ゴールは未完了のまま継続。

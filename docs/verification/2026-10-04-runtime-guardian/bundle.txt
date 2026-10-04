@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-guardian.test.ts:
+(pass) killing the source runtime owner also terminates its driver and descendant [60.96ms]
+(pass) killing the bundled runtime owner also terminates its driver and descendant [70.27ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [159.00ms]

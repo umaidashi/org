@@ -1,3 +1,4 @@
+import { guardianSource } from './guardian.js';
 export interface ProcessInput {
   readonly argv: readonly string[];
   readonly input: string;
@@ -23,11 +24,11 @@ export async function runProcess(input: ProcessInput): Promise<ProcessResult> {
     throw new Error('Process timeout must be at most 2147483647 milliseconds');
   if (input.signal?.aborted) return { reason: 'cancelled', exitCode: null, stdout: '', stderr: '' };
   if (process.platform === 'win32') throw new Error('Runtime process groups require POSIX');
-  const child = Bun.spawn([...input.argv], {
+  const child = Bun.spawn([process.execPath, '--no-env-file', '-e', guardianSource()], {
     detached: true,
     cwd: input.cwd,
     env: { ...input.env },
-    stdin: new Blob([input.input]),
+    stdin: 'pipe',
     stdout: 'pipe',
     stderr: 'pipe',
   });
@@ -107,6 +108,10 @@ export async function runProcess(input: ProcessInput): Promise<ProcessResult> {
     }
   }
   try {
+    child.stdin.write(
+      JSON.stringify({ argv: input.argv, input: input.input, env: input.env }) + '\n',
+    );
+    await child.stdin.flush();
     const [stdout, stderr, exitCode] = await Promise.all([
       collect(child.stdout),
       collect(child.stderr),
