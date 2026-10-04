@@ -1,0 +1,1 @@
+Critical: none. Important: none. Minor: none. Independent pure domain: 2 pass. Independent real daemon CLI: 1 pass, after socket EPERM in ordinary sandbox; authorized escalation succeeded. Parent full regression: 158 pass, 0 fail.

@@ -1,3 +1,5 @@
+import { selectActivationAgents } from '../activation/domain.js';
+import { listA2AMessages } from '../a2a/service.js';
 import { parseArgs } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
@@ -12,6 +14,7 @@ import { metadataValue, SqliteRoomRepository } from './sqlite.js';
 export type RoomCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'create'; readonly input: RoomInput }
   | { readonly action: 'list' }
+  | { readonly action: 'targets'; readonly id: string; readonly messageId: string }
   | { readonly action: 'get' | 'archive' | 'messages'; readonly id: string }
   | { readonly action: 'send'; readonly id: string; readonly input: MessageInput }
 );
@@ -44,6 +47,9 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
       db: { type: 'string' },
       json: { type: 'boolean' },
       type: { type: 'string' },
+      coordinator: { type: 'string' },
+      mention: { type: 'string', multiple: true },
+      message: { type: 'string' },
       'activation-policy': { type: 'string' },
       human: { type: 'string', multiple: true },
       agent: { type: 'string', multiple: true },
@@ -62,12 +68,21 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
   required(base.db, '--db');
   const allowed =
     action === 'create'
-      ? ['db', 'json', 'type', 'activation-policy', 'human', 'agent', 'task']
+      ? ['db', 'json', 'type', 'activation-policy', 'human', 'agent', 'task', 'coordinator']
       : action === 'send'
-        ? ['db', 'json', 'human', 'agent', 'content', 'reply-to', 'metadata']
-        : ['db', 'json'];
+        ? ['db', 'json', 'human', 'agent', 'content', 'reply-to', 'metadata', 'mention']
+        : action === 'targets'
+          ? ['db', 'json', 'message']
+          : ['db', 'json'];
   for (const key of Object.keys(parsed.values))
     if (!allowed.includes(key)) throw new Error(`Unexpected --${key} for room ${action}`);
+  if (action === 'targets')
+    return {
+      ...base,
+      action,
+      id: required(target, 'Room ID'),
+      messageId: required(parsed.values.message, 'Message ID'),
+    };
   if (action === 'list') {
     if (target !== undefined) throw new Error('Unexpected argument for room list');
     return { ...base, action };
@@ -78,6 +93,9 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
       action,
       input: {
         title: required(target, 'title'),
+        ...(parsed.values.coordinator === undefined
+          ? {}
+          : { coordinatorId: required(parsed.values.coordinator, 'coordinator') }),
         type: roomType(parsed.values.type),
         activationPolicy: policy(parsed.values['activation-policy']),
         participants: [
@@ -97,6 +115,9 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
     const agents = parsed.values.agent ?? [];
     if (humans.length + agents.length !== 1)
       throw new Error('Expected exactly one --human or --agent sender');
+    const metadata = metadataValue(JSON.parse(parsed.values.metadata ?? '{}'));
+    if (parsed.values.mention !== undefined && 'mentions' in metadata)
+      throw new Error('Choose --mention or metadata.mentions');
     return {
       ...base,
       action,
@@ -107,11 +128,16 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
           : { kind: 'agent', id: required(agents[0], '--agent') },
         content: required(parsed.values.content, '--content'),
         ...(parsed.values['reply-to'] === undefined ? {} : { replyTo: parsed.values['reply-to'] }),
-        metadata: metadataValue(JSON.parse(parsed.values.metadata ?? '{}')),
+        metadata: {
+          ...metadata,
+          ...(parsed.values.mention === undefined
+            ? {}
+            : { mentions: parsed.values.mention.map((id) => required(id, 'mention')) }),
+        },
       },
     };
   }
-  throw new Error('Expected room create|list|get|archive|send|messages');
+  throw new Error('Expected room create|list|get|archive|send|messages|targets');
 }
 export function runRoomCommand(
   command: RoomCommand,
@@ -132,6 +158,21 @@ export function runRoomCommand(
           tasks?.close();
           agents.close();
         }
+        break;
+      }
+      case 'targets': {
+        const room = rooms.get(command.id);
+        const message = rooms.messages(command.id).find((m) => m.id === command.messageId);
+        if (!message) throw new Error('Activation Message not found in Room');
+        if ('a2a' in message.metadata) {
+          const tasks = new SqliteTaskProvider(command.db);
+          try {
+            listA2AMessages(rooms, command.id, tasks);
+          } finally {
+            tasks.close();
+          }
+        }
+        result = selectActivationAgents(room, message);
         break;
       }
       case 'list':

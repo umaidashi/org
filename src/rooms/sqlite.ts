@@ -43,6 +43,7 @@ function decodeRoom(raw: unknown): Room {
       type: v.type,
       activationPolicy: v.activationPolicy,
       participants: v.participants.map((p: unknown) => participant(p)),
+      ...(v.coordinatorId === undefined ? {} : { coordinatorId: text(v.coordinatorId) }),
       ...(taskId === null ? {} : { taskId }),
     },
     { id: text(v.id), createdAt: text(v.createdAt) },

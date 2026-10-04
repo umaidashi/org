@@ -11,6 +11,7 @@ export interface Room {
   readonly activationPolicy: ActivationPolicy;
   readonly participants: readonly Participant[];
   readonly taskId: string | null;
+  readonly coordinatorId?: string;
   readonly createdAt: string;
   readonly archivedAt: string | null;
 }
@@ -20,6 +21,7 @@ export interface RoomInput {
   readonly participants: readonly Participant[];
   readonly activationPolicy?: ActivationPolicy;
   readonly taskId?: string;
+  readonly coordinatorId?: string;
 }
 export type JsonValue =
   | null
@@ -62,6 +64,11 @@ export function validateRoomInput(input: RoomInput): void {
     if (keys.has(key)) throw new Error('Duplicate Room participant');
     keys.add(key);
   }
+  if (
+    input.coordinatorId !== undefined &&
+    !input.participants.some((p) => p.kind === 'agent' && p.id === input.coordinatorId)
+  )
+    throw new Error('Room coordinator must be a participating Agent');
   const humans = input.participants.filter((p) => p.kind === 'human').length;
   const agents = input.participants.filter((p) => p.kind === 'agent').length;
   switch (input.type) {
@@ -96,6 +103,7 @@ export function createRoom(input: RoomInput, identity: Identity): Room {
     participants: input.participants.map((p) => ({ ...p })),
     taskId: input.taskId ?? null,
     archivedAt: null,
+    ...(input.coordinatorId === undefined ? {} : { coordinatorId: input.coordinatorId }),
   };
 }
 export function archiveRoom(room: Room, archivedAt: string): Room {
@@ -113,6 +121,20 @@ function copyJson(value: JsonValue): JsonValue {
     Object.entries(value).map(([key, entry]: [string, JsonValue]) => [key, copyJson(entry)]),
   );
 }
+export function messageMentions(room: Room, metadata: Message['metadata']): readonly string[] {
+  const mentions = metadata.mentions;
+  if (mentions === undefined) return [];
+  if (!Array.isArray(mentions)) throw new Error('Message mentions must be Agent IDs');
+  return mentions.map((id: JsonValue) => {
+    if (
+      typeof id !== 'string' ||
+      !id.trim() ||
+      !room.participants.some((p) => p.kind === 'agent' && p.id === id)
+    )
+      throw new Error('Message mention must be a participating Agent');
+    return id;
+  });
+}
 export function createMessage(
   room: Room,
   input: MessageInput,
@@ -129,6 +151,7 @@ export function createMessage(
     (!reply || reply.id !== input.replyTo || reply.roomId !== room.id)
   )
     throw new Error('Reply must reference a Message in the same Room');
+  messageMentions(room, input.metadata ?? {});
   const metadata = Object.fromEntries(
     Object.entries(input.metadata ?? {}).map(([key, value]) => [key, copyJson(value)]),
   );

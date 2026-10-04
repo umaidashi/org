@@ -83,6 +83,18 @@ bun run start room archive ROOM_ID --json
 
 MessageはRoom別の追記履歴です。senderは参加者、返信先は同じRoomのMessageに限定します。`--metadata`はJSON objectを指定できます。archive後は投稿できず、既存履歴は読めます。この操作ではAgentの起動、Activationの実行、Humanの認証は行いません。
 
+## RoomのActivation対象
+
+```sh
+bun run start room create Company --type group --human founder --agent CHIEF_ID --agent CTO_ID --coordinator CHIEF_ID --json
+bun run start room send ROOM_ID --human founder --content 'CTOに質問' --mention CTO_ID --json
+bun run start room targets ROOM_ID --message MESSAGE_ID --json
+```
+
+`targets`は起動対象Agent IDを選びます。Runtimeの起動は後続です。通常の人間発言はcoordinatorだけ、明示mentionやA2A宛先はそのAgentを選びます。複数Agent Roomではcoordinatorを指定し、単一Agentの既存RoomではそのAgentを使います。mention_onlyは明示宛先のみ、allは人間発言で全参加Agentを選びます。普通のAgent返信で再発火せず、sender自身も選びません。
+
+mentionは参加Agentだけを指定でき、`--mention`は複数回使えます。archive後は選択できません。rule_basedは明示宛先の選択に対応し、独自ルールの定義・評価は未実装です。
+
 ## Agent間のA2A
 
 ```sh

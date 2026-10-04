@@ -465,3 +465,17 @@
 - Final: 独立ReviewerはA2A全4source/app差分/3test/計画/README/要件をアクセス障害前に読了。Critical/Important/Minorなし。独立UTはBun Unexpectedで終了、その後OS側Operation not permittedとなり独立GREENとは扱わない。補助failure-path候補は入力/type/JSON/options/参照/保存拒否を既存e2e/UTで確認し、非阻害と判断。
 - 一時的なOS側アクセス拒否でcommit前に停止。通常・明示cwd権限付き読取りも拒否、git親とrepoがerrno1、tmpは読み書き可能だった。復旧後にdiff/保存済み検証記録を確認。資格情報探索・権限制約の回避は行わない。復旧後に全ゲートを再実行してcommitする。
 - 復旧後の全155テスト・静的ゲート再実行成功。[復旧後検査](verification/2026-10-04-typed-a2a/recovered-check.txt)。独立レビューの読了範囲と実行不能を別記した。Next: 通常main push後、Room coordinator指定と明示mention/A2A宛先のActivation判断をTDDで実装する。
+
+## main公開：Agent組織とtyped A2A
+
+- mainへfast-forward/通常push成功。remote/local mainは574eff0422f6522da0d0b8dd4bc379e95afca892で一致。Lefthook pre-pushの公開内容/履歴・全155テスト・実Jevゲートは34.03秒で成功。force-push/旧remote feature履歴変更なし。
+
+## Room Activationの選択
+
+- Notion01再取得、page_last_edited_at 2026-10-04T01:51:58.336Z。Coordinatorだけを既定起動し明示mentionを優先する仕様を再確認。[計画](superpowers/plans/2026-10-05-room-activation.md)。
+- optional coordinatorIdはRoom JSONを再利用し、参加Agentだけ許容、旧JSONでは省略。単一Agentの旧Roomは唯一のAgentを選択、複数Agentは明示coordinatorが必要。metadata.mentionsを既存createMessage保存境界で検証し、CLI --mention複数指定を配線。
+- pure selectActivationAgentsはcoordinator/mention_only/all・typed A2A宛先を判断。普通のAgent返信は連鎖発火させずsenderも除外。Room/参加者/原本/archived/不正mentionを拒否。DB不要2UT RED→GREEN。
+- Ruling: rule_basedの構文はNotion未指定。明示宛先だけ対応し、未指定なら未対応errorとして閉じる。任意コードrule engineは作らず、ルール定義/評価は次の専用計画で実装する。誤りのcostはrule_basedの未対応範囲が残ること。
+- room create --coordinator / send --mention / targets --messageを実daemon RED（未実装option）→GREEN。archive/誤Room/非参加mention拒否、旧Room/新Room再openを確認。対象Room回帰含む6テスト成功。型検査でtest entity helperの戻り型のidだけ推論される問題を検出、検証済みRecord+idの戻り契約を明記して訂正する。
+- 全158テスト・型/lint/format/AST成功。[全検査](verification/2026-10-05-room-activation/check.txt)。実Jev797対象・missing/unsure0・errors/degradedなし。[実レビュー](verification/2026-10-05-room-activation/semantic.txt)。独立レビュー待ち。
+- Final: 独立Reviewer Critical/Important/Minorなし。domain2UT・実daemon CLI1e2eも独立成功（通常sandboxのsocket EPERM後、権限付き実行で成功）。補助failure-path候補は既存検証範囲/未到達のOS error等を含むため、非阻害と判断。Next: 選択結果からSessionを準備し既存Room context返信へ結線するmanual activation e2e、続いてdurable自動wake-upを進める。

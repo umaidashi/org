@@ -1,0 +1,19 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/activation-cli.test.ts:
+(pass) Room CLI persists coordinator and selects mention or A2A targets across daemon and legacy reopening [1543.86ms]
+
+tests/room-domain.test.ts:
+(pass) Room types require their participant composition and default to coordinator [0.47ms]
+(pass) Messages require membership and same-room replies; archive preserves the original Room [0.76ms]
+
+tests/activation-domain.test.ts:
+(pass) Activation selects only coordinator or explicit mentions and never relays ordinary Agent replies [0.52ms]
+(pass) Activation requires valid Room references, fails closed without coordinator or rules and retains old single-Agent behavior [0.42ms]
+
+tests/room-sqlite.test.ts:
+(pass) SQLite preserves immutable Messages and rejects insertion failure without affecting history [30.71ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 4 files. [1.62s]

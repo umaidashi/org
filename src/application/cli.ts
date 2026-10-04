@@ -26,7 +26,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org agent reporting-history ID [--json]
        org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
        org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
-       org [--db PATH] room create|list|get|archive|send|messages [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets [OPTIONS]
        org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
        org a2a send|get|list [OPTIONS]
        org memory capture|get|list|invalidate [OPTIONS]
