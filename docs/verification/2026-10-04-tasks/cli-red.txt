@@ -1,0 +1,94 @@
+✖ work item and internal execution task persist separately with parent and assignment history (126.447291ms)
+✖ invalid transitions and references leave persistent task and history unchanged (39.548208ms)
+✖ dependencies and cycles are enforced across independent CLI processes (120.019083ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 340.067375
+
+✖ failing tests:
+
+test at dist/tests/task-cli.test.js:35:7
+✖ work item and internal execution task persist separately with parent and assignment history (126.447291ms)
+  AssertionError [ERR_ASSERTION]: Error: Unknown option '--objective'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--objective"
+  Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+         org [--db PATH] agent list [--json]
+  
+  Register and list persistent Agent identities. Runtime processes are not started.
+  Default DB: ~/.local/share/org/org.db
+  
+  
+  2 !== 0
+  
+      at json (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:23:12)
+      at create (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:33:12)
+      at TestContext.<anonymous> (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:41:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+      at async file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:35:1 {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at dist/tests/task-cli.test.js:64:7
+✖ invalid transitions and references leave persistent task and history unchanged (39.548208ms)
+  AssertionError [ERR_ASSERTION]: Error: Unknown option '--objective'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--objective"
+  Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+         org [--db PATH] agent list [--json]
+  
+  Register and list persistent Agent identities. Runtime processes are not started.
+  Default DB: ~/.local/share/org/org.db
+  
+  
+  2 !== 0
+  
+      at json (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:23:12)
+      at create (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:33:12)
+      at TestContext.<anonymous> (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:65:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+      at async file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:64:1 {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at dist/tests/task-cli.test.js:81:7
+✖ dependencies and cycles are enforced across independent CLI processes (120.019083ms)
+  AssertionError [ERR_ASSERTION]: Error: Unknown option '--objective'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--objective"
+  Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+         org [--db PATH] agent list [--json]
+  
+  Register and list persistent Agent identities. Runtime processes are not started.
+  Default DB: ~/.local/share/org/org.db
+  
+  
+  2 !== 0
+  
+      at json (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:23:12)
+      at create (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:33:12)
+      at TestContext.<anonymous> (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:86:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+      at async file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:81:1 {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

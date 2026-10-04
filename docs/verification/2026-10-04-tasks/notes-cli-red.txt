@@ -1,0 +1,42 @@
+✔ work item and internal execution task persist separately with parent and assignment history (555.126708ms)
+✔ invalid transitions and references leave persistent task and history unchanged (622.618ms)
+✔ dependencies and cycles are enforced across independent CLI processes (506.36575ms)
+✖ task comments and output artifacts can be written and retrieved via separate CLI processes (103.252417ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1845.460458
+
+✖ failing tests:
+
+test at dist/tests/task-cli.test.js:106:7
+✖ task comments and output artifacts can be written and retrieved via separate CLI processes (103.252417ms)
+  AssertionError [ERR_ASSERTION]: Error: Unknown option '--body'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--body"
+  Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+         org [--db PATH] agent list [--json]
+         org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+         org [--db PATH] task list|get|assign|update|history [OPTIONS]
+  
+  Register and list persistent Agent identities. Runtime processes are not started.
+  Default DB: ~/.local/share/org/org.db
+  
+  
+  2 !== 0
+  
+      at json (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:25:12)
+      at TestContext.<anonymous> (file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:108:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+      at async file:///Users/umaidashi/Documents/git/org/dist/tests/task-cli.test.js:106:1 {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

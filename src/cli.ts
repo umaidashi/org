@@ -6,9 +6,13 @@ import { parseArgs } from 'node:util';
 import type { AgentInput } from './agents/domain.js';
 import { registerAgent } from './agents/service.js';
 import { SqliteAgentRepository } from './agents/sqlite.js';
+import { parseTaskCommand, runTaskCommand } from './tasks/cli.js';
+import type { TaskCommand } from './tasks/cli.js';
 
 const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
        org [--db PATH] agent list [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history [OPTIONS]
 
 Register and list persistent Agent identities. Runtime processes are not started.
 Default DB: ~/.local/share/org/org.db`;
@@ -22,10 +26,18 @@ function required(value: string | undefined, name: string): string {
 
 type Command =
   | { kind: 'help' }
+  | { kind: 'task'; command: TaskCommand }
   | { kind: 'create'; db: string; input: AgentInput }
   | { kind: 'list'; db: string; json: boolean };
 
 function parseCommand(argv: string[]): Command {
+  const probe = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    strict: false,
+    options: { db: { type: 'string' } },
+  });
+  if (probe.positionals[0] === 'task') return { kind: 'task', command: parseTaskCommand(argv) };
   const parsed = parseArgs({
     args: argv,
     allowPositionals: true,
@@ -81,6 +93,15 @@ export function main(argv: string[]): number {
   if (command.kind === 'help') {
     console.log(usage);
     return 0;
+  }
+  if (command.kind === 'task') {
+    try {
+      runTaskCommand(command.command);
+      return 0;
+    } catch (error) {
+      console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      return 1;
+    }
   }
 
   let repository: SqliteAgentRepository | undefined;

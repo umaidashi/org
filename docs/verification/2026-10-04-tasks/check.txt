@@ -1,0 +1,380 @@
+
+> org-kernel@0.1.0 check
+> npm run check:static && npm test && npm run review:plan
+
+
+> org-kernel@0.1.0 check:static
+> npm run typecheck && npm run lint && npm run format:check && npm run lint:ast
+
+
+> org-kernel@0.1.0 typecheck
+> tsc --noEmit
+
+
+> org-kernel@0.1.0 lint
+> eslint src tests scripts eslint.config.mjs --max-warnings 0
+
+
+> org-kernel@0.1.0 format:check
+> prettier --check "src/**/*.ts" "tests/**/*.ts" "scripts/**/*.ts" "*.{json,mjs,yml}" "quality/**/*.yml" ".jev-lint/**/*.{yml,yaml}"
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> org-kernel@0.1.0 lint:ast
+> ast-grep scan src --report-style short --color never
+
+
+> org-kernel@0.1.0 test
+> npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/*.test.js
+
+
+> org-kernel@0.1.0 build
+> npm run clean && tsc && node --input-type=module -e "import { chmodSync } from 'node:fs'; chmodSync('dist/src/cli.js', 0o755);"
+
+
+> org-kernel@0.1.0 clean
+> node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
+
+✔ agent construction preserves values and uses the supplied identity and timestamp (0.768459ms)
+✔ agent construction rejects each missing textual value (0.282875ms)
+✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (7.461166ms)
+✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (1.279666ms)
+✔ empty registry reports no agents and returns an empty JSON array (123.317834ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (254.244291ms)
+✔ duplicate registration fails without replacing the existing agent (334.393917ms)
+✔ text output includes id name role and runtime (244.714708ms)
+✔ empty or whitespace-only identity fields cannot register an agent (740.135333ms)
+✔ missing database parent directories are created (96.708625ms)
+✔ storage errors return failure on stderr without a stack trace (116.241ms)
+✔ unicode and quote characters are saved as values rather than SQL (209.726458ms)
+✔ default database is persisted only under the isolated HOME (111.426625ms)
+✔ invalid arguments fail before creating a database and help succeeds (491.208917ms)
+✔ an explicitly empty database path cannot silently register an ephemeral agent (82.873ms)
+✔ a corrupted database is reported as storage failure rather than an empty registry (41.272375ms)
+✔ pre-commit reads staged contents even when the worktree contains a passing replacement (108.010125ms)
+✔ pre-push reads the selected commit rather than staged or working changes (126.03925ms)
+✔ pre-push parses all actual local commits and skips remote deletions (0.823583ms)
+✔ snapshot refuses invalid object ids without running a check (17.829125ms)
+✔ the actual pre-commit gate blocks bad staged code without modifying the worktree (829.638334ms)
+✔ every architecture rule fixture runs and detects its planted violations (10.428333ms)
+✔ lint rejects unsafe generated code and infrastructure imports in domain code (1481.630583ms)
+✔ lint accepts a pure function with explicit typed inputs (1126.046541ms)
+✔ semantic review accepts complete warning-only results (0.527958ms)
+✔ semantic review rejects incomplete results even when warnings exist (0.18225ms)
+✔ work item and internal execution task persist separately with parent and assignment history (970.491375ms)
+✔ invalid transitions and references leave persistent task and history unchanged (802.586083ms)
+✔ dependencies and cycles are enforced across independent CLI processes (633.962666ms)
+✔ task comments and output artifacts can be written and retrieved via separate CLI processes (275.116875ms)
+✔ assignment uses the public Agent port and rejects missing identities without task changes (2.668584ms)
+✔ pure task decisions preserve identity and reject illegal state changes (1.178833ms)
+✔ task state and immutable history rollback together on storage failure (18.32225ms)
+✔ comments and artifact references persist without rewriting existing task history (9.339583ms)
+✔ comment and artifact originals cannot be modified and artifact linking rolls back with history (11.760875ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2914.06925
+
+> org-kernel@0.1.0 review:plan
+> jev-lint check src tests scripts --dry-run --json
+
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 151,
+  "cached": 62,
+  "requests": 26,
+  "tokens": 106506,
+  "usd": 0.0044732520000000005,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1012,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1924,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1736,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1739,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2625,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3382,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1848,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "local",
+      "tokens": 3936,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "located",
+      "tokens": 6295,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "located",
+      "tokens": 6374,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 4089,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 5012,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 5251,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "paired",
+      "tokens": 6278,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 876,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1798,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1532,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 20,
+      "arm": "located",
+      "tokens": 16579,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 5965,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2158,
+      "degraded": null
+    },
+    {
+      "file": "tests/semantic-review.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2373,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 4521,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 4960,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "bare",
+      "tokens": 6363,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-service.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1510,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-sqlite.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "bare",
+      "tokens": 6370,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "fn-name-promises",
+      "subjects": 39,
+      "requests": 7,
+      "tokens": 36920,
+      "usd": 0.0015506400000000003,
+      "share": 0.3466471372504835
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 24,
+      "requests": 7,
+      "tokens": 29654,
+      "usd": 0.001245468,
+      "share": 0.2784256286030834
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 10,
+      "requests": 6,
+      "tokens": 17222,
+      "usd": 0.0007233240000000001,
+      "share": 0.1616998103393236
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 11,
+      "requests": 4,
+      "tokens": 16616,
+      "usd": 0.000697872,
+      "share": 0.15600999004750907
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 5,
+      "requests": 2,
+      "tokens": 6094,
+      "usd": 0.000255948,
+      "share": 0.0572174337596004
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ]
+}

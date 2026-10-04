@@ -136,3 +136,19 @@
 
 - 全体目標は継続。Task/Room/Event/daemon/Runtime/Memory/Scheduler/Sandbox/Workflow/権限/外部連携/TUI/実務一周はまだ未完了。
 - 次の検証単位はTSのTask作成・取得・割当・状態と不変履歴の一周。
+
+## 2026-10-04：Taskの永続化とCLI
+
+- 直前の継続turnはprogress：TS移行・ローカルLefthook・意味レビューの実装/修正をGitに記録し、検証を完了した。
+- Notion「04｜Task抽象化」を再取得して照合。最終更新2026-10-04T01:51:58.336Zで、保存済みsnapshotと要件は変わらない。
+- 既存計画の第二検証単位を実行。Taskの作成→割当→状態遷移→別プロセス取得、参照拒否、依存循環のCLI e2eを先に書いた。実装前は3件ともUnknown --objectiveで失敗。[RED](verification/2026-10-04-tasks/cli-red.txt)。
+- domainとSQLiteのunit/integrationを先に書き、未実装moduleによる失敗を記録。[RED](verification/2026-10-04-tasks/domain-red.txt)。TaskProviderのコメント/成果物操作もテスト先行。[RED](verification/2026-10-04-tasks/provider-red.txt)、[CLI RED](verification/2026-10-04-tasks/notes-cli-red.txt)。
+- `tasks/domain.ts` にWorkItem/ExecutionTask、入力・状態判断を置いた。SQLite Adapterはtasks/task_history/task_comments/task_artifactsを所有し、TaskProviderは具体DB型を公開しない。
+- Ruling: 状態図は進行の基本形と解釈し、running→completed、blocked→running、waiting_approval→running等の回復を許可する — 毎回block/承認を要求する業務ではないため — コスト：厳密な業務フローは後のPermission/Approvalで制約する。completed/failedへの通常patchは拒否し、retryは今後のExecutionで別試行として扱う。
+- Ruling: TaskはownerをAgentの公開Portで確認してから割り当てる — 他モジュールのテーブルをTask Adapterから直接操作しないため — コスト：将来Agent削除を導入する際には参照保証のトランザクションを追加する必要がある。現在Agent削除操作はない。
+- ownerのあるTaskのみassigned以降へ進行。親と依存の存在・循環、依存完了後のみrunning/completed、不正遷移を拒否する。BEGIN IMMEDIATE内で現在状態の取得・判断・状態更新・履歴appendを行う。expectedVersionで古い更新も拒否する。
+- 履歴はversion順のTask snapshotをappend。SQLite triggerで履歴・コメント・成果物参照のUPDATE/DELETEを拒否する。trigger導入前の原本書き換えを再現して失敗を確認。[RED](verification/2026-10-04-tasks/immutable-notes-red.txt)。状態履歴または成果物履歴のINSERT失敗は状態・参照もrollbackする。
+- Ruling: 成果物参照は完了後にも追記可能 — 実行終了後の回収を妨げないため — 原本historyは変更せず新versionをappendする。TaskArtifactはURI参照のみで、Sandbox回収・資格情報・ファイル検証は未実装のArtifact領域に残す。
+- `task create/list/get/assign/update/history/comment/comments/artifact/artifacts` を追加。JSONはTaskのcamelCase、Agentは旧契約のcreated_atを維持する。
+- 全35テスト・型・ESLint・format・AST・jev dry-runが成功。[全出力](verification/2026-10-04-tasks/check.txt)。実DBで保存失敗rollback・原本不変・古いversion拒否、別プロセスで参照・依存・割当・コメント・成果物を検証。
+- 全体目標は継続。Taskの外部Adapter/同期、Execution実行、Room/Message/Event、daemon以降は未完了。

@@ -1,0 +1,11 @@
+
+> org-kernel@0.1.0 typecheck
+> tsc --noEmit
+
+tests/task-sqlite.test.ts(61,14): error TS2339: Property 'addComment' does not exist on type 'SqliteTaskProvider'.
+tests/task-sqlite.test.ts(62,14): error TS2339: Property 'linkArtifact' does not exist on type 'SqliteTaskProvider'.
+tests/task-sqlite.test.ts(65,34): error TS2339: Property 'addComment' does not exist on type 'SqliteTaskProvider'.
+tests/task-sqlite.test.ts(69,31): error TS2339: Property 'comments' does not exist on type 'SqliteTaskProvider'.
+tests/task-sqlite.test.ts(69,52): error TS7006: Parameter 'comment' implicitly has an 'any' type.
+tests/task-sqlite.test.ts(70,31): error TS2339: Property 'artifacts' does not exist on type 'SqliteTaskProvider'.
+tests/task-sqlite.test.ts(70,53): error TS7006: Parameter 'artifact' implicitly has an 'any' type.
