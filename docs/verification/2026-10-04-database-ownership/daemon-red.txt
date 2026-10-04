@@ -1,0 +1,27 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-database.test.ts:
+ 9 |  const first=spawn(process.execPath,['--no-env-file',cli,'--db',db,'daemon','--socket',firstSocket]);const exited=new Promise<number|null>(resolve=>first.once('exit',resolve));
+10 |  let error='';first.stderr.on('data',(data:Buffer)=>{error+=data.toString();});
+11 |  try{
+12 |   await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('First daemon not ready: '+error)),5000);first.stdout.on('data',(data:Buffer)=>{if(data.toString().includes('"ready"')){clearTimeout(timer);resolve();}});});
+13 |   const second=spawnSync(process.execPath,['--no-env-file',cli,'--db',db,'daemon','--socket',secondSocket],{encoding:'utf8',timeout:1500});
+14 |   assert.equal(second.status,1,second.stderr);assert.match(second.stderr,/Database is already owned/);
+              ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 1
+
+ generatedMessage: true,
+     actual: 0,
+   expected: 1,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/daemon-database.test.ts:14:10
+      at processTicksAndRejections (native:7:39)
+(fail) Another daemon on a different socket cannot recover or own the active database [1664.54ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [1.88s]

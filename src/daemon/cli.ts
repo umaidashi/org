@@ -1,3 +1,5 @@
+import { acquireDatabaseLease } from './lease.js';
+import type { DatabaseLease } from './lease.js';
 import { runExecutionTask } from '../tasks/execution.js';
 import { SqliteMemoryProvider } from '../memory/sqlite.js';
 import { replyToRoomMessage } from '../rooms/runtime.js';
@@ -81,8 +83,10 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
     return { ...base, action, socketClient: true };
   throw new Error('Expected daemon [--once], status|dispatch|deliveries|stop');
 }
-function openOperations(db: string, runtimeConfig?: string): DaemonOperations {
-  const drivers = configuredDrivers(runtimeConfig);
+function openOperations(
+  db: string,
+  drivers: ReturnType<typeof configuredDrivers>,
+): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
   let agents: SqliteAgentRepository | undefined;
@@ -178,9 +182,17 @@ function openOperations(db: string, runtimeConfig?: string): DaemonOperations {
 }
 export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
   if (command.action === 'run') {
-    await runLocalDaemon(command.socket, command.interval, () =>
-      openOperations(command.db, command.runtimeConfig),
-    );
+    const drivers = configuredDrivers(command.runtimeConfig);
+    let lease: DatabaseLease | undefined;
+    try {
+      await runLocalDaemon(command.socket, command.interval, () => {
+        lease = acquireDatabaseLease(command.db);
+        return openOperations(lease.databasePath, drivers);
+      });
+    } finally {
+      lease?.close();
+    }
+
     return;
   }
   if (

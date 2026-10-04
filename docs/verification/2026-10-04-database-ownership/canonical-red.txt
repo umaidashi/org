@@ -1,0 +1,24 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/database-lease.test.ts:
+19 |     db.query('UPDATE daemon_owner SET token=? WHERE id=1').run('replacement');
+20 |     lease.close();
+21 |     lease = undefined;
+22 |     assert.deepEqual(db.query('SELECT token FROM daemon_owner').get(), { token: 'replacement' });
+23 |     lease = acquireDatabaseLease(alias, () => false);
+24 |     assert.equal(lease.databasePath, path);
+                ^
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ '/private/tmp/org-lease-nEyiaI/org.db'
+- '/tmp/org-lease-nEyiaI/org.db'
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/database-lease.test.ts:24:12)
+(fail) Database lease rejects live owners across aliases and releases only its own token [13.87ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [42.00ms]

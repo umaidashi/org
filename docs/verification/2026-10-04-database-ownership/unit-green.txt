@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/database-lease.test.ts:
+(pass) Database lease rejects live owners across aliases and releases only its own token [7.68ms]
+(pass) A terminated process leaves a lease that the real liveness check can safely reacquire [25.97ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [55.00ms]

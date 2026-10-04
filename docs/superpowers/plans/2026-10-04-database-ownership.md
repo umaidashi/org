@@ -1,0 +1,7 @@
+# daemonのDB所有権
+
+同じSQLite DBを異なるsocketのdaemonが同時所有すると、二台目のSession recoveryが一台目のrunningを破壊し得る。socket lockに加えて、SQLiteのBEGIN IMMEDIATEとowner(pid/token)を使う単一DB leaseを導入する。生存PIDは拒否、終了PIDは新tokenで取得、releaseは自分のtokenだけを削除する。PID reuseは保守的に生存扱いにする。
+
+DBファイル/親のsymlinkを実パスへ正規化し、DBのleaseとすべてのAdapterに同じpathを渡す。新DBは0600、親は0700で作る。SQLite in-memory DBはcontinuous daemonでは拒否。runtime configを先に検証し、lease取得後にSession recoveryを行う。server終了と全operations close後にleaseを解放する。--direct管理と--onceはこのleaseの所有対象ではない。
+
+同じDBの二台目daemon/別socketが起動しない実CLI e2eをRED→GREEN。leaseの終了PID/競合token/alias/cleanupを実DBで検証。全suite/実jev/独立レビュー/ログを残す。stale socket lockの安全な自動復旧、running Task復旧は次の段階。

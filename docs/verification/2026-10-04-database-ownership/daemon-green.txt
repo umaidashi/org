@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-database.test.ts:
+(pass) Another daemon on a different socket cannot recover or own the active database [190.19ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [215.00ms]

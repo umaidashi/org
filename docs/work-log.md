@@ -381,3 +381,12 @@
 - Minor互換性制約: 原記録は所有APIが生成する正のrowidを前提とする。raw SQLでrowid=-1を入れたDBは、SQLite BEFORE INSERTの省略時NEW.rowid=-1と衝突して後続INSERTも拒否される。任意SQL importの対応は後続とし、CLI/Port経由の既存DBを維持する。
 - 実Claudeのbare認証用APIキーの設定有無だけを確認（値は非表示）し未設定。公式headless docsのbare認証を再確認。ユーザーへ .env設定後に値を貼らず連絡するよう非同期で依頼。他の実装は継続する。[公式資料](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode)。
 - 次は同じDBを別socketのdaemonが同時所有/復旧しない境界とrunning ExecutionTask復旧を実装する。全体目標は未完了。
+
+
+## daemonのDB単一所有
+
+- [計画](superpowers/plans/2026-10-04-database-ownership.md)。別socketの二台目daemonが同じDBへ入りSession recoveryを実行できる経路を実CLIでRED再現。
+- SQLite BEGIN IMMEDIATEのowner PID/tokenで取得を直列化。生存PIDを拒否、終了PIDは取得し直し、自tokenだけを解放。DB/親をrealpath化し全Adapterで同pathを使用、新DB0600。runtime config先検証・socket準備後にlease取得、全server/operations cleanup後にfinallyで解放する。direct/onceの管理操作は対象外。
+- lease module RED→unit GREEN、実daemon別socket RED→GREEN。symlink alias、他tokenを消さないcleanup、実終了BunプロセスのOS liveness確認で再取得を検証。macOSの/tmp→/private/tmpをテスト期待へ反映し失敗証拠も記録。[unit](verification/2026-10-04-database-ownership/unit-green.txt)、[実daemon](verification/2026-10-04-database-ownership/daemon-green.txt)。
+- 全128テスト・静的検査・jev dry-run成功。[検証](verification/2026-10-04-database-ownership/check.txt)。実jev676対象、missing/unsure0、errors/degradedなし。[実レビュー](verification/2026-10-04-database-ownership/semantic.txt)。独立Reviewerは製品Critical/Importantなし。期待値のcanonical path誤りを指摘、修正後全suiteで成功確認。再レビューは行わない。
+- PID reuseは生存扱いの保守的制約。stale socket/lock自動回収、running ExecutionTask復旧は後続。全体目標を保持して次へ進む。
