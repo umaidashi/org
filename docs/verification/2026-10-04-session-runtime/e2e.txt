@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-runtime.test.ts:
+(pass) Session codex adapter connects SQLite to real fixture process for start resume and stop [64.84ms]
+(pass) Session claude adapter connects SQLite to real fixture process for start resume and stop [38.74ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [121.00ms]

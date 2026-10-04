@@ -303,3 +303,12 @@
 
 - mainの2250bf8をorigin/mainへ通常push成功。実pre-push jobは実行され全98テスト・静的検査・実jevが成功。[送信出力](verification/2026-10-04-main-push/prepush.txt)。main全reachable blobの指定固有名/ローカルパス一致は0。featureのremote履歴は変更していない。
 - この公開結果ログもmainへ記録・送信する。全体目標は引き続き未達成。
+
+## SessionからRuntime turnへの接続
+
+- ユーザーが全体目標を再確認し、達成まで継続するよう指示。Notion02を再取得し最終更新2026-10-04T01:51:58.336Zとsnapshot一致を確認。[計画](superpowers/plans/2026-10-04-session-runtime.md)。
+- Session service未実装RED後、Agent/Room公開Portで登録・参加・非archive・runtimeを確認。beginをversion付き保存してからDI runtimeへ送信し、provider IDを維持してresumeする。failureはgeneric原因を保存し、外部エラー本文を履歴へ入れない。
+- stop状態を保存してから注入cancelを要求。late応答は古いversionとして拒否しstoppedを上書きしない。stopはcancel要求であり、process終了待ちは起動側のruntimeライフサイクルで行う。restart recoveryは残ったrunningをfailedへしprovider IDを維持する。daemon起動時配線は後続。
+- 3つのDB-free UTを23msで検証。SQLiteと両Adapter・実Bun fixture subprocessを結線し開始→provider resume→cancel/stop→不変履歴を検証。fixtureは実AIモデルの成功とは扱わない。
+- 全103テスト・tsgo/Oxlint/Oxfmt/AST/jev dry-run成功。[出力](verification/2026-10-04-session-runtime/check.txt)。実jev547対象、missing/unsure 0、errors/degradedなし。[出力](verification/2026-10-04-session-runtime/semantic.txt)。独立Reviewer自身の5件成功、Critical/Important/Minor不具合なし。参照負ケースの追加検証は補強候補。命名warningは参照検証/stop記録とcancel要求の実際の責務を確認しブロッキング不具合なしと判定する。
+- test:unitへSession service、test:e2eへ両Runtime結線を追加。CLI/daemon API、Room履歴/summary/Memoryからの再構築、Task統合・実AI e2e・権限等は未完了で全体目標を継続する。

@@ -1,0 +1,10 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-service.test.ts:
+(pass) Session service validates references before creation and runs explicit provider resume via minimal Ports [1.92ms]
+(pass) Session failure and restart recovery preserve provider identity without persisting external error text [1.03ms]
+(pass) Session stop wins over a late runtime response and parallel turns are rejected [1.56ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 1 file. [23.00ms]
