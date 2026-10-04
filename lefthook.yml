@@ -1,3 +1,5 @@
+lefthook: ./node_modules/.bin/lefthook
+min_version: 2.1.16
 pre-commit:
   jobs:
     - name: staged-static-checks

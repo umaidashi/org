@@ -1,0 +1,612 @@
+[38;2;56;56;56m╭─────────────────────────────────────╮[m
+[38;2;56;56;56m│[m lefthook  v2.1.16   hook:  [1mpre-push[m [38;2;56;56;56m│[m
+[38;2;56;56;56m╰─────────────────────────────────────╯[m
+┃  committed-tests-and-semantic-review ❯ 
+
+> org-kernel@0.1.0 hook:push
+> node scripts/local-gate.ts pre-push
+
+Verifying committed tree dc6845a8dd4c2362c2c1c61589066920fe490a2e
+
+> org-kernel@0.1.0 check
+> npm run check:static && npm test && npm run review:plan
+
+
+> org-kernel@0.1.0 check:static
+> npm run typecheck && npm run lint && npm run format:check && npm run lint:ast
+
+
+> org-kernel@0.1.0 typecheck
+> tsc --noEmit
+
+
+> org-kernel@0.1.0 lint
+> eslint src tests scripts eslint.config.mjs --max-warnings 0
+
+
+> org-kernel@0.1.0 format:check
+> prettier --check "src/**/*.ts" "tests/**/*.ts" "scripts/**/*.ts" "*.{json,mjs,yml}" "quality/**/*.yml" ".jev-lint/**/*.{yml,yaml}"
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> org-kernel@0.1.0 lint:ast
+> ast-grep scan src --report-style short --color never
+
+
+> org-kernel@0.1.0 test
+> npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/*.test.js
+
+
+> org-kernel@0.1.0 build
+> npm run clean && tsc && node --input-type=module -e "import { chmodSync } from 'node:fs'; chmodSync('dist/src/cli.js', 0o755);"
+
+
+> org-kernel@0.1.0 clean
+> node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
+
+✔ agent construction preserves values and uses the supplied identity and timestamp (1.829917ms)
+✔ agent construction rejects each missing textual value (0.308208ms)
+✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (7.8895ms)
+✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (0.874625ms)
+✔ empty registry reports no agents and returns an empty JSON array (93.512375ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (197.010875ms)
+✔ duplicate registration fails without replacing the existing agent (263.184ms)
+✔ text output includes id name role and runtime (189.048042ms)
+✔ empty or whitespace-only identity fields cannot register an agent (650.071625ms)
+✔ missing database parent directories are created (92.967041ms)
+✔ storage errors return failure on stderr without a stack trace (87.789666ms)
+✔ unicode and quote characters are saved as values rather than SQL (174.796417ms)
+✔ default database is persisted only under the isolated HOME (123.481208ms)
+✔ invalid arguments fail before creating a database and help succeeds (571.664792ms)
+✔ an explicitly empty database path cannot silently register an ephemeral agent (81.257792ms)
+✔ a corrupted database is reported as storage failure rather than an empty registry (38.805417ms)
+✔ pre-commit reads staged contents even when the worktree contains a passing replacement (64.262042ms)
+✔ pre-push reads the selected commit rather than staged or working changes (114.390541ms)
+✔ pre-push parses all actual local commits and skips remote deletions (0.743416ms)
+✔ snapshot refuses invalid object ids without running a check (24.124292ms)
+✔ the actual pre-commit gate blocks bad staged code without modifying the worktree (717.381ms)
+✔ every architecture rule fixture runs and detects its planted violations (10.273167ms)
+✔ lint rejects unsafe generated code and infrastructure imports in domain code (1252.095375ms)
+✔ lint accepts a pure function with explicit typed inputs (1081.878541ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2630.894791
+
+> org-kernel@0.1.0 review:plan
+> jev-lint check src tests scripts --dry-run --json
+
+{
+  "dryRun": true,
+  "subjects": 64,
+  "cached": 0,
+  "requests": 31,
+  "tokens": 87038,
+  "usd": 0.0036555960000000005,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1046,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1964,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2361,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1366,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2295,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 806,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1027,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1944,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1616,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 914,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1836,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1568,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 818,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1737,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1580,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/sqlite.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 3500,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 1969,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3021,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3611,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1776,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2498,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-domain.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2636,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-sqlite.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3205,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4093,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4693,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 12,
+      "arm": "bare",
+      "tokens": 14382,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "bare",
+      "tokens": 7535,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3052,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3782,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-ast.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1510,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-lint.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2897,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 24,
+      "requests": 6,
+      "tokens": 32165,
+      "usd": 0.00135093,
+      "share": 0.36955123049702426
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 13,
+      "requests": 8,
+      "tokens": 21862,
+      "usd": 0.000918204,
+      "share": 0.25117764654518715
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 17,
+      "requests": 9,
+      "tokens": 18837,
+      "usd": 0.0007911540000000001,
+      "share": 0.21642271191893195
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 5,
+      "requests": 5,
+      "tokens": 8901,
+      "usd": 0.000373842,
+      "share": 0.10226567706059422
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 5,
+      "requests": 3,
+      "tokens": 5273,
+      "usd": 0.000221466,
+      "share": 0.06058273397826237
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ]
+}
+{
+  "findings": [
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/cli.ts",
+      "line": 73,
+      "endLine": 118,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/cli.test.ts",
+      "line": 53,
+      "endLine": 76,
+      "value": 0.78,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.182,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/cli.test.ts",
+      "line": 46,
+      "endLine": 51,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.106,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/quality-ast.test.ts",
+      "line": 8,
+      "endLine": 25,
+      "value": 0.69,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.045,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    }
+  ],
+  "review": [],
+  "stats": {
+    "subjects": 64,
+    "reported": 4,
+    "missing": 0,
+    "unsure": 0,
+    "review": 0,
+    "byRule": {
+      "tests-cover-failure-paths": 1,
+      "test-name-verifies-claim": 3
+    },
+    "byFile": {
+      "scripts/git-snapshot.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/local-gate.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/push-input.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/domain.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/sqlite.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/cli.ts": {
+        "findings": 1,
+        "subjects": 9
+      },
+      "tests/agent-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/agent-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/cli.test.ts": {
+        "findings": 2,
+        "subjects": 18
+      },
+      "tests/local-hooks.test.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "tests/quality-ast.test.ts": {
+        "findings": 1,
+        "subjects": 1
+      },
+      "tests/quality-lint.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      }
+    }
+  },
+  "degraded": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ],
+  "idleLanguages": [],
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "retry": 1,
+  "spent": {
+    "calls": 3,
+    "inputTokens": 6719,
+    "outputTokens": 92,
+    "ms": 2252,
+    "retried": 0,
+    "rateLimited": 0,
+    "tokensPerSecond": 200000,
+    "splits": 0,
+    "usd": 0.000282198,
+    "wallMs": 958
+  },
+  "errors": [],
+  "elapsedMs": 1007
+}
+
+[38;2;56;56;56m  ────────────────────────────────────[m
+summary: (done in 10.33 seconds)
+✓ committed-tests-and-semantic-review (10.33 seconds)
+using /private/var/folders/16/v0d838s50tz0c096slhn5z_80000gn/T/org-git-check-nXNZpv/.jev-lint.yaml
+using /private/var/folders/16/v0d838s50tz0c096slhn5z_80000gn/T/org-git-check-nXNZpv/.jev-lint.yaml
+recorded 64 answer(s) to /Users/umaidashi/Documents/git/org/.jev-lint/latest-run.json

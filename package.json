@@ -23,7 +23,7 @@
     "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/**/*.ts\" \"*.{json,mjs,yml}\" \"quality/**/*.yml\" \".jev-lint/**/*.{yml,yaml}\"",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/**/*.ts\" \"*.{json,mjs,yml}\" \"quality/**/*.yml\" \".jev-lint/**/*.{yml,yaml}\"",
     "review:plan": "jev-lint check src tests scripts --dry-run --json",
-    "review:semantic": "node --env-file-if-exists=.env node_modules/jev-lint/dist/cli.js check src tests scripts --fail-on error --json --record .jev-lint/latest-run.json",
+    "review:semantic": "node scripts/review-semantic.ts",
     "check:static": "npm run typecheck && npm run lint && npm run format:check && npm run lint:ast",
     "hooks:install": "lefthook install",
     "hook:commit": "node scripts/local-gate.ts pre-commit",

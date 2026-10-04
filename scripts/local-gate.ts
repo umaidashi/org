@@ -2,6 +2,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { withGitSnapshot } from './git-snapshot.ts';
+import { runSemanticReview } from './semantic-review.ts';
 import { parsePushUpdates } from './push-input.ts';
 
 function run(command: string, args: string[], cwd: string): void {
@@ -27,26 +28,7 @@ try {
       console.log(`Verifying committed tree ${revision}`);
       withGitSnapshot(root, { kind: 'commit', revision }, (snapshot) => {
         run('npm', ['run', 'check'], snapshot);
-        const envFile = join(root, '.env');
-        run(
-          process.execPath,
-          [
-            ...(existsSync(envFile) ? [`--env-file=${envFile}`] : []),
-            join(snapshot, 'node_modules', 'jev-lint', 'dist', 'cli.js'),
-            'check',
-            'src',
-            'tests',
-            'scripts',
-            '--fail-on',
-            'error',
-            '--json',
-            '--cache',
-            join(root, '.jev-lint', 'baseline.json'),
-            '--record',
-            join(root, '.jev-lint', 'latest-run.json'),
-          ],
-          snapshot,
-        );
+        runSemanticReview(snapshot, root);
       });
     }
   } else {
