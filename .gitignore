@@ -1,0 +1,10 @@
+.worktrees/
+.superpowers/
+.venv/
+__pycache__/
+*.egg-info/
+build/
+dist/
+*.db
+*.db-shm
+*.db-wal

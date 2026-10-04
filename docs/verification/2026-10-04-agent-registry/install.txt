@@ -1,0 +1,20 @@
+Obtaining file:///Users/umaidashi/Documents/git/org
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: org-kernel
+  Building editable for org-kernel (pyproject.toml): started
+  Building editable for org-kernel (pyproject.toml): finished with status 'done'
+  Created wheel for org-kernel: filename=org_kernel-0.1.0-0.editable-py3-none-any.whl size=1515 sha256=eb432bb91187bbcfd38b29459d5dead9e9e2f14eef0de28ee544c40c50e96fda
+  Stored in directory: /private/var/folders/16/v0d838s50tz0c096slhn5z_80000gn/T/pip-ephem-wheel-cache-bxlb2nyy/wheels/bb/57/77/6d86fb89e5e0d2964049656b413a3f1a317ae276ce3dde7439
+Successfully built org-kernel
+Installing collected packages: org-kernel
+Successfully installed org-kernel-0.1.0
+
+[notice] A new release of pip is available: 25.0.1 -> 26.2.1
+[notice] To update, run: /Users/umaidashi/Documents/git/org/.venv/bin/python -m pip install --upgrade pip
