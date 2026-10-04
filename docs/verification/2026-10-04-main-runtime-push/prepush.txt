@@ -1,0 +1,3545 @@
+╭─────────────────────────────────────╮
+│ lefthook  v2.1.16   hook:  pre-push │
+╰─────────────────────────────────────╯
+$ bun --no-env-file scripts/local-gate.ts pre-push
+$ bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+$ bun --no-env-file node_modules/oxfmt/bin/oxfmt --check src tests scripts package.json tsconfig.json .oxlintrc.json .oxfmtrc.json
+$ ast-grep scan src --report-style short --color never
+
+tests/semantic-runner.test.ts:
+(pass) semantic process runner rejects exit failures and incomplete or malformed output [64.15ms]
+
+tests/runtime-process.test.ts:
+(pass) process runner passes explicit input/environment and captures exit without shell interpretation [16.43ms]
+(pass) process runner terminates timeout and cancellation and refuses oversized output [124.26ms]
+(pass) process limits reject timer overflow and retain a UTF-8 output prefix within the byte budget [42.95ms]
+
+tests/room-runtime.test.ts:
+(pass) Room runtime uses history through the source and persists an Agent reply only after success [1.74ms]
+(pass) Room context bounds UTF-8 bytes and reports omitted history, rejecting oversized sources before runtime [17.18ms]
+(pass) Room context includes only active current scopes and excludes another Agent or Room Memory [0.49ms]
+
+tests/semantic-review.test.ts:
+(pass) semantic review accepts complete warning-only results [0.43ms]
+(pass) semantic review rejects incomplete results even when warnings exist [0.15ms]
+
+tests/task-domain.test.ts:
+(pass) pure task decisions preserve identity and reject illegal state changes [0.34ms]
+(pass) task domain rejects invalid values and snapshots do not alias input arrays [0.18ms]
+(pass) pure graph validation rejects parent cycles, dependency cycles and unfinished prerequisites [0.34ms]
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp [0.09ms]
+(pass) agent construction rejects each missing textual value [0.19ms]
+
+tests/session-sqlite.test.ts:
+(pass) Session state and immutable history persist atomically and reject stale writers [44.91ms]
+(pass) Session store refuses a fabricated completion without a running turn [0.71ms]
+
+tests/claude-turn.test.ts:
+(pass) Claude command uses explicit system context, stdin, bare mode and the chosen resume session [0.22ms]
+(pass) Claude response rejects failed, missing and inconsistent result envelopes [0.24ms]
+(pass) Claude turn uses process DI and rejects process failure even with a success-looking reply [0.33ms]
+(pass) Claude resumed turn refreshes changed role and instruction instead of reusing a system prompt snapshot
+
+tests/memory-service.test.ts:
+(pass) Memory capture verifies original Message references through injected ports before saving [0.41ms]
+
+tests/event-domain.test.ts:
+(pass) event patterns match whole segments and JSON filters ignore object key order [0.68ms]
+(pass) event creation copies payload and rejects malformed event names and patterns [0.12ms]
+
+tests/runtime-config.test.ts:
+(pass) Runtime config admits explicit executable/workspace and selects only named environment values [0.85ms]
+
+tests/public-content.test.ts:
+(pass) public content gate rejects credential files and secret values without disclosing them [0.24ms]
+
+tests/runtime-manager.test.ts:
+(pass) Runtime manager selects driver, persists start/resume, and blocks resume until stop has drained [2.01ms]
+(pass) Runtime owns an active turn before a driver startup callback requests shutdown [0.58ms]
+(pass) Runtime shutdown drains every driver even when one stop cannot persist and rejects future starts [1.79ms]
+
+tests/daemon-cleanup.test.ts:
+(pass) resource release attempts every close and propagates collected close failures [0.36ms]
+
+tests/memory-sqlite.test.ts:
+(pass) Memory projection preserves original evidence and atomically supersedes active same-scope records [9.05ms]
+
+tests/task-cli.test.ts:
+(pass) work item and internal execution task persist separately with parent and assignment history [526.31ms]
+(pass) invalid transitions and references leave persistent task and history unchanged [490.26ms]
+(pass) dependencies and cycles are enforced across independent CLI processes [388.36ms]
+(pass) task comments and output artifacts can be written and retrieved via separate CLI processes [184.25ms]
+(pass) task parser rejects malformed options before touching storage [379.03ms]
+(pass) failed tasks retain their original history and reject subsequent state changes [222.76ms]
+(pass) mistaken dependencies and parent links can be removed to unblock a task [308.55ms]
+
+tests/session-service.test.ts:
+(pass) Session service validates references before creation and runs explicit provider resume via minimal Ports [0.82ms]
+(pass) Session failure and restart recovery preserve provider identity without persisting external error text
+(pass) Session stop wins over a late runtime response and parallel turns are rejected [1.01ms]
+
+tests/daemon-cli.test.ts:
+(pass) daemon once creates assigned ExecutionTask and restart does not duplicate or reassign it [528.21ms]
+(pass) two concurrent CLI workers create only one Task and two original history snapshots [318.88ms]
+
+tests/daemon-server.test.ts:
+(pass) SIGINT releases the daemon while preserving replacement socket and lock entries [63.80ms]
+(pass) continuous daemon polls new Events, serves local clients and releases socket across restart [597.91ms]
+(pass) daemon refuses to replace an existing file and client failure creates no database [102.81ms]
+(pass) adapter close failure still releases owned socket, lock and process umask [4.04ms]
+(pass) poll errors remain visible through status and periodic polling recovers without restart [26.57ms]
+
+tests/codex-turn.test.ts:
+(pass) Codex command injects role and instructions via stdin and resumes only the requested session
+(pass) Codex response requires a completed turn and rejects protocol failures or inconsistent sessions [0.21ms]
+(pass) Codex turn runner uses the injected process boundary and never accepts failed process output [0.49ms]
+(pass) Codex resumed response cannot succeed without a completed assistant reply [0.05ms]
+
+tests/event-cli.test.ts:
+(pass) events persist without recipients and subscriptions match independently across CLI processes [546.40ms]
+(pass) malformed event inputs return usage error before creating a database [120.05ms]
+
+tests/daemon-long-command.test.ts:
+(pass) daemon command preserves long Session replies even with options before the noun [11008.64ms]
+
+tests/daemon-poll.test.ts:
+(pass) injected poll failures are explicitly degraded and the next successful poll recovers [0.10ms]
+
+tests/public-history.test.ts:
+(pass) public history gate catches a credential removed from the ref tip [192.87ms]
+(pass) history-only public review does not read an unstaged deletion from the worktree [109.80ms]
+
+tests/room-domain.test.ts:
+(pass) Room types require their participant composition and default to coordinator [0.78ms]
+(pass) Messages require membership and same-room replies; archive preserves the original Room [0.17ms]
+
+tests/runtime-env.test.ts:
+(pass) project Bun configuration prevents dotenv autoload while explicit loading remains possible [52.82ms]
+
+tests/room-cli.test.ts:
+(pass) malformed Room creation is rejected before creating a database or directory [153.25ms]
+(pass) multiple rooms with the same Agent keep separate persistent replies and archived histories [881.51ms]
+
+tests/task-sqlite.test.ts:
+(pass) task state and immutable history rollback together on storage failure [9.36ms]
+(pass) comments and artifact references persist without rewriting existing task history [8.23ms]
+(pass) comment and artifact originals cannot be modified and artifact linking rolls back with history [8.62ms]
+(pass) converging dependency graphs do not repeatedly load the same completed subtree [1.91ms]
+
+tests/room-service.test.ts:
+(pass) Room registration validates Agent through a small injected Port before saving [0.23ms]
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [3.81ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.24ms]
+
+tests/daemon-recovery.test.ts:
+(pass) overlapping Workflow deferrals converge on the same deferred receipt [0.57ms]
+(pass) real Task commit survives receipt failure and retry finishes receipt without duplicate history [8.48ms]
+
+tests/event-service.test.ts:
+(pass) publishing needs only an injected writer; Agent subscription validates before saving [0.09ms]
+
+tests/local-hooks.test.ts:
+(pass) pre-commit reads staged contents even when the worktree contains a passing replacement [39.37ms]
+(pass) pre-push reads the selected commit rather than staged or working changes [79.22ms]
+(pass) pre-push parses all actual local commits and skips remote deletions [0.25ms]
+(pass) snapshot refuses invalid object ids without running a check [15.85ms]
+(pass) the actual pre-commit gate blocks bad staged code without modifying the worktree [212.26ms]
+(pass) documentation-only bootstrap trees skip runtime gates but source trees require a manifest [0.96ms]
+(pass) configured pre-push job executes even when the pushed revision contains documentation only [308.51ms]
+
+tests/event-sqlite.test.ts:
+(pass) Event log remains immutable when subscription changes or insertion fails [6.34ms]
+
+tests/quality-ast.test.ts:
+(pass) every architecture rule fixture runs and detects its planted violations [25.42ms]
+
+tests/daemon-service.test.ts:
+(pass) pure delivery identity is stable and unambiguous, and disabled subscriptions do not dispatch [0.61ms]
+(pass) receipt failure after Task success retries the same identity through injected Ports [0.18ms]
+
+tests/cli-transport.test.ts:
+(pass) transport extracts global options without removing option-like data or escaped positional values [0.37ms]
+(pass) command client rejects malformed or incomplete success envelopes [0.11ms]
+
+tests/session-domain.test.ts:
+(pass) Session identity stays separate while turn lifecycle rejects concurrent starts and provider replacement [0.17ms]
+
+tests/task-execution.test.ts:
+(pass) ExecutionTask persists running before the runtime and stages its result for human review [1.09ms]
+(pass) ExecutionTask rejects reused Room replies before running and records failure without overwriting concurrent decisions [0.52ms]
+
+tests/session-parser.test.ts:
+(pass) Session CLI requires explicit identity and messages and rejects conflicting options before storage [0.11ms]
+
+tests/session-cli.test.ts:
+(pass) Session CLI runs configured daemon runtime and cancels pending turns before daemon stop and restart recovery [4449.44ms]
+
+tests/task-service.test.ts:
+(pass) assignment rejects missing Agent before invoking the injected writer [0.31ms]
+(pass) assignment forwards identity and time through injected ports and propagates persistence failure [0.22ms]
+
+tests/agent-service.test.ts:
+(pass) invalid Agent inputs never reach the injected persistence port
+(pass) Agent registration propagates injected persistence failures [0.17ms]
+
+tests/task-dispatch.test.ts:
+(pass) idempotent assigned creation rolls back both snapshots and never reassigns advanced Task [8.44ms]
+
+tests/cli-client.test.ts:
+(pass) normal CLI uses daemon for Agent Task Room and Event without opening client-selected DB [629.48ms]
+(pass) normal CLI with unavailable daemon fails without creating DB and direct mode remains explicit [75.12ms]
+(pass) different database filenames in the same directory never silently share a daemon [214.62ms]
+
+tests/session-runtime.test.ts:
+(pass) Session codex lifecycle manager connects SQLite to real fixture process for start resume and stop [36.53ms]
+(pass) Session claude lifecycle manager connects SQLite to real fixture process for start resume and stop [35.87ms]
+
+tests/memory-cli.test.ts:
+(pass) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [353.53ms]
+
+tests/memory-domain.test.ts:
+(pass) Typed Memory keeps evidence and validates scope, confidence and replacement identity [0.60ms]
+
+tests/quality-lint.test.ts:
+(pass) lint rejects unsafe generated code and infrastructure imports in domain code [204.01ms]
+(pass) lint accepts a pure function with explicit typed inputs [106.30ms]
+
+tests/cli.test.ts:
+(pass) empty registry reports no agents and returns an empty JSON array [69.86ms]
+(pass) agents survive separate CLI processes with stable identity and name ordering [133.99ms]
+(pass) duplicate registration fails without replacing the existing agent [135.31ms]
+(pass) text output includes id name role and runtime [110.76ms]
+(pass) empty or whitespace-only identity fields cannot register an agent [433.76ms]
+(pass) missing database parent directories are created [65.84ms]
+(pass) storage errors return failure on stderr without a stack trace [61.45ms]
+(pass) unicode and quote characters are saved as values rather than SQL [145.46ms]
+(pass) default database is persisted only under the isolated HOME [65.85ms]
+(pass) invalid arguments fail before creating a database and help succeeds [308.51ms]
+(pass) an explicitly empty database path cannot silently register an ephemeral agent [63.13ms]
+(pass) a corrupted database is reported as storage failure rather than an empty registry [37.46ms]
+
+tests/daemon-parser.test.ts:
+(pass) socket flags cannot silently target a different database in once mode [0.28ms]
+
+tests/task-result.test.ts:
+(pass) Task result atomically links artifact and waiting approval history, preserving running on rollback [11.79ms]
+
+tests/quality-types.test.ts:
+(pass) native type checker rejects a bad assignment and accepts a strictly typed module [212.27ms]
+
+tests/room-sqlite.test.ts:
+(pass) SQLite preserves immutable Messages and rejects insertion failure without affecting history [6.90ms]
+
+ 120 pass
+ 0 fail
+Ran 120 tests across 54 files. [26.36s]
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using <TEMP>
+using <TEMP>
+recorded 652 answer(s) to <REPO>/.jev-lint/latest-run.json
+┃  committed-tests-and-semantic-review ❯ 
+Reachable public history checked: 371 file versions
+Public content checked: 0 files
+Verifying committed tree 952d833935739f69dc54e0ee76b29a22d92b6042
+Public content checked: 322 files
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 11ms on 116 files using 8 threads.
+bun test v1.3.4 (5eb2145b)
+invalid JSON
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":1},"errors":["network failure"],"degraded":[]}
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":0},"errors":[],"degraded":[]}
+{"state":"ready","socket":"/tmp/org-server-cleanup-cnwQVi/org.sock"}
+{"state":"ready","socket":"/tmp/org-server-poll-CHgZ0U/org.sock"}
+{"state":"ready","socket":"/tmp/org-long-command-EXvkIO/org.sock"}
+Reachable public history checked: 1 file versions
+Public content checked: 0 files
+{
+  "dryRun": true,
+  "subjects": 652,
+  "cached": 0,
+  "requests": 236,
+  "tokens": 842206,
+  "usd": 0.035372652000000004,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "scripts/documentation-tree.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1855,
+      "degraded": null
+    },
+    {
+      "file": "scripts/documentation-tree.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2846,
+      "degraded": null
+    },
+    {
+      "file": "scripts/documentation-tree.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1582,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1046,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2010,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2355,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1394,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2369,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 806,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-content.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1078,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-content.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2041,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-content.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1825,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-history.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1684,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-history.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1992,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-history.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2098,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2284,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3085,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1622,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 816,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1027,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1990,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1612,
+      "degraded": null
+    },
+    {
+      "file": "scripts/review-semantic.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 807,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1638,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2428,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1732,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 997,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1959,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2109,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 914,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1881,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1564,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 826,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1792,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1893,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/sqlite.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 3575,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 1993,
+      "degraded": null
+    },
+    {
+      "file": "src/application/cli.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 4932,
+      "degraded": null
+    },
+    {
+      "file": "src/application/cli.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 5373,
+      "degraded": null
+    },
+    {
+      "file": "src/application/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 3294,
+      "degraded": null
+    },
+    {
+      "file": "src/application/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2397,
+      "degraded": null
+    },
+    {
+      "file": "src/application/port.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1800,
+      "degraded": null
+    },
+    {
+      "file": "src/application/port.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2083,
+      "degraded": null
+    },
+    {
+      "file": "src/application/port.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1577,
+      "degraded": null
+    },
+    {
+      "file": "src/application/transport.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1843,
+      "degraded": null
+    },
+    {
+      "file": "src/application/transport.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2632,
+      "degraded": null
+    },
+    {
+      "file": "src/application/transport.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 2859,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1241,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2214,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1814,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "local",
+      "tokens": 3889,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4425,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 5040,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 3714,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 3610,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/client.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2159,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/client.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2948,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/client.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 2915,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1153,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2117,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2363,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/server.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 4509,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/server.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3996,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/server.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "local",
+      "tokens": 4257,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/server.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 4009,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/service.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 2898,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/service.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3518,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/service.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "paired",
+      "tokens": 4465,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/service.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 1844,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/sqlite.ts",
+      "rule": null,
+      "subjects": 11,
+      "arm": "located",
+      "tokens": 9140,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/sqlite.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3946,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 1862,
+      "degraded": null
+    },
+    {
+      "file": "src/events/cli.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 3926,
+      "degraded": null
+    },
+    {
+      "file": "src/events/cli.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 4375,
+      "degraded": null
+    },
+    {
+      "file": "src/events/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 3330,
+      "degraded": null
+    },
+    {
+      "file": "src/events/domain.ts",
+      "rule": null,
+      "subjects": 11,
+      "arm": "located",
+      "tokens": 9001,
+      "degraded": null
+    },
+    {
+      "file": "src/events/domain.ts",
+      "rule": null,
+      "subjects": 11,
+      "arm": "located",
+      "tokens": 8252,
+      "degraded": null
+    },
+    {
+      "file": "src/events/domain.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "paired",
+      "tokens": 8738,
+      "degraded": null
+    },
+    {
+      "file": "src/events/service.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 2456,
+      "degraded": null
+    },
+    {
+      "file": "src/events/service.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3065,
+      "degraded": null
+    },
+    {
+      "file": "src/events/service.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "paired",
+      "tokens": 3630,
+      "degraded": null
+    },
+    {
+      "file": "src/events/sqlite.ts",
+      "rule": null,
+      "subjects": 13,
+      "arm": "located",
+      "tokens": 10325,
+      "degraded": null
+    },
+    {
+      "file": "src/events/sqlite.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 4940,
+      "degraded": null
+    },
+    {
+      "file": "src/events/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2042,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/cli.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 3935,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/cli.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 4386,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 3345,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/domain.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3256,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/domain.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3881,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/domain.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "paired",
+      "tokens": 4962,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1030,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1996,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1445,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/sqlite.ts",
+      "rule": null,
+      "subjects": 8,
+      "arm": "located",
+      "tokens": 6946,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/sqlite.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2991,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2209,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/cli.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 4948,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/cli.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 5240,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 3564,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/domain.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "located",
+      "tokens": 6030,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/domain.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "located",
+      "tokens": 5974,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/domain.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "paired",
+      "tokens": 7676,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/runtime.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2559,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/runtime.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2720,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/runtime.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2815,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1072,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2038,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1422,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/sqlite.ts",
+      "rule": null,
+      "subjects": 18,
+      "arm": "located",
+      "tokens": 14183,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/sqlite.ts",
+      "rule": null,
+      "subjects": 9,
+      "arm": "located",
+      "tokens": 7598,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/sqlite.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1794,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 1986,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/claude.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 3774,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/claude.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 4228,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/claude.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "paired",
+      "tokens": 4835,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/codex.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 4528,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/codex.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 4818,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/codex.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "paired",
+      "tokens": 5218,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/config.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 3896,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/config.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3782,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/config.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 3225,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/manager.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "located",
+      "tokens": 6312,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/manager.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 1044,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/process.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 3457,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/process.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3301,
+      "degraded": null
+    },
+    {
+      "file": "src/runtime/process.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 3040,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3373,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3990,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 3662,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/domain.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 4265,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/domain.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 4551,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/domain.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "paired",
+      "tokens": 6248,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/service.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 4977,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/service.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 5253,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/service.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "paired",
+      "tokens": 5766,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/service.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2861,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/sqlite.ts",
+      "rule": null,
+      "subjects": 10,
+      "arm": "located",
+      "tokens": 8172,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/sqlite.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 3174,
+      "degraded": null
+    },
+    {
+      "file": "src/sessions/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2025,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "located",
+      "tokens": 6704,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "located",
+      "tokens": 6827,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 4109,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "located",
+      "tokens": 6714,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "located",
+      "tokens": 6663,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "paired",
+      "tokens": 8915,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/execution.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1569,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/execution.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2532,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/execution.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2239,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/execution.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 3384,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 892,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1861,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1704,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 22,
+      "arm": "located",
+      "tokens": 18585,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 6855,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2315,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-domain.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2636,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-service.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2381,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-sqlite.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3205,
+      "degraded": null
+    },
+    {
+      "file": "tests/claude-turn.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "bare",
+      "tokens": 5571,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli-client.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "bare",
+      "tokens": 5789,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli-client.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4780,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli-transport.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2730,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4067,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4713,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 12,
+      "arm": "bare",
+      "tokens": 14346,
+      "degraded": null
+    },
+    {
+      "file": "tests/codex-turn.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "bare",
+      "tokens": 5415,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-cleanup.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1494,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-cli.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 4174,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4051,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-long-command.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1650,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-parser.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1253,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-poll.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1270,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-recovery.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3328,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-server.test.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "bare",
+      "tokens": 8650,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-server.test.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 6740,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-server.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 5413,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-service.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3146,
+      "degraded": null
+    },
+    {
+      "file": "tests/event-cli.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3726,
+      "degraded": null
+    },
+    {
+      "file": "tests/event-cli.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2842,
+      "degraded": null
+    },
+    {
+      "file": "tests/event-domain.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3053,
+      "degraded": null
+    },
+    {
+      "file": "tests/event-domain.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1416,
+      "degraded": null
+    },
+    {
+      "file": "tests/event-service.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1606,
+      "degraded": null
+    },
+    {
+      "file": "tests/event-sqlite.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1829,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "bare",
+      "tokens": 10579,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4448,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 4547,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2210,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-cli.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2479,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-domain.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1608,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-service.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1648,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-sqlite.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2108,
+      "degraded": null
+    },
+    {
+      "file": "tests/public-content.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1487,
+      "degraded": null
+    },
+    {
+      "file": "tests/public-history.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3121,
+      "degraded": null
+    },
+    {
+      "file": "tests/public-history.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2180,
+      "degraded": null
+    },
+    {
+      "file": "tests/public-history.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3214,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-ast.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1510,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-lint.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1223,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-lint.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2197,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-lint.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2295,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-types.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1651,
+      "degraded": null
+    },
+    {
+      "file": "tests/room-cli.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 4068,
+      "degraded": null
+    },
+    {
+      "file": "tests/room-cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4167,
+      "degraded": null
+    },
+    {
+      "file": "tests/room-domain.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3306,
+      "degraded": null
+    },
+    {
+      "file": "tests/room-runtime.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "bare",
+      "tokens": 6145,
+      "degraded": null
+    },
+    {
+      "file": "tests/room-runtime.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4969,
+      "degraded": null
+    },
+    {
+      "file": "tests/room-service.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1617,
+      "degraded": null
+    },
+    {
+      "file": "tests/room-sqlite.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1892,
+      "degraded": null
+    },
+    {
+      "file": "tests/runtime-config.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1542,
+      "degraded": null
+    },
+    {
+      "file": "tests/runtime-env.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1580,
+      "degraded": null
+    },
+    {
+      "file": "tests/runtime-manager.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "bare",
+      "tokens": 5166,
+      "degraded": null
+    },
+    {
+      "file": "tests/runtime-manager.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 4587,
+      "degraded": null
+    },
+    {
+      "file": "tests/runtime-process.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "bare",
+      "tokens": 4456,
+      "degraded": null
+    },
+    {
+      "file": "tests/semantic-review.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2373,
+      "degraded": null
+    },
+    {
+      "file": "tests/semantic-runner.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1572,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-cli.test.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "located",
+      "tokens": 7648,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 4764,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2506,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-domain.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1714,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-parser.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1499,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-runtime.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2337,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-runtime.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2209,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-service.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2050,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-service.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 3021,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-service.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "bare",
+      "tokens": 4720,
+      "degraded": null
+    },
+    {
+      "file": "tests/session-sqlite.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3349,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 5231,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 5715,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "bare",
+      "tokens": 10656,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-dispatch.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1829,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-domain.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "bare",
+      "tokens": 4411,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-execution.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 4132,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-execution.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3168,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-result.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2094,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-service.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2784,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-sqlite.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "bare",
+      "tokens": 6577,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-sqlite.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2488,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "fn-name-promises",
+      "subjects": 266,
+      "requests": 68,
+      "tokens": 270046,
+      "usd": 0.011341932,
+      "share": 0.320641268288281
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 155,
+      "requests": 55,
+      "tokens": 207135,
+      "usd": 0.008699670000000001,
+      "share": 0.2459433915217892
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 119,
+      "requests": 54,
+      "tokens": 187794,
+      "usd": 0.007887348,
+      "share": 0.2229787011728722
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 78,
+      "requests": 41,
+      "tokens": 137084,
+      "usd": 0.0057575280000000005,
+      "share": 0.16276777890444855
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 34,
+      "requests": 18,
+      "tokens": 40147,
+      "usd": 0.0016861740000000001,
+      "share": 0.04766886011260903
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ]
+}
+{
+  "findings": [
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/service.ts",
+      "line": 34,
+      "endLine": 55,
+      "value": 0.74,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.345,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/cli.ts",
+      "line": 31,
+      "endLine": 83,
+      "value": 0.88,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.294,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/domain.ts",
+      "line": 74,
+      "endLine": 122,
+      "value": 0.88,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.294,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/local-hooks.test.ts",
+      "line": 149,
+      "endLine": 160,
+      "value": 0.85,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.288,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/client.ts",
+      "line": 1,
+      "endLine": 23,
+      "value": 0.86,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.265,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/events/cli.ts",
+      "line": 24,
+      "endLine": 80,
+      "value": 0.86,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.265,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/cli.ts",
+      "line": 106,
+      "endLine": 139,
+      "value": 0.86,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.265,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/cli.ts",
+      "line": 30,
+      "endLine": 99,
+      "value": 0.85,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.25,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/cli.ts",
+      "line": 38,
+      "endLine": 115,
+      "value": 0.85,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.25,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/client.ts",
+      "line": 27,
+      "endLine": 43,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-content.ts",
+      "line": 5,
+      "endLine": 21,
+      "value": 0.83,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.221,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/application/cli.ts",
+      "line": 54,
+      "endLine": 110,
+      "value": 0.83,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.221,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/domain.ts",
+      "line": 25,
+      "endLine": 61,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/runtime/config.ts",
+      "line": 72,
+      "endLine": 85,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/cli.ts",
+      "line": 43,
+      "endLine": 203,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/application/cli.ts",
+      "line": 188,
+      "endLine": 229,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/domain.ts",
+      "line": 23,
+      "endLine": 57,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/cli.ts",
+      "line": 204,
+      "endLine": 274,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/cli.test.ts",
+      "line": 57,
+      "endLine": 80,
+      "value": 0.78,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.182,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/sqlite.ts",
+      "line": 60,
+      "endLine": 63,
+      "value": 0.8,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.176,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/domain.ts",
+      "line": 43,
+      "endLine": 59,
+      "value": 0.8,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.176,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-review.ts",
+      "line": 8,
+      "endLine": 27,
+      "value": 0.79,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.162,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/cli.ts",
+      "line": 8,
+      "endLine": 52,
+      "value": 0.79,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.162,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/service.ts",
+      "line": 41,
+      "endLine": 86,
+      "value": 0.79,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.162,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/server.ts",
+      "line": 23,
+      "endLine": 161,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/session-cli.test.ts",
+      "line": 274,
+      "endLine": 281,
+      "value": 0.62,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.127,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/runtime/codex.ts",
+      "line": 4,
+      "endLine": 32,
+      "value": 0.76,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.118,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/service.ts",
+      "line": 103,
+      "endLine": 119,
+      "value": 0.61,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.109,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/cli.test.ts",
+      "line": 50,
+      "endLine": 55,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.106,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-history.ts",
+      "line": 4,
+      "endLine": 33,
+      "value": 0.75,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.103,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/session-cli.test.ts",
+      "line": 256,
+      "endLine": 273,
+      "value": 0.6,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.091,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/memory-service.test.ts",
+      "line": 6,
+      "endLine": 50,
+      "value": 0.71,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.076,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/service.ts",
+      "line": 34,
+      "endLine": 55,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.074,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/events/domain.ts",
+      "line": 89,
+      "endLine": 101,
+      "value": 0.72,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.059,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/quality-ast.test.ts",
+      "line": 8,
+      "endLine": 25,
+      "value": 0.69,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.045,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/public-history.test.ts",
+      "line": 55,
+      "endLine": 79,
+      "value": 0.68,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.03,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/service.ts",
+      "line": 7,
+      "endLine": 26,
+      "value": 0.56,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.018,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/cli.ts",
+      "line": 39,
+      "endLine": 105,
+      "value": 0.68,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    }
+  ],
+  "review": [],
+  "stats": {
+    "subjects": 652,
+    "reported": 38,
+    "missing": 0,
+    "unsure": 0,
+    "review": 0,
+    "byRule": {
+      "fn-name-promises": 5,
+      "tests-cover-failure-paths": 27,
+      "test-name-verifies-claim": 6
+    },
+    "byFile": {
+      "scripts/documentation-tree.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "scripts/git-snapshot.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/local-gate.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/public-content.ts": {
+        "findings": 1,
+        "subjects": 3
+      },
+      "scripts/public-history.ts": {
+        "findings": 1,
+        "subjects": 4
+      },
+      "scripts/public-review.ts": {
+        "findings": 1,
+        "subjects": 6
+      },
+      "scripts/push-input.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/review-semantic.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "scripts/semantic-result.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "scripts/semantic-review.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/domain.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/sqlite.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/application/cli.ts": {
+        "findings": 2,
+        "subjects": 12
+      },
+      "src/application/port.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "src/application/transport.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/cli.ts": {
+        "findings": 1,
+        "subjects": 6
+      },
+      "src/daemon/cli.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/daemon/client.ts": {
+        "findings": 2,
+        "subjects": 6
+      },
+      "src/daemon/domain.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/daemon/server.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/daemon/service.ts": {
+        "findings": 2,
+        "subjects": 11
+      },
+      "src/daemon/sqlite.ts": {
+        "findings": 0,
+        "subjects": 16
+      },
+      "src/events/cli.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/events/domain.ts": {
+        "findings": 1,
+        "subjects": 28
+      },
+      "src/events/service.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "src/events/sqlite.ts": {
+        "findings": 0,
+        "subjects": 20
+      },
+      "src/memory/cli.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/memory/domain.ts": {
+        "findings": 2,
+        "subjects": 9
+      },
+      "src/memory/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/memory/sqlite.ts": {
+        "findings": 0,
+        "subjects": 11
+      },
+      "src/rooms/cli.ts": {
+        "findings": 1,
+        "subjects": 12
+      },
+      "src/rooms/domain.ts": {
+        "findings": 0,
+        "subjects": 18
+      },
+      "src/rooms/runtime.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "src/rooms/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/rooms/sqlite.ts": {
+        "findings": 1,
+        "subjects": 30
+      },
+      "src/runtime/claude.ts": {
+        "findings": 0,
+        "subjects": 11
+      },
+      "src/runtime/codex.ts": {
+        "findings": 1,
+        "subjects": 13
+      },
+      "src/runtime/config.ts": {
+        "findings": 1,
+        "subjects": 9
+      },
+      "src/runtime/manager.ts": {
+        "findings": 0,
+        "subjects": 8
+      },
+      "src/runtime/process.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "src/sessions/cli.ts": {
+        "findings": 2,
+        "subjects": 8
+      },
+      "src/sessions/domain.ts": {
+        "findings": 1,
+        "subjects": 13
+      },
+      "src/sessions/service.ts": {
+        "findings": 3,
+        "subjects": 16
+      },
+      "src/sessions/sqlite.ts": {
+        "findings": 0,
+        "subjects": 13
+      },
+      "src/tasks/cli.ts": {
+        "findings": 2,
+        "subjects": 14
+      },
+      "src/tasks/domain.ts": {
+        "findings": 1,
+        "subjects": 19
+      },
+      "src/tasks/execution.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "src/tasks/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/tasks/sqlite.ts": {
+        "findings": 0,
+        "subjects": 29
+      },
+      "tests/agent-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/agent-service.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/agent-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/claude-turn.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/cli-client.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/cli-transport.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/cli.test.ts": {
+        "findings": 2,
+        "subjects": 18
+      },
+      "tests/codex-turn.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/daemon-cleanup.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/daemon-long-command.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-parser.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-poll.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-recovery.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/daemon-server.test.ts": {
+        "findings": 0,
+        "subjects": 12
+      },
+      "tests/daemon-service.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/event-cli.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/event-domain.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/event-service.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/event-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/local-hooks.test.ts": {
+        "findings": 1,
+        "subjects": 12
+      },
+      "tests/memory-cli.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/memory-domain.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/memory-service.test.ts": {
+        "findings": 1,
+        "subjects": 1
+      },
+      "tests/memory-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/public-content.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/public-history.test.ts": {
+        "findings": 1,
+        "subjects": 6
+      },
+      "tests/quality-ast.test.ts": {
+        "findings": 1,
+        "subjects": 1
+      },
+      "tests/quality-lint.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/quality-types.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/room-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/room-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/room-runtime.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/room-service.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/room-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/runtime-config.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/runtime-env.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/runtime-manager.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/runtime-process.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/semantic-review.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/semantic-runner.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/session-cli.test.ts": {
+        "findings": 2,
+        "subjects": 8
+      },
+      "tests/session-domain.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/session-parser.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/session-runtime.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/session-service.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/session-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/task-cli.test.ts": {
+        "findings": 0,
+        "subjects": 15
+      },
+      "tests/task-dispatch.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/task-domain.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-execution.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/task-result.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/task-service.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/task-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      }
+    }
+  },
+  "degraded": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ],
+  "idleLanguages": [],
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "retry": 1,
+  "spent": {
+    "calls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "ms": 0,
+    "retried": 0,
+    "rateLimited": 0,
+    "tokensPerSecond": 200000,
+    "splits": 0,
+    "usd": 0,
+    "wallMs": 5
+  },
+  "errors": [],
+  "elapsedMs": 208
+}
+
+  ────────────────────────────────────
+summary: (done in 31.34 seconds)
+✓ committed-tests-and-semantic-review (31.34 seconds)
+To https://github.com/umaidashi/org.git
+   2e7a65d..952d833  main -> main

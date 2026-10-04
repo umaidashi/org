@@ -364,3 +364,10 @@
 - 独立Reviewerは3件成功、今回接続Critical/Importantなし。Minor: DIで別Sessionのmetadataを持つMessageまで防ぐ追加検証（現production Reply serviceは一致保証）を後続へ記録。
 - 既存Task原履歴/Artifact/CommentのREPLACE抜けを、今回結果の不変history条件に対するImportantとして再評価。複合キーと明示rowid衝突のINSERTを追加triggerで拒否。直接SQLのRED→GREENと全suiteを確認。[RED](verification/2026-10-04-task-execution/original-red.txt)、[GREEN](verification/2026-10-04-task-execution/original-green.txt)。他の不変source表のREPLACE/rowidも次に監査する。
 - Room返信とTask結果保存の間のcrashの厳密なexactly-once、running Task再起動復旧、Approval認証/API、Sandbox書込、Event自動実行、Workflow/A2A等は継続対象。全体目標は未達成。
+
+
+## Runtime・Memory・Task実行のmain公開
+
+- remote mainをfetchし2e7a65dでlocal mainと一致、worktree cleanを確認。feat/session-runtimeの検証済み6コミットをmainへfast-forwardし、通常push成功。履歴改変/force pushはしていない。
+- 送信先mainとlocal mainが952d833935739f69dc54e0ee76b29a22d92b6042で一致。Lefthook pre-pushが送信tipの公開履歴・全120テスト・静的検査・実jevを31秒で実行成功。[送信検証](verification/2026-10-04-main-runtime-push/prepush.txt)。
+- 実CodexのSession/Room/Memory/Task結果確認まで公開済み。全体目標は未完了で、残りの不変source表の置換防止とdaemon所有/再起動復旧を続ける。
