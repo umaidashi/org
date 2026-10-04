@@ -7,8 +7,9 @@ import type { CommandResult } from '../application/port.js';
 export interface DaemonOperations {
   dispatch(): readonly Delivery[];
   deliveries(): readonly Delivery[];
-  close(): void;
-  command?(argv: string[]): CommandResult;
+  close(): void | Promise<void>;
+  shutdown?(): Promise<void>;
+  command?(argv: string[]): CommandResult | Promise<CommandResult>;
 }
 function entry(path: string): Stats | undefined {
   try {
@@ -51,6 +52,7 @@ export async function runLocalDaemon(
       if (stopPromise) return stopPromise;
       if (timer) clearInterval(timer);
       stopPromise = (async () => {
+        await activeOperations.shutdown?.();
         await server?.stop();
         resolveStopped?.();
       })();
@@ -90,7 +92,8 @@ export async function runLocalDaemon(
               { error: 'Command handler unavailable' },
               { status: 503, headers },
             );
-          return Response.json(activeOperations.command(argv), { headers });
+          server?.timeout(request, 0);
+          return Response.json(await activeOperations.command(argv), { headers });
         }
         try {
           if (request.method === 'GET' && path === '/v1/status')
@@ -141,7 +144,7 @@ export async function runLocalDaemon(
       await server?.stop(true);
     } finally {
       try {
-        operations?.close();
+        await operations?.close();
       } finally {
         try {
           if (socketInode !== undefined && entry(socket)?.ino === socketInode) unlinkSync(socket);

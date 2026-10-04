@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-long-command.test.ts:
+{"state":"ready","socket":"/tmp/org-long-command-2SGmsr/org.sock"}
+(pass) daemon command preserves long Session replies even with options before the noun [11033.19ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [11.07s]

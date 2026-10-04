@@ -1,3 +1,8 @@
+import { randomUUID } from 'node:crypto';
+import { SqliteRoomRepository } from '../rooms/sqlite.js';
+import { SqliteSessionStore } from '../sessions/sqlite.js';
+import { LocalAgentRuntime } from '../runtime/manager.js';
+import { configuredDrivers } from '../runtime/config.js';
 import { socketForDatabase } from '../application/transport.js';
 import { parseArgs } from 'node:util';
 import { homedir } from 'node:os';
@@ -18,6 +23,7 @@ export interface DaemonCommand {
   readonly socket: string;
   readonly socketClient: boolean;
   readonly interval: number;
+  readonly runtimeConfig?: string;
 }
 export function parseDaemonCommand(argv: string[]): DaemonCommand {
   const parsed = parseArgs({
@@ -30,6 +36,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       once: { type: 'boolean' },
       socket: { type: 'string' },
       'poll-interval': { type: 'string' },
+      'runtime-config': { type: 'string' },
     },
   });
   const [noun, action, ...extra] = parsed.positionals;
@@ -50,12 +57,19 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
     throw new Error('Poll interval must be an integer from 10 to 60000 milliseconds');
   if (parsed.values['poll-interval'] !== undefined && (action !== undefined || parsed.values.once))
     throw new Error('--poll-interval is only available in continuous mode');
+  if (parsed.values['runtime-config'] !== undefined && (action !== undefined || parsed.values.once))
+    throw new Error('--runtime-config is only available in continuous mode');
+  if (parsed.values['runtime-config'] !== undefined && !parsed.values['runtime-config'].trim())
+    throw new Error('Runtime config path required');
   const base = {
     db,
     json: parsed.values.json ?? false,
     socket,
     interval,
     socketClient: parsed.values.socket !== undefined,
+    ...(parsed.values['runtime-config'] === undefined
+      ? {}
+      : { runtimeConfig: resolve(parsed.values['runtime-config']) }),
   };
   if (action === 'deliveries' && !parsed.values.once) return { ...base, action };
   if (action === undefined && parsed.values.once) return { ...base, action: 'once' };
@@ -64,11 +78,14 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
     return { ...base, action, socketClient: true };
   throw new Error('Expected daemon [--once], status|dispatch|deliveries|stop');
 }
-function openOperations(db: string): DaemonOperations {
+function openOperations(db: string, runtimeConfig?: string): DaemonOperations {
+  const drivers = configuredDrivers(runtimeConfig);
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
   let agents: SqliteAgentRepository | undefined;
   let tasks: SqliteTaskProvider | undefined;
+  let rooms: SqliteRoomRepository | undefined;
+  let sessions: SqliteSessionStore | undefined;
   try {
     const eventBus = new SqliteEventBus(db);
     events = eventBus;
@@ -76,18 +93,45 @@ function openOperations(db: string): DaemonOperations {
     agents = agentRepository;
     const taskProvider = new SqliteTaskProvider(db);
     tasks = taskProvider;
+    const roomRepository = new SqliteRoomRepository(db);
+    rooms = roomRepository;
+    const sessionStore = new SqliteSessionStore(db);
+    sessions = sessionStore;
+    const runtime = new LocalAgentRuntime(
+      sessionStore,
+      agentRepository,
+      roomRepository,
+      drivers,
+      () => new Date().toISOString(),
+      randomUUID,
+    );
+    runtime.recover();
     return {
       dispatch: () => dispatchEvents(eventBus, agentRepository, taskProvider, journal),
       deliveries: () => journal.list(),
-      command: (argv) => executeApplication(argv, db, true),
-      close: () => {
-        releaseResources([taskProvider, agentRepository, eventBus, journal]);
+      command: (argv) => executeApplication(argv, db, true, { store: sessionStore, runtime }),
+      shutdown: () => runtime.shutdown(),
+      close: async () => {
+        try {
+          await runtime.shutdown();
+        } finally {
+          releaseResources([
+            sessionStore,
+            roomRepository,
+            taskProvider,
+            agentRepository,
+            eventBus,
+            journal,
+          ]);
+        }
       },
     };
   } catch (error) {
     try {
       releaseResources(
-        [tasks, agents, events, journal].flatMap((resource) => (resource ? [resource] : [])),
+        [sessions, rooms, tasks, agents, events, journal].flatMap((resource) =>
+          resource ? [resource] : [],
+        ),
       );
     } catch (cleanup) {
       throw new AggregateError([error, cleanup], 'Daemon initialization failed');
@@ -97,7 +141,9 @@ function openOperations(db: string): DaemonOperations {
 }
 export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
   if (command.action === 'run') {
-    await runLocalDaemon(command.socket, command.interval, () => openOperations(command.db));
+    await runLocalDaemon(command.socket, command.interval, () =>
+      openOperations(command.db, command.runtimeConfig),
+    );
     return;
   }
   if (

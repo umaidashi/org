@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-config.test.ts:
+4 | test('Runtime config admits explicit executable/workspace and selects only named environment values', () => {
+5 |   const entry = { executable: '/tmp/runner', cwd: '/tmp/work', env: ['ORG_MARKER'] };
+6 |   const config = parseRuntimeConfig({ codex: entry }, { ORG_MARKER: 'explicit', UNSELECTED: 'excluded' });
+7 |   assert.deepEqual(config.codex?.env, { ORG_MARKER: 'explicit' });
+8 |   for (const invalid of [null, { other: entry }, { codex: {} }, { codex: { ...entry, executable: 'relative' } }, { codex: { ...entry, env: ['MISSING'] } }, { codex: { ...entry, env: { ORG_MARKER: 'literal' } } }, { codex: { ...entry, timeoutMs: 0 } }, { codex: { ...entry, maxOutputBytes: -1 } }, { codex: { ...entry, executable: '/tmp/runner\0bad' } }])
+9 |     assert.throws(() => parseRuntimeConfig(invalid, { ORG_MARKER: 'explicit' }));
+               ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/runtime-config.test.ts:9:12)
+(fail) Runtime config admits explicit executable/workspace and selects only named environment values [2.67ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [46.00ms]

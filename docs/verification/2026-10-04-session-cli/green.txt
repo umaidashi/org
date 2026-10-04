@@ -1,0 +1,11 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-parser.test.ts:
+(pass) Session CLI requires explicit identity and messages and rejects conflicting options before storage [1.16ms]
+
+tests/runtime-config.test.ts:
+(pass) Runtime config admits explicit executable/workspace and selects only named environment values [0.14ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 2 files. [21.00ms]

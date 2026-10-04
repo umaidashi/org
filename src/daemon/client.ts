@@ -22,12 +22,14 @@ export async function requestDaemon(
   return value;
 }
 import { parseCommandResult } from '../application/port.js';
+import { parseApplicationCommand } from '../application/cli.js';
 import type { CommandResult } from '../application/port.js';
 export async function requestApplication(socket: string, argv: string[]): Promise<CommandResult> {
+  const command = parseApplicationCommand(argv);
   const response = await fetch('http://org.local/v1/command', {
     unix: socket,
     method: 'POST',
-    signal: AbortSignal.timeout(5000),
+    signal: command.kind === 'session' ? null : AbortSignal.timeout(5000),
     headers: { 'Content-Type': 'application/json', Connection: 'close' },
     body: JSON.stringify({ argv }),
   });

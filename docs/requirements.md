@@ -15,7 +15,7 @@
 | Room | Direct/Group/Agent/Task、同じAgentの複数Room、参加者・archive | Local SQLiteとCLIを実装。種類別参加者構成・Agent/Task参照・archiveを検証。Human認証は未完了 |
 | Message | Roomごとの永続履歴、replyTo・sender・metadata | 追記専用SQLite履歴とCLI。別プロセス読み直し・同Room返信・sender参加・metadata・archive後拒否・原本UPDATE/DELETE拒否・INSERT失敗後の復旧を検証 |
 | Activation | coordinator既定、直接mention、mention_only/all/rule_based | 未完了 |
-| Session | Room/Identityとの分離、start/send/resume/stop、履歴から再構築 | 独立Session ID/provider ID・pure状態遷移・version競合拒否・SQLite状態/不変履歴の原子保存を実装。rollback/REPLACE拒否/別プロセス読込を検証。serviceによるRuntime turn結線とstop先保存/late応答保護、restart recovery関数を実装。両Adapter+SQLite+実Bun fixtureで開始/再開/停止を検証。CLI/daemon起動配線/実AI/履歴から再構築は未完了 |
+| Session | Room/Identityとの分離、start/send/resume/stop、履歴から再構築 | 独立Session ID/provider ID・pure状態遷移・version競合拒否・SQLite状態/不変履歴の原子保存を実装。rollback/REPLACE拒否/別プロセス読込を検証。serviceによるRuntime turn結線とstop先保存/late応答保護、restart recovery関数を実装。両Adapter+SQLite+実Bun fixtureで開始/再開/停止を検証。CLI/daemon起動配線・起動時recovery・設定済みdriver・停止時drainを実装。実Codexの開始/再開/停止を確認。実Claude/履歴から再構築は未完了 |
 | Memory | semantic/episodic/procedural/relational、scope、根拠参照、confidence | 未完了 |
 | Memory更新 | extraction、dedup、conflict、supersede/invalidate、原履歴不変 | 未完了 |
 | Context | scope・type・tags/entity・recency・importance・full-textの選択、ContextBuilder | 未完了 |

@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-cli.test.ts:
+(pass) Session CLI runs configured daemon runtime and cancels pending turns before daemon stop and restart recovery [1602.31ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [1.62s]

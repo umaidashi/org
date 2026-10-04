@@ -26,7 +26,9 @@ export async function main(argv: string[]): Promise<number> {
         return 1;
       }
     }
-    parseApplicationCommand(transport.argv);
+    const command = parseApplicationCommand(transport.argv);
+    if (command.kind === 'session' && transport.direct)
+      throw new Error('Session commands require daemon');
   } catch (error) {
     console.error(`Error: ${error instanceof Error ? error.message : String(error)}\n${usage}`);
     return 2;
@@ -34,7 +36,7 @@ export async function main(argv: string[]): Promise<number> {
   let result: CommandResult;
   try {
     result = transport.direct
-      ? executeApplication(transport.argv, transport.db)
+      ? await executeApplication(transport.argv, transport.db)
       : await requestApplication(transport.socket, transport.argv);
   } catch (error) {
     console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);

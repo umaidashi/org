@@ -1,0 +1,30 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-long-command.test.ts:
+{"state":"ready","socket":"/tmp/org-long-command-ATOCK0/org.sock"}
+14 |     const results = await Promise.allSettled([
+15 |       requestApplication(socket, ['session','get','s']),
+16 |       requestApplication(socket, ['--json','session','get','s']),
+17 |     ]);
+18 |     for (const result of results) {
+19 |       assert.equal(result.status, 'fulfilled');
+                  ^
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ 'rejected'
+- 'fulfilled'
+
+ generatedMessage: true,
+     actual: "rejected",
+   expected: "fulfilled",
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/daemon-long-command.test.ts:19:14
+      at processTicksAndRejections (native:7:39)
+(fail) daemon command preserves long Session replies even with options before the noun [11018.48ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [11.04s]

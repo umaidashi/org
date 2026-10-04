@@ -321,3 +321,13 @@
 - 初回type-aware lintがallSettled.reasonのany配列返却を拒否し、unknownへ受けて集約するよう修正。独立Reviewer自身の3テスト成功。Important（driver起動callbackでshutdownするとactive未登録で回収されない）を追加RED→GREEN修正。Final: fixed 起動時ownership欠落 — Runtime owns an active turn before a driver startup callback requests shutdown RED→GREEN, suite 106/106。active登録後にdriverを起動し、開始前abortも拒否する。
 - 全106テスト・tsgo/Oxlint/Oxfmt/AST/jev dry-run成功。[出力](verification/2026-10-04-runtime-manager/check.txt)。実jev最終結果は[出力](verification/2026-10-04-runtime-manager/semantic.txt)。missing/unsure 0、errors/degradedなし。managerの新規warningなし。
 - ブランチはmain基点feat/session-runtime。実AIサービスe2e、CLI/daemon起動配線、Task/Room履歴Contextの再構築、Permission/Sandbox等は未完了。全体ゴールの達成とは扱わず継続する。
+
+
+## Session CLIとdaemon実行、実Codex e2e
+
+- ユーザーが「Nextがある限り継続、迷わなければ確認不要」と再指示。全体ゴールを保持し継続する。[計画](superpowers/plans/2026-10-04-session-cli.md)。
+- Session start/send/resume/stop/get/list/historyをdaemonへ接続。direct SessionはDB作成前に拒否。daemon管理者のruntime-configで実行ファイル/cwd・環境変数名・時間/出力制限を配線し、秘密値をJSONへ入れない。DB/driver/clock/IDを注入する。
+- parser未実装と設定NULパスのRED→GREEN。実CLI/SQLite/fixture subprocessで開始→再開→別CLIから停止→daemon停止時cancel/drain→再起動recoveryを検証。
+- 独立ReviewerのImportant 2件を修正。Bun既定idle timeoutで10秒超の応答が切れること、先頭オプションのSessionが短いclient timeoutになることを11秒の実socket応答でRED→GREEN確認。入力body検証後にrequest timeoutを無効化し、clientはparsed commandでSessionを識別。Session時間制限はRuntimeが所有し、管理者設定より先にclientで切らない。[RED](verification/2026-10-04-session-cli/long-red.txt)、[GREEN](verification/2026-10-04-session-cli/long-green.txt)。
+- 全110テスト、tsgo/Oxlint/Oxfmt/AST/jev dry-run成功。[出力](verification/2026-10-04-session-cli/check.txt)。signalのundefined指定をstrict型検査が拒否したためnullへ修正。実jev最終592対象、errorsなし。[出力](verification/2026-10-04-session-cli/semantic.txt)。
+- 実Codexを一時Git workspaceにread-only/approval neverで起動し、daemon/CLI経由の開始と再開で指定markerを受信。同じprovider IDとidleを確認し停止/daemon終了。raw応答・認証・個人パスは公開repoへ入れず、結果のみ保存。[実AI結果](verification/2026-10-04-session-cli/real-codex.txt)。実Claudeは未確認。RoomのMessage/summary/Memoryを用いた再構築、Task実行統合、Permission/Sandbox、Workflow等は継続対象。

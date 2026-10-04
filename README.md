@@ -1,6 +1,6 @@
 # org — AI Company Kernel
 
-Agent・Task・Room・Memory・Event・Runtimeを組み合わせ、AIの組織と実務をローカルで動かすTypeScriptプロジェクトです。現在はAgent registry、ローカルTaskProvider、Room・Message、Event・Subscription、EventからTaskを作る常駐daemonとローカルsocketが動きます。Runtime・Memory・外部連携などは未実装です。[要件と進捗](docs/requirements.md)を参照してください。
+Agent・Task・Room・Memory・Event・Runtimeを組み合わせ、AIの組織と実務をローカルで動かすTypeScriptプロジェクトです。現在はAgent registry、ローカルTaskProvider、Room・Message、Event・Subscription、EventからTaskを作る常駐daemonとローカルsocketが動きます。Sessionの永続化とCodex/Claude Runtimeへの接続も実装しています。Memory・外部連携などは未実装です。[要件と進捗](docs/requirements.md)を参照してください。
 
 ## セットアップ
 
@@ -169,3 +169,22 @@ bun dist/cli.js --direct agent list --json
 Bun向けにCLIをbundleします。リポジトリとパッケージは公開前提です。資格情報・個人情報・非公開の固有名をコードやログに含めないでください。公開情報ゲートは既知キーと基本的な秘密ファイルを確認する補助検査であり、すべての情報漏えいを証明できるものではありません。
 
 [コーディング指針](docs/coding-guidelines.md) · [リファレンス実装](docs/reference-implementation.md) · [作業ログ](docs/work-log.md)
+
+## SessionとRuntime
+
+Sessionはdaemon経由で実行します。起動時の `--runtime-config PATH` に次のJSONを渡します。executable/cwdは絶対パス、envはdaemonの環境から渡す変数名だけを指定します。設定ファイルに秘密値は書きません。
+
+```json
+{"codex":{"executable":"/absolute/path/to/codex","cwd":"/absolute/path/to/workspace","env":["PATH","HOME"],"timeoutMs":120000,"maxOutputBytes":1048576}}
+```
+
+```sh
+bun run start daemon --runtime-config ./runtime.local.json
+bun run start session start --agent AGENT_ID --room ROOM_ID --message '作業内容' --json
+bun run start session resume SESSION_ID --message '続けて' --json
+bun run start session get SESSION_ID --json
+bun run start session history SESSION_ID --json
+bun run start session stop SESSION_ID --json
+```
+
+AgentはRoomの参加者である必要があります。Sessionの開始・送信はRuntimeの完了まで待機し、別のterminalからstopできます。待機時間はRuntime設定で制限します。daemon停止時は実行中のturnを中止して終了を待ち、再起動時に残ったrunning状態はfailedへ復旧します。provider Session IDを維持してresumeします。Codexはread-only/approval never、Claudeはbareかつtools無効で起動します。自動e2eは実subprocessのfixtureを使用します。実Codexでも開始→同じprovider IDで再開→停止を別途確認済みです。実Claudeは未確認です。
