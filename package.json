@@ -1,0 +1,50 @@
+{
+  "name": "org-kernel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first AI Company Kernel",
+  "bin": {
+    "org": "dist/cli.js"
+  },
+  "files": [
+    "dist/cli.js",
+    "README.md"
+  ],
+  "type": "module",
+  "scripts": {
+    "clean": "bun --no-env-file -e \"import {rmSync} from 'node:fs';rmSync('dist',{recursive:true,force:true});\"",
+    "build": "bun --no-env-file run clean && bun --no-env-file build src/cli.ts --target bun --outdir dist && bun --no-env-file -e \"import {chmodSync} from 'node:fs';chmodSync('dist/cli.js',0o755);\"",
+    "typecheck": "bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit",
+    "test": "bun --no-env-file test ./tests",
+    "test:e2e": "bun --no-env-file test ./tests/cli.test.ts tests/task-cli.test.ts tests/room-cli.test.ts tests/event-cli.test.ts tests/daemon-cli.test.ts tests/daemon-server.test.ts tests/cli-client.test.ts",
+    "check": "bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan",
+    "start": "bun --no-env-file src/cli.ts",
+    "lint": "bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings",
+    "lint:ast": "ast-grep scan src --report-style short --color never",
+    "format:check": "bun --no-env-file node_modules/oxfmt/bin/oxfmt --check src tests scripts package.json tsconfig.json .oxlintrc.json .oxfmtrc.json",
+    "format": "bun --no-env-file node_modules/oxfmt/bin/oxfmt --write src tests scripts package.json tsconfig.json .oxlintrc.json .oxfmtrc.json",
+    "review:plan": "bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json",
+    "review:semantic": "bun --no-env-file scripts/review-semantic.ts",
+    "check:static": "bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast",
+    "hooks:install": "bun --no-env-file node_modules/lefthook/bin/index.js install",
+    "hook:commit": "bun --no-env-file scripts/local-gate.ts pre-commit",
+    "hook:push": "bun --no-env-file scripts/local-gate.ts pre-push",
+    "verify:head": "bun --no-env-file scripts/local-gate.ts head",
+    "test:unit": "bun --no-env-file test ./tests/agent-domain.test.ts tests/agent-service.test.ts tests/task-domain.test.ts tests/task-service.test.ts tests/room-domain.test.ts tests/room-service.test.ts tests/semantic-review.test.ts tests/event-domain.test.ts tests/event-service.test.ts tests/daemon-service.test.ts tests/daemon-poll.test.ts tests/daemon-cleanup.test.ts tests/daemon-parser.test.ts tests/cli-transport.test.ts tests/codex-turn.test.ts tests/claude-turn.test.ts tests/session-domain.test.ts"
+  },
+  "devDependencies": {
+    "@ast-grep/cli": "0.45.3",
+    "@types/bun": "1.3.4",
+    "@types/node": "24.10.0",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2",
+    "jev-lint": "0.7.0",
+    "lefthook": "2.1.16",
+    "oxfmt": "0.71.0",
+    "oxlint": "1.86.0",
+    "oxlint-tsgolint": "7.0.2003"
+  },
+  "engines": {
+    "bun": ">=1.3.4"
+  },
+  "packageManager": "bun@1.3.4"
+}

@@ -1,0 +1,27 @@
+$ bun --no-env-file test ./tests/agent-domain.test.ts tests/agent-service.test.ts tests/task-domain.test.ts tests/task-service.test.ts tests/semantic-review.test.ts
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp [0.83ms]
+(pass) agent construction rejects each missing textual value [0.71ms]
+
+tests/agent-service.test.ts:
+(pass) invalid Agent inputs never reach the injected persistence port
+(pass) Agent registration propagates injected persistence failures
+
+tests/task-domain.test.ts:
+(pass) pure task decisions preserve identity and reject illegal state changes [0.22ms]
+(pass) task domain rejects invalid values and snapshots do not alias input arrays [0.17ms]
+(pass) pure graph validation rejects parent cycles, dependency cycles and unfinished prerequisites [0.42ms]
+
+tests/task-service.test.ts:
+(pass) assignment rejects missing Agent before invoking the injected writer [0.10ms]
+(pass) assignment forwards identity and time through injected ports and propagates persistence failure
+
+tests/semantic-review.test.ts:
+(pass) semantic review accepts complete warning-only results [0.12ms]
+(pass) semantic review rejects incomplete results even when warnings exist [0.16ms]
+
+ 11 pass
+ 0 fail
+Ran 11 tests across 5 files. [35.00ms]

@@ -1,0 +1,880 @@
+$ bun --no-env-file scripts/review-semantic.ts
+{
+  "findings": [
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/service.ts",
+      "line": 34,
+      "endLine": 55,
+      "value": 0.74,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.345,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/cli.ts",
+      "line": 22,
+      "endLine": 66,
+      "value": 0.89,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.309,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/local-hooks.test.ts",
+      "line": 149,
+      "endLine": 160,
+      "value": 0.85,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.288,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/events/cli.ts",
+      "line": 24,
+      "endLine": 80,
+      "value": 0.86,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.265,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/cli.ts",
+      "line": 38,
+      "endLine": 115,
+      "value": 0.85,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.25,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-content.ts",
+      "line": 5,
+      "endLine": 21,
+      "value": 0.83,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.221,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/application/cli.ts",
+      "line": 46,
+      "endLine": 98,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/cli.ts",
+      "line": 42,
+      "endLine": 189,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/domain.ts",
+      "line": 23,
+      "endLine": 57,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/domain.ts",
+      "line": 43,
+      "endLine": 59,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/cli.test.ts",
+      "line": 57,
+      "endLine": 80,
+      "value": 0.78,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.182,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/application/cli.ts",
+      "line": 150,
+      "endLine": 186,
+      "value": 0.8,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.176,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/sqlite.ts",
+      "line": 60,
+      "endLine": 63,
+      "value": 0.8,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.176,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/runtime/codex.ts",
+      "line": 4,
+      "endLine": 32,
+      "value": 0.8,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.176,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-review.ts",
+      "line": 8,
+      "endLine": 27,
+      "value": 0.79,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.162,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/cli.ts",
+      "line": 8,
+      "endLine": 46,
+      "value": 0.79,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.162,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/cli.test.ts",
+      "line": 50,
+      "endLine": 55,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.106,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-history.ts",
+      "line": 4,
+      "endLine": 33,
+      "value": 0.75,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.103,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/service.ts",
+      "line": 34,
+      "endLine": 55,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.074,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/events/domain.ts",
+      "line": 89,
+      "endLine": 101,
+      "value": 0.72,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.059,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/quality-ast.test.ts",
+      "line": 8,
+      "endLine": 25,
+      "value": 0.69,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.045,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/public-history.test.ts",
+      "line": 55,
+      "endLine": 79,
+      "value": 0.68,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.03,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/server.ts",
+      "line": 22,
+      "endLine": 158,
+      "value": 0.68,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    }
+  ],
+  "review": [],
+  "stats": {
+    "subjects": 524,
+    "reported": 23,
+    "missing": 0,
+    "unsure": 0,
+    "review": 0,
+    "byRule": {
+      "fn-name-promises": 1,
+      "tests-cover-failure-paths": 17,
+      "test-name-verifies-claim": 5
+    },
+    "byFile": {
+      "scripts/documentation-tree.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "scripts/git-snapshot.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/local-gate.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/public-content.ts": {
+        "findings": 1,
+        "subjects": 3
+      },
+      "scripts/public-history.ts": {
+        "findings": 1,
+        "subjects": 4
+      },
+      "scripts/public-review.ts": {
+        "findings": 1,
+        "subjects": 6
+      },
+      "scripts/push-input.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/review-semantic.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "scripts/semantic-result.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "scripts/semantic-review.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/domain.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/sqlite.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/application/cli.ts": {
+        "findings": 2,
+        "subjects": 12
+      },
+      "src/application/port.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "src/application/transport.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/cli.ts": {
+        "findings": 1,
+        "subjects": 6
+      },
+      "src/daemon/cli.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/daemon/client.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "src/daemon/domain.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/daemon/server.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/daemon/service.ts": {
+        "findings": 2,
+        "subjects": 11
+      },
+      "src/daemon/sqlite.ts": {
+        "findings": 0,
+        "subjects": 16
+      },
+      "src/events/cli.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/events/domain.ts": {
+        "findings": 1,
+        "subjects": 28
+      },
+      "src/events/service.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "src/events/sqlite.ts": {
+        "findings": 0,
+        "subjects": 20
+      },
+      "src/rooms/cli.ts": {
+        "findings": 1,
+        "subjects": 12
+      },
+      "src/rooms/domain.ts": {
+        "findings": 0,
+        "subjects": 18
+      },
+      "src/rooms/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/rooms/sqlite.ts": {
+        "findings": 1,
+        "subjects": 30
+      },
+      "src/runtime/claude.ts": {
+        "findings": 0,
+        "subjects": 11
+      },
+      "src/runtime/codex.ts": {
+        "findings": 1,
+        "subjects": 13
+      },
+      "src/runtime/process.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "src/sessions/domain.ts": {
+        "findings": 1,
+        "subjects": 13
+      },
+      "src/sessions/sqlite.ts": {
+        "findings": 0,
+        "subjects": 13
+      },
+      "src/tasks/cli.ts": {
+        "findings": 1,
+        "subjects": 14
+      },
+      "src/tasks/domain.ts": {
+        "findings": 1,
+        "subjects": 19
+      },
+      "src/tasks/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/tasks/sqlite.ts": {
+        "findings": 0,
+        "subjects": 28
+      },
+      "tests/agent-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/agent-service.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/agent-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/claude-turn.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/cli-client.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/cli-transport.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/cli.test.ts": {
+        "findings": 2,
+        "subjects": 18
+      },
+      "tests/codex-turn.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/daemon-cleanup.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/daemon-parser.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-poll.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-recovery.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/daemon-server.test.ts": {
+        "findings": 0,
+        "subjects": 12
+      },
+      "tests/daemon-service.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/event-cli.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/event-domain.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/event-service.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/event-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/local-hooks.test.ts": {
+        "findings": 1,
+        "subjects": 12
+      },
+      "tests/public-content.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/public-history.test.ts": {
+        "findings": 1,
+        "subjects": 6
+      },
+      "tests/quality-ast.test.ts": {
+        "findings": 1,
+        "subjects": 1
+      },
+      "tests/quality-lint.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/quality-types.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/room-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/room-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/room-service.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/room-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/runtime-env.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/runtime-process.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/semantic-review.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/semantic-runner.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/session-domain.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/session-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/task-cli.test.ts": {
+        "findings": 0,
+        "subjects": 15
+      },
+      "tests/task-dispatch.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/task-domain.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-service.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/task-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      }
+    }
+  },
+  "degraded": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ],
+  "idleLanguages": [],
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 2,
+    "files": [
+      "src/daemon/client.ts"
+    ]
+  },
+  "retry": 1,
+  "spent": {
+    "calls": 4,
+    "inputTokens": 9721,
+    "outputTokens": 136,
+    "ms": 1860,
+    "retried": 0,
+    "rateLimited": 0,
+    "tokensPerSecond": 200000,
+    "splits": 0,
+    "usd": 0.00040828200000000005,
+    "wallMs": 544
+  },
+  "errors": [],
+  "elapsedMs": 729
+}
+using <REPO>/.jev-lint.yaml
+recorded 524 answer(s) to <REPO>/.jev-lint/latest-run.json

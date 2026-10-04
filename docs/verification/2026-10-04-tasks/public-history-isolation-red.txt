@@ -1,0 +1,35 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/public-history.test.ts:
+41 |     assert.throws(
+42 |       () => checkPublicFiles(publicHistoryFiles(root, [git('rev-parse', 'HEAD').trim()]), []),
+43 |       /Credential file/,
+44 |     );
+45 |     git('update-ref', 'refs/remotes/private/main', git('rev-parse', 'HEAD~1').trim());
+46 |     assert.throws(() => checkPublicFiles(publicHistoryFiles(root, [git('rev-parse', 'HEAD').trim()]), []), /Credential file/);
+                ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/public-history.test.ts:46:12)
+(fail) public history gate catches a credential removed from the ref tip [171.09ms]
+Public content gate failed: ENOENT: no such file or directory, open '/var/folders/16/v0d838s50tz0c096slhn5z_80000gn/T/org-public-isolation-frMSnK/README.md'
+57 |     writeFileSync(join(root, 'README.md'), 'Safe committed contents');
+58 |     git('add', 'README.md');
+59 |     git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-qm', 'safe commit');
+60 |     const revision = git('rev-parse', 'HEAD').trim();
+61 |     unlinkSync(join(root, 'README.md'));
+62 |     assert.doesNotThrow(() => runPublicReview(root, root, [revision]));
+                ^
+AssertionError: Got unwanted exception.
+Actual message: "Public content review failed"
+      at innerFail (node:assert:36:32)
+      at expectsNoError (node:assert:458:14)
+      at doesNotThrow (node:assert:476:17)
+      at <anonymous> (<REPO>/tests/public-history.test.ts:62:12)
+(fail) history-only public review does not read an unstaged deletion from the worktree [190.47ms]
+
+ 0 pass
+ 2 fail
+Ran 2 tests across 1 file. [388.00ms]

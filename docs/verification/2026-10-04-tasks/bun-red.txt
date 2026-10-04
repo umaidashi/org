@@ -1,0 +1,21 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp [1.78ms]
+(pass) agent construction rejects each missing textual value [1.10ms]
+
+tests/agent-sqlite.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+5 | import { DatabaseSync } from 'node:sqlite';
+                                 ^
+error: Could not resolve: "node:sqlite". Maybe you need to "bun install"?
+    at <REPO>/tests/agent-sqlite.test.ts:5:30
+-------------------------------
+
+
+ 2 pass
+ 1 fail
+ 1 error
+Ran 3 tests across 2 files. [138.00ms]

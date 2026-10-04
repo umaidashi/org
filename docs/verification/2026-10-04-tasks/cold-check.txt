@@ -1,0 +1,774 @@
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 13ms on 38 files using 8 threads.
+bun test v1.3.4 (5eb2145b)
+invalid JSON
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":1},"errors":["network failure"],"degraded":[]}
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":0},"errors":[],"degraded":[]}
+{
+  "dryRun": true,
+  "subjects": 184,
+  "cached": 0,
+  "requests": 73,
+  "tokens": 237610,
+  "usd": 0.00997962,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "scripts/documentation-tree.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1855,
+      "degraded": null
+    },
+    {
+      "file": "scripts/documentation-tree.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2846,
+      "degraded": null
+    },
+    {
+      "file": "scripts/documentation-tree.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1578,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1046,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2010,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2355,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1373,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2348,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 806,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-content.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1078,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-content.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2041,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-content.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1577,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2111,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2911,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 816,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1027,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1990,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1612,
+      "degraded": null
+    },
+    {
+      "file": "scripts/review-semantic.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 807,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1638,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2428,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1732,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 997,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1959,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2109,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 914,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1881,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1564,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 826,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1792,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1893,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/sqlite.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 3575,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 1993,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3242,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3878,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1840,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "local",
+      "tokens": 3936,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "located",
+      "tokens": 6533,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "located",
+      "tokens": 6657,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 4082,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "located",
+      "tokens": 6714,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "located",
+      "tokens": 6663,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "paired",
+      "tokens": 8611,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 892,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1861,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1704,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 19,
+      "arm": "located",
+      "tokens": 15807,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 5986,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2170,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-domain.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2636,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-service.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2381,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-sqlite.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3205,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4046,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4691,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 12,
+      "arm": "bare",
+      "tokens": 14382,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "bare",
+      "tokens": 8827,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3234,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 4009,
+      "degraded": null
+    },
+    {
+      "file": "tests/public-content.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1487,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-ast.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1510,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-lint.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1223,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-lint.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2197,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-lint.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2295,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-types.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1651,
+      "degraded": null
+    },
+    {
+      "file": "tests/semantic-review.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2373,
+      "degraded": null
+    },
+    {
+      "file": "tests/semantic-runner.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1572,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 5213,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 5698,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "bare",
+      "tokens": 10656,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-domain.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "bare",
+      "tokens": 4411,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-service.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2784,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-sqlite.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "bare",
+      "tokens": 6577,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-sqlite.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2488,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 48,
+      "requests": 15,
+      "tokens": 66747,
+      "usd": 0.0028033740000000004,
+      "share": 0.2809098943647153
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 64,
+      "requests": 21,
+      "tokens": 65832,
+      "usd": 0.002764944,
+      "share": 0.27705904633643363
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 45,
+      "requests": 19,
+      "tokens": 63846,
+      "usd": 0.0026815320000000004,
+      "share": 0.26870081225537645
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 17,
+      "requests": 12,
+      "tokens": 30657,
+      "usd": 0.0012875940000000002,
+      "share": 0.12902234754429528
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 10,
+      "requests": 6,
+      "tokens": 10528,
+      "usd": 0.000442176,
+      "share": 0.04430789949917933
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 1,
+    "files": [
+      "scripts/public-review.ts"
+    ]
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ]
+}
+$ bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+$ bun --no-env-file node_modules/oxfmt/bin/oxfmt --check src tests scripts package.json tsconfig.json .oxlintrc.json .oxfmtrc.json
+$ ast-grep scan src --report-style short --color never
+[warn] postinstall script did not run; falling back to runtime binary resolution.
+Enable postinstall to avoid the per-invocation overhead.
+
+tests/semantic-runner.test.ts:
+(pass) semantic process runner rejects exit failures and incomplete or malformed output [69.53ms]
+
+tests/semantic-review.test.ts:
+(pass) semantic review accepts complete warning-only results [0.02ms]
+(pass) semantic review rejects incomplete results even when warnings exist [0.25ms]
+
+tests/task-domain.test.ts:
+(pass) pure task decisions preserve identity and reject illegal state changes [0.29ms]
+(pass) task domain rejects invalid values and snapshots do not alias input arrays [0.28ms]
+(pass) pure graph validation rejects parent cycles, dependency cycles and unfinished prerequisites [0.24ms]
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp [0.05ms]
+(pass) agent construction rejects each missing textual value [0.17ms]
+
+tests/public-content.test.ts:
+(pass) public content gate rejects credential files and secret values without disclosing them [0.37ms]
+
+tests/task-cli.test.ts:
+(pass) work item and internal execution task persist separately with parent and assignment history [375.97ms]
+(pass) invalid transitions and references leave persistent task and history unchanged [372.88ms]
+(pass) dependencies and cycles are enforced across independent CLI processes [306.49ms]
+(pass) task comments and output artifacts can be written and retrieved via separate CLI processes [127.91ms]
+(pass) task parser rejects malformed options before touching storage [270.01ms]
+(pass) failed tasks retain their original history and reject subsequent state changes [153.46ms]
+(pass) mistaken dependencies and parent links can be removed to unblock a task [267.98ms]
+
+tests/task-sqlite.test.ts:
+(pass) task state and immutable history rollback together on storage failure [11.20ms]
+(pass) comments and artifact references persist without rewriting existing task history [6.24ms]
+(pass) comment and artifact originals cannot be modified and artifact linking rolls back with history [7.71ms]
+(pass) converging dependency graphs do not repeatedly load the same completed subtree [2.59ms]
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [3.95ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.29ms]
+
+tests/local-hooks.test.ts:
+(pass) pre-commit reads staged contents even when the worktree contains a passing replacement [41.85ms]
+(pass) pre-push reads the selected commit rather than staged or working changes [69.68ms]
+(pass) pre-push parses all actual local commits and skips remote deletions [1.03ms]
+(pass) snapshot refuses invalid object ids without running a check [13.82ms]
+(pass) the actual pre-commit gate blocks bad staged code without modifying the worktree [204.84ms]
+(pass) documentation-only bootstrap trees skip runtime gates but source trees require a manifest [0.85ms]
+
+tests/quality-ast.test.ts:
+(pass) every architecture rule fixture runs and detects its planted violations [42.67ms]
+
+tests/task-service.test.ts:
+(pass) assignment rejects missing Agent before invoking the injected writer
+(pass) assignment forwards identity and time through injected ports and propagates persistence failure [0.23ms]
+
+tests/agent-service.test.ts:
+(pass) invalid Agent inputs never reach the injected persistence port [0.06ms]
+(pass) Agent registration propagates injected persistence failures [0.04ms]
+
+tests/quality-lint.test.ts:
+(pass) lint rejects unsafe generated code and infrastructure imports in domain code [130.96ms]
+(pass) lint accepts a pure function with explicit typed inputs [133.87ms]
+
+tests/cli.test.ts:
+(pass) empty registry reports no agents and returns an empty JSON array [59.40ms]
+(pass) agents survive separate CLI processes with stable identity and name ordering [100.51ms]
+(pass) duplicate registration fails without replacing the existing agent [105.64ms]
+(pass) text output includes id name role and runtime [76.84ms]
+(pass) empty or whitespace-only identity fields cannot register an agent [304.48ms]
+(pass) missing database parent directories are created [49.82ms]
+(pass) storage errors return failure on stderr without a stack trace [56.47ms]
+(pass) unicode and quote characters are saved as values rather than SQL [105.05ms]
+(pass) default database is persisted only under the isolated HOME [50.32ms]
+(pass) invalid arguments fail before creating a database and help succeeds [248.14ms]
+(pass) an explicitly empty database path cannot silently register an ephemeral agent [45.70ms]
+(pass) a corrupted database is reported as storage failure rather than an empty registry [25.50ms]
+
+tests/quality-types.test.ts:
+(pass) native type checker rejects a bad assignment and accepts a strictly typed module [197.70ms]
+
+ 48 pass
+ 0 fail
+Ran 48 tests across 15 files. [4.09s]
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using /private/tmp/org-bun-clean-w7CIg4/.jev-lint.yaml
+ast-grep: [warn] postinstall script did not run; falling back to runtime binary resolution.
+Enable postinstall to avoid the per-invocation overhead.

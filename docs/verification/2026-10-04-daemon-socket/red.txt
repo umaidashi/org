@@ -1,0 +1,46 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-server.test.ts:
+10 |   return new Promise((resolve, reject) => {
+11 |     let output = '';
+12 |     const timer = setTimeout(() => reject(new Error('Daemon did not become ready')), 5000);
+13 |     child.stdout?.on('data', (chunk: Buffer) => { output += chunk.toString(); if (output.includes('"ready"')) {clearTimeout(timer); resolve();} });
+14 |     child.once('error', error => {clearTimeout(timer); reject(error);});
+15 |     child.once('exit', code => {clearTimeout(timer); reject(new Error(`Daemon exited before ready: ${code}`));});
+                                                                     ^
+error: Daemon exited before ready: 2
+      at <anonymous> (<REPO>/tests/daemon-server.test.ts:15:65)
+      at emit (node:events:98:22)
+      at #handleOnExit (node:child_process:520:14)
+(fail) continuous daemon polls new Events, serves local clients and releases socket across restart [228.39ms]
+78 |   const socket = join(home, 'existing');
+79 |   const db = join(home, 'db', 'org.db');
+80 |   try {
+81 |     writeFileSync(socket, 'keep');
+82 |     const result = spawnSync(process.execPath, ['--no-env-file', cli, '--db', db, 'daemon', '--socket', socket], {encoding: 'utf8', timeout: 5000});
+83 |     assert.equal(result.status, 1, result.stderr);
+                ^
+AssertionError: Error: Unknown option '--socket'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--socket"
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages [OPTIONS]
+       org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 1
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/daemon-server.test.ts:83:12)
+(fail) daemon refuses to replace an existing file and client failure creates no database [26.14ms]
+
+ 0 pass
+ 2 fail
+Ran 2 tests across 1 file. [439.00ms]

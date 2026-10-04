@@ -1,0 +1,30 @@
+
+> org-kernel@0.1.0 test
+> npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/*.test.js
+
+
+> org-kernel@0.1.0 build
+> npm run clean && tsc
+
+
+> org-kernel@0.1.0 clean
+> node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
+
+✔ empty registry reports no agents and returns an empty JSON array (91.484834ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (999.11025ms)
+✔ duplicate registration fails without replacing the existing agent (399.595083ms)
+✔ text output includes id name role and runtime (161.507167ms)
+✔ empty or whitespace-only identity fields cannot register an agent (1053.992042ms)
+✔ missing database parent directories are created (186.737041ms)
+✔ storage errors return failure on stderr without a stack trace (204.486125ms)
+✔ unicode and quote characters are saved as values rather than SQL (340.644333ms)
+✔ default database is persisted only under the isolated HOME (227.735125ms)
+✔ invalid arguments fail before creating a database and help succeeds (359.011625ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4084.24375

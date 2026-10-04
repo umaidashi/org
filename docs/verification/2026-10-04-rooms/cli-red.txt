@@ -1,0 +1,31 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-cli.test.ts:
+10 |   const home = mkdtempSync(join(tmpdir(), 'org-room-e2e-'));
+11 |   const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
+12 |   const run = (args: string[]) => spawnSync(process.execPath, ['--no-env-file', cli, '--db', join(home, 'org.db'), ...args], { encoding: 'utf8', timeout: 10_000 });
+13 |   const json = (args: string[]): Record<string, unknown> => {
+14 |     const result = run([...args, '--json']);
+15 |     assert.equal(result.status, 0, result.stderr);
+                ^
+AssertionError: Error: Unknown option '--type'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--type"
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history [OPTIONS]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at json (<REPO>/tests/room-cli.test.ts:15:12)
+      at <anonymous> (<REPO>/tests/room-cli.test.ts:26:19)
+(fail) multiple rooms with the same Agent keep separate persistent replies and archived histories [247.89ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [394.00ms]

@@ -1,0 +1,17 @@
+files:
+  - src
+  - tests
+  - scripts
+exclude:
+  - node_modules
+  - dist
+  - docs
+  - quality/ast/tests
+rules:
+  typescript/fn-name-promises: on
+  typescript/comment-describes-declaration: on
+  typescript/comment-describes-block: on
+  typescript/catch-hides-failure: on
+  typescript/test-name-verifies-claim: on
+  typescript/tests-cover-failure-paths: on
+  org-functional-core: on

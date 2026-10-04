@@ -1,0 +1,10 @@
+id: domain-infrastructure-import
+valid:
+  - 'import type { Agent } from "./domain.js";'
+  - 'import { validate } from "./rules.js";'
+invalid:
+  - 'import { readFileSync } from "node:fs";'
+  - 'import fs from "fs";'
+  - 'import { SqliteRepository } from "./sqlite.js";'
+  - 'import "node:sqlite";'
+  - 'import { Database } from "bun:sqlite";'

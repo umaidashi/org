@@ -1,0 +1,21 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-sqlite.test.ts:
+(pass) Session state and immutable history persist atomically and reject stale writers [13.88ms]
+56 | test('Session store refuses a fabricated completion without a running turn', () => {
+57 |   const store = new SqliteSessionStore(':memory:');
+58 |   try {
+59 |     const initial = createSession({ agentId: 'a', roomId: 'r', runtime: 'claude' }, { id: 's', at: 't0' });
+60 |     store.create(initial);
+61 |     assert.throws(() => store.save({ ...initial, providerSessionId: 'p', version: 1, updatedAt: 't1' }, 0), /running|transition/);
+                ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/session-sqlite.test.ts:61:12)
+(fail) Session store refuses a fabricated completion without a running turn [2.27ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [135.00ms]

@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/claude-turn.test.ts:
+(pass) Claude command uses explicit system context, stdin, bare mode and the chosen resume session [0.85ms]
+(pass) Claude response rejects failed, missing and inconsistent result envelopes [0.23ms]
+(pass) Claude turn uses process DI and rejects process failure even with a success-looking reply [0.68ms]
+(pass) Claude resumed turn refreshes changed role and instruction instead of reusing a system prompt snapshot [0.05ms]
+
+tests/codex-turn.test.ts:
+(pass) Codex command injects role and instructions via stdin and resumes only the requested session [0.14ms]
+(pass) Codex response requires a completed turn and rejects protocol failures or inconsistent sessions [0.20ms]
+(pass) Codex turn runner uses the injected process boundary and never accepts failed process output [0.30ms]
+(pass) Codex resumed response cannot succeed without a completed assistant reply [0.02ms]
+
+ 8 pass
+ 0 fail
+Ran 8 tests across 2 files. [21.00ms]

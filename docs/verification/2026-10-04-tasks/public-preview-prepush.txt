@@ -1,0 +1,1287 @@
+[38;2;56;56;56m╭─────────────────────────────────────╮[m
+[38;2;56;56;56m│[m lefthook  v2.1.16   hook:  [1mpre-push[m [38;2;56;56;56m│[m
+[38;2;56;56;56m╰─────────────────────────────────────╯[m
+┃  committed-tests-and-semantic-review ❯ 
+Reachable public history checked: 220 file versions
+Public content checked: 0 files
+Verifying committed tree f1dc5d83658f8d6294b6f0b05ad3f9b682cf651b
+Public content checked: 133 files
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 8ms on 41 files using 8 threads.
+bun test v1.3.4 (5eb2145b)
+invalid JSON
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":1},"errors":["network failure"],"degraded":[]}
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":0},"errors":[],"degraded":[]}
+Reachable public history checked: 1 file versions
+Public content checked: 0 files
+{
+  "dryRun": true,
+  "subjects": 198,
+  "cached": 0,
+  "requests": 81,
+  "tokens": 259297,
+  "usd": 0.010890474,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "scripts/documentation-tree.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1855,
+      "degraded": null
+    },
+    {
+      "file": "scripts/documentation-tree.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2846,
+      "degraded": null
+    },
+    {
+      "file": "scripts/documentation-tree.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1582,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1046,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2010,
+      "degraded": null
+    },
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2355,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1394,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2369,
+      "degraded": null
+    },
+    {
+      "file": "scripts/local-gate.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 806,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-content.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1078,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-content.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2041,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-content.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1825,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-history.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1684,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-history.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1992,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-history.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2098,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2284,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3085,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1622,
+      "degraded": null
+    },
+    {
+      "file": "scripts/public-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 816,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1027,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1990,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1612,
+      "degraded": null
+    },
+    {
+      "file": "scripts/review-semantic.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 807,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1638,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2428,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1732,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 997,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1959,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2109,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 914,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1881,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1564,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 826,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1792,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1893,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/sqlite.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 3575,
+      "degraded": null
+    },
+    {
+      "file": "src/agents/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 1993,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3242,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 3878,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1827,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "local",
+      "tokens": 3936,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "located",
+      "tokens": 6533,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "located",
+      "tokens": 6657,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 4069,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "located",
+      "tokens": 6714,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "located",
+      "tokens": 6663,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "paired",
+      "tokens": 8611,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 892,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1861,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1704,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 19,
+      "arm": "located",
+      "tokens": 15807,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "located",
+      "tokens": 5986,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 2170,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-domain.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2636,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-service.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2381,
+      "degraded": null
+    },
+    {
+      "file": "tests/agent-sqlite.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3205,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4073,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4719,
+      "degraded": null
+    },
+    {
+      "file": "tests/cli.test.ts",
+      "rule": null,
+      "subjects": 12,
+      "arm": "bare",
+      "tokens": 14384,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "bare",
+      "tokens": 10579,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4448,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 4547,
+      "degraded": null
+    },
+    {
+      "file": "tests/public-content.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1487,
+      "degraded": null
+    },
+    {
+      "file": "tests/public-history.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3121,
+      "degraded": null
+    },
+    {
+      "file": "tests/public-history.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2180,
+      "degraded": null
+    },
+    {
+      "file": "tests/public-history.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3214,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-ast.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1510,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-lint.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1223,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-lint.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2197,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-lint.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2295,
+      "degraded": null
+    },
+    {
+      "file": "tests/quality-types.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1651,
+      "degraded": null
+    },
+    {
+      "file": "tests/runtime-env.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1580,
+      "degraded": null
+    },
+    {
+      "file": "tests/semantic-review.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2373,
+      "degraded": null
+    },
+    {
+      "file": "tests/semantic-runner.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1572,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 5223,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 5708,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 7,
+      "arm": "bare",
+      "tokens": 10656,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-domain.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "bare",
+      "tokens": 4411,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-service.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2784,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-sqlite.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "bare",
+      "tokens": 6577,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-sqlite.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2488,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 52,
+      "requests": 17,
+      "tokens": 73202,
+      "usd": 0.003074484,
+      "share": 0.28230947523496225
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 69,
+      "requests": 23,
+      "tokens": 71141,
+      "usd": 0.002987922,
+      "share": 0.274361060868425
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 48,
+      "requests": 21,
+      "tokens": 69823,
+      "usd": 0.002932566,
+      "share": 0.26927808651854823
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 19,
+      "requests": 14,
+      "tokens": 34603,
+      "usd": 0.0014533260000000002,
+      "share": 0.13344928788223542
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 10,
+      "requests": 6,
+      "tokens": 10528,
+      "usd": 0.000442176,
+      "share": 0.04060208949582911
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ]
+}
+{
+  "findings": [
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/local-hooks.test.ts",
+      "line": 149,
+      "endLine": 160,
+      "value": 0.85,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.288,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-content.ts",
+      "line": 5,
+      "endLine": 21,
+      "value": 0.83,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.221,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/cli.ts",
+      "line": 42,
+      "endLine": 189,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/cli.test.ts",
+      "line": 57,
+      "endLine": 80,
+      "value": 0.78,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.182,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/cli.ts",
+      "line": 85,
+      "endLine": 139,
+      "value": 0.8,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.176,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-review.ts",
+      "line": 8,
+      "endLine": 27,
+      "value": 0.79,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.162,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/domain.ts",
+      "line": 43,
+      "endLine": 59,
+      "value": 0.76,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.118,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/cli.test.ts",
+      "line": 50,
+      "endLine": 55,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.106,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-history.ts",
+      "line": 4,
+      "endLine": 33,
+      "value": 0.75,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.103,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/quality-ast.test.ts",
+      "line": 8,
+      "endLine": 25,
+      "value": 0.69,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.045,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/public-history.test.ts",
+      "line": 55,
+      "endLine": 79,
+      "value": 0.68,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.03,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    }
+  ],
+  "review": [],
+  "stats": {
+    "subjects": 198,
+    "reported": 11,
+    "missing": 0,
+    "unsure": 0,
+    "review": 0,
+    "byRule": {
+      "test-name-verifies-claim": 5,
+      "tests-cover-failure-paths": 6
+    },
+    "byFile": {
+      "scripts/documentation-tree.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "scripts/git-snapshot.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/local-gate.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/push-input.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/review-semantic.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "scripts/semantic-result.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "scripts/semantic-review.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/domain.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/sqlite.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/cli.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/tasks/cli.ts": {
+        "findings": 1,
+        "subjects": 14
+      },
+      "src/tasks/domain.ts": {
+        "findings": 1,
+        "subjects": 19
+      },
+      "src/tasks/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/tasks/sqlite.ts": {
+        "findings": 0,
+        "subjects": 26
+      },
+      "tests/agent-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/agent-service.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/agent-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/cli.test.ts": {
+        "findings": 2,
+        "subjects": 18
+      },
+      "tests/local-hooks.test.ts": {
+        "findings": 1,
+        "subjects": 12
+      },
+      "tests/quality-ast.test.ts": {
+        "findings": 1,
+        "subjects": 1
+      },
+      "tests/quality-lint.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/quality-types.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/semantic-review.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/semantic-runner.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/task-cli.test.ts": {
+        "findings": 0,
+        "subjects": 15
+      },
+      "tests/task-domain.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-service.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/task-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/public-content.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "scripts/public-review.ts": {
+        "findings": 1,
+        "subjects": 6
+      },
+      "scripts/public-content.ts": {
+        "findings": 1,
+        "subjects": 3
+      },
+      "scripts/public-history.ts": {
+        "findings": 1,
+        "subjects": 4
+      },
+      "tests/public-history.test.ts": {
+        "findings": 1,
+        "subjects": 6
+      },
+      "tests/runtime-env.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      }
+    }
+  },
+  "degraded": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ],
+  "idleLanguages": [],
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "retry": 1,
+  "spent": {
+    "calls": 39,
+    "inputTokens": 137626,
+    "outputTokens": 1432,
+    "ms": 26880,
+    "retried": 0,
+    "rateLimited": 0,
+    "tokensPerSecond": 200000,
+    "splits": 0,
+    "usd": 0.005780292,
+    "wallMs": 1118
+  },
+  "errors": [],
+  "elapsedMs": 1194
+}
+
+[38;2;56;56;56m  ────────────────────────────────────[m
+summary: (done in 9.04 seconds)
+✓ committed-tests-and-semantic-review (9.04 seconds)
+$ bun --no-env-file scripts/local-gate.ts pre-push
+$ bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+$ bun --no-env-file node_modules/oxfmt/bin/oxfmt --check src tests scripts package.json tsconfig.json .oxlintrc.json .oxfmtrc.json
+$ ast-grep scan src --report-style short --color never
+
+tests/semantic-runner.test.ts:
+(pass) semantic process runner rejects exit failures and incomplete or malformed output [57.33ms]
+
+tests/semantic-review.test.ts:
+(pass) semantic review accepts complete warning-only results [0.04ms]
+(pass) semantic review rejects incomplete results even when warnings exist [0.04ms]
+
+tests/task-domain.test.ts:
+(pass) pure task decisions preserve identity and reject illegal state changes [0.28ms]
+(pass) task domain rejects invalid values and snapshots do not alias input arrays [0.39ms]
+(pass) pure graph validation rejects parent cycles, dependency cycles and unfinished prerequisites [0.25ms]
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp [0.03ms]
+(pass) agent construction rejects each missing textual value [0.17ms]
+
+tests/public-content.test.ts:
+(pass) public content gate rejects credential files and secret values without disclosing them [0.24ms]
+
+tests/task-cli.test.ts:
+(pass) work item and internal execution task persist separately with parent and assignment history [370.32ms]
+(pass) invalid transitions and references leave persistent task and history unchanged [410.11ms]
+(pass) dependencies and cycles are enforced across independent CLI processes [360.21ms]
+(pass) task comments and output artifacts can be written and retrieved via separate CLI processes [175.87ms]
+(pass) task parser rejects malformed options before touching storage [335.49ms]
+(pass) failed tasks retain their original history and reject subsequent state changes [284.65ms]
+(pass) mistaken dependencies and parent links can be removed to unblock a task [256.73ms]
+
+tests/public-history.test.ts:
+(pass) public history gate catches a credential removed from the ref tip [156.76ms]
+(pass) history-only public review does not read an unstaged deletion from the worktree [87.93ms]
+
+tests/runtime-env.test.ts:
+(pass) project Bun configuration prevents dotenv autoload while explicit loading remains possible [54.23ms]
+
+tests/task-sqlite.test.ts:
+(pass) task state and immutable history rollback together on storage failure [8.93ms]
+(pass) comments and artifact references persist without rewriting existing task history [5.68ms]
+(pass) comment and artifact originals cannot be modified and artifact linking rolls back with history [6.20ms]
+(pass) converging dependency graphs do not repeatedly load the same completed subtree [1.71ms]
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [2.51ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.13ms]
+
+tests/local-hooks.test.ts:
+(pass) pre-commit reads staged contents even when the worktree contains a passing replacement [37.30ms]
+(pass) pre-push reads the selected commit rather than staged or working changes [74.58ms]
+(pass) pre-push parses all actual local commits and skips remote deletions [0.71ms]
+(pass) snapshot refuses invalid object ids without running a check [17.88ms]
+(pass) the actual pre-commit gate blocks bad staged code without modifying the worktree [205.15ms]
+(pass) documentation-only bootstrap trees skip runtime gates but source trees require a manifest [0.98ms]
+(pass) configured pre-push job executes even when the pushed revision contains documentation only [279.63ms]
+
+tests/quality-ast.test.ts:
+(pass) every architecture rule fixture runs and detects its planted violations [7.66ms]
+
+tests/task-service.test.ts:
+(pass) assignment rejects missing Agent before invoking the injected writer
+(pass) assignment forwards identity and time through injected ports and propagates persistence failure [0.14ms]
+
+tests/agent-service.test.ts:
+(pass) invalid Agent inputs never reach the injected persistence port [0.04ms]
+(pass) Agent registration propagates injected persistence failures [0.05ms]
+
+tests/quality-lint.test.ts:
+(pass) lint rejects unsafe generated code and infrastructure imports in domain code [154.40ms]
+(pass) lint accepts a pure function with explicit typed inputs [121.84ms]
+
+tests/cli.test.ts:
+(pass) empty registry reports no agents and returns an empty JSON array [60.31ms]
+(pass) agents survive separate CLI processes with stable identity and name ordering [114.92ms]
+(pass) duplicate registration fails without replacing the existing agent [112.60ms]
+(pass) text output includes id name role and runtime [91.91ms]
+(pass) empty or whitespace-only identity fields cannot register an agent [373.66ms]
+(pass) missing database parent directories are created [55.91ms]
+(pass) storage errors return failure on stderr without a stack trace [48.82ms]
+(pass) unicode and quote characters are saved as values rather than SQL [109.32ms]
+(pass) default database is persisted only under the isolated HOME [56.61ms]
+(pass) invalid arguments fail before creating a database and help succeeds [255.50ms]
+(pass) an explicitly empty database path cannot silently register an ephemeral agent [67.64ms]
+(pass) a corrupted database is reported as storage failure rather than an empty registry [29.68ms]
+
+tests/quality-types.test.ts:
+(pass) native type checker rejects a bad assignment and accepts a strictly typed module [144.53ms]
+
+ 52 pass
+ 0 fail
+Ran 52 tests across 17 files. [5.04s]
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using /private/var/folders/16/v0d838s50tz0c096slhn5z_80000gn/T/org-git-check-dkmuF9/.jev-lint.yaml
+using /private/var/folders/16/v0d838s50tz0c096slhn5z_80000gn/T/org-git-check-dkmuF9/.jev-lint.yaml
+recorded 198 answer(s) to <REPO>/.jev-lint/latest-run.json

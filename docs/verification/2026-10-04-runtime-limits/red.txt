@@ -1,0 +1,28 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-process.test.ts:
+(pass) process runner passes explicit input/environment and captures exit without shell interpretation [23.44ms]
+(pass) process runner terminates timeout and cancellation and refuses oversized output [128.66ms]
+TimeoutOverflowWarning: 2147483648 does not fit into a 32-bit signed integer.
+Timeout duration was set to 1.
+      at runProcess (<REPO>/src/runtime/process.ts:39:17)
+      at runProcess (<REPO>/src/runtime/process.ts:16:34)
+      at <anonymous> (<REPO>/tests/runtime-process.test.ts:60:24)
+      at <anonymous> (<REPO>/tests/runtime-process.test.ts:58:102)
+
+AssertionError: Missing expected rejection.
+ generatedMessage: false,
+     actual: undefined,
+   expected: /timeout/i,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at innerFail (node:assert:36:27)
+      at expectsError (node:assert:425:14)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+(fail) process limits reject timer overflow and retain a UTF-8 output prefix within the byte budget [8.01ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [278.00ms]

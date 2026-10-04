@@ -1,0 +1,19 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-parser.test.ts:
+1 | import assert from 'node:assert/strict';
+2 | import { test } from 'bun:test';
+3 | import { parseDaemonCommand } from '../src/daemon/cli.js';
+4 | test('socket flags cannot silently target a different database in once mode', () => {
+5 |   assert.throws(() => parseDaemonCommand(['daemon', '--once', '--socket', '/tmp/other.sock']), /socket/);
+             ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/daemon-parser.test.ts:5:10)
+(fail) socket flags cannot silently target a different database in once mode [6.25ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [113.00ms]

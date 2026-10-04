@@ -1,0 +1,12 @@
+lefthook: bun --no-env-file node_modules/lefthook/bin/index.js
+min_version: 2.1.16
+pre-commit:
+  jobs:
+    - name: staged-static-checks
+      run: bun --no-env-file run hook:commit
+pre-push:
+  jobs:
+    - name: committed-tests-and-semantic-review
+      run: bun --no-env-file run hook:push
+      files: echo lefthook.yml
+      use_stdin: true

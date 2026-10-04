@@ -1,0 +1,269 @@
+$ bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+$ bun --no-env-file node_modules/oxfmt/bin/oxfmt --check src tests scripts package.json tsconfig.json .oxlintrc.json .oxfmtrc.json
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 11ms on 81 files using 8 threads.
+$ ast-grep scan src --report-style short --color never
+bun test v1.3.4 (5eb2145b)
+
+tests/semantic-runner.test.ts:
+invalid JSON
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":1},"errors":["network failure"],"degraded":[]}
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":0},"errors":[],"degraded":[]}
+(pass) semantic process runner rejects exit failures and incomplete or malformed output [70.40ms]
+
+tests/runtime-process.test.ts:
+(pass) process runner passes explicit input/environment and captures exit without shell interpretation [13.58ms]
+(pass) process runner terminates timeout and cancellation and refuses oversized output [123.10ms]
+
+tests/semantic-review.test.ts:
+(pass) semantic review accepts complete warning-only results [0.15ms]
+(pass) semantic review rejects incomplete results even when warnings exist [0.05ms]
+
+tests/task-domain.test.ts:
+(pass) pure task decisions preserve identity and reject illegal state changes
+(pass) task domain rejects invalid values and snapshots do not alias input arrays [0.98ms]
+(pass) pure graph validation rejects parent cycles, dependency cycles and unfinished prerequisites [0.13ms]
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp [0.08ms]
+(pass) agent construction rejects each missing textual value
+
+tests/event-domain.test.ts:
+(pass) event patterns match whole segments and JSON filters ignore object key order [0.94ms]
+(pass) event creation copies payload and rejects malformed event names and patterns [0.37ms]
+
+tests/public-content.test.ts:
+(pass) public content gate rejects credential files and secret values without disclosing them
+
+tests/daemon-cleanup.test.ts:
+(pass) resource release attempts every close and propagates collected close failures [0.09ms]
+
+tests/task-cli.test.ts:
+(pass) work item and internal execution task persist separately with parent and assignment history [409.69ms]
+(pass) invalid transitions and references leave persistent task and history unchanged [454.47ms]
+(pass) dependencies and cycles are enforced across independent CLI processes [346.46ms]
+(pass) task comments and output artifacts can be written and retrieved via separate CLI processes [148.35ms]
+(pass) task parser rejects malformed options before touching storage [326.05ms]
+(pass) failed tasks retain their original history and reject subsequent state changes [186.23ms]
+(pass) mistaken dependencies and parent links can be removed to unblock a task [269.09ms]
+
+tests/daemon-cli.test.ts:
+(pass) daemon once creates assigned ExecutionTask and restart does not duplicate or reassign it [470.95ms]
+(pass) two concurrent CLI workers create only one Task and two original history snapshots [246.05ms]
+
+tests/daemon-server.test.ts:
+(pass) SIGINT releases the daemon while preserving replacement socket and lock entries [43.42ms]
+(pass) continuous daemon polls new Events, serves local clients and releases socket across restart [521.94ms]
+(pass) daemon refuses to replace an existing file and client failure creates no database [92.20ms]
+{"state":"ready","socket":"/tmp/org-server-cleanup-n8EZH8/org.sock"}
+(pass) adapter close failure still releases owned socket, lock and process umask [6.82ms]
+{"state":"ready","socket":"/tmp/org-server-poll-zmi7KQ/org.sock"}
+(pass) poll errors remain visible through status and periodic polling recovers without restart [25.54ms]
+
+tests/event-cli.test.ts:
+(pass) events persist without recipients and subscriptions match independently across CLI processes [522.89ms]
+(pass) malformed event inputs return usage error before creating a database [130.15ms]
+
+tests/daemon-poll.test.ts:
+(pass) injected poll failures are explicitly degraded and the next successful poll recovers [0.15ms]
+
+tests/public-history.test.ts:
+(pass) public history gate catches a credential removed from the ref tip [168.51ms]
+Reachable public history checked: 1 file versions
+Public content checked: 0 files
+(pass) history-only public review does not read an unstaged deletion from the worktree [101.55ms]
+
+tests/room-domain.test.ts:
+(pass) Room types require their participant composition and default to coordinator [0.32ms]
+(pass) Messages require membership and same-room replies; archive preserves the original Room [0.28ms]
+
+tests/runtime-env.test.ts:
+(pass) project Bun configuration prevents dotenv autoload while explicit loading remains possible [42.91ms]
+
+tests/room-cli.test.ts:
+(pass) malformed Room creation is rejected before creating a database or directory [110.77ms]
+(pass) multiple rooms with the same Agent keep separate persistent replies and archived histories [754.53ms]
+
+tests/task-sqlite.test.ts:
+(pass) task state and immutable history rollback together on storage failure [8.49ms]
+(pass) comments and artifact references persist without rewriting existing task history [12.51ms]
+(pass) comment and artifact originals cannot be modified and artifact linking rolls back with history [6.58ms]
+(pass) converging dependency graphs do not repeatedly load the same completed subtree [2.63ms]
+
+tests/room-service.test.ts:
+(pass) Room registration validates Agent through a small injected Port before saving [0.45ms]
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [2.83ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.37ms]
+
+tests/daemon-recovery.test.ts:
+(pass) overlapping Workflow deferrals converge on the same deferred receipt [1.16ms]
+(pass) real Task commit survives receipt failure and retry finishes receipt without duplicate history [13.52ms]
+
+tests/event-service.test.ts:
+(pass) publishing needs only an injected writer; Agent subscription validates before saving [0.20ms]
+
+tests/local-hooks.test.ts:
+(pass) pre-commit reads staged contents even when the worktree contains a passing replacement [41.71ms]
+(pass) pre-push reads the selected commit rather than staged or working changes [81.85ms]
+(pass) pre-push parses all actual local commits and skips remote deletions [0.92ms]
+(pass) snapshot refuses invalid object ids without running a check [19.11ms]
+(pass) the actual pre-commit gate blocks bad staged code without modifying the worktree [294.84ms]
+(pass) documentation-only bootstrap trees skip runtime gates but source trees require a manifest [0.98ms]
+(pass) configured pre-push job executes even when the pushed revision contains documentation only [299.15ms]
+
+tests/event-sqlite.test.ts:
+(pass) Event log remains immutable when subscription changes or insertion fails [6.44ms]
+
+tests/quality-ast.test.ts:
+(pass) every architecture rule fixture runs and detects its planted violations [9.76ms]
+
+tests/daemon-service.test.ts:
+(pass) pure delivery identity is stable and unambiguous, and disabled subscriptions do not dispatch [0.11ms]
+(pass) receipt failure after Task success retries the same identity through injected Ports [0.30ms]
+
+tests/cli-transport.test.ts:
+(pass) transport extracts global options without removing option-like data or escaped positional values [0.15ms]
+(pass) command client rejects malformed or incomplete success envelopes
+
+tests/task-service.test.ts:
+(pass) assignment rejects missing Agent before invoking the injected writer [0.22ms]
+(pass) assignment forwards identity and time through injected ports and propagates persistence failure [0.18ms]
+
+tests/agent-service.test.ts:
+(pass) invalid Agent inputs never reach the injected persistence port
+(pass) Agent registration propagates injected persistence failures [0.18ms]
+
+tests/task-dispatch.test.ts:
+(pass) idempotent assigned creation rolls back both snapshots and never reassigns advanced Task [7.45ms]
+
+tests/cli-client.test.ts:
+(pass) normal CLI uses daemon for Agent Task Room and Event without opening client-selected DB [563.26ms]
+(pass) normal CLI with unavailable daemon fails without creating DB and direct mode remains explicit [64.25ms]
+(pass) different database filenames in the same directory never silently share a daemon [180.83ms]
+
+tests/quality-lint.test.ts:
+(pass) lint rejects unsafe generated code and infrastructure imports in domain code [117.54ms]
+(pass) lint accepts a pure function with explicit typed inputs [125.84ms]
+
+tests/cli.test.ts:
+(pass) empty registry reports no agents and returns an empty JSON array [52.79ms]
+(pass) agents survive separate CLI processes with stable identity and name ordering [108.48ms]
+(pass) duplicate registration fails without replacing the existing agent [219.00ms]
+(pass) text output includes id name role and runtime [85.55ms]
+(pass) empty or whitespace-only identity fields cannot register an agent [337.62ms]
+(pass) missing database parent directories are created [59.86ms]
+(pass) storage errors return failure on stderr without a stack trace [54.29ms]
+(pass) unicode and quote characters are saved as values rather than SQL [121.76ms]
+(pass) default database is persisted only under the isolated HOME [58.37ms]
+(pass) invalid arguments fail before creating a database and help succeeds [260.61ms]
+(pass) an explicitly empty database path cannot silently register an ephemeral agent [52.09ms]
+(pass) a corrupted database is reported as storage failure rather than an empty registry [31.57ms]
+
+tests/daemon-parser.test.ts:
+(pass) socket flags cannot silently target a different database in once mode [0.30ms]
+
+tests/quality-types.test.ts:
+(pass) native type checker rejects a bad assignment and accepts a strictly typed module [200.73ms]
+
+tests/room-sqlite.test.ts:
+(pass) SQLite preserves immutable Messages and rejects insertion failure without affecting history [5.70ms]
+
+ 86 pass
+ 0 fail
+Ran 86 tests across 36 files. [9.18s]
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using <REPO>/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 462,
+  "cached": 462,
+  "requests": 0,
+  "tokens": 0,
+  "usd": 0,
+  "retry": 1,
+  "batches": [],
+  "byRule": [
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 2,
+    "files": [
+      "src/daemon/client.ts"
+    ]
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ]
+}

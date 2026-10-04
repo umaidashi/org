@@ -1,0 +1,46 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-server.test.ts:
+(pass) continuous daemon polls new Events, serves local clients and releases socket across restart [731.70ms]
+killed 1 dangling process
+90 |     assert.equal(result.status, 1, result.stderr);
+91 |     assert.equal(readFileSync(socket, 'utf8'), 'keep');
+92 |     unlinkSync(socket);
+93 |     symlinkSync(join(home, 'missing-target'), socket);
+94 |     const symlink = spawnSync(process.execPath, ['--no-env-file', cli, '--db', db, 'daemon', '--socket', socket], {encoding: 'utf8', timeout: 5000});
+95 |     assert.equal(symlink.status, 1, symlink.stderr);
+                ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 1
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/daemon-server.test.ts:95:12)
+(fail) daemon refuses to replace an existing file and client failure creates no database [5008.54ms]
+  ^ this test timed out after 5000ms.
+{"state":"ready","socket":"/tmp/org-server-cleanup-EZbpK5/org.sock"}
+111 |     assert.equal(response.status, 200);
+112 |     await response.json();
+113 |     const error = await done;
+114 |     assert.ok(error instanceof Error);
+115 |     assert.match(error.message, /close failure/);
+116 |     assert.equal(existsSync(socket), false);
+                 ^
+AssertionError: Expected values to be strictly equal:
+
+true !== false
+
+ generatedMessage: true,
+     actual: true,
+   expected: false,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/daemon-server.test.ts:116:12
+      at processTicksAndRejections (native:7:39)
+(fail) adapter close failure still releases owned socket, lock and process umask [5.42ms]
+
+ 1 pass
+ 2 fail
+Ran 3 tests across 1 file. [5.86s]

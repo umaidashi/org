@@ -1,0 +1,70 @@
+✔ work item and internal execution task persist separately with parent and assignment history (827.656458ms)
+✔ invalid transitions and references leave persistent task and history unchanged (761.553875ms)
+✔ dependencies and cycles are enforced across independent CLI processes (523.172125ms)
+✔ task comments and output artifacts can be written and retrieved via separate CLI processes (232.430791ms)
+✔ task parser rejects malformed options before touching storage (490.13925ms)
+✔ failed tasks retain their original history and reject subsequent state changes (261.802833ms)
+✖ mistaken dependencies and parent links can be removed to unblock a task (384.052375ms)
+✔ pure task decisions preserve identity and reject illegal state changes (2.159625ms)
+✔ task state and immutable history rollback together on storage failure (12.380334ms)
+✔ comments and artifact references persist without rewriting existing task history (6.542625ms)
+✔ comment and artifact originals cannot be modified and artifact linking rolls back with history (7.2255ms)
+✔ task domain rejects invalid values and snapshots do not alias input arrays (0.466041ms)
+✖ converging dependency graphs do not repeatedly load the same completed subtree (2117.380209ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 11
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3606.7425
+
+✖ failing tests:
+
+test at dist/tests/task-cli.test.js:163:7
+✖ mistaken dependencies and parent links can be removed to unblock a task (384.052375ms)
+  AssertionError [ERR_ASSERTION]: Error: Unknown option '--clear-dependencies'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--clear-dependencies"
+  Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+         org [--db PATH] agent list [--json]
+         org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+         org [--db PATH] task list|get|assign|update|history [OPTIONS]
+  
+  Register and list persistent Agent identities. Runtime processes are not started.
+  Default DB: ~/.local/share/org/org.db
+  
+  
+  2 !== 0
+  
+      at json (file://<REPO>/dist/tests/task-cli.test.js:25:12)
+      at TestContext.<anonymous> (file://<REPO>/dist/tests/task-cli.test.js:173:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+      at async file://<REPO>/dist/tests/task-cli.test.js:163:1 {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at dist/tests/task-sqlite.test.js:134:7
+✖ converging dependency graphs do not repeatedly load the same completed subtree (2117.380209ms)
+  AssertionError [ERR_ASSERTION]: Expected graph-sized work, observed 131072 DB loads
+      at TestContext.<anonymous> (file://<REPO>/dist/tests/task-sqlite.test.js:148:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at run (node:internal/test_runner/harness:398:12)
+      at test (node:internal/test_runner/harness:407:12)
+      at file://<REPO>/dist/tests/task-sqlite.test.js:134:7 {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

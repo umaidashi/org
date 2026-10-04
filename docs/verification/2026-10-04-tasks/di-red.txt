@@ -1,0 +1,7 @@
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+tests/agent-service.test.ts(7,37): error TS2741: Property 'list' is missing in type '{ insert: () => void; }' but required in type 'AgentRepository'.
+tests/agent-service.test.ts(11,37): error TS2741: Property 'list' is missing in type '{ insert: () => never; }' but required in type 'AgentRepository'.
+tests/task-service.test.ts(11,34): error TS2740: Type '{ update: () => Task; }' is missing the following properties from type 'TaskProvider': create, get, list, history, and 4 more.
+tests/task-service.test.ts(23,27): error TS2740: Type '{ update: (id: string, patch: { owner?: string; }, timestamp: string) => Task; }' is missing the following properties from type 'TaskProvider': create, get, list, history, and 4 more.
+tests/task-service.test.ts(24,34): error TS2740: Type '{ update: () => never; }' is missing the following properties from type 'TaskProvider': create, get, list, history, and 4 more.
+error: script "typecheck" exited with code 1

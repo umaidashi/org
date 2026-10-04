@@ -1,0 +1,203 @@
+
+> org-kernel@0.1.0 check
+> npm run check:static && npm test && npm run review:plan
+
+
+> org-kernel@0.1.0 check:static
+> npm run typecheck && npm run lint && npm run format:check && npm run lint:ast
+
+
+> org-kernel@0.1.0 typecheck
+> tsc --noEmit
+
+
+> org-kernel@0.1.0 lint
+> eslint src tests scripts eslint.config.mjs --max-warnings 0
+
+
+> org-kernel@0.1.0 format:check
+> prettier --check "src/**/*.ts" "tests/**/*.ts" "scripts/**/*.ts" "*.{json,mjs,yml}" "quality/**/*.yml" ".jev-lint/**/*.{yml,yaml}"
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> org-kernel@0.1.0 lint:ast
+> ast-grep scan src --report-style short --color never
+
+
+> org-kernel@0.1.0 test
+> npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/*.test.js
+
+
+> org-kernel@0.1.0 build
+> npm run clean && tsc && node --input-type=module -e "import { chmodSync } from 'node:fs'; chmodSync('dist/src/cli.js', 0o755);"
+
+
+> org-kernel@0.1.0 clean
+> node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
+
+✔ agent construction preserves values and uses the supplied identity and timestamp (1.14425ms)
+✔ agent construction rejects each missing textual value (0.282625ms)
+✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (10.327375ms)
+✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (0.561541ms)
+✔ empty registry reports no agents and returns an empty JSON array (91.421375ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (185.937042ms)
+✔ duplicate registration fails without replacing the existing agent (231.313417ms)
+✔ text output includes id name role and runtime (174.937375ms)
+✔ empty or whitespace-only identity fields cannot register an agent (580.338459ms)
+✔ missing database parent directories are created (90.656375ms)
+✔ storage errors return failure on stderr without a stack trace (85.194709ms)
+✔ unicode and quote characters are saved as values rather than SQL (183.431083ms)
+✔ default database is persisted only under the isolated HOME (110.292583ms)
+✔ invalid arguments fail before creating a database and help succeeds (436.906625ms)
+✔ an explicitly empty database path cannot silently register an ephemeral agent (80.582625ms)
+✔ a corrupted database is reported as storage failure rather than an empty registry (41.016833ms)
+✔ pre-commit reads staged contents even when the worktree contains a passing replacement (80.133667ms)
+✔ pre-push reads the selected commit rather than staged or working changes (108.739958ms)
+✔ pre-push parses all actual local commits and skips remote deletions (0.697542ms)
+✔ snapshot refuses invalid object ids without running a check (17.086375ms)
+✔ the actual pre-commit gate blocks bad staged code without modifying the worktree (582.324833ms)
+✔ every architecture rule fixture runs and detects its planted violations (12.074042ms)
+✔ lint rejects unsafe generated code and infrastructure imports in domain code (1108.43575ms)
+✔ lint accepts a pure function with explicit typed inputs (988.788375ms)
+✔ semantic review accepts complete warning-only results (0.495583ms)
+✔ semantic review rejects incomplete results even when warnings exist (0.181833ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2387.925666
+
+> org-kernel@0.1.0 review:plan
+> jev-lint check src tests scripts --dry-run --json
+
+using <REPO>/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 75,
+  "cached": 69,
+  "requests": 5,
+  "tokens": 8784,
+  "usd": 0.00036892800000000003,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1012,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1924,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-result.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1736,
+      "degraded": null
+    },
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1739,
+      "degraded": null
+    },
+    {
+      "file": "tests/semantic-review.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2373,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 2,
+      "requests": 2,
+      "tokens": 3475,
+      "usd": 0.00014595,
+      "share": 0.3956056466302368
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 2,
+      "requests": 1,
+      "tokens": 2373,
+      "usd": 0.000099666,
+      "share": 0.2701502732240437
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 1,
+      "requests": 1,
+      "tokens": 1924,
+      "usd": 0.000080808,
+      "share": 0.21903460837887068
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 1,
+      "requests": 1,
+      "tokens": 1012,
+      "usd": 0.000042504000000000005,
+      "share": 0.11520947176684881
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ]
+}

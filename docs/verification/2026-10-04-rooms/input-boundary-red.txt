@@ -1,0 +1,24 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-cli.test.ts:
+16 |       ['room', 'create', 'x', '--type', 'task', '--human', 'founder'],
+17 |       ['room', 'create', 'x', '--type', 'direct', '--human', ' ', '--agent', 'chief'],
+18 |       ['room', 'create', 'x', '--type', 'direct', '--human', 'founder', '--human', 'founder', '--agent', 'chief'],
+19 |     ]) {
+20 |       const result = spawnSync(process.execPath, ['--no-env-file', cli, '--db', db, ...args], {encoding: 'utf8', timeout: 10_000});
+21 |       assert.equal(result.status, 2, result.stderr);
+                  ^
+AssertionError: Error: Direct Room requires one human and one Agent
+
+
+1 !== 2
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/room-cli.test.ts:21:14)
+(fail) malformed Room creation is rejected before creating a database or directory [187.12ms]
+(pass) multiple rooms with the same Agent keep separate persistent replies and archived histories [1086.18ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [1432.00ms]

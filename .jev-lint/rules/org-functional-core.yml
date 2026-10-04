@@ -1,0 +1,12 @@
+id: org-functional-core
+languages: [TypeScript]
+subject: enclosing
+state: located
+context:
+  - ../../docs/coding-guidelines.md
+rule:
+  kind: function_declaration
+ask: This function mixes domain decisions with hidden time, randomness, persistence or external effects contrary to the coding guidelines.
+note: Composition roots and adapters may perform effects. Application services may invoke explicit Ports. Domain decisions must use values supplied by the caller. Judge the function at its actual module boundary.
+threshold: 2.5
+severity: warning

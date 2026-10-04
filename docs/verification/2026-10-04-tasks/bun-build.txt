@@ -1,0 +1,7 @@
+$ bun --no-env-file run clean && bun --no-env-file build src/cli.ts --target bun --outdir dist && bun --no-env-file -e "import {chmodSync} from 'node:fs';chmodSync('dist/cli.js',0o755);"
+$ bun --no-env-file -e "import {rmSync} from 'node:fs';rmSync('dist',{recursive:true,force:true});"
+Bundled 8 modules in 5ms
+
+  cli.js  25.77 KB  (entry point)
+
+[]

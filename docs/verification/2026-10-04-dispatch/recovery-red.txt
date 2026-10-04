@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-service.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module '../src/daemon/domain.js' from '<REPO>/tests/daemon-service.test.ts'
+-------------------------------
+
+
+tests/daemon-recovery.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module '../src/daemon/sqlite.js' from '<REPO>/tests/daemon-recovery.test.ts'
+-------------------------------
+
+
+ 0 pass
+ 2 fail
+ 2 errors
+Ran 2 tests across 2 files. [87.00ms]

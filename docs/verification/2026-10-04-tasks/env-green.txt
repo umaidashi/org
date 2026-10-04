@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-env.test.ts:
+(pass) project Bun configuration prevents dotenv autoload while explicit loading remains possible [44.08ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [62.00ms]

@@ -1,0 +1,42 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/event-cli.test.ts:
+11 |   const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
+12 |   const db = join(home, 'org.db');
+13 |   const run = (args: string[]) => spawnSync(process.execPath, ['--no-env-file', cli, '--db', db, ...args], {encoding: 'utf8', timeout: 10_000});
+14 |   const json = (args: string[]): Record<string, unknown> => {
+15 |     const result = run([...args, '--json']);
+16 |     assert.equal(result.status, 0, result.stderr);
+                ^
+AssertionError: Error: Unknown option '--source'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--source"
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages [OPTIONS]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at json (<REPO>/tests/event-cli.test.ts:16:12)
+      at <anonymous> (<REPO>/tests/event-cli.test.ts:22:19)
+(fail) events persist without recipients and subscriptions match independently across CLI processes [273.60ms]
+(pass) malformed event inputs return usage error before creating a database [267.00ms]
+
+tests/event-domain.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module '../src/events/domain.js' from '<REPO>/tests/event-domain.test.ts'
+-------------------------------
+
+
+ 1 pass
+ 2 fail
+ 1 error
+Ran 3 tests across 2 files. [844.00ms]

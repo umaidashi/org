@@ -1,0 +1,18 @@
+id: domain-ambient-state
+language: TypeScript
+severity: error
+message: Supply time, identity and effects as arguments; keep domain decisions pure.
+files:
+  - src/**/domain.ts
+rule:
+  any:
+    - pattern: Date.now()
+    - pattern: new Date($$$ARGS)
+    - pattern: Math.random()
+    - pattern: fetch($$$ARGS)
+    - pattern: console.$METHOD($$$ARGS)
+    - pattern: process.$MEMBER
+    - pattern: require($$$ARGS)
+    - pattern: import($$$ARGS)
+    - pattern: setTimeout($$$ARGS)
+    - pattern: setInterval($$$ARGS)

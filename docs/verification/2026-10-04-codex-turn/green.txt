@@ -1,0 +1,11 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/codex-turn.test.ts:
+(pass) Codex command injects role and instructions via stdin and resumes only the requested session [2.20ms]
+(pass) Codex response requires a completed turn and rejects protocol failures or inconsistent sessions [0.26ms]
+(pass) Codex turn runner uses the injected process boundary and never accepts failed process output [0.67ms]
+(pass) Codex resumed response cannot succeed without a completed assistant reply [0.04ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 1 file. [21.00ms]

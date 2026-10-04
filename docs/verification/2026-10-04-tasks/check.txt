@@ -1,0 +1,219 @@
+
+> org-kernel@0.1.0 check
+> npm run check:static && npm test && npm run review:plan
+
+
+> org-kernel@0.1.0 check:static
+> npm run typecheck && npm run lint && npm run format:check && npm run lint:ast
+
+
+> org-kernel@0.1.0 typecheck
+> tsc --noEmit
+
+
+> org-kernel@0.1.0 lint
+> eslint src tests scripts eslint.config.mjs --max-warnings 0
+
+
+> org-kernel@0.1.0 format:check
+> prettier --check "src/**/*.ts" "tests/**/*.ts" "scripts/**/*.ts" "*.{json,mjs,yml}" "quality/**/*.yml" ".jev-lint/**/*.{yml,yaml}"
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> org-kernel@0.1.0 lint:ast
+> ast-grep scan src --report-style short --color never
+
+
+> org-kernel@0.1.0 test
+> npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/*.test.js
+
+
+> org-kernel@0.1.0 build
+> npm run clean && tsc && node --input-type=module -e "import { chmodSync } from 'node:fs'; chmodSync('dist/src/cli.js', 0o755);"
+
+
+> org-kernel@0.1.0 clean
+> node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
+
+✔ agent construction preserves values and uses the supplied identity and timestamp (1.048917ms)
+✔ agent construction rejects each missing textual value (0.384792ms)
+✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (5.457375ms)
+✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (1.553542ms)
+✔ empty registry reports no agents and returns an empty JSON array (272.436166ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (217.722167ms)
+✔ duplicate registration fails without replacing the existing agent (241.094917ms)
+✔ text output includes id name role and runtime (167.405833ms)
+✔ empty or whitespace-only identity fields cannot register an agent (681.087416ms)
+✔ missing database parent directories are created (122.813166ms)
+✔ storage errors return failure on stderr without a stack trace (166.154208ms)
+✔ unicode and quote characters are saved as values rather than SQL (226.476791ms)
+✔ default database is persisted only under the isolated HOME (136.297834ms)
+✔ invalid arguments fail before creating a database and help succeeds (811.400375ms)
+✔ an explicitly empty database path cannot silently register an ephemeral agent (125.756625ms)
+✔ a corrupted database is reported as storage failure rather than an empty registry (55.003583ms)
+✔ pre-commit reads staged contents even when the worktree contains a passing replacement (111.76ms)
+✔ pre-push reads the selected commit rather than staged or working changes (143.589334ms)
+✔ pre-push parses all actual local commits and skips remote deletions (0.677084ms)
+✔ snapshot refuses invalid object ids without running a check (17.990625ms)
+✔ the actual pre-commit gate blocks bad staged code without modifying the worktree (610.115375ms)
+✔ every architecture rule fixture runs and detects its planted violations (17.209625ms)
+✔ lint rejects unsafe generated code and infrastructure imports in domain code (1669.245333ms)
+✔ lint accepts a pure function with explicit typed inputs (1510.99125ms)
+✔ semantic review accepts complete warning-only results (0.478416ms)
+✔ semantic review rejects incomplete results even when warnings exist (1.1415ms)
+invalid JSON
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":1},"errors":["network failure"],"degraded":[]}
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":0},"errors":[],"degraded":[]}
+✔ semantic process runner rejects exit failures and incomplete or malformed output (194.968834ms)
+✔ work item and internal execution task persist separately with parent and assignment history (738.790459ms)
+✔ invalid transitions and references leave persistent task and history unchanged (866.621917ms)
+✔ dependencies and cycles are enforced across independent CLI processes (801.83775ms)
+✔ task comments and output artifacts can be written and retrieved via separate CLI processes (511.371ms)
+✔ task parser rejects malformed options before touching storage (551.493833ms)
+✔ failed tasks retain their original history and reject subsequent state changes (250.191917ms)
+✔ assignment uses the public Agent port and rejects missing identities without task changes (1.76625ms)
+✔ pure task decisions preserve identity and reject illegal state changes (1.164667ms)
+✔ task state and immutable history rollback together on storage failure (11.506208ms)
+✔ comments and artifact references persist without rewriting existing task history (10.071125ms)
+✔ comment and artifact originals cannot be modified and artifact linking rolls back with history (10.139667ms)
+✔ task domain rejects invalid values and snapshots do not alias input arrays (0.645458ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3969.171083
+
+> org-kernel@0.1.0 review:plan
+> jev-lint check src tests scripts --dry-run --json
+
+using <REPO>/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 155,
+  "cached": 146,
+  "requests": 5,
+  "tokens": 14795,
+  "usd": 0.0006213900000000001,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "scripts/semantic-review.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2115,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "paired",
+      "tokens": 6654,
+      "degraded": null
+    },
+    {
+      "file": "tests/semantic-runner.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1572,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-cli.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2810,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-sqlite.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1644,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 5,
+      "requests": 2,
+      "tokens": 8769,
+      "usd": 0.00036829800000000003,
+      "share": 0.5927002365664076
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 4,
+      "requests": 3,
+      "tokens": 6026,
+      "usd": 0.000253092,
+      "share": 0.4072997634335924
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ]
+}

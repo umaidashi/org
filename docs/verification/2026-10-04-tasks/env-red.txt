@@ -1,0 +1,24 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-env.test.ts:
+13 |     if (existsSync(join(root, 'bunfig.toml'))) copyFileSync(join(root, 'bunfig.toml'), join(fixture, 'bunfig.toml'));
+14 |     writeFileSync(join(fixture, '.env'), 'ORG_ENV_ISOLATION_PROBE=sentinel-value\n');
+15 |     const code = 'process.stdout.write(process.env.ORG_ENV_ISOLATION_PROBE ?? "absent")';
+16 |     const result = spawnSync(process.execPath, ['-e', code], { cwd: fixture, encoding: 'utf8' });
+17 |     assert.equal(result.status, 0, result.stderr);
+18 |     assert.equal(result.stdout, 'absent');
+                ^
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ 'sentinel-value'
+- 'absent'
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/runtime-env.test.ts:18:12)
+(fail) project Bun configuration prevents dotenv autoload while explicit loading remains possible [32.06ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [56.00ms]

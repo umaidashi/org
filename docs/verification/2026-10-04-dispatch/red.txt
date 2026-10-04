@@ -1,0 +1,50 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-cli.test.ts:
+15 |     const agent = agents[0]?.id;
+16 |     assert.ok(agent);
+17 |     assert.equal(run(['event', 'publish', 'manual.requested', '--source', 'manual', '--payload', '{"objective":"investigate"}']).status, 0);
+18 |     assert.equal(run(['event', 'subscribe', 'manual.*', '--subscriber-type', 'agent', '--subscriber', agent]).status, 0);
+19 |     let result = run(['daemon', '--once', '--json']);
+20 |     assert.equal(result.status, 0, result.stderr);
+                ^
+AssertionError: Error: Unknown option '--once'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--once"
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages [OPTIONS]
+       org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/daemon-cli.test.ts:20:12)
+(fail) daemon once creates assigned ExecutionTask and restart does not duplicate or reassign it [314.17ms]
+
+tests/task-dispatch.test.ts:
+14 |     const path = join(dir, 'org.db');
+15 |     provider = new SqliteTaskProvider(path);
+16 |     db = new Database(path);
+17 |     const input = createTask({title: 'event', objective: 'process', kind: 'execution_task'}, {id: 'delivery', createdAt: 'now'});
+18 |     db.exec("CREATE TRIGGER fail_assignment BEFORE INSERT ON task_history WHEN NEW.version=1 BEGIN SELECT RAISE(ABORT, 'assignment failure'); END");
+19 |     assert.throws(() => provider?.createAssignedOnce(input, 'dev', 'now'), /assignment failure/);
+                ^
+AssertionError: The input did not match the regular expression /assignment failure/. Input:
+
+`TypeError: provider?.createAssignedOnce is not a function. (In 'provider?.createAssignedOnce(input, "dev", "now")', 'provider?.createAssignedOnce' is undefined)`
+
+      at expectedException (node:assert:374:55)
+      at expectsError (node:assert:435:20)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/task-dispatch.test.ts:19:12)
+(fail) idempotent assigned creation rolls back both snapshots and never reassigns advanced Task [17.40ms]
+
+ 0 pass
+ 2 fail
+Ran 2 tests across 2 files. [772.00ms]

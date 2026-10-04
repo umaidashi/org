@@ -1,0 +1,35 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/local-hooks.test.ts:
+(pass) pre-commit reads staged contents even when the worktree contains a passing replacement [96.93ms]
+(pass) pre-push reads the selected commit rather than staged or working changes [119.31ms]
+(pass) pre-push parses all actual local commits and skips remote deletions [1.37ms]
+(pass) snapshot refuses invalid object ids without running a check [18.74ms]
+(pass) the actual pre-commit gate blocks bad staged code without modifying the worktree [310.82ms]
+(pass) documentation-only bootstrap trees skip runtime gates but source trees require a manifest [1.89ms]
+176 |     const result = spawnSync(process.execPath, ['--no-env-file', join(project, 'node_modules', 'lefthook', 'bin', 'index.js'), 'run', 'pre-push'], {
+177 |       cwd: root, encoding: 'utf8', timeout: 20_000,
+178 |       input: `refs/heads/main ${revision} refs/heads/main ${'0'.repeat(40)}\n`,
+179 |     });
+180 |     assert.equal(result.status, 0, result.stdout + result.stderr);
+181 |     assert.match(result.stdout + result.stderr, new RegExp(`Verifying committed tree ${revision}`));
+                 ^
+AssertionError: The input did not match the regular expression /Verifying committed tree 56ffd3507762830ae6da734a6276c9d8c679d7b3/. Input:
+
+'\x1B[38;2;56;56;56m╭─────────────────────────────────────╮\x1B[m\n' +
+  '\x1B[38;2;56;56;56m│\x1B[m lefthook  v2.1.16   hook:  \x1B[1mpre-push\x1B[m \x1B[38;2;56;56;56m│\x1B[m\n' +
+  '\x1B[38;2;56;56;56m╰─────────────────────────────────────╯\x1B[m\n' +
+  'sync hooks: ✔️(pre-commit, pre-push)\n' +
+  '│  committed-tests-and-semantic-review (skip) no files for inspection\n' +
+  '\x1B[38;2;56;56;56m  ────────────────────────────────────\x1B[m\n' +
+  'summary: (done in 0.01 seconds)\n' +
+  ''
+
+      at internalMatch (node:assert:546:55)
+      at match (node:assert:550:16)
+      at <anonymous> (<REPO>/tests/local-hooks.test.ts:181:12)
+(fail) configured pre-push job executes even when the pushed revision contains documentation only [614.39ms]
+
+ 6 pass
+ 1 fail
+Ran 7 tests across 1 file. [1330.00ms]

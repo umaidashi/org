@@ -1,0 +1,10 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/cli-client.test.ts:
+(pass) normal CLI uses daemon for Agent Task Room and Event without opening client-selected DB [772.65ms]
+(pass) normal CLI with unavailable daemon fails without creating DB and direct mode remains explicit [66.52ms]
+(pass) different database filenames in the same directory never silently share a daemon [184.10ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 1 file. [1049.00ms]

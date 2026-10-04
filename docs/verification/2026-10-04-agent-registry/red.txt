@@ -1,0 +1,195 @@
+test_creates_missing_parent_directories (test_agent_cli.AgentCliTests.test_creates_missing_parent_directories) ... FAIL
+test_default_database_is_under_isolated_home (test_agent_cli.AgentCliTests.test_default_database_is_under_isolated_home) ... FAIL
+test_duplicate_preserves_existing_agent (test_agent_cli.AgentCliTests.test_duplicate_preserves_existing_agent) ... FAIL
+test_empty_list (test_agent_cli.AgentCliTests.test_empty_list) ... FAIL
+test_persistent_agents (test_agent_cli.AgentCliTests.test_persistent_agents) ... FAIL
+test_preserves_unicode_and_quotes (test_agent_cli.AgentCliTests.test_preserves_unicode_and_quotes) ... FAIL
+test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) ... 
+  test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='name', value='') ... FAIL
+  test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='name', value='   ') ... FAIL
+  test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='role', value='') ... FAIL
+  test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='role', value='   ') ... FAIL
+  test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='runtime', value='') ... FAIL
+  test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='runtime', value='   ') ... FAIL
+test_reports_storage_failure_without_traceback (test_agent_cli.AgentCliTests.test_reports_storage_failure_without_traceback) ... FAIL
+test_text_list_contains_registered_fields (test_agent_cli.AgentCliTests.test_text_list_contains_registered_fields) ... FAIL
+
+======================================================================
+FAIL: test_creates_missing_parent_directories (test_agent_cli.AgentCliTests.test_creates_missing_parent_directories)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 99, in test_creates_missing_parent_directories
+    self.assert_success(self.create())
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 43, in assert_success
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : /opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel
+
+
+======================================================================
+FAIL: test_default_database_is_under_isolated_home (test_agent_cli.AgentCliTests.test_default_database_is_under_isolated_home)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 119, in test_default_database_is_under_isolated_home
+    self.assert_success(self.create(default_db=True))
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 43, in assert_success
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : /opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel
+
+
+======================================================================
+FAIL: test_duplicate_preserves_existing_agent (test_agent_cli.AgentCliTests.test_duplicate_preserves_existing_agent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 72, in test_duplicate_preserves_existing_agent
+    self.assert_success(self.create())
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 43, in assert_success
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : /opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel
+
+
+======================================================================
+FAIL: test_empty_list (test_agent_cli.AgentCliTests.test_empty_list)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 53, in test_empty_list
+    self.assertEqual(self.rows(), [])
+                     ~~~~~~~~~^^
+  File "<REPO>/tests/test_agent_cli.py", line 38, in rows
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : /opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel
+
+
+======================================================================
+FAIL: test_persistent_agents (test_agent_cli.AgentCliTests.test_persistent_agents)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 60, in test_persistent_agents
+    self.assert_success(self.create(name, role))
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 43, in assert_success
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : /opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel
+
+
+======================================================================
+FAIL: test_preserves_unicode_and_quotes (test_agent_cli.AgentCliTests.test_preserves_unicode_and_quotes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 112, in test_preserves_unicode_and_quotes
+    self.assert_success(self.create(name, "調査", "claude-code"))
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 43, in assert_success
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : /opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel
+
+
+======================================================================
+FAIL: test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='name', value='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 93, in test_rejects_empty_fields_without_registering
+    self.assert_error(result)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 49, in assert_error
+    self.assertIn("Error:", result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Error:' not found in '/opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel\n'
+
+======================================================================
+FAIL: test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='name', value='   ')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 93, in test_rejects_empty_fields_without_registering
+    self.assert_error(result)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 49, in assert_error
+    self.assertIn("Error:", result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Error:' not found in '/opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel\n'
+
+======================================================================
+FAIL: test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='role', value='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 93, in test_rejects_empty_fields_without_registering
+    self.assert_error(result)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 49, in assert_error
+    self.assertIn("Error:", result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Error:' not found in '/opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel\n'
+
+======================================================================
+FAIL: test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='role', value='   ')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 93, in test_rejects_empty_fields_without_registering
+    self.assert_error(result)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 49, in assert_error
+    self.assertIn("Error:", result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Error:' not found in '/opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel\n'
+
+======================================================================
+FAIL: test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='runtime', value='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 93, in test_rejects_empty_fields_without_registering
+    self.assert_error(result)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 49, in assert_error
+    self.assertIn("Error:", result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Error:' not found in '/opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel\n'
+
+======================================================================
+FAIL: test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) (field='runtime', value='   ')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 93, in test_rejects_empty_fields_without_registering
+    self.assert_error(result)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 49, in assert_error
+    self.assertIn("Error:", result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Error:' not found in '/opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel\n'
+
+======================================================================
+FAIL: test_reports_storage_failure_without_traceback (test_agent_cli.AgentCliTests.test_reports_storage_failure_without_traceback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 107, in test_reports_storage_failure_without_traceback
+    self.assert_error(self.create())
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 49, in assert_error
+    self.assertIn("Error:", result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Error:' not found in '/opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel\n'
+
+======================================================================
+FAIL: test_text_list_contains_registered_fields (test_agent_cli.AgentCliTests.test_text_list_contains_registered_fields)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/tests/test_agent_cli.py", line 81, in test_text_list_contains_registered_fields
+    self.assert_success(self.create())
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<REPO>/tests/test_agent_cli.py", line 43, in assert_success
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : /opt/homebrew/opt/python@3.14/bin/python3.14: No module named org_kernel
+
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.489s
+
+FAILED (failures=14)

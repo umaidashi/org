@@ -1,0 +1,23 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/codex-turn.test.ts:
+(pass) Codex command injects role and instructions via stdin and resumes only the requested session [2.12ms]
+(pass) Codex response requires a completed turn and rejects protocol failures or inconsistent sessions [1.42ms]
+(pass) Codex turn runner uses the injected process boundary and never accepts failed process output [0.61ms]
+79 |     ),
+80 |   );
+81 | });
+82 | 
+83 | test('Codex resumed response cannot succeed without a completed assistant reply', () => {
+84 |   assert.throws(() => parseCodexTurn('{"type":"turn.completed"}', 'thread-1'));
+              ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/codex-turn.test.ts:84:10)
+(fail) Codex resumed response cannot succeed without a completed assistant reply [1.17ms]
+
+ 3 pass
+ 1 fail
+Ran 4 tests across 1 file. [149.00ms]

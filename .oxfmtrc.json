@@ -1,0 +1,14 @@
+{
+  "singleQuote": true,
+  "printWidth": 100,
+  "trailingComma": "all",
+  "ignorePatterns": [
+    "node_modules/**",
+    "dist/**",
+    "docs/**",
+    "coverage/**",
+    ".venv/**",
+    ".superpowers/**",
+    ".jev-lint/*.json"
+  ]
+}

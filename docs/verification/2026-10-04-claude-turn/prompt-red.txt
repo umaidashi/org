@@ -1,0 +1,25 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/claude-turn.test.ts:
+(pass) Claude command uses explicit system context, stdin, bare mode and the chosen resume session [2.51ms]
+(pass) Claude response rejects failed, missing and inconsistent result envelopes [1.80ms]
+(pass) Claude turn uses process DI and rejects process failure even with a success-looking reply [0.66ms]
+75 |   );
+76 | });
+77 | 
+78 | test('Claude resumed turn refreshes changed role and instruction instead of reusing a system prompt snapshot', () => {
+79 |   const command = claudeCommand({ ...turn, agent: { id: 'agent-1', role: 'Architect' }, instruction: 'Plan migration', sessionId: 'session-1' }, 'claude');
+80 |   assert.equal(command.argv[command.argv.indexOf('--system-prompt-snapshot') + 1], 'off');
+              ^
+AssertionError: Expected values to be strictly equal:
+
+'claude' !== 'off'
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/claude-turn.test.ts:80:10)
+(fail) Claude resumed turn refreshes changed role and instruction instead of reusing a system prompt snapshot [2.52ms]
+
+ 3 pass
+ 1 fail
+Ran 4 tests across 1 file. [122.00ms]

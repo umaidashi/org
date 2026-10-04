@@ -1,0 +1,19 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-recovery.test.ts:
+49 |       const result = work();
+50 |       this.db.exec('COMMIT');
+51 |       return result;
+52 |     } catch (error) {
+53 |       this.db.exec('ROLLBACK');
+54 |       throw error;
+                 ^
+error: Delivery state conflict
+      at transaction (<REPO>/src/daemon/sqlite.ts:54:13)
+      at <anonymous> (<REPO>/tests/daemon-recovery.test.ts:22:30)
+(fail) overlapping Workflow deferrals converge on the same deferred receipt [6.57ms]
+(pass) real Task commit survives receipt failure and retry finishes receipt without duplicate history [18.33ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [135.00ms]

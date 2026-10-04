@@ -1,6 +1,6 @@
 # Agent Registry Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. この小さな一タスクはNative方式を推奨する。実行方式はユーザーのレビューで確定する。
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. この小さな一タスクはNative方式を推奨する。ユーザー承認によりNative方式で実行する。
 
 **Goal:** AgentをSQLiteに登録し、別のCLIプロセスの `org agent list` から一覧を取得できるようにする。
 
@@ -53,7 +53,7 @@
 - `cli.main(argv: list[str] | None = None) -> int`。
 - モジュール起動点とインストール済み `org` は同じ `main` を呼ぶ。
 
-- [ ] **Step 1: e2eを先に書く**
+- [x] **Step 1: e2eを先に書く**
 
 `tests/test_agent_cli.py` では `unittest.TestCase`、`TemporaryDirectory`、`subprocess.run` を使用する。各テストで一時HOMEと一時DBを用意し、srcをPYTHONPATHに指定する。CLI起動helperの中核は次のコード。
 
@@ -99,7 +99,7 @@ def test_persistent_agents(self):
 - 名前の保存：`研究者'"` を登録しJSONからそのまま取得する。
 - 既定パス：`default_db=True` で登録・取得し、一時HOMEの `.local/share/org/org.db` が存在する。
 
-- [ ] **Step 2: 未実装で失敗することを確かめる**
+- [x] **Step 2: 未実装で失敗することを確かめる**
 
 ```sh
 python3 -m unittest discover -s tests -v
@@ -107,7 +107,7 @@ python3 -m unittest discover -s tests -v
 
 期待：CLIがまだ存在しないため失敗する。失敗理由を作業ログに記録する。
 
-- [ ] **Step 3: AgentStoreとCLIを実装する**
+- [x] **Step 3: AgentStoreとCLIを実装する**
 
 `AgentStore` は接続ごとに次のテーブルを作る。接続はcontext managerでcommit/rollbackし、finallyでcloseする。
 
@@ -173,7 +173,7 @@ where = ["src"]
 
 `__main__.py` は `from .cli import main` と `raise SystemExit(main())`。`.gitignore` は `.venv/`、`__pycache__/`、`*.egg-info/`、`build/`、`dist/`、`*.db`、`*.db-shm`、`*.db-wal` を除外する。
 
-- [ ] **Step 4: e2eとインストール済みコマンドを検証する**
+- [x] **Step 4: e2eとインストール済みコマンドを検証する**
 
 ```sh
 python3 -m unittest discover -s tests -v
@@ -184,7 +184,7 @@ python3 -m venv .venv
 
 一時ディレクトリのDBを指定して、インストール済み `.venv/bin/org` から登録→JSON一覧取得も実行する。通常のユーザーDBには触れない。成功したテスト数、コマンド、出力要約を作業ログに残す。インストールがネットワーク制約で失敗した場合は成功と記録せず、原因を解消するか未検証と明示する。
 
-- [ ] **Step 5: 利用方法をREADMEへ記録し差分をレビューする**
+- [x] **Step 5: 利用方法をREADMEへ記録し差分をレビューする**
 
 READMEには次を掲載する。
 
@@ -201,7 +201,7 @@ python3 -m unittest discover -s tests -v
 
 差分を読み、設計の全項目とReview Focusの5項目を確認する。GitにDB・秘密情報・仮想環境が含まれていないことも確認する。
 
-- [ ] **Step 6: 変更と検証結果をGitへ記録する**
+- [x] **Step 6: 変更と検証結果をGitへ記録する**
 
 ```sh
 git add pyproject.toml src tests README.md .gitignore docs/work-log.md docs/superpowers/plans/2026-10-04-agent-registry.md

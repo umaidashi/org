@@ -1,0 +1,26 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-process.test.ts:
+(pass) process runner passes explicit input/environment and captures exit without shell interpretation [19.22ms]
+(pass) process runner terminates timeout and cancellation and refuses oversized output [122.18ms]
+58 | test('process limits reject timer overflow and retain a UTF-8 output prefix within the byte budget', async () => {
+59 |   const base = { argv: [process.execPath, '--no-env-file', '-e', 'process.stdout.write("あ")'], input: '', env: {}, cwd: '/tmp', timeoutMs: 2000, maxOutputBytes: 1 };
+60 |   await assert.rejects(runProcess({ ...base, timeoutMs: 2147483648 }), /timeout/i);
+61 |   for (const code of ['process.stdout.write("あ")', 'process.stdout.write(Buffer.from([255, 255, 255]))']) {
+62 |     const result = await runProcess({ ...base, argv: [process.execPath, '--no-env-file', '-e', code] });
+63 |     assert.ok(Buffer.byteLength(result.stdout) + Buffer.byteLength(result.stderr) <= 1);
+                ^
+AssertionError: false == true
+ generatedMessage: true,
+     actual: false,
+   expected: true,
+   operator: "==",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/runtime-process.test.ts:63:12
+      at processTicksAndRejections (native:7:39)
+(fail) process limits reject timer overflow and retain a UTF-8 output prefix within the byte budget [59.38ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [305.00ms]

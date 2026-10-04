@@ -1,0 +1,42 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/cli-client.test.ts:
+28 |       const timer = setTimeout(() => reject(new Error('Daemon not ready')), 5000);
+29 |       child.stdout.on('data', (chunk: Buffer) => {stdout += chunk.toString(); if(stdout.includes('"ready"')) {clearTimeout(timer); resolve();}});
+30 |       child.once('exit', () => {clearTimeout(timer); reject(new Error(stderr));});
+31 |       child.once('error', error => {clearTimeout(timer); reject(error);});
+32 |     });
+33 |     assert.equal(run(['agent', 'create', 'chief', '--role', 'Chief', '--runtime', 'codex']).status, 0);
+                ^
+AssertionError: Expected values to be strictly equal:
+
+2 !== 0
+
+ generatedMessage: true,
+     actual: 2,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/cli-client.test.ts:33:12
+      at processTicksAndRejections (native:7:39)
+(fail) normal CLI uses daemon for Agent Task Room and Event without opening client-selected DB [135.08ms]
+71 | test('normal CLI with unavailable daemon fails without creating DB and direct mode remains explicit', () => {
+72 |   const home = mkdtempSync('/tmp/org-client-missing-');
+73 |   const db = join(home, 'uncreated', 'org.db');
+74 |   try {
+75 |     const result = spawnSync(process.execPath, ['--no-env-file', cli, '--db', db, 'agent', 'list', '--json'], {encoding: 'utf8', timeout: 10_000});
+76 |     assert.equal(result.status, 1, result.stderr);
+                ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 1
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/cli-client.test.ts:76:12)
+(fail) normal CLI with unavailable daemon fails without creating DB and direct mode remains explicit [143.56ms]
+
+ 0 pass
+ 2 fail
+Ran 2 tests across 1 file. [385.00ms]

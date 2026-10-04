@@ -1,0 +1,4 @@
+ruleDirs:
+  - quality/ast/rules
+testConfigs:
+  - testDir: quality/ast/tests

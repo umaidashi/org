@@ -1,0 +1,53 @@
+
+> org-kernel@0.1.0 test:e2e
+> npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/cli.test.js
+
+
+> org-kernel@0.1.0 build
+> npm run clean && tsc && node --input-type=module -e "import { chmodSync } from 'node:fs'; chmodSync('dist/src/cli.js', 0o755);"
+
+
+> org-kernel@0.1.0 clean
+> node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
+
+✔ empty registry reports no agents and returns an empty JSON array (86.384417ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (157.331458ms)
+✔ duplicate registration fails without replacing the existing agent (159.727084ms)
+✔ text output includes id name role and runtime (115.84875ms)
+✔ empty or whitespace-only identity fields cannot register an agent (484.547625ms)
+✔ missing database parent directories are created (82.406375ms)
+✔ storage errors return failure on stderr without a stack trace (78.952166ms)
+✔ unicode and quote characters are saved as values rather than SQL (167.218959ms)
+✔ default database is persisted only under the isolated HOME (83.266667ms)
+✔ invalid arguments fail before creating a database and help succeeds (380.295291ms)
+✖ an explicitly empty database path cannot silently register an ephemeral agent (41.190667ms)
+✔ a corrupted database is reported as storage failure rather than an empty registry (37.869542ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 11
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1927.287833
+
+✖ failing tests:
+
+test at dist/tests/cli.test.js:132:7
+✖ an explicitly empty database path cannot silently register an ephemeral agent (41.190667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 2
+  
+      at TestContext.<anonymous> (file://<REPO>/dist/tests/cli.test.js:135:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+      at async file://<REPO>/dist/tests/cli.test.js:132:1 {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,33 @@
+✔ pure task decisions preserve identity and reject illegal state changes (0.955334ms)
+✔ task state and immutable history rollback together on storage failure (6.283833ms)
+✔ comments and artifact references persist without rewriting existing task history (4.492541ms)
+✖ comment and artifact originals cannot be modified and artifact linking rolls back with history (4.340042ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 67.126
+
+✖ failing tests:
+
+test at dist/tests/task-sqlite.test.js:82:7
+✖ comment and artifact originals cannot be modified and artifact linking rolls back with history (4.340042ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file://<REPO>/dist/tests/task-sqlite.test.js:90:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at run (node:internal/test_runner/harness:398:12)
+      at test (node:internal/test_runner/harness:407:12)
+      at file://<REPO>/dist/tests/task-sqlite.test.js:82:7 {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /immutable/,
+    operator: 'throws',
+    diff: 'simple'
+  }

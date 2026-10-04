@@ -1,0 +1,5 @@
+
+> org-kernel@0.1.0 typecheck
+> tsc --noEmit
+
+tests/semantic-review.test.ts(3,40): error TS2307: Cannot find module '../scripts/semantic-result.js' or its corresponding type declarations.

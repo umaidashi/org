@@ -1,0 +1,35 @@
+
+> org-kernel@0.1.0 test
+> npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/*.test.js
+
+
+> org-kernel@0.1.0 build
+> npm run clean && tsc && node --input-type=module -e "import { chmodSync } from 'node:fs'; chmodSync('dist/src/cli.js', 0o755);"
+
+
+> org-kernel@0.1.0 clean
+> node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
+
+✔ empty registry reports no agents and returns an empty JSON array (95.453542ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (177.603459ms)
+✔ duplicate registration fails without replacing the existing agent (240.695334ms)
+✔ text output includes id name role and runtime (137.67025ms)
+✔ empty or whitespace-only identity fields cannot register an agent (752.172708ms)
+✔ missing database parent directories are created (101.069334ms)
+✔ storage errors return failure on stderr without a stack trace (99.437459ms)
+✔ unicode and quote characters are saved as values rather than SQL (194.51425ms)
+✔ default database is persisted only under the isolated HOME (123.57775ms)
+✔ invalid arguments fail before creating a database and help succeeds (228.574917ms)
+✔ agent construction preserves values and uses the supplied identity and timestamp (1.137542ms)
+✔ agent construction rejects each missing textual value (0.285292ms)
+✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (10.848375ms)
+✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (0.535792ms)
+✔ every architecture rule fixture runs and detects its planted violations (33.549708ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2210.209875

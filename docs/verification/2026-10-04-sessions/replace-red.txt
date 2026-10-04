@@ -1,0 +1,21 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-sqlite.test.ts:
+38 |     assert.throws(() => raw?.exec("DELETE FROM session_history WHERE id='s'"), /immutable/);
+39 |     assert.throws(
+40 |       () => raw?.exec("UPDATE session_history SET data='{}' WHERE id='s'"),
+41 |       /immutable/,
+42 |     );
+43 |     assert.throws(() => raw?.exec("INSERT OR REPLACE INTO session_history(id,version,data) VALUES('s',0,'{}')"), /immutable/);
+                ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/session-sqlite.test.ts:43:12)
+(fail) Session state and immutable history persist atomically and reject stale writers [14.43ms]
+(pass) Session store refuses a fabricated completion without a running turn [0.50ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [126.00ms]

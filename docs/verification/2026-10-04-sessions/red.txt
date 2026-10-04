@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-domain.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module '../src/sessions/domain.js' from '<REPO>/tests/session-domain.test.ts'
+-------------------------------
+
+
+tests/session-sqlite.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module '../src/sessions/domain.js' from '<REPO>/tests/session-sqlite.test.ts'
+-------------------------------
+
+
+ 0 pass
+ 2 fail
+ 2 errors
+Ran 2 tests across 2 files. [95.00ms]

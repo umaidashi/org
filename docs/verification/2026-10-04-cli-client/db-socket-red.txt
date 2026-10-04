@@ -1,0 +1,29 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/cli-client.test.ts:
+(pass) normal CLI uses daemon for Agent Task Room and Event without opening client-selected DB [715.07ms]
+(pass) normal CLI with unavailable daemon fails without creating DB and direct mode remains explicit [64.98ms]
+199 |       child.once('exit', code => {clearTimeout(timer); reject(new Error(`Daemon exited ${code}`));});
+200 |     });
+201 |     const run = (db: string, args: string[]) => spawnSync(process.execPath, ['--no-env-file', cli, '--db', db, ...args], {encoding: 'utf8', timeout: 10_000});
+202 |     assert.equal(run(first, ['agent', 'create', 'first', '--role', 'Chief', '--runtime', 'codex']).status, 0);
+203 |     const wrong = run(second, ['agent', 'create', 'second', '--role', 'Chief', '--runtime', 'codex']);
+204 |     assert.equal(wrong.status, 1, wrong.stderr);
+                 ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 1
+
+ generatedMessage: true,
+     actual: 0,
+   expected: 1,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/cli-client.test.ts:204:12
+      at processTicksAndRejections (native:7:39)
+(fail) different database filenames in the same directory never silently share a daemon [126.42ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [1007.00ms]

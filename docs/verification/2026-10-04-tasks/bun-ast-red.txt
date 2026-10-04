@@ -1,0 +1,14 @@
+Running 2 tests
+
+----------- Case Details -----------
+[Missing] Expect rule domain-infrastructure-import to report issues, but none found in:
+
+  import { Database } from "bun:sqlite";
+
+PASS domain-ambient-state  ..........
+FAIL domain-infrastructure-import  ......M
+
+Error: test failed. 1 passed; 1 failed;
+Help: You can use ast-grep playground to debug your rules and test cases.
+See also: https://ast-grep.github.io/playground.html
+

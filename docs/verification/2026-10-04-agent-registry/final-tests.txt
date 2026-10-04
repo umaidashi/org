@@ -1,0 +1,14 @@
+test_creates_missing_parent_directories (test_agent_cli.AgentCliTests.test_creates_missing_parent_directories) ... ok
+test_default_database_is_under_isolated_home (test_agent_cli.AgentCliTests.test_default_database_is_under_isolated_home) ... ok
+test_duplicate_preserves_existing_agent (test_agent_cli.AgentCliTests.test_duplicate_preserves_existing_agent) ... ok
+test_empty_list (test_agent_cli.AgentCliTests.test_empty_list) ... ok
+test_persistent_agents (test_agent_cli.AgentCliTests.test_persistent_agents) ... ok
+test_preserves_unicode_and_quotes (test_agent_cli.AgentCliTests.test_preserves_unicode_and_quotes) ... ok
+test_rejects_empty_fields_without_registering (test_agent_cli.AgentCliTests.test_rejects_empty_fields_without_registering) ... ok
+test_reports_storage_failure_without_traceback (test_agent_cli.AgentCliTests.test_reports_storage_failure_without_traceback) ... ok
+test_text_list_contains_registered_fields (test_agent_cli.AgentCliTests.test_text_list_contains_registered_fields) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.582s
+
+OK

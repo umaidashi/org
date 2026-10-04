@@ -1,0 +1,11 @@
+$ org --db <temporary-db> agent create cto --role CTO --runtime codex
+Created agent cto (0a42de15-89ed-4012-a9d0-6c2943c6495e)
+exit: 0
+$ org --db <temporary-db> agent list
+ID	NAME	ROLE	RUNTIME
+0a42de15-89ed-4012-a9d0-6c2943c6495e	cto	CTO	codex
+exit: 0
+$ org --db <temporary-db> agent list --json
+[{"id": "0a42de15-89ed-4012-a9d0-6c2943c6495e", "name": "cto", "role": "CTO", "runtime": "codex", "created_at": "2026-10-04T02:47:32.026154+00:00"}]
+exit: 0
+Installed CLI smoke test: PASS

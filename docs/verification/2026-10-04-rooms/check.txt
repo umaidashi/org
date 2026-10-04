@@ -1,0 +1,264 @@
+$ bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+$ bun --no-env-file node_modules/oxfmt/bin/oxfmt --check src tests scripts package.json tsconfig.json .oxlintrc.json .oxfmtrc.json
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 8ms on 50 files using 8 threads.
+$ ast-grep scan src --report-style short --color never
+bun test v1.3.4 (5eb2145b)
+
+tests/semantic-runner.test.ts:
+invalid JSON
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":1},"errors":["network failure"],"degraded":[]}
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":0},"errors":[],"degraded":[]}
+(pass) semantic process runner rejects exit failures and incomplete or malformed output [131.47ms]
+
+tests/semantic-review.test.ts:
+(pass) semantic review accepts complete warning-only results [0.17ms]
+(pass) semantic review rejects incomplete results even when warnings exist [0.18ms]
+
+tests/task-domain.test.ts:
+(pass) pure task decisions preserve identity and reject illegal state changes [0.32ms]
+(pass) task domain rejects invalid values and snapshots do not alias input arrays [0.48ms]
+(pass) pure graph validation rejects parent cycles, dependency cycles and unfinished prerequisites [0.45ms]
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp [0.14ms]
+(pass) agent construction rejects each missing textual value [0.70ms]
+
+tests/public-content.test.ts:
+(pass) public content gate rejects credential files and secret values without disclosing them [0.39ms]
+
+tests/task-cli.test.ts:
+(pass) work item and internal execution task persist separately with parent and assignment history [548.01ms]
+(pass) invalid transitions and references leave persistent task and history unchanged [639.57ms]
+(pass) dependencies and cycles are enforced across independent CLI processes [532.20ms]
+(pass) task comments and output artifacts can be written and retrieved via separate CLI processes [277.01ms]
+(pass) task parser rejects malformed options before touching storage [479.85ms]
+(pass) failed tasks retain their original history and reject subsequent state changes [340.36ms]
+(pass) mistaken dependencies and parent links can be removed to unblock a task [476.18ms]
+
+tests/public-history.test.ts:
+(pass) public history gate catches a credential removed from the ref tip [277.20ms]
+Reachable public history checked: 1 file versions
+Public content checked: 0 files
+(pass) history-only public review does not read an unstaged deletion from the worktree [140.58ms]
+
+tests/room-domain.test.ts:
+(pass) Room types require their participant composition and default to coordinator [0.67ms]
+(pass) Messages require membership and same-room replies; archive preserves the original Room [0.63ms]
+
+tests/runtime-env.test.ts:
+(pass) project Bun configuration prevents dotenv autoload while explicit loading remains possible [53.83ms]
+
+tests/room-cli.test.ts:
+(pass) malformed Room creation is rejected before creating a database or directory [137.04ms]
+(pass) multiple rooms with the same Agent keep separate persistent replies and archived histories [993.20ms]
+
+tests/task-sqlite.test.ts:
+(pass) task state and immutable history rollback together on storage failure [29.33ms]
+(pass) comments and artifact references persist without rewriting existing task history [9.30ms]
+(pass) comment and artifact originals cannot be modified and artifact linking rolls back with history [11.33ms]
+(pass) converging dependency graphs do not repeatedly load the same completed subtree [5.79ms]
+
+tests/room-service.test.ts:
+(pass) Room registration validates Agent through a small injected Port before saving [0.35ms]
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [5.80ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.49ms]
+
+tests/local-hooks.test.ts:
+(pass) pre-commit reads staged contents even when the worktree contains a passing replacement [66.71ms]
+(pass) pre-push reads the selected commit rather than staged or working changes [171.74ms]
+(pass) pre-push parses all actual local commits and skips remote deletions [1.29ms]
+(pass) snapshot refuses invalid object ids without running a check [25.94ms]
+(pass) the actual pre-commit gate blocks bad staged code without modifying the worktree [324.77ms]
+(pass) documentation-only bootstrap trees skip runtime gates but source trees require a manifest [5.83ms]
+(pass) configured pre-push job executes even when the pushed revision contains documentation only [547.07ms]
+
+tests/quality-ast.test.ts:
+(pass) every architecture rule fixture runs and detects its planted violations [10.55ms]
+
+tests/task-service.test.ts:
+(pass) assignment rejects missing Agent before invoking the injected writer [0.20ms]
+(pass) assignment forwards identity and time through injected ports and propagates persistence failure [0.12ms]
+
+tests/agent-service.test.ts:
+(pass) invalid Agent inputs never reach the injected persistence port [0.08ms]
+(pass) Agent registration propagates injected persistence failures [0.04ms]
+
+tests/quality-lint.test.ts:
+(pass) lint rejects unsafe generated code and infrastructure imports in domain code [179.08ms]
+(pass) lint accepts a pure function with explicit typed inputs [233.44ms]
+
+tests/cli.test.ts:
+(pass) empty registry reports no agents and returns an empty JSON array [75.24ms]
+(pass) agents survive separate CLI processes with stable identity and name ordering [158.93ms]
+(pass) duplicate registration fails without replacing the existing agent [152.37ms]
+(pass) text output includes id name role and runtime [109.02ms]
+(pass) empty or whitespace-only identity fields cannot register an agent [480.48ms]
+(pass) missing database parent directories are created [76.52ms]
+(pass) storage errors return failure on stderr without a stack trace [120.73ms]
+(pass) unicode and quote characters are saved as values rather than SQL [173.94ms]
+(pass) default database is persisted only under the isolated HOME [88.82ms]
+(pass) invalid arguments fail before creating a database and help succeeds [313.22ms]
+(pass) an explicitly empty database path cannot silently register an ephemeral agent [64.99ms]
+(pass) a corrupted database is reported as storage failure rather than an empty registry [32.13ms]
+
+tests/quality-types.test.ts:
+(pass) native type checker rejects a bad assignment and accepts a strictly typed module [347.62ms]
+
+tests/room-sqlite.test.ts:
+(pass) SQLite preserves immutable Messages and rejects insertion failure without affecting history [12.30ms]
+
+ 58 pass
+ 0 fail
+Ran 58 tests across 21 files. [8.96s]
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using <REPO>/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 270,
+  "cached": 260,
+  "requests": 7,
+  "tokens": 20060,
+  "usd": 0.0008425200000000001,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "src/rooms/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2390,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 3353,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2256,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/domain.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2846,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/domain.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3639,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/domain.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 3974,
+      "degraded": null
+    },
+    {
+      "file": "tests/room-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1602,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "org-functional-core",
+      "subjects": 3,
+      "requests": 2,
+      "tokens": 6992,
+      "usd": 0.000293664,
+      "share": 0.3485543369890329
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 3,
+      "requests": 2,
+      "tokens": 6230,
+      "usd": 0.00026166000000000004,
+      "share": 0.31056829511465606
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 3,
+      "requests": 2,
+      "tokens": 5236,
+      "usd": 0.00021991200000000003,
+      "share": 0.26101694915254237
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 1,
+      "requests": 1,
+      "tokens": 1602,
+      "usd": 0.000067284,
+      "share": 0.07986041874376869
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ]
+}
