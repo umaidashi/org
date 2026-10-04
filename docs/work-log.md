@@ -312,3 +312,12 @@
 - 3つのDB-free UTを23msで検証。SQLiteと両Adapter・実Bun fixture subprocessを結線し開始→provider resume→cancel/stop→不変履歴を検証。fixtureは実AIモデルの成功とは扱わない。
 - 全103テスト・tsgo/Oxlint/Oxfmt/AST/jev dry-run成功。[出力](verification/2026-10-04-session-runtime/check.txt)。実jev547対象、missing/unsure 0、errors/degradedなし。[出力](verification/2026-10-04-session-runtime/semantic.txt)。独立Reviewer自身の5件成功、Critical/Important/Minor不具合なし。参照負ケースの追加検証は補強候補。命名warningは参照検証/stop記録とcancel要求の実際の責務を確認しブロッキング不具合なしと判定する。
 - test:unitへSession service、test:e2eへ両Runtime結線を追加。CLI/daemon API、Room履歴/summary/Memoryからの再構築、Task統合・実AI e2e・権限等は未完了で全体目標を継続する。
+
+## LocalAgentRuntimeの実行所有・停止待機
+
+- Session serviceから、start/send/resume/stop/recover/shutdownのLocalAgentRuntime managerへ接続。[計画](superpowers/plans/2026-10-04-runtime-manager.md)。SessionStore/Agent/Room/両driver/clock/IDを注入する。SessionStore依存は使う4操作のみ。
+- manager未実装RED後、active mapで同時turnとstop/drain中resumeを拒否し、stopはpersist→cancel→driver completionを待つ。shutdownは新規start/sendを拒否し、全activeの停止を試みて失敗を集約する。
+- 両AdapterのSQLite/実Bun fixture e2eをmanager経由へ更新。開始→明示provider resume→stop後completion回収→履歴維持を確認。保存失敗するstopが一件あっても他driverを停止/回収し、shutdownがAggregateErrorになることも検証。
+- 初回type-aware lintがallSettled.reasonのany配列返却を拒否し、unknownへ受けて集約するよう修正。独立Reviewer自身の3テスト成功。Important（driver起動callbackでshutdownするとactive未登録で回収されない）を追加RED→GREEN修正。Final: fixed 起動時ownership欠落 — Runtime owns an active turn before a driver startup callback requests shutdown RED→GREEN, suite 106/106。active登録後にdriverを起動し、開始前abortも拒否する。
+- 全106テスト・tsgo/Oxlint/Oxfmt/AST/jev dry-run成功。[出力](verification/2026-10-04-runtime-manager/check.txt)。実jev最終結果は[出力](verification/2026-10-04-runtime-manager/semantic.txt)。missing/unsure 0、errors/degradedなし。managerの新規warningなし。
+- ブランチはmain基点feat/session-runtime。実AIサービスe2e、CLI/daemon起動配線、Task/Room履歴Contextの再構築、Permission/Sandbox等は未完了。全体ゴールの達成とは扱わず継続する。

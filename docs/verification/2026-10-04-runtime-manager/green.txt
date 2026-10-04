@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-manager.test.ts:
+(pass) Runtime manager selects driver, persists start/resume, and blocks resume until stop has drained [8.80ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [28.00ms]

@@ -8,7 +8,7 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで103テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで106テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAtを実装・検証。組織/権限/Memory属性は未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | 未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | 未完了 |
@@ -27,7 +27,7 @@
 | Trigger | manual/internal/event/webhook/schedule | 未完了 |
 | Daemon | ローカルAPI/socket、polling、process管理、execution状態、retry/timeout | 常駐polling/Unix socketとstatus/dispatch/stop、--once/deliveriesを実装。実プロセスで新Event処理・停止/再起動・同時起動拒否・0600・原本保護・所有inode cleanup・poll失敗復旧を検証。Agent/Task/Room/Eventはdaemon client化済み。process管理/Execution retry/timeoutは未完了 |
 | Scheduler | 定期実行、Agent wake-up、再起動後の整合性 | 未完了 |
-| Runtime | Claude Code/Codex CLI Adapter、role/instruction injection | 明示argv/env/input・timeout/cancel・出力上限の実子プロセス境界を検証。Codex/Claudeのstart/resume引数生成・応答解析・process DI境界をUT検証。共通RuntimeTurn Port。実AI e2e/AgentRuntime全体/Session/Task連携は未完了 |
+| Runtime | Claude Code/Codex CLI Adapter、role/instruction injection | 明示argv/env/input・timeout/cancel・出力上限の実子プロセス境界を検証。Codex/Claudeのstart/resume引数生成・応答解析・process DI境界をUT検証。共通RuntimeTurn PortとLocalAgentRuntime start/send/resume/stop/shutdown、停止drain・同時実行拒否を実fixture/SQLiteで検証。実AI e2e/CLI配線/Task連携は未完了 |
 | Sandbox | local process/Docker、checkout/mount、資格情報の限定注入、destroy | 未完了 |
 | Artifact | 回収・永続参照・Taskとの関連付け | 未完了 |
 | Workflow | n8n invoke/status/cancel、Task/Agentから分離 | 未完了 |

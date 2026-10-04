@@ -1,0 +1,10 @@
+# AgentRuntimeのローカルライフサイクル
+
+Session/Runtime turn接続から、Notion06のstart/send/resume/stopを状態付きmanagerへ実装する。clock/ID、SessionStore、Agent/Room、codex/claudeのdriverを注入する。
+
+- startは参照確認とSession作成後send。sendはprovider付きturn、resumeはprovider既存IDを要求する。
+- active mapは同時turnと停止drain中のresumeを拒否。stopは保存/cancel後driverのcompletionを待つ。late応答はversionで拒否する。
+- recoverはactiveがない起動時のみ。shutdownは新規turnを拒否し全activeのstopをallSettledで試み、失敗を集約する。
+- 実装前manager未実装RED。保持した遅延cancel promiseで停止drain中のresume拒否を検証。両AdapterのSQLite/実Bun fixture process e2eをmanager経由へ更新し、全検査/実jev/独立レビューを実行する。
+
+既存stopSessionは保存とcancel要求のserviceであり、実終了待ちはmanagerが担う。実AI provider、CLI/daemon配線・Task・Room Context再構築・Permission/Sandboxは継続対象。

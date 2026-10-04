@@ -1,0 +1,14 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-manager.test.ts:
+(pass) Runtime manager selects driver, persists start/resume, and blocks resume until stop has drained [4.88ms]
+(pass) Runtime owns an active turn before a driver startup callback requests shutdown [0.63ms]
+(pass) Runtime shutdown drains every driver even when one stop cannot persist and rejects future starts [1.27ms]
+
+tests/session-runtime.test.ts:
+(pass) Session codex lifecycle manager connects SQLite to real fixture process for start resume and stop [53.04ms]
+(pass) Session claude lifecycle manager connects SQLite to real fixture process for start resume and stop [42.35ms]
+
+ 5 pass
+ 0 fail
+Ran 5 tests across 2 files. [126.00ms]

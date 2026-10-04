@@ -3,19 +3,14 @@ import { test } from 'bun:test';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  createSessionForAgent,
-  sendSession,
-  stopSession,
-  recoverSessions,
-} from '../src/sessions/service.js';
+import { LocalAgentRuntime } from '../src/runtime/manager.js';
 import { SqliteSessionStore } from '../src/sessions/sqlite.js';
 import { runCodexTurn } from '../src/runtime/codex.js';
 import { runClaudeTurn } from '../src/runtime/claude.js';
 import { runProcess } from '../src/runtime/process.js';
 import type { RuntimeTurnInput } from '../src/runtime/port.js';
 for (const runtime of ['codex', 'claude'] as const) {
-  test(`Session ${runtime} adapter connects SQLite to real fixture process for start resume and stop`, async () => {
+  test(`Session ${runtime} lifecycle manager connects SQLite to real fixture process for start resume and stop`, async () => {
     const dir = mkdtempSync(join(tmpdir(), 'org-session-runtime-'));
     const store = new SqliteSessionStore(join(dir, 'org.db'));
     const agents = {
@@ -33,7 +28,6 @@ for (const runtime of ['codex', 'claude'] as const) {
         archivedAt: null,
       }),
     };
-    const controller = new AbortController();
     let started: (() => void) | undefined;
     const source = `const raw = await Bun.stdin.text();
       const message = ${runtime === 'codex' ? 'JSON.parse(raw).message' : 'raw'};
@@ -75,50 +69,41 @@ for (const runtime of ['codex', 'claude'] as const) {
         },
       );
     };
+    const manager = new LocalAgentRuntime(
+      store,
+      agents,
+      rooms,
+      { codex: run, claude: run },
+      () => 'now',
+      () => 's',
+    );
     try {
-      createSessionForAgent(
-        store,
-        agents,
-        rooms,
-        { agentId: 'a', roomId: 'r' },
-        { id: 's', at: 't0' },
-      );
-      for (const message of ['first', 'resumed']) {
-        const result = await sendSession(
-          store,
-          agents,
-          rooms,
-          run,
-          { id: 's', message, instruction: 'Review' },
-          () => 'now',
-        );
-        assert.equal(result.text, message);
-        assert.equal(result.session.providerSessionId, 'provider');
-      }
+      const first = await manager.start({
+        agentId: 'a',
+        roomId: 'r',
+        message: 'first',
+        instruction: 'Review',
+      });
+      assert.equal(first.text, 'first');
+      assert.equal(first.session.providerSessionId, 'provider');
+      const resumed = await manager.resume('s', 'resumed', 'Review');
+      assert.equal(resumed.text, 'resumed');
       const ready = new Promise<void>((resolve) => {
         started = resolve;
       });
-      const turn = sendSession(
-        store,
-        agents,
-        rooms,
-        run,
-        { id: 's', message: 'wait', instruction: '' },
-        () => 'now',
-        controller.signal,
-      );
+      const turn = manager.send('s', 'wait');
       const rejected = assert.rejects(turn);
       await ready;
-      stopSession(store, 's', 'now', () => controller.abort());
+      await manager.stop('s');
       await rejected;
       assert.equal(store.get('s').status, 'stopped');
-      assert.deepEqual(recoverSessions(store, 'later'), []);
+      assert.deepEqual(manager.recover(), []);
       assert.deepEqual(
         store.history('s').map((session) => session.status),
         ['idle', 'running', 'idle', 'running', 'idle', 'running', 'stopped'],
       );
     } finally {
-      controller.abort();
+      await manager.shutdown();
       store.close();
       rmSync(dir, { recursive: true, force: true });
     }

@@ -1,0 +1,30 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-manager.test.ts:
+(pass) Runtime manager selects driver, persists start/resume, and blocks resume until stop has drained [7.89ms]
+89 |   const runtime = new LocalAgentRuntime(store, agents, rooms, { codex: driver, claude: driver }, () => 'now', () => 's');
+90 |   const start = runtime.start({ agentId: 'a', roomId: 'r', message: 'first', instruction: '' });
+91 |   const rejected = assert.rejects(start);
+92 |   try {
+93 |     await ready;
+94 |     assert.equal(store.get('s').status, 'stopped');
+                ^
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ 'running'
+- 'stopped'
+
+ generatedMessage: true,
+     actual: "running",
+   expected: "stopped",
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/runtime-manager.test.ts:94:12
+      at processTicksAndRejections (native:7:39)
+(fail) Runtime owns an active turn before a driver startup callback requests shutdown [2.73ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [35.00ms]
