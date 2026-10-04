@@ -1,0 +1,30 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-execution.test.ts:
+(pass) ExecutionTask persists running before the runtime and stages its result for human review [4.19ms]
+105 |  const provider={get:()=>task,update:(_id:string,patch:Parameters<typeof changeTask>[1],at:string,expected?:number)=>{if(expected!==task.version)throw new Error('Version conflict');task=changeTask(task,patch,at);return task;},stageExecutionResult:()=>{throw new Error('Result must not be persisted');}};
+106 |  let calls=0;
+107 |  const fail=async()=>{calls++;throw new Error('runtime failure');};
+108 |  const input={taskId:'t',sessionId:'s',messageId:'source'};
+109 |  await assert.rejects(runExecutionTask(provider,{get:()=>session},{get:()=>room,messages:()=>[source,oldReply]},fail,input,()=> 'later'));
+110 |  assert.equal(task.status,'assigned');assert.equal(calls,0);
+              ^
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ 'failed'
+- 'assigned'
+
+ generatedMessage: true,
+     actual: "failed",
+   expected: "assigned",
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/task-execution.test.ts:110:9
+      at processTicksAndRejections (native:7:39)
+(fail) ExecutionTask rejects reused Room replies before running and records failure without overwriting concurrent decisions [2.72ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [43.00ms]

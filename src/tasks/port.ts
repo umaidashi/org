@@ -24,3 +24,7 @@ export interface TaskProvider {
   linkArtifact(id: string, artifact: TaskArtifact, direction: 'input' | 'output'): Task;
   artifacts(id: string): readonly TaskArtifact[];
 }
+
+export interface ExecutionResultWriter {
+  stageExecutionResult(id: string, artifact: TaskArtifact, expectedVersion: number): Task;
+}

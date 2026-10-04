@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-result.test.ts:
+29 |     db.exec('DROP TRIGGER reject_result');
+30 |     const ready = store.stageExecutionResult('t', artifact, running.version);
+31 |     assert.equal(ready.status, 'waiting_approval');
+32 |     assert.deepEqual(ready.outputArtifacts, ['reply']);
+33 |     assert.equal(store.artifacts('t').length, 1);
+34 |     assert.throws(()=>db.query('INSERT OR REPLACE INTO task_artifacts(task_id,id,uri,created_at) VALUES (?,?,?,?)').run('t','reply','changed','later'));
+                ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/task-result.test.ts:34:12)
+(fail) Task result atomically links artifact and waiting approval history, preserving running on rollback [17.63ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [59.00ms]

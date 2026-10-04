@@ -27,8 +27,12 @@ export async function main(argv: string[]): Promise<number> {
       }
     }
     const command = parseApplicationCommand(transport.argv);
-    if (command.kind === 'session' && transport.direct)
-      throw new Error('Session commands require daemon');
+    if (
+      (command.kind === 'session' ||
+        (command.kind === 'task' && command.command.action.kind === 'run')) &&
+      transport.direct
+    )
+      throw new Error('Runtime commands require daemon');
   } catch (error) {
     console.error(`Error: ${error instanceof Error ? error.message : String(error)}\n${usage}`);
     return 2;

@@ -1,0 +1,9 @@
+# ExecutionTaskからRuntime結果を人間確認へ
+
+Notion04のTask抽象とWorkItem/ExecutionTask分離を再確認。manual `task run ID --session ID --room-message ID` で、assignedのExecutionTaskとそのowner、対応するTask Room/Session/入力Messageを実行前に確認する。依存Task完了は既存のTask状態更新境界が検証する。
+
+runningをversion付きで保存してからRoom Context付きRuntimeへ送る。返信Messageを結果Artifactのorg URIとしてリンクし、waiting_approvalへ進める。モデルの応答だけで業務完了扱いにはしない。Taskのartifact/result状態/不変履歴はSQLiteの一つのトランザクションにする。実行失敗はfailed、競合した人間の変更は上書きしない。
+
+TaskProvider公開Portと実行結果Writerを分離して注入し、既存TaskProviderのfakeへ不要操作を強制しない。Room返信とTask結果保存の間のcrashのexactly-once、起動時running Task復旧、Approvalの認証・専用API、Sandbox書込実務、Eventからの自動実行は後続。
+
+SQLite result writerのrollback/version競合UT、DB-free実行サービスの順序・参照・failure、CLI/daemon/実subprocess e2e→全suite/実jev/独立レビュー→実read-only Codex最小Task→repoログで検証する。

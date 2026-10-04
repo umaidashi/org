@@ -21,7 +21,7 @@ test('Session CLI runs configured daemon runtime and cancels pending turns befor
     executable,
     `#!${process.execPath}\nconst input = JSON.parse(await Bun.stdin.text());
     if (input.message === 'wait') { await Bun.write(${JSON.stringify(marker)}, 'ready'); setInterval(() => {}, 100); }
-    else { if(input.message === 'room question' && !JSON.parse(input.instruction).memories.some(m=>m.content === 'Room practice')) throw new Error('Scoped Memory missing'); console.log(JSON.stringify({type:'thread.started',thread_id:'provider'})); console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:input.message}})); console.log(JSON.stringify({type:'turn.completed',usage:{}})); }\n`,
+    else { if(input.message === 'task question' && JSON.parse(JSON.parse(input.instruction).instruction).task.objective !== 'Research options') throw new Error('Task objective missing'); if(input.message === 'room question' && !JSON.parse(input.instruction).memories.some(m=>m.content === 'Room practice')) throw new Error('Scoped Memory missing'); console.log(JSON.stringify({type:'thread.started',thread_id:'provider'})); console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:input.message}})); console.log(JSON.stringify({type:'turn.completed',usage:{}})); }\n`,
     { mode: 0o700 },
   );
   writeFileSync(
@@ -161,6 +161,98 @@ test('Session CLI runs configured daemon runtime and cancels pending turns befor
     const conversation = json(['--socket', socket, 'room', 'messages', room.id]);
     assert.ok(Array.isArray(conversation));
     assert.equal(conversation.length, 2);
+    const task = json([
+      '--socket',
+      socket,
+      'task',
+      'create',
+      'research',
+      '--kind',
+      'execution_task',
+      '--objective',
+      'Research options',
+    ]);
+    assert.ok(record(task) && typeof task.id === 'string');
+    json(['--socket', socket, 'task', 'assign', task.id, '--owner', list[0].id]);
+    const taskRoom = json([
+      '--socket',
+      socket,
+      'room',
+      'create',
+      'task work',
+      '--type',
+      'task',
+      '--task',
+      task.id,
+      '--human',
+      'founder',
+      '--agent',
+      list[0].id,
+    ]);
+    assert.ok(record(taskRoom) && typeof taskRoom.id === 'string');
+    const taskSession = json([
+      '--socket',
+      socket,
+      'session',
+      'start',
+      '--agent',
+      list[0].id,
+      '--room',
+      taskRoom.id,
+      '--message',
+      'ready',
+    ]);
+    assert.ok(
+      record(taskSession) &&
+        record(taskSession.session) &&
+        typeof taskSession.session.id === 'string',
+    );
+    const taskMessage = json([
+      '--socket',
+      socket,
+      'room',
+      'send',
+      taskRoom.id,
+      '--human',
+      'founder',
+      '--content',
+      'task question',
+    ]);
+    assert.ok(record(taskMessage) && typeof taskMessage.id === 'string');
+    const execution = json([
+      '--socket',
+      socket,
+      'task',
+      'run',
+      task.id,
+      '--session',
+      taskSession.session.id,
+      '--room-message',
+      taskMessage.id,
+    ]);
+    assert.ok(record(execution) && record(execution.task) && record(execution.reply));
+    assert.equal(execution.task.status, 'waiting_approval');
+    assert.deepEqual(execution.task.outputArtifacts, [execution.reply.id]);
+    assert.equal(execution.reply.content, 'task question');
+    const artifacts = json(['--socket', socket, 'task', 'artifacts', task.id]);
+    assert.ok(Array.isArray(artifacts));
+    assert.equal(artifacts.length, 1);
+    const history = json(['--socket', socket, 'task', 'history', task.id]);
+    assert.ok(Array.isArray(history));
+    assert.ok(history.some((row: unknown) => record(row) && row.status === 'running'));
+    assert.equal(
+      run([
+        '--direct',
+        'task',
+        'run',
+        task.id,
+        '--session',
+        taskSession.session.id,
+        '--room-message',
+        taskMessage.id,
+      ]).status,
+      2,
+    );
     const beginWait = () => {
       const child = spawn(process.execPath, [
         '--no-env-file',

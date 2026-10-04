@@ -352,3 +352,15 @@
 - 全117テスト、tsgo/Oxlint/Oxfmt/AST/jev dry-run成功。[検証](verification/2026-10-04-typed-memory/check.txt)。実jev641対象、missing/unsure0、errors/degradedなし。[出力](verification/2026-10-04-typed-memory/semantic.txt)。独立Reviewerは6テスト成功、API経由Critical/Importantなし。
 - ReviewerのMinor（異なるidで同じsupersedesのINSERT OR REPLACEが原記録を消せる）を、不変historyの受入条件への違反としてImportantへ再評価し修正。全UNIQUEキー(id/sequence/supersedes)の衝突を追加triggerで拒否する。既存triggerを外す期間は作らない。実SQLのRED→GREENを保存。[RED](verification/2026-10-04-typed-memory/replace-red.txt)、[GREEN](verification/2026-10-04-typed-memory/replace-green.txt)。
 - 次はExecutionTask→Room/Session実行→結果をTaskへ記録する最小実務の縦断。Approval/Sandbox/Workflow/A2A等と全体目標は継続する。
+
+
+## ExecutionTaskの実行と結果確認待ち
+
+- Notion04を再取得しsnapshotと一致を確認。[計画](superpowers/plans/2026-10-04-task-execution.md)。assigned ExecutionTask・owner・idle Session・対応Task Room・新Messageを実行前に検証。runningをversion付き保存してからDIしたRoom Runtime返信を実行する。
+- result Artifactのorg URI・状態waiting_approval・2版のTask履歴を同一SQLiteトランザクションで保存。応答だけでcompletedにはしない。provider失敗はfailed、競合した人間の変更を上書きしない。既存の手動返信をTask実行結果として再利用しない境界をRED→GREEN追加。
+- serviceと結果Writerを先行RED→GREEN。実DBのArtifact INSERT故障でartifact/state/history全体rollbackとstale version拒否を確認。実daemon/CLI/fixtureでTask objective注入・結果保存・direct拒否、11秒待機を検証。
+- 全120テスト・tsgo/Oxlint/Oxfmt/AST/jev dry-run成功。[検証](verification/2026-10-04-task-execution/check.txt)。実jev652対象、missing/unsure0、errors/degradedなし。新規execution/sqliteにfindingなし。[実レビュー](verification/2026-10-04-task-execution/semantic.txt)。
+- 実read-only CodexでTask→running→Room返信marker→Artifactリンク→waiting_approvalを検証。[実AI判定](verification/2026-10-04-task-execution/real-codex.txt)。raw応答/認証/個人パスは公開ログへ入れない。
+- 独立Reviewerは3件成功、今回接続Critical/Importantなし。Minor: DIで別Sessionのmetadataを持つMessageまで防ぐ追加検証（現production Reply serviceは一致保証）を後続へ記録。
+- 既存Task原履歴/Artifact/CommentのREPLACE抜けを、今回結果の不変history条件に対するImportantとして再評価。複合キーと明示rowid衝突のINSERTを追加triggerで拒否。直接SQLのRED→GREENと全suiteを確認。[RED](verification/2026-10-04-task-execution/original-red.txt)、[GREEN](verification/2026-10-04-task-execution/original-green.txt)。他の不変source表のREPLACE/rowidも次に監査する。
+- Room返信とTask結果保存の間のcrashの厳密なexactly-once、running Task再起動復旧、Approval認証/API、Sandbox書込、Event自動実行、Workflow/A2A等は継続対象。全体目標は未達成。

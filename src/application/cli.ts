@@ -109,11 +109,15 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
   }
 }
 
+export interface ApplicationContext extends SessionContext {
+  readonly runTask?: (id: string, sessionId: string, messageId: string) => Promise<unknown>;
+}
+
 async function runApplication(
   command: ApplicationCommand,
   db: string,
   output: (line: string) => void,
-  sessions?: SessionContext,
+  sessions?: ApplicationContext,
 ): Promise<void> {
   if (command.kind === 'memory') {
     runMemoryCommand({ ...command.command, db }, output);
@@ -129,6 +133,18 @@ async function runApplication(
     return;
   }
   if (command.kind === 'task') {
+    if (command.command.action.kind === 'run') {
+      if (!sessions?.runTask) throw new Error('Task run requires daemon');
+      const { id, sessionId, messageId } = command.command.action;
+      output(
+        JSON.stringify(
+          await sessions.runTask(id, sessionId, messageId),
+          null,
+          command.command.json ? undefined : 2,
+        ),
+      );
+      return;
+    }
     runTaskCommand({ ...command.command, db }, output);
     return;
   }
@@ -173,7 +189,7 @@ export async function executeApplication(
   argv: string[],
   db: string,
   remote = false,
-  sessions?: SessionContext,
+  sessions?: ApplicationContext,
 ): Promise<CommandResult> {
   let command: ApplicationCommand;
   try {

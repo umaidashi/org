@@ -211,3 +211,15 @@ bun run start memory invalidate MEMORY_ID --reason '根拠が失効した' --jso
 ```
 
 `session reply`は現在のRoom・Agent・Taskとcompany/globalのactive Memoryを選択し、scopeと新しさで最大20件に絞って渡します。Context全体の64KiB上限に合わせて省略数を記録します。自動抽出、意味的な重複・矛盾判定、期間/tag/entity/full-text retrievalは後続です。
+
+## ExecutionTaskの実行
+
+assignedのExecutionTaskに、そのownerのidle Sessionと対応するTask Roomの新しいMessageを渡します。
+
+```sh
+bun run start task run TASK_ID --session SESSION_ID --room-message MESSAGE_ID --json
+bun run start task artifacts TASK_ID --json
+bun run start task history TASK_ID --json
+```
+
+runningを先に保存し、Runtime返信をRoomに残します。結果Artifactの`org://rooms/.../messages/...`参照・Task履歴・waiting_approvalを原子的に保存します。結果は人間の確認待ちです。専用Approval API、Taskの再起動復旧・自動再試行、Event由来Taskの自動実行は後続です。

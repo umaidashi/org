@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-result.test.ts:
+(pass) Task result atomically links artifact and waiting approval history, preserving running on rollback [14.35ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [35.00ms]

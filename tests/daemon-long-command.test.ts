@@ -21,6 +21,16 @@ test('daemon command preserves long Session replies even with options before the
     const results = await Promise.allSettled([
       requestApplication(socket, ['session', 'get', 's']),
       requestApplication(socket, ['--json', 'session', 'get', 's']),
+      requestApplication(socket, [
+        '--json',
+        'task',
+        'run',
+        't',
+        '--session',
+        's',
+        '--room-message',
+        'm',
+      ]),
     ]);
     for (const result of results) {
       assert.equal(result.status, 'fulfilled');

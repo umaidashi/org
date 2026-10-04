@@ -1,3 +1,4 @@
+import { runExecutionTask } from '../tasks/execution.js';
 import { SqliteMemoryProvider } from '../memory/sqlite.js';
 import { replyToRoomMessage } from '../rooms/runtime.js';
 import { randomUUID } from 'node:crypto';
@@ -118,6 +119,23 @@ function openOperations(db: string, runtimeConfig?: string): DaemonOperations {
         executeApplication(argv, db, true, {
           store: sessionStore,
           runtime,
+          runTask: (taskId, sessionId, messageId) =>
+            runExecutionTask(
+              taskProvider,
+              sessionStore,
+              roomRepository,
+              (id, source, instruction) =>
+                replyToRoomMessage(
+                  roomRepository,
+                  sessionStore,
+                  runtime,
+                  { sessionId: id, messageId: source, instruction },
+                  { id: randomUUID(), at: new Date().toISOString() },
+                  memoryProvider,
+                ),
+              { taskId, sessionId, messageId },
+              () => new Date().toISOString(),
+            ),
           reply: (id, messageId, instruction) =>
             replyToRoomMessage(
               roomRepository,

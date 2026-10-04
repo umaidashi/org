@@ -29,7 +29,11 @@ export async function requestApplication(socket: string, argv: string[]): Promis
   const response = await fetch('http://org.local/v1/command', {
     unix: socket,
     method: 'POST',
-    signal: command.kind === 'session' ? null : AbortSignal.timeout(5000),
+    signal:
+      command.kind === 'session' ||
+      (command.kind === 'task' && command.command.action.kind === 'run')
+        ? null
+        : AbortSignal.timeout(5000),
     headers: { 'Content-Type': 'application/json', Connection: 'close' },
     body: JSON.stringify({ argv }),
   });

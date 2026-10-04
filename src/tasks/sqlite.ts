@@ -62,6 +62,15 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter {
         CREATE TABLE IF NOT EXISTS task_artifacts (task_id TEXT NOT NULL, id TEXT NOT NULL, uri TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(task_id, id));
         CREATE TRIGGER IF NOT EXISTS task_history_no_update BEFORE UPDATE ON task_history BEGIN SELECT RAISE(ABORT, 'Task history is immutable'); END;
         CREATE TRIGGER IF NOT EXISTS task_history_no_delete BEFORE DELETE ON task_history BEGIN SELECT RAISE(ABORT, 'Task history is immutable'); END;`);
+      for (const [table, key] of [
+        ['task_history', 'task_id=NEW.task_id AND version=NEW.version'],
+        ['task_artifacts', 'task_id=NEW.task_id AND id=NEW.id'],
+        ['task_comments', 'id=NEW.id'],
+      ]) {
+        this.db.exec(`CREATE TRIGGER IF NOT EXISTS ${table}_no_replace BEFORE INSERT ON ${table}
+          WHEN EXISTS(SELECT 1 FROM ${table} WHERE rowid=NEW.rowid OR (${key}))
+          BEGIN SELECT RAISE(ABORT, 'Task original is immutable'); END;`);
+      }
       for (const table of ['task_comments', 'task_artifacts']) {
         for (const operation of ['UPDATE', 'DELETE']) {
           this.db.exec(`CREATE TRIGGER IF NOT EXISTS ${table}_no_${operation.toLowerCase()}
@@ -229,6 +238,29 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter {
         .run(task.version, JSON.stringify(task), id);
       this.append(task);
       return task;
+    });
+  }
+  stageExecutionResult(id: string, artifact: TaskArtifact, expectedVersion: number): Task {
+    return this.transaction(() => {
+      const current = this.get(id);
+      if (
+        current.version !== expectedVersion ||
+        current.kind !== 'execution_task' ||
+        current.status !== 'running'
+      )
+        throw new Error('Execution result requires current running ExecutionTask');
+      const linked = attachArtifact(current, artifact, 'output');
+      const ready = changeTask(linked, { status: 'waiting_approval' }, artifact.createdAt);
+      this.validateReferences(ready);
+      this.db
+        .query('INSERT INTO task_artifacts(task_id,id,uri,created_at) VALUES (?,?,?,?)')
+        .run(id, artifact.id, artifact.uri, artifact.createdAt);
+      this.db
+        .query('UPDATE tasks SET version=?,data=? WHERE id=?')
+        .run(ready.version, JSON.stringify(ready), id);
+      this.append(linked);
+      this.append(ready);
+      return ready;
     });
   }
   artifacts(id: string): readonly TaskArtifact[] {

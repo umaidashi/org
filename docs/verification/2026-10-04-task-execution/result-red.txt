@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-result.test.ts:
+ 9 |  try{
+10 |   store.create(createTask({title:'research',objective:'read',kind:'execution_task'},{id:'t',createdAt:'now'}));store.update('t',{owner:'a'},'now');const running=store.update('t',{status:'running'},'now');
+11 |   const artifact={id:'reply',uri:'org://rooms/r/messages/reply',createdAt:'later'};
+12 |   db.exec("CREATE TRIGGER reject_result BEFORE INSERT ON task_artifacts BEGIN SELECT RAISE(ABORT,'reject result'); END;");
+13 |   assert.throws(()=>store.stageExecutionResult('t',artifact,running.version));assert.deepEqual(store.get('t'),running);assert.deepEqual(store.artifacts('t'),[]);assert.equal(store.history('t').length,3);
+14 |   db.exec('DROP TRIGGER reject_result');const ready=store.stageExecutionResult('t',artifact,running.version);assert.equal(ready.status,'waiting_approval');assert.deepEqual(ready.outputArtifacts,['reply']);assert.equal(store.artifacts('t').length,1);assert.equal(store.history('t').at(-1)?.status,'waiting_approval');
+                                                               ^
+TypeError: store.stageExecutionResult is not a function. (In 'store.stageExecutionResult("t", artifact, running.version)', 'store.stageExecutionResult' is undefined)
+      at <anonymous> (<REPO>/tests/task-result.test.ts:14:59)
+(fail) Task result atomically links artifact and waiting approval history, preserving running on rollback [27.36ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [62.00ms]

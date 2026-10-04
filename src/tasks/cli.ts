@@ -10,6 +10,7 @@ import { assignTask } from './service.js';
 import { SqliteTaskProvider } from './sqlite.js';
 
 type TaskAction =
+  | { kind: 'run'; id: string; sessionId: string; messageId: string }
   | { kind: 'create'; input: TaskInput }
   | { kind: 'get' | 'history' | 'comments' | 'artifacts'; id: string }
   | { kind: 'comment'; id: string; body: string; actor: string }
@@ -48,6 +49,8 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       db: { type: 'string' },
       json: { type: 'boolean' },
       objective: { type: 'string' },
+      session: { type: 'string' },
+      'room-message': { type: 'string' },
       kind: { type: 'string' },
       title: { type: 'string' },
       status: { type: 'string' },
@@ -69,6 +72,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const [command, action, id, ...extra] = positionals;
   if (command !== 'task' || extra.length > 0) throw new Error('Unexpected task argument');
   const allowed: Record<string, readonly string[]> = {
+    run: ['session', 'room-message'],
     create: ['objective', 'kind', 'priority', 'parent', 'dependency', 'label'],
     list: ['kind', 'status', 'owner'],
     get: [],
@@ -131,6 +135,16 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     };
   }
   const taskId = required(id, 'task id');
+  if (action === 'run')
+    return {
+      ...common,
+      action: {
+        kind: 'run',
+        id: taskId,
+        sessionId: required(values.session, '--session'),
+        messageId: required(values['room-message'], '--room-message'),
+      },
+    };
   if (action === 'get' || action === 'history' || action === 'comments' || action === 'artifacts')
     return { ...common, action: { kind: action, id: taskId } };
   if (action === 'comment')
@@ -196,6 +210,8 @@ export function runTaskCommand(
     const action = command.action;
     let result: unknown;
     switch (action.kind) {
+      case 'run':
+        throw new Error('Task run requires daemon');
       case 'create': {
         const task = createTask(action.input, {
           id: randomUUID(),

@@ -8,7 +8,7 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで117テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで120テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAtを実装・検証。組織/権限/Memory属性は未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | 未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | 未完了 |
@@ -20,16 +20,16 @@
 | Memory更新 | extraction、dedup、conflict、supersede/invalidate、原履歴不変 | 同scope/typeのactiveを原記録不変のままsupersede、理由付きinvalidateを追記しstatusを投影。全UNIQUEキーのREPLACE/UPDATE/DELETE拒否と再openを検証。自動extraction/dedup/conflictは未完了 |
 | Context | scope・type・tags/entity・recency・importance・full-textの選択、ContextBuilder | Room入力までの履歴を最大30件/64KiB・省略数付きで構成し、Runtime応答をreply Messageへ保存。実Codex/CLIで検証。activeで現在のRoom/Agent/Task/company/globalのみ最大20件を選択。summary/期間/tag/entity/full-textは未完了 |
 | Task | WorkItemと内部ExecutionTaskの分離、依存・owner・親・成果物 | kind別作成/取得/一覧、依存/owner/親、コメント/成果物URIを永続化。外部同期とArtifact回収は未完了 |
-| Task状態 | pending/assigned/running/blocked/waiting_approval/completed/failed | 純粋な遷移・参照/依存判断、SQLiteの原子的な状態/不変履歴、rollback/古いversion拒否を検証。Event由来Taskの冪等作成/割当/復旧を追加。実行とApprovalは未完了 |
+| Task状態 | pending/assigned/running/blocked/waiting_approval/completed/failed | 純粋な遷移・参照/依存判断、SQLiteの原子的な状態/不変履歴、rollback/古いversion拒否を検証。Event由来Taskの冪等作成/割当/復旧を追加。manual assigned ExecutionTaskをrunning先保存→Runtime/Room返信→結果Artifactとwaiting_approvalを原子保存。実Codex/CLI・failure/競合・rollbackを検証。再起動復旧/専用Approvalは未完了 |
 | TaskProvider | create/get/update/list/addComment/linkArtifact、Localと外部Adapter | PortとLocal SQLite Adapterを実装・検証。外部Adapterは未完了 |
 | Event | 不変event log、受信者から独立したpublish、イベントとTaskの分離 | SQLiteとCLIのpublish/get/list。受信者不要・別プロセス読込・原本UPDATE/DELETE拒否・INSERT失敗後復旧を検証。daemon配信は未完了 |
 | Subscription | pattern・filter・enabled、Agent/Workflowへのルーティング | 純粋なpattern/filter判断とSQLite保存、CLI照合/有効無効を実装。Agent参照を公開Portで確認。単発workerでAgentのExecutionTaskを作成/割当。Workflow参照は保存/deferredのみ。実Runtime/Workflow起動は未完了 |
 | Trigger | manual/internal/event/webhook/schedule | 未完了 |
 | Daemon | ローカルAPI/socket、polling、process管理、execution状態、retry/timeout | 常駐polling/Unix socketとstatus/dispatch/stop、--once/deliveriesを実装。実プロセスで新Event処理・停止/再起動・同時起動拒否・0600・原本保護・所有inode cleanup・poll失敗復旧を検証。Agent/Task/Room/Eventはdaemon client化済み。Session Runtimeのprocess管理・timeout/cancel/drainを実装。Task実行のretryは未完了 |
 | Scheduler | 定期実行、Agent wake-up、再起動後の整合性 | 未完了 |
-| Runtime | Claude Code/Codex CLI Adapter、role/instruction injection | 明示argv/env/input・timeout/cancel・出力上限の実子プロセス境界を検証。Codex/Claudeのstart/resume引数生成・応答解析・process DI境界をUT検証。共通RuntimeTurn PortとLocalAgentRuntime start/send/resume/stop/shutdown、停止drain・同時実行拒否を実fixture/SQLiteで検証。daemon/CLI配線と実Codexの開始/再開/Room返信を検証。実Claude/Task連携は未完了 |
+| Runtime | Claude Code/Codex CLI Adapter、role/instruction injection | 明示argv/env/input・timeout/cancel・出力上限の実子プロセス境界を検証。Codex/Claudeのstart/resume引数生成・応答解析・process DI境界をUT検証。共通RuntimeTurn PortとLocalAgentRuntime start/send/resume/stop/shutdown、停止drain・同時実行拒否を実fixture/SQLiteで検証。daemon/CLI配線と実Codexの開始/再開/Room返信を検証。Task runで実Codex結果をwaiting_approvalへ記録。実Claude/自動Task起動は未完了 |
 | Sandbox | local process/Docker、checkout/mount、資格情報の限定注入、destroy | 未完了 |
-| Artifact | 回収・永続参照・Taskとの関連付け | 未完了 |
+| Artifact | 回収・永続参照・Taskとの関連付け | Runtime結果Messageをorg URIのArtifactへTaskと原子関連付け。実fixture/Codexで検証。ファイル等の回収は未完了 |
 | Workflow | n8n invoke/status/cancel、Task/Agentから分離 | 未完了 |
 | Permission | read/write/delegate/approve/spend/publish/contact/shell/networkを実行境界で制約 | 未完了 |
 | Approval | 送信・deploy・削除・契約・支出・権限変更で待機し承認後に実行 | 未完了 |
