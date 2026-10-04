@@ -1,0 +1,1 @@
+{"startMarker":true,"resumeMarker":true,"sameProviderSession":true,"taskStatus":"waiting_approval","resultMarker":true,"replyLink":true,"artifactLink":true,"reviewedStatus":"completed","reviewRecorded":true,"stopped":true}

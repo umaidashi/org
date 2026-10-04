@@ -1,0 +1,23 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-review-sqlite.test.ts:
+17 |       provider.update(id, { owner: 'agent' }, 'assigned');
+18 |       provider.update(id, { status: 'running' }, 'started');
+19 |       provider.stageExecutionResult(id, { id: 'output', uri: 'org://result', createdAt: 'produced' }, 2);
+20 |     }
+21 |     const review = planTaskReview(provider.get('approve'), { decision: 'approve', actor: 'founder', reason: 'Verified', expectedVersion: 4 }, { id: 'decision', createdAt: 'reviewed' });
+22 |     assert.throws(() => provider.recordReview({ ...review, outputArtifacts: ['other'] }), /evidence/);
+                ^
+AssertionError: The input did not match the regular expression /evidence/. Input:
+
+`TypeError: provider.recordReview is not a function. (In 'provider.recordReview({ ...review, outputArtifacts: ["other"] })', 'provider.recordReview' is undefined)`
+
+      at expectedException (node:assert:374:55)
+      at expectsError (node:assert:435:20)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/task-review-sqlite.test.ts:22:12)
+(fail) SQLite result review commits a decision with Task history and rejects stale or changed evidence [26.70ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [137.00ms]

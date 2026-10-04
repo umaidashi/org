@@ -1,0 +1,21 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-review-sqlite.test.ts:
+16 |     provider.stageExecutionResult('task', { id: 'output', uri: 'org://result', createdAt: 'produced' }, 2);
+17 |     provider.update('task', { dependencies: ['dep'] }, 'changed', 4);
+18 |     const before = provider.get('task');
+19 |     const history = provider.history('task');
+20 |     const review = planTaskReview(before, { decision: 'approve', actor: 'founder', reason: 'Verified', expectedVersion: 5 }, { id: 'decision', createdAt: 'reviewed' });
+21 |     assert.throws(() => provider.recordReview(review), /dependencies are not completed/);
+                ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/task-review-sqlite.test.ts:21:12)
+(fail) approval preserves the completed-dependency invariant and leaves no partial decision [8.02ms]
+(pass) SQLite result review commits a decision with Task history and rejects stale or changed evidence [23.01ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [52.00ms]

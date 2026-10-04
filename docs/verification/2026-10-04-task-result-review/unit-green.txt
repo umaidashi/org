@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-review.test.ts:
+(pass) result review captures the exact version, artifacts and actor without mutating the Task [0.94ms]
+(pass) result review uses the injected writer and propagates a concurrent version failure [0.21ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [29.00ms]

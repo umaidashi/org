@@ -21,7 +21,7 @@ import type { CommandResult } from './port.js';
 export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
        org [--db PATH] agent list [--json]
        org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
-       org [--db PATH] task list|get|assign|update|history [OPTIONS]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
        org [--db PATH] room create|list|get|archive|send|messages [OPTIONS]
        org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
        org memory capture|get|list|invalidate [OPTIONS]

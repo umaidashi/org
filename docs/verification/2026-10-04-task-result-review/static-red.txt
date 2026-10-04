@@ -1,0 +1,8 @@
+$ bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+tests/task-review-cli.test.ts:76:18: error typescript(no-unsafe-assignment): Unsafe assignment of an any value.
+error: script "lint" exited with code 1
+error: script "check:static" exited with code 1
+error: script "check" exited with code 1

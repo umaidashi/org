@@ -1,0 +1,13 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-review.test.ts:
+(pass) result review captures the exact version, artifacts and actor without mutating the Task [1.08ms]
+(pass) result review uses the injected writer and propagates a concurrent version failure [0.25ms]
+
+tests/task-review-sqlite.test.ts:
+(pass) approval preserves the completed-dependency invariant and leaves no partial decision [4.47ms]
+(pass) SQLite result review commits a decision with Task history and rejects stale or changed evidence [23.54ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 2 files. [54.00ms]

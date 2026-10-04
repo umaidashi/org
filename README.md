@@ -225,6 +225,16 @@ bun run start task artifacts TASK_ID --json
 bun run start task history TASK_ID --json
 ```
 
-runningを先に保存し、Runtime返信をRoomに残します。結果Artifactの`org://rooms/.../messages/...`参照・Task履歴・waiting_approvalを原子的に保存します。結果は人間の確認待ちです。daemon起動時は中断されたrunning ExecutionTaskをfailedへ復旧し、履歴と承認待ちの結果を保持します。専用Approval API、自動再試行、Event由来Taskの自動実行は後続です。
+runningを先に保存し、Runtime返信をRoomに残します。結果Artifactの`org://rooms/.../messages/...`参照・Task履歴・waiting_approvalを原子的に保存します。結果は人間の確認待ちです。daemon起動時は中断されたrunning ExecutionTaskをfailedへ復旧し、履歴と承認待ちの結果を保持します。成果物の承認・却下は次の`task review`で記録します。外部操作の専用Approval API、自動再試行、Event由来Taskの自動実行は後続です。
 
 同じDBのcontinuous daemonは一台だけ起動できます。socketを変えてもSQLiteのPID/token leaseで二重所有を拒否します。DB/親のsymlinkは実パスへ正規化し、新DBは0600で作成します。終了した所有PIDのleaseは起動時に取得し直し、解放時は自分のtokenだけを削除します。PID reuseは生存扱いで拒否します。continuousモードでin-memory DBは使用できません。
+
+### Task結果の確認
+
+```sh
+org task get TASK_ID --json
+org task review TASK_ID --decision approve --actor founder --reason "成果物を確認した" --expected-version VERSION --json
+org task reviews TASK_ID --json
+```
+
+却下は`--decision reject`を指定します。古いversion、未完了の依存Taskがある承認、成果物がないTaskは拒否します。判断記録と状態・履歴は一緒に保存され、失敗時はrollbackします。actorはローカル操作側が指定する記録値です。本人認証や外部操作のPermission/Approvalは後続です。

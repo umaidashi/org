@@ -430,3 +430,13 @@
 - 作業treeの全138テスト（並行して保存したTask結果レビューのDB不要2UTを含む）・静的検査成功。[全検査](verification/2026-10-04-claude-max/check.txt)。実Jev707対象・missing/unsure0・errors/degradedなし。独立ReviewerもClaude4UT成功、Critical/Importantなし。
 - Final: minor (deferred): safe-modeはMax専用認証を強制しない。明示して渡されたAPI key/helper等はClaudeの認証優先順に従う。この検証はAPI key/tokenを渡さずMax認証で成功したという保証であり、全構成でMaxを強制する保証ではない。
 - Next: 保存中のTask成果物レビュー実装へ戻る。全体ゴールを維持し、確認待ちで止まらず続行。
+
+## Task成果物の人間レビュー
+
+- [計画](superpowers/plans/2026-10-04-task-result-review.md)。DB不要のpure判断/Port UTをRED→GREEN。waiting_approval executionと成果物、expectedVersion、actor/理由/判断/id/時刻を検証。SQLite recordReviewは再検証と成果物参照一致をBEGIN IMMEDIATE内で行い、状態・履歴・decision原記録を一緒に保存する。approve→completed、reject→failed。
+- 実DBでCAS・証拠の食い違い・decision INSERT失敗時rollbackと、全UNIQUE/rowidのREPLACE/UPDATE/DELETE拒否をRED→GREEN。既存DBにadditive table/trigger。実daemon CLI review/reviewsで一度だけ判断・再open永続化をRED→GREEN。parserは入力をDB作成前に検証。
+- 初回lintがテストJSONのany代入を検出。unknownへの読込みとフィールド検証へ訂正、失敗証拠も保存した。
+- 独立ReviewerのImportant：recordReviewがcompleted時の既存依存関係検証を迂回。未完了依存を追加したwaiting_approvalを承認できることを実DB RED再現、transaction内validateReferencesでGREEN。Final: fixed completed依存不変条件の迂回 — approval preserves the completed-dependency invariant RED→GREEN、全141/141成功。その他Critical/Important/Minorなし。再レビューは行わない。
+- 全141テスト・型・lint・AST成功。[全検査](verification/2026-10-04-task-result-review/check.txt)。実Jevの修正前/後を記録。[実レビュー](verification/2026-10-04-task-result-review/semantic.txt)。
+- 実Claude Max start→resume→Task結果→Artifact→明示review→completed→decision参照→Session stopを隔離marker Taskで成功確認。[公開成否](verification/2026-10-04-task-result-review/real-claude-max.txt)。本物の外部業務の承認を代理したものではない。
+- actorはローカル操作側の記録値で認証保証はなく、管理task updateも保持。外部副作用のPermission/Approvalは後続。全体ゴールは未完了。NextはAgent組織のreportsTo/循環防止を小さく実装し、委譲の土台へ進める。

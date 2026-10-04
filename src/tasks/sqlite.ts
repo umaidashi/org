@@ -1,6 +1,8 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
+import { planTaskReview } from './review.js';
+import type { TaskReview, TaskReviewWriter } from './review.js';
 import { attachArtifact, changeTask, isTaskStatus, validateTaskReferences } from './domain.js';
 import type { Task, TaskPatch, TaskArtifact, TaskComment } from './domain.js';
 import type { IdempotentTaskWriter, TaskFilter, TaskHistory, TaskProvider } from './port.js';
@@ -48,7 +50,7 @@ function decode(raw: unknown): Task {
     updatedAt: text(value.updatedAt),
   };
 }
-export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter {
+export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, TaskReviewWriter {
   private readonly db: Database;
   constructor(path: string) {
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
@@ -60,18 +62,20 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter {
         CREATE TABLE IF NOT EXISTS task_history (task_id TEXT NOT NULL, version INTEGER NOT NULL, status TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(task_id, version));
         CREATE TABLE IF NOT EXISTS task_comments (task_id TEXT NOT NULL, id TEXT PRIMARY KEY, body TEXT NOT NULL, actor TEXT NOT NULL, created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS task_artifacts (task_id TEXT NOT NULL, id TEXT NOT NULL, uri TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(task_id, id));
+        CREATE TABLE IF NOT EXISTS task_reviews (id TEXT PRIMARY KEY, task_id TEXT NOT NULL, task_version INTEGER NOT NULL, data TEXT NOT NULL, UNIQUE(task_id, task_version));
         CREATE TRIGGER IF NOT EXISTS task_history_no_update BEFORE UPDATE ON task_history BEGIN SELECT RAISE(ABORT, 'Task history is immutable'); END;
         CREATE TRIGGER IF NOT EXISTS task_history_no_delete BEFORE DELETE ON task_history BEGIN SELECT RAISE(ABORT, 'Task history is immutable'); END;`);
       for (const [table, key] of [
         ['task_history', 'task_id=NEW.task_id AND version=NEW.version'],
         ['task_artifacts', 'task_id=NEW.task_id AND id=NEW.id'],
         ['task_comments', 'id=NEW.id'],
+        ['task_reviews', 'id=NEW.id OR (task_id=NEW.task_id AND task_version=NEW.task_version)'],
       ]) {
         this.db.exec(`CREATE TRIGGER IF NOT EXISTS ${table}_no_replace BEFORE INSERT ON ${table}
           WHEN EXISTS(SELECT 1 FROM ${table} WHERE rowid=NEW.rowid OR (${key}))
           BEGIN SELECT RAISE(ABORT, 'Task original is immutable'); END;`);
       }
-      for (const table of ['task_comments', 'task_artifacts']) {
+      for (const table of ['task_comments', 'task_artifacts', 'task_reviews']) {
         for (const operation of ['UPDATE', 'DELETE']) {
           this.db.exec(`CREATE TRIGGER IF NOT EXISTS ${table}_no_${operation.toLowerCase()}
             BEFORE ${operation} ON ${table} BEGIN SELECT RAISE(ABORT, 'Task original is immutable'); END;`);
@@ -180,6 +184,66 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter {
           (filter.status === undefined || task.status === filter.status) &&
           (filter.owner === undefined || task.owner === filter.owner),
       );
+  }
+  recordReview(review: TaskReview): Task {
+    return this.transaction(() => {
+      const current = this.get(review.taskId);
+      const planned = planTaskReview(
+        current,
+        {
+          decision: review.decision,
+          actor: review.actor,
+          reason: review.reason,
+          expectedVersion: review.taskVersion,
+        },
+        { id: review.id, createdAt: review.createdAt },
+      );
+      if (JSON.stringify(planned.outputArtifacts) !== JSON.stringify(review.outputArtifacts))
+        throw new Error('Task review evidence conflict');
+      const task = changeTask(
+        current,
+        { status: review.decision === 'approve' ? 'completed' : 'failed' },
+        review.createdAt,
+      );
+      this.validateReferences(task);
+      this.db
+        .query('UPDATE tasks SET version=?, data=? WHERE id=?')
+        .run(task.version, JSON.stringify(task), task.id);
+      this.append(task);
+      this.db
+        .query('INSERT INTO task_reviews(id,task_id,task_version,data) VALUES(?,?,?,?)')
+        .run(planned.id, planned.taskId, planned.taskVersion, JSON.stringify(planned));
+      return task;
+    });
+  }
+  reviews(id: string): readonly TaskReview[] {
+    this.get(id);
+    return this.db
+      .prepare<{ data: string }, [string]>(
+        'SELECT data FROM task_reviews WHERE task_id=? ORDER BY rowid',
+      )
+      .all(id)
+      .map((row) => {
+        const value: unknown = JSON.parse(row.data);
+        if (
+          !record(value) ||
+          (value.decision !== 'approve' && value.decision !== 'reject') ||
+          typeof value.taskVersion !== 'number' ||
+          !Number.isSafeInteger(value.taskVersion) ||
+          value.taskVersion < 0
+        )
+          throw new Error('Invalid stored Task review');
+        return {
+          id: text(value.id),
+          taskId: text(value.taskId),
+          taskVersion: value.taskVersion,
+          decision: value.decision,
+          actor: text(value.actor),
+          reason: text(value.reason),
+          createdAt: text(value.createdAt),
+          outputArtifacts: strings(value.outputArtifacts),
+        };
+      });
   }
   history(id: string): readonly TaskHistory[] {
     this.get(id);

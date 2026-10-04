@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { reviewTaskResult } from './review.js';
+import type { TaskReviewInput } from './review.js';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -10,9 +12,10 @@ import { assignTask } from './service.js';
 import { SqliteTaskProvider } from './sqlite.js';
 
 type TaskAction =
+  | { kind: 'review'; id: string; input: TaskReviewInput }
   | { kind: 'run'; id: string; sessionId: string; messageId: string }
   | { kind: 'create'; input: TaskInput }
-  | { kind: 'get' | 'history' | 'comments' | 'artifacts'; id: string }
+  | { kind: 'get' | 'history' | 'comments' | 'artifacts' | 'reviews'; id: string }
   | { kind: 'comment'; id: string; body: string; actor: string }
   | { kind: 'artifact'; id: string; artifact: string; uri: string; direction: 'input' | 'output' }
   | { kind: 'list'; filter: TaskFilter }
@@ -61,6 +64,9 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       label: { type: 'string', multiple: true },
       body: { type: 'string' },
       actor: { type: 'string' },
+      decision: { type: 'string' },
+      reason: { type: 'string' },
+      'expected-version': { type: 'string' },
       artifact: { type: 'string' },
       uri: { type: 'string' },
       direction: { type: 'string' },
@@ -72,6 +78,8 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const [command, action, id, ...extra] = positionals;
   if (command !== 'task' || extra.length > 0) throw new Error('Unexpected task argument');
   const allowed: Record<string, readonly string[]> = {
+    review: ['actor', 'reason', 'decision', 'expected-version'],
+    reviews: [],
     run: ['session', 'room-message'],
     create: ['objective', 'kind', 'priority', 'parent', 'dependency', 'label'],
     list: ['kind', 'status', 'owner'],
@@ -135,6 +143,26 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     };
   }
   const taskId = required(id, 'task id');
+  if (action === 'review') {
+    const decision = required(values.decision, '--decision');
+    if (decision !== 'approve' && decision !== 'reject') throw new Error('Invalid review decision');
+    const version = required(values['expected-version'], '--expected-version');
+    if (!/^\d+$/.test(version) || !Number.isSafeInteger(Number(version)))
+      throw new Error('Expected version must be a nonnegative integer');
+    return {
+      ...common,
+      action: {
+        kind: 'review',
+        id: taskId,
+        input: {
+          decision,
+          actor: required(values.actor, '--actor'),
+          reason: required(values.reason, '--reason'),
+          expectedVersion: Number(version),
+        },
+      },
+    };
+  }
   if (action === 'run')
     return {
       ...common,
@@ -145,7 +173,13 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
         messageId: required(values['room-message'], '--room-message'),
       },
     };
-  if (action === 'get' || action === 'history' || action === 'comments' || action === 'artifacts')
+  if (
+    action === 'get' ||
+    action === 'history' ||
+    action === 'comments' ||
+    action === 'artifacts' ||
+    action === 'reviews'
+  )
     return { ...common, action: { kind: action, id: taskId } };
   if (action === 'comment')
     return {
@@ -210,6 +244,15 @@ export function runTaskCommand(
     const action = command.action;
     let result: unknown;
     switch (action.kind) {
+      case 'review':
+        result = reviewTaskResult(provider, action.id, action.input, {
+          id: randomUUID(),
+          createdAt: new Date().toISOString(),
+        });
+        break;
+      case 'reviews':
+        result = provider.reviews(action.id);
+        break;
       case 'run':
         throw new Error('Task run requires daemon');
       case 'create': {
