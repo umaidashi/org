@@ -1,0 +1,13 @@
+id: domain-ambient-state
+valid:
+  - 'export function create(input: Input, now: string) { return { ...input, now }; }'
+  - 'export function create() { return "Date.now()"; }'
+  - '// Date.now() is supplied by the caller'
+invalid:
+  - 'export function create() { return Date.now(); }'
+  - 'export function create() { return new Date().toISOString(); }'
+  - 'export function create() { return Math.random(); }'
+  - 'export function create() { return fetch("https://example.com"); }'
+  - 'export function create() { console.log("created"); }'
+  - 'export function create() { return process.env.KEY; }'
+  - 'export async function create() { return import("node:fs"); }'

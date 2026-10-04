@@ -1,0 +1,78 @@
+{
+  "findings": [
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/quality-ast.test.ts",
+      "line": 8,
+      "endLine": 25,
+      "value": 0.7533333333333333,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.141,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": {
+        "over": 3,
+        "of": 3,
+        "spread": 0.02
+      },
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    }
+  ],
+  "review": [],
+  "stats": {
+    "subjects": 13,
+    "reported": 1,
+    "missing": 0,
+    "unsure": 0,
+    "review": 0,
+    "byRule": {
+      "test-name-verifies-claim": 1
+    },
+    "byFile": {
+      "tests/quality-ast.test.ts": {
+        "findings": 1,
+        "subjects": 1
+      },
+      "tests/cli.test.ts": {
+        "findings": 0,
+        "subjects": 12
+      }
+    }
+  },
+  "degraded": [],
+  "silentRules": [],
+  "idleLanguages": [],
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "retry": 3,
+  "spent": {
+    "calls": 6,
+    "inputTokens": 47409,
+    "outputTokens": 804,
+    "ms": 4888,
+    "retried": 0,
+    "rateLimited": 0,
+    "tokensPerSecond": 200000,
+    "splits": 0,
+    "usd": 0.001991178,
+    "wallMs": 1002
+  },
+  "errors": [],
+  "elapsedMs": 1066
+}

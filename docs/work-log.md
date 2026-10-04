@@ -77,3 +77,54 @@
 - 次の小さなe2e候補はTaskの作成・取得・状態保存。今回はAgentの登録・一覧表示まで完了。
 - 最終の `.venv/bin/python -m unittest discover -s tests -v` も9/9成功、終了コード0。[出力](verification/2026-10-04-agent-registry/final-tests.txt)
 - 作業用ledgerを[実行記録](verification/2026-10-04-agent-registry/execution-ledger.md)として保存した。
+
+## 2026-10-04 — TypeScript移行とローカル品質ゲート
+
+### 継続目標・追加指示
+
+- 継続目標：Notionを確認し、残る実装を全体として進める。言語はTypeScript。e2e・各種テストを設定しTDDで動作とデグレを確認する。
+- 現在状態を確認した結果、基点 `d49ae1a` にはPython版Agent CLIのみが存在した。過去の狭い完了を全体の完了として扱わず、[全体の要件照合](requirements.md)を作成した。
+- Notionの親ページと設計書10本を再取得し、`docs/notion/` にsnapshotを保存した。Phase 1〜6を引き続き実装対象とする。
+- ユーザーはVoicyの記事を参考にリファレンス実装・コーディング指針を定め、lint・AST・jev-lintで生成物をレビューするよう指示した。
+- ユーザーはAPIキーを `.env` に配置し、使用を許可した。値は出力せず、有効なキーが存在することだけを確認。`.env` とモデルキャッシュ/実行recordをGit除外した。
+- ユーザーはGHAを使わず、すべてローカルで行い、Agent実行・precommit・prepushへ適切に配置すること、Lefthookを使うことを指定した。未コミットのGHA案は除去した。
+
+### 実装と判断
+
+- TSへ移行し、Pythonの製品コード・manifest・テストを除去した。過去の設計・作業ログ・検証証拠は履歴として残した。
+- 実際に使うAgentモジュールをリファレンスとした。純粋な `domain.ts`、最小限の `port.ts`、処理順序の `service.ts`、テーブルを所有する `sqlite.ts`、配線するCLIを分けた。
+- [コーディング指針](coding-guidelines.md)、[リファレンス](reference-implementation.md)、[レビュー方法](quality-review.md)を作成し、AGENTS.mdから適用するようにした。
+- strict TSC、type-aware ESLint、Prettier、fixture付きast-grep、Node標準test runner、jev-lint 0.7.0、Lefthook 2.1.16をlockfileで固定した。
+- Ruling: jev-lintの要求に合わせ、実行環境はNode 24以上に変更し、開発用Node 24.21.0もdevDependencyに固定する — 開発とレビューのランタイムを揃えるため — コスト：初回インストールのサイズが増える。ホストNode 22でのnpm bootstrap時にはengine warningが出るが、npm scriptsはローカルNode 24で動く。
+- TS内部は `createdAt`、SQLite/JSONは初期契約の `created_at` を維持した。既存データを読み書きできることを実DBで確認した。
+- AST fixtureで、対応ルールが存在しなくてもast-grepが終了0になることを発見した。テストで全fixture件数と「Configuration not found」がないことを確認し、空の検査を成功扱いしない。
+- Lefthookをインストールし、pre-commitはindex tree、pre-pushはstdinから得た全push objectのtreeを一時展開して検査する。元のindex/worktreeは変更しない。現在のworking treeが別の内容でも検査結果に混入させない。
+- AgentはRED/GREENと検証単位の全チェックを実行。pre-commitは速い静的検査、pre-pushは全テストと意味レビュー。モデルの未校正warningだけでブロックせず、error/通信失敗は失敗として伝える。
+
+### RED→GREENと検証
+
+- Agent移行：TSの別プロセスe2eを先に10件書き、CLI未実装による失敗を確認。[RED](verification/2026-10-04-typescript/agent-red.txt)。TS実装後10/10成功。[GREEN](verification/2026-10-04-typescript/agent-green.txt)。
+- ASTゲート：対応ルールなしを検査失敗として扱うテストが失敗したことを確認。[RED](verification/2026-10-04-typescript/quality-red.txt)。ルール導入後15/15成功。[GREEN](verification/2026-10-04-typescript/quality-green.txt)。
+- Hook検査：snapshot/標準入力処理がない状態で型検査が失敗したことを確認。[RED](verification/2026-10-04-typescript/hooks-red.txt)。実装後、staged/HEADとworktreeの分離を実Gitで確認した。
+- CLIの空DBパス：SQLiteが空文字で一時DBを作り登録成功する問題をe2eで再現。[RED](verification/2026-10-04-typescript/db-path-red.txt)。DB作成前に空パスを引数エラーとして拒否した。
+- `npm run check` は型・lint・format・AST・24テスト・jev dry-runを成功した。[全出力](verification/2026-10-04-typescript/check.txt)。Python版の操作契約を含むe2e、実DB互換性、純粋なdomain、qualityルールの禁止/許可例、実際のpre-commit runnerも検証する。
+- npm packを一時ディレクトリへインストールし、checkout外のbin `org` で登録→JSON一覧を確認。パッケージに `.env` とNotion snapshotがないことも確認。[出力](verification/2026-10-04-typescript/installed-cli.txt)。
+- 最初のpackはnpm標準cacheへの書き込み制限で失敗。システムの権限を変更せず `/tmp/org-npm-cache` を使い成功した。
+- `npm run hooks:install` はpre-commit/pre-pushの設定を成功した。実際のstaged gateとcommitted gateの結果は以下へ追記する。
+
+### 実際のjev-lintレビュー
+
+- dry-runで対象を確認後、ユーザー許可済みのキーで外部APIレビューを実行した。Notion snapshot、DB、秘密情報は送信対象外。
+- 初回42対象の判定がすべて返り、missing 0・errorsなし・degradedなし。4候補。[結果](verification/2026-10-04-typescript/jev-review.json)。
+- CLI失敗経路の不足候補に対し、未検証の不正オプション・空DBパス・壊れたDBを追加した。実際の空DBパス問題はRED→GREENで修正した。
+- Hook追加後も実レビューを実行し、62対象、missing 0・errorsなし・degradedなし。5候補。[結果](verification/2026-10-04-typescript/jev-review-after-fixes.json)。snapshotの不正object IDと実際のrunnerの失敗/成功テストを追加した。
+- テスト名の3候補は、CLI呼び出しhelper・外部ast-grep runnerがbare contextにないことによる候補と判断。永続ID・名称順は実CLIの独立プロセス結果とリテラルの期待値をassertし、ASTはfixture実行の件数と失敗の有無をassertしている。補助的にhelperが見えるlocated contextで3回判定し、結果を別記録する。
+- 指針のproject ruleは未校正のwarningとして扱う。モデルの候補を自動修正・自動マージの根拠にはしない。
+
+### 未完了
+
+- 実際のindex snapshotに対する `npm run hook:commit` が終了0。型・ESLint・format・ASTがすべて成功。[記録](verification/2026-10-04-typescript/staged-gate.txt)。ステージ一覧に秘密の `.env` がないことを確認した。
+- located contextでテスト名を3回再判定し、CLIの2候補は消えた。外部AST fixtureの候補は残った（13対象・missing 0・errorsなし）。fixture実行と件数のassertは維持し、未解決のモデル候補として記録する。[結果](verification/2026-10-04-typescript/jev-helper-context-review.json)。
+
+- 全体目標は継続。Task/Room/Event/daemon/Runtime/Memory/Scheduler/Sandbox/Workflow/権限/外部連携/TUI/実務一周はまだ未完了。
+- 次の検証単位はTSのTask作成・取得・割当・状態と不変履歴の一周。

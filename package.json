@@ -1,0 +1,49 @@
+{
+  "name": "org-kernel",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first AI Company Kernel",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "bin": {
+    "org": "dist/src/cli.js"
+  },
+  "scripts": {
+    "clean": "node --input-type=module -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });\"",
+    "build": "npm run clean && tsc && node --input-type=module -e \"import { chmodSync } from 'node:fs'; chmodSync('dist/src/cli.js', 0o755);\"",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/*.test.js",
+    "test:e2e": "npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/cli.test.js",
+    "check": "npm run check:static && npm test && npm run review:plan",
+    "start": "node --disable-warning=ExperimentalWarning dist/src/cli.js",
+    "lint": "eslint src tests scripts eslint.config.mjs --max-warnings 0",
+    "lint:ast": "ast-grep scan src --report-style short --color never",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/**/*.ts\" \"*.{json,mjs,yml}\" \"quality/**/*.yml\" \".jev-lint/**/*.{yml,yaml}\"",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/**/*.ts\" \"*.{json,mjs,yml}\" \"quality/**/*.yml\" \".jev-lint/**/*.{yml,yaml}\"",
+    "review:plan": "jev-lint check src tests scripts --dry-run --json",
+    "review:semantic": "node --env-file-if-exists=.env node_modules/jev-lint/dist/cli.js check src tests scripts --fail-on error --json --record .jev-lint/latest-run.json",
+    "check:static": "npm run typecheck && npm run lint && npm run format:check && npm run lint:ast",
+    "hooks:install": "lefthook install",
+    "hook:commit": "node scripts/local-gate.ts pre-commit",
+    "hook:push": "node scripts/local-gate.ts pre-push",
+    "verify:head": "node scripts/local-gate.ts head"
+  },
+  "devDependencies": {
+    "@ast-grep/cli": "0.45.3",
+    "@eslint/js": "10.0.1",
+    "@types/node": "22.20.5",
+    "eslint": "10.12.0",
+    "jev-lint": "0.7.0",
+    "lefthook": "2.1.16",
+    "node": "24.21.0",
+    "prettier": "3.9.9",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.0"
+  },
+  "files": [
+    "dist/src",
+    "README.md"
+  ]
+}

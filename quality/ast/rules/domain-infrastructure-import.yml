@@ -1,0 +1,13 @@
+id: domain-infrastructure-import
+language: TypeScript
+severity: error
+message: Domain code cannot import infrastructure or application services.
+files:
+  - src/**/domain.ts
+  - src/**/port.ts
+rule:
+  all:
+    - kind: import_statement
+    - has:
+        kind: string
+        regex: "node:|^['\"](fs|path|os|crypto|sqlite|child_process|net|http|https|timers)['\"]$|/(sqlite|service|cli)\\.js"

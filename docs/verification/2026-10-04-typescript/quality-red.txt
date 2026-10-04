@@ -1,0 +1,62 @@
+
+> org-kernel@0.1.0 test
+> npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/*.test.js
+
+
+> org-kernel@0.1.0 build
+> npm run clean && tsc
+
+
+> org-kernel@0.1.0 clean
+> node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
+
+✔ empty registry reports no agents and returns an empty JSON array (84.45375ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (167.239916ms)
+✔ duplicate registration fails without replacing the existing agent (163.800667ms)
+✔ text output includes id name role and runtime (123.46725ms)
+✔ empty or whitespace-only identity fields cannot register an agent (513.137542ms)
+✔ missing database parent directories are created (86.516084ms)
+✔ storage errors return failure on stderr without a stack trace (82.549541ms)
+✔ unicode and quote characters are saved as values rather than SQL (168.765542ms)
+✔ default database is persisted only under the isolated HOME (80.446375ms)
+✔ invalid arguments fail before creating a database and help succeeds (194.691417ms)
+✔ agent construction preserves values and uses the supplied identity and timestamp (1.058084ms)
+✔ agent construction rejects each missing textual value (0.345541ms)
+✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (7.573625ms)
+✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (0.508833ms)
+✖ every architecture rule fixture runs and detects its planted violations (24.291041ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 14
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1718.037542
+
+✖ failing tests:
+
+test at dist/tests/quality-ast.test.js:7:1
+✖ every architecture rule fixture runs and detects its planted violations (24.291041ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /Configuration not found/. Input:
+  
+  'Running 2 tests\n' +
+    'Configuration not found! domain-infrastructure-import\n' +
+    'Configuration not found! domain-ambient-state\n' +
+    '\n' +
+    '----------- Case Details -----------\n' +
+    '\n' +
+    'test result: ok. 0 passed; 0 failed;\n'
+  
+      at TestContext.<anonymous> (file:///Users/umaidashi/Documents/git/org/dist/tests/quality-ast.test.js:14:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Running 2 tests\nConfiguration not found! domain-infrastructure-import\nConfiguration not found! domain-ambient-state\n\n----------- Case Details -----------\n\ntest result: ok. 0 passed; 0 failed;\n',
+    expected: /Configuration not found/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }

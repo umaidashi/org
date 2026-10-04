@@ -1,0 +1,185 @@
+
+> org-kernel@0.1.0 check
+> npm run check:static && npm test && npm run review:plan
+
+
+> org-kernel@0.1.0 check:static
+> npm run typecheck && npm run lint && npm run format:check && npm run lint:ast
+
+
+> org-kernel@0.1.0 typecheck
+> tsc --noEmit
+
+
+> org-kernel@0.1.0 lint
+> eslint src tests scripts eslint.config.mjs --max-warnings 0
+
+
+> org-kernel@0.1.0 format:check
+> prettier --check "src/**/*.ts" "tests/**/*.ts" "scripts/**/*.ts" "*.{json,mjs,yml}" "quality/**/*.yml" ".jev-lint/**/*.{yml,yaml}"
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> org-kernel@0.1.0 lint:ast
+> ast-grep scan src --report-style short --color never
+
+
+> org-kernel@0.1.0 test
+> npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/*.test.js
+
+
+> org-kernel@0.1.0 build
+> npm run clean && tsc && node --input-type=module -e "import { chmodSync } from 'node:fs'; chmodSync('dist/src/cli.js', 0o755);"
+
+
+> org-kernel@0.1.0 clean
+> node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
+
+✔ agent construction preserves values and uses the supplied identity and timestamp (1.482709ms)
+✔ agent construction rejects each missing textual value (0.300833ms)
+✔ TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time (16.3715ms)
+✔ an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict (0.566542ms)
+✔ empty registry reports no agents and returns an empty JSON array (92.700042ms)
+✔ agents survive separate CLI processes with stable identity and name ordering (180.871833ms)
+✔ duplicate registration fails without replacing the existing agent (197.728708ms)
+✔ text output includes id name role and runtime (159.978959ms)
+✔ empty or whitespace-only identity fields cannot register an agent (603.053083ms)
+✔ missing database parent directories are created (86.097ms)
+✔ storage errors return failure on stderr without a stack trace (84.134333ms)
+✔ unicode and quote characters are saved as values rather than SQL (185.997917ms)
+✔ default database is persisted only under the isolated HOME (115.092291ms)
+✔ invalid arguments fail before creating a database and help succeeds (461.960834ms)
+✔ an explicitly empty database path cannot silently register an ephemeral agent (80.161375ms)
+✔ a corrupted database is reported as storage failure rather than an empty registry (40.01425ms)
+✔ pre-commit reads staged contents even when the worktree contains a passing replacement (71.305208ms)
+✔ pre-push reads the selected commit rather than staged or working changes (108.33175ms)
+✔ pre-push parses all actual local commits and skips remote deletions (0.694666ms)
+✔ snapshot refuses invalid object ids without running a check (22.76425ms)
+✔ the actual pre-commit gate blocks bad staged code without modifying the worktree (527.6885ms)
+✔ every architecture rule fixture runs and detects its planted violations (12.903791ms)
+✔ lint rejects unsafe generated code and infrastructure imports in domain code (1048.195833ms)
+✔ lint accepts a pure function with explicit typed inputs (983.9295ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2371.8985
+
+> org-kernel@0.1.0 review:plan
+> jev-lint check src tests scripts --dry-run --json
+
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 64,
+  "cached": 60,
+  "requests": 3,
+  "tokens": 6965,
+  "usd": 0.00029253,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "scripts/git-snapshot.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2361,
+      "degraded": null
+    },
+    {
+      "file": "scripts/push-input.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 1616,
+      "degraded": null
+    },
+    {
+      "file": "tests/local-hooks.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 2988,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 2,
+      "requests": 2,
+      "tokens": 3977,
+      "usd": 0.000167034,
+      "share": 0.5709978463747308
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 2,
+      "requests": 1,
+      "tokens": 2988,
+      "usd": 0.000125496,
+      "share": 0.4290021536252692
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 0,
+    "files": []
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": [
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration"
+  ]
+}

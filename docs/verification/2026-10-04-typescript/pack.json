@@ -1,0 +1,101 @@
+[
+  {
+    "id": "org-kernel@0.1.0",
+    "name": "org-kernel",
+    "version": "0.1.0",
+    "size": 7203,
+    "unpackedSize": 19681,
+    "shasum": "530a17d0c66e302737e25795768efda535c750f3",
+    "integrity": "sha512-jw744uKdFaMQIxxERP51dhwtldE8Ch0tKkmqHTxQQojcL4SPB8Mq9qH6jyQxB0PVLxfurRUxFYRsjhJdmUnxgw==",
+    "filename": "org-kernel-0.1.0.tgz",
+    "files": [
+      {
+        "path": "README.md",
+        "size": 3392,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/domain.d.ts",
+        "size": 454,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/domain.js",
+        "size": 281,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/domain.js.map",
+        "size": 405,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/port.d.ts",
+        "size": 141,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/port.js",
+        "size": 43,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/port.js.map",
+        "size": 113,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/service.d.ts",
+        "size": 238,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/service.js",
+        "size": 237,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/service.js.map",
+        "size": 344,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/sqlite.d.ts",
+        "size": 303,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/sqlite.js",
+        "size": 1732,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/agents/sqlite.js.map",
+        "size": 1644,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/cli.d.ts",
+        "size": 115,
+        "mode": 420
+      },
+      {
+        "path": "dist/src/cli.js",
+        "size": 3966,
+        "mode": 493
+      },
+      {
+        "path": "dist/src/cli.js.map",
+        "size": 3976,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 2297,
+        "mode": 420
+      }
+    ],
+    "entryCount": 17,
+    "bundled": []
+  }
+]

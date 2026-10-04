@@ -1,0 +1,3 @@
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+run: typescript/test-name-verifies-claim from /Users/umaidashi/Documents/git/org/node_modules/jev-lint/rules
+recorded 13 answer(s) to .jev-lint/test-name-retry.json

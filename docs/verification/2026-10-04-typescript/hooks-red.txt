@@ -1,0 +1,18 @@
+
+> org-kernel@0.1.0 test
+> npm run build && node --disable-warning=ExperimentalWarning --test dist/tests/*.test.js
+
+
+> org-kernel@0.1.0 build
+> npm run clean && tsc && node --input-type=module -e "import { chmodSync } from 'node:fs'; chmodSync('dist/src/cli.js', 0o755);"
+
+
+> org-kernel@0.1.0 clean
+> node --input-type=module -e "import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });"
+
+tests/local-hooks.test.ts(7,33): error TS2307: Cannot find module '../scripts/git-snapshot.js' or its corresponding type declarations.
+tests/local-hooks.test.ts(8,34): error TS2307: Cannot find module '../scripts/push-input.js' or its corresponding type declarations.
+tests/local-hooks.test.ts(21,67): error TS7006: Parameter 'snapshot' implicitly has an 'any' type.
+tests/local-hooks.test.ts(27,43): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/local-hooks.test.ts(49,63): error TS7006: Parameter 'snapshot' implicitly has an 'any' type.

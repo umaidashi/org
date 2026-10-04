@@ -1,0 +1,9 @@
+pre-commit:
+  jobs:
+    - name: staged-static-checks
+      run: npm run hook:commit
+pre-push:
+  jobs:
+    - name: committed-tests-and-semantic-review
+      run: npm run hook:push
+      use_stdin: true
