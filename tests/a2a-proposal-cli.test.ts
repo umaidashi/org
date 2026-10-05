@@ -6,9 +6,14 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
-test.each([false, true])(
-  'Coordinator runtime proposal auto=%s adopts once into specialist execution and human decision across daemon restart',
-  async (automatic) => {
+test.each([
+  [false, false],
+  [true, false],
+  [false, true],
+  [true, true],
+])(
+  'Coordinator runtime proposal auto=%s WorkItem=%s adopts once into specialist execution and human decision across daemon restart',
+  async (automatic, linked) => {
     const home = mkdtempSync('/tmp/org-a2a-proposal-cli-'),
       db = home + '/org.db',
       socket = home + '/org.sock';
@@ -124,13 +129,24 @@ test.each([false, true])(
         worker = agents.find((a) => a.name === 'Specialist');
       assert.ok(chief && worker && typeof chief.id === 'string' && typeof worker.id === 'string');
       json(['--direct', 'agent', 'report', worker.id, '--to', chief.id]);
+      const work = linked
+        ? entity([
+            '--direct',
+            'task',
+            'create',
+            'Source work',
+            '--objective',
+            'Preserve external work',
+          ])
+        : undefined;
       const room = entity([
         '--direct',
         'room',
         'create',
         'Company',
         '--type',
-        'group',
+        linked ? 'task' : 'group',
+        ...(work ? ['--task', work.id] : []),
         '--human',
         'founder',
         '--agent',
@@ -199,6 +215,7 @@ test.each([false, true])(
       );
       assert.ok(typeof task.id === 'string' && typeof task.version === 'number');
       assert.equal(task.owner, worker.id);
+      assert.equal(task.parentId, work?.id ?? null);
       json([
         'task',
         'review',
@@ -228,6 +245,7 @@ test.each([false, true])(
         list(['room', 'messages', room.id]).find((m) => m.id === original.id)?.content,
         proposal,
       );
+      if (work) assert.deepEqual(entity(['task', 'get', work.id]), work);
     } finally {
       if (daemon) {
         run(['daemon', 'stop']);

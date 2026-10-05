@@ -79,6 +79,8 @@ test('code proof polling permits combined Runtime and Docker limits', async () =
   );
 });
 async function proof(code = false) {
+  const codeObjective =
+    'Implement answer.ts exporting sumIntegers(a:number,b:number):number. Accept only safe integers and throw on noninteger or unsafe sum. Write answer.test.ts with Bun tests of valid and invalid inputs. Import from ./answer.js (Bun resolves answer.ts). Follow strict TypeScript with no any, no non-null assertions, no floating promises. Run bun --no-env-file test answer.test.ts inside Sandbox and throw if tests fail. Use no external services. Return only the host Sandbox JSON proposal with TypeScript code that writes these files and executes tests.';
   const home = mkdtempSync('/tmp/org-a2a-proposal-cli-'),
     db = home + '/org.db',
     socket = home + '/org.sock';
@@ -87,13 +89,18 @@ async function proof(code = false) {
       process.execPath,
       [
         '--no-env-file',
+        ...(code ? ['--preload', home + '/linear-fixture.ts'] : []),
         cli,
         '--db',
         db,
         ...(args.includes('--direct') ? [] : ['--socket', socket]),
         ...args,
       ],
-      { encoding: 'utf8', timeout: 130000 },
+      {
+        encoding: 'utf8',
+        timeout: 130000,
+        env: code ? { ...process.env, LINEAR_API_KEY: 'fixture-code-issue-key' } : process.env,
+      },
     );
   const json = (args: string[]): unknown => {
     const r = run([...args, '--json']);
@@ -119,6 +126,7 @@ async function proof(code = false) {
   const launch = async () => {
     daemon = spawn(process.execPath, [
       '--no-env-file',
+      ...(code ? ['--preload', home + '/linear-fixture.ts'] : []),
       cli,
       '--db',
       db,
@@ -151,6 +159,11 @@ async function proof(code = false) {
   };
   const wait = waitForProjection;
   try {
+    if (code)
+      writeFileSync(
+        home + '/linear-fixture.ts',
+        `import assert from 'node:assert/strict';const original=globalThis.fetch;globalThis.fetch=async(input,init)=>{if(String(input)==='https://api.linear.app/graphql'){assert.equal(init.method,'POST');assert.equal(new Headers(init.headers).get('Authorization'),'fixture-code-issue-key');assert.deepEqual(JSON.parse(init.body).variables,{id:'ORG-1'});return Response.json(${JSON.stringify({ data: { issue: { id: '11111111-1111-4111-8111-111111111111', identifier: 'ORG-1', title: 'Integer addition fixture', description: codeObjective, url: 'https://linear.app/example/issue/ORG-1/integer-addition' } } })});}return original(input,init);};`,
+      );
     assert.equal(
       run([
         '--direct',
@@ -200,13 +213,15 @@ async function proof(code = false) {
       worker = agents.find((a) => a.name === 'Specialist');
     assert.ok(chief && worker && typeof chief.id === 'string' && typeof worker.id === 'string');
     json(['--direct', 'agent', 'report', worker.id, '--to', chief.id]);
+    const work = code ? entity(['--direct', 'task', 'import-linear', 'ORG-1']) : undefined;
     const room = entity([
       '--direct',
       'room',
       'create',
       'Company',
       '--type',
-      'group',
+      code ? 'task' : 'group',
+      ...(work ? ['--task', work.id] : []),
       '--human',
       'founder',
       '--agent',
@@ -224,7 +239,7 @@ async function proof(code = false) {
       to: worker.id,
       payload: {
         objective: code
-          ? 'Implement answer.ts exporting sumIntegers(a:number,b:number):number. Accept only safe integers and throw on noninteger or unsafe sum. Write answer.test.ts with Bun tests of valid and invalid inputs. Import from ./answer.js (Bun resolves answer.ts). Follow strict TypeScript with no any, no non-null assertions, no floating promises. Run bun --no-env-file test answer.test.ts inside Sandbox and throw if tests fail. Use no external services. Return only the host Sandbox JSON proposal with TypeScript code that writes these files and executes tests.'
+          ? String(work?.objective)
           : 'Use only supplied information. Calculate 6 * 7 and reply exactly RESULT_42. Do not use tools or external services.',
       },
     });
@@ -289,6 +304,7 @@ async function proof(code = false) {
     });
     assert.ok(typeof task.id === 'string' && typeof task.version === 'number');
     assert.equal(task.owner, worker.id);
+    assert.equal(task.parentId, work?.id ?? null);
     const taskRoom = list(['room', 'list']).find((r) => r.taskId === task.id);
     assert.ok(taskRoom && typeof taskRoom.id === 'string');
     const artifacts = list(['task', 'artifacts', task.id]);
@@ -417,6 +433,11 @@ async function proof(code = false) {
     await launch();
     assert.deepEqual(entity(['a2a', 'adopt', room.id, '--message', original.id]), adopted);
     assertUniqueDelegation(list(['task', 'list']), `org://rooms/${room.id}/messages/${adoptedId}`);
+    if (work) {
+      assert.deepEqual(entity(['task', 'get', work.id]), work);
+      assert.equal(list(['task', 'history', work.id]).length, 1);
+      assert.deepEqual(entity(['--direct', 'task', 'import-linear', 'ORG-1']), work);
+    }
     assert.deepEqual(list(['memory', 'list', '--scope', 'task:' + task.id]), [memory]);
     assert.equal(list(['a2a', 'list', room.id]).filter((m) => m.type === 'decision').length, 1);
     assert.equal(list(['a2a', 'list', room.id]).filter((m) => m.id === adopted.id).length, 1);
