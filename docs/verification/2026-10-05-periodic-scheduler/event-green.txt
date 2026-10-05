@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/event-sqlite.test.ts:
+(pass) Event log remains immutable when subscription changes or insertion fails [10.93ms]
+(pass) idempotent Event publication reuses canonical evidence across adapters and rejects conflicts without replacing history [7.70ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [42.00ms]

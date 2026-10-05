@@ -1,3 +1,5 @@
+import { SqliteScheduleRepository } from '../schedules/sqlite.js';
+import { pollSchedules } from '../schedules/service.js';
 import { pollExecutionTasks } from '../tasks/autonomy.js';
 import { SqliteWakeupJournal } from '../activation/sqlite.js';
 import { pollRoomWakeups, recoverWakeups } from '../activation/poll.js';
@@ -110,6 +112,7 @@ function openOperations(
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
+  let schedules: SqliteScheduleRepository | undefined;
   let agents: SqliteAgentRepository | undefined;
   let tasks: SqliteTaskProvider | undefined;
   let rooms: SqliteRoomRepository | undefined;
@@ -119,6 +122,8 @@ function openOperations(
   try {
     const eventBus = new SqliteEventBus(db);
     events = eventBus;
+    const scheduleRepository = new SqliteScheduleRepository(db);
+    schedules = scheduleRepository;
     const agentRepository = new SqliteAgentRepository(db);
     agents = agentRepository;
     const taskProvider = new SqliteTaskProvider(db);
@@ -189,7 +194,10 @@ function openOperations(
         () => new Date().toISOString(),
       );
     return {
-      dispatch: () => dispatchEvents(eventBus, agentRepository, taskProvider, journal),
+      dispatch: () => {
+        pollSchedules(scheduleRepository, eventBus, () => Date.now());
+        return dispatchEvents(eventBus, agentRepository, taskProvider, journal);
+      },
       deliveries: () => journal.list(),
       wakeups: () => wakeupJournal.list(),
       ...(wakeUp
@@ -244,6 +252,7 @@ function openOperations(
           await runtime.shutdown();
         } finally {
           releaseResources([
+            scheduleRepository,
             wakeupJournal,
             memoryProvider,
             sessionStore,
@@ -259,8 +268,8 @@ function openOperations(
   } catch (error) {
     try {
       releaseResources(
-        [wakeups, memory, sessions, rooms, tasks, agents, events, journal].flatMap((resource) =>
-          resource ? [resource] : [],
+        [schedules, wakeups, memory, sessions, rooms, tasks, agents, events, journal].flatMap(
+          (resource) => (resource ? [resource] : []),
         ),
       );
     } catch (cleanup) {
@@ -297,6 +306,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
   }
   const journal = new SqliteDeliveryJournal(command.db);
   let events: SqliteEventBus | undefined;
+  let schedules: SqliteScheduleRepository | undefined;
   let agents: SqliteAgentRepository | undefined;
   let tasks: SqliteTaskProvider | undefined;
   try {
@@ -304,6 +314,8 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
     if (command.action === 'deliveries') result = journal.list();
     else {
       events = new SqliteEventBus(command.db);
+      schedules = new SqliteScheduleRepository(command.db);
+      pollSchedules(schedules, events, () => Date.now());
       agents = new SqliteAgentRepository(command.db);
       tasks = new SqliteTaskProvider(command.db);
       result = dispatchEvents(events, agents, tasks, journal);
@@ -311,7 +323,9 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
     console.log(JSON.stringify(result, null, command.json ? undefined : 2));
   } finally {
     releaseResources(
-      [tasks, agents, events, journal].flatMap((resource) => (resource ? [resource] : [])),
+      [schedules, tasks, agents, events, journal].flatMap((resource) =>
+        resource ? [resource] : [],
+      ),
     );
   }
 }

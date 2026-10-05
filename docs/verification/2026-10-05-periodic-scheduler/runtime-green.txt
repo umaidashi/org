@@ -1,0 +1,11 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-autonomy-cli.test.ts:
+(pass) Event subscription wakes assigned ExecutionTask with scoped Memory and stages one Artifact for explicit review without replay [3674.61ms]
+
+tests/schedule-cli.test.ts:
+(pass) Schedule CLI publishes a due Event once across worker restarts and preserves enable state [677.08ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 2 files. [4.38s]

@@ -1,0 +1,14 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/schedule-domain.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module '../src/schedules/domain.js' from '<REPO>/tests/schedule-domain.test.ts'
+-------------------------------
+
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [39.00ms]

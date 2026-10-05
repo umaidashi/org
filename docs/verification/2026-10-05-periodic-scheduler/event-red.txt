@@ -1,0 +1,18 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/event-sqlite.test.ts:
+(pass) Event log remains immutable when subscription changes or insertion fails [13.69ms]
+58 |   const path = join(dir, 'org.db');
+59 |   const first = new SqliteEventBus(path), second = new SqliteEventBus(path);
+60 |   const connection = new Database(path);
+61 |   try {
+62 |     const event = createEvent({ type: 'schedule.tick', source: 'scheduler', payload: { a: 1, b: 2 } }, { id: 'slot', createdAt: 'due' });
+63 |     assert.deepEqual(first.publishOnce(event), event);
+                                ^
+TypeError: first.publishOnce is not a function. (In 'first.publishOnce(event)', 'first.publishOnce' is undefined)
+      at <anonymous> (<REPO>/tests/event-sqlite.test.ts:63:28)
+(fail) idempotent Event publication reuses canonical evidence across adapters and rejects conflicts without replacing history [5.36ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [54.00ms]

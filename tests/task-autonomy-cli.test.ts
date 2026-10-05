@@ -364,6 +364,44 @@ test('Event subscription wakes assigned ExecutionTask with scoped Memory and sta
     assert.equal(entity(['task', 'get', delegatedTaskId]).version, completed.version);
     assert.equal(turns(), 4);
     assert.deepEqual(json(['a2a', 'list', delegationRoom.id]), returned);
+    entity([
+      'event',
+      'subscribe',
+      'schedule.pulse',
+      '--subscriber-type',
+      'agent',
+      '--subscriber',
+      chief,
+    ]);
+    const schedule = entity([
+      'schedule',
+      'create',
+      'Pulse',
+      '--every-ms',
+      '60000',
+      '--start-at',
+      new Date(Date.now() + 100).toISOString(),
+      '--event',
+      'schedule.pulse',
+    ]);
+    const slotId = `schedule:${schedule.id.length}:${schedule.id}:0`;
+    await wait(() => eventTask(slotId)?.status === 'waiting_approval');
+    const scheduledTask = eventTask(slotId);
+    assert.ok(scheduledTask && Array.isArray(scheduledTask.outputArtifacts));
+    assert.equal(scheduledTask.owner, chief);
+    assert.equal(scheduledTask.outputArtifacts.length, 1);
+    assert.equal(turns(), 5);
+    const scheduleEvents = json(['event', 'list']);
+    assert.equal(run(['schedule', 'disable', schedule.id]).status, 0);
+    assert.equal(run(['daemon', 'stop']).status, 0);
+    await daemon.exited;
+    daemon = undefined;
+    daemon = launch();
+    await daemon.ready;
+    await Bun.sleep(100);
+    assert.deepEqual(json(['event', 'list']), scheduleEvents);
+    assert.equal(turns(), 5);
+    assert.equal(eventTask(slotId)?.version, scheduledTask.version);
   } finally {
     if (daemon) {
       spawnSync(process.execPath, ['--no-env-file', cli, 'daemon', 'stop', '--socket', socket], {

@@ -1,0 +1,21 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/event-sqlite.test.ts:
+(pass) Event log remains immutable when subscription changes or insertion fails [9.57ms]
+68 |     assert.throws(() => first.publishOnce({ ...event, id: 'next' }), /write failed/);
+69 |     assert.deepEqual(second.list(), [event]);
+70 |     connection.exec('DROP TRIGGER fail_once');
+71 |     second.publishOnce({ ...event, id: 'next' });
+72 |     assert.equal(first.list().length, 2);
+73 |     assert.throws(() => first.publishOnce({ ...event, id: 'sparse', payload: { items: new Array<string>(1) } }), /JSON/);
+                ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/event-sqlite.test.ts:73:12)
+(fail) idempotent Event publication reuses canonical evidence across adapters and rejects conflicts without replacing history [7.31ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [45.00ms]

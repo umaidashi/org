@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/schedule-cli.test.ts:
+61 |         typeof created.id === 'string',
+62 |     );
+63 |     assert.equal(run(['daemon', '--once']).status, 0);
+64 |     const events = json(['event', 'list']);
+65 |     assert.ok(Array.isArray(events));
+66 |     assert.equal(events.length, 1);
+                ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 1
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/schedule-cli.test.ts:66:12)
+(fail) Schedule CLI publishes a due Event once across worker restarts and preserves enable state [312.02ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [337.00ms]

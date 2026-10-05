@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
@@ -68,6 +69,20 @@ export class SqliteEventBus implements EventBus {
       .query('INSERT INTO events(id, data) VALUES (?, ?)')
       .run(event.id, JSON.stringify(event));
     return event;
+  }
+  publishOnce(event: Event): Event {
+    const planned = createEvent(event, event);
+    return this.db
+      .transaction(() => {
+        const row = this.db.query('SELECT data FROM events WHERE id=?').get(planned.id);
+        if (record(row)) {
+          const stored = decodeEvent(row.data);
+          if (!isDeepStrictEqual(stored, planned)) throw new Error('Event idempotency conflict');
+          return stored;
+        }
+        return this.publish(planned);
+      })
+      .immediate();
   }
   get(id: string): Event {
     const row = this.db.query('SELECT data FROM events WHERE id=?').get(id);

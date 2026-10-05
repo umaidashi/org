@@ -1,0 +1,23 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/schedule-domain.test.ts:
+(pass) fixed schedules compute the latest due slot from supplied time and reject unsafe inputs [0.94ms]
+59 |   assert.deepEqual(emitted[0], emitted[1]);
+60 |   assert.equal(emitted[0]?.createdAt, '1970-01-01T00:00:01.000Z');
+61 |   now = 9000;
+62 |   pollSchedules({ list: () => [schedule] }, writer, () => now);
+63 |   assert.equal(emitted[2]?.createdAt, '1970-01-01T00:00:09.000Z');
+64 |   now = 4000; pollSchedules({ list: () => [schedule] }, writer, () => now); assert.equal(emitted.length, 3);
+                                                                                        ^
+AssertionError: Expected values to be strictly equal:
+
+4 !== 3
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (<REPO>/tests/schedule-domain.test.ts:64:84)
+(fail) schedule polling emits the same Event for the same slot and propagates a failed write [0.95ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [41.00ms]

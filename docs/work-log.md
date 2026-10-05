@@ -558,3 +558,18 @@
 - Ruling: archived原Roomへの返送は延期しTask成果を保持。通知はレビュー可能な結果であり自動承認しない。初回status/versionを不変通知、後続レビューdecision通知は別変更。costは最新レビュー状態をTask側で参照すること。
 - 全178/178・全静的ゲート成功、35.16秒。実Jev911判定missing/unsure0・errors/degradedなし。実Claude Maxの委譲/scoped Memory/成果物/typed result/Coordinator marker応答/明示レビュー/再起動no replayの全boolean成功。[実成否](verification/2026-10-05-a2a-task-results/real-claude-max.txt)。raw応答/認証情報は公開しない。
 - Final: 独立Reviewer Critical/Important/Minorなし。service7+実CLI1計8件も独立成功。Final Ruling: archived返送延期/後続review decision通知/Agent本人認証は今回の明記された制約。Exactly-onceの外部副作用保証は主張せず、返送保存後の再実行抑止を実Room原本で検証。costは後続通知と外部副作用保証が残ること。Next: Schedulerの定期Eventと再起動整合性、続いてSandbox/Permission/Approvalを進める。
+
+## main公開：typed委譲成果返送
+
+- main8e9396dへ通常push成功、pre-push全178テスト/実Jev/公開検査52.26秒。force-pushなし。
+
+## 固定間隔Scheduler
+
+- Notion07再取得last edited 2026-10-04T01:51:58.336Z。[計画](superpowers/plans/2026-10-05-periodic-scheduler.md)。EventBus.publishOnceをBun SQLite native transaction.immediateで実装、同ID同内容（JSON property順非依存）は原本再利用、異内容はconflict。2Adapter/保存障害再試行/既存不変triggerを実DB RED→GREEN。疎配列payloadがJSON nullになるREDも確認し、既存共通jsonValueのArray.fromで全callerのholeを検証。
+- Scheduleの純粋判断と最小Port/SQLite/CLIを追加。definitionはWITHOUT ROWIDとSQL triggerでUPDATE/DELETE/REPLACE禁止、enabledのみ明示変更。UTC startAtMs/正safe整数intervalを保存、CLI canonical ISO境界変換で既存domain AST制約を保持。不正引数はDB作成前拒否。
+- 既存daemon dispatch前に定期EventをpublishOnceし、Subscription→Task→Runtimeへ接続。別timer/queue/cursorを増やさずEvent logをreceiptにする。時刻巻戻りで未発行の過去slotを発火しないよう原Event receiptのhigh-waterを使用、RED→GREEN。
+- CLI RED（未command/0 Events）→GREEN、disable/get/enable/別worker再pollの原Event保持。常駐e2eも定期Event→Agent/scopedMemory→成果物/承認待ち→disable/再起動no replayを確認。既存wake-upへ余分な引数を挿入した配線ミスを型検査/既存Runtime e2eが検出、訂正後に実行成功を確認する。
+- Ruling: missed slotは最新一件へcoalesce、clock rollbackは保存済み最大slot未満を抑止。cron/calendar/timezone専用APIは後続。UTC epochのstartAtMsをJSONに保持しCLIでcanonical UTC ISO変換。costは全missed runのcatch-upや専用calendar APIがないこと。Event log scanの性能上限をponytailコメントに記録、測定前にcursor/queueを追加しない。
+- 全183/183・型/lint/format/AST成功、40.40秒。実Jev949判定missing/unsure0・errors/degradedなし。
+- 実Claude Maxでも定期Schedule→scheduler source Event→scoped Memoryだけのmarker→Task成果物/承認待ち→明示レビュー→disable保持/再起動後の次Scheduleを確認し全boolean成功。[実成否](verification/2026-10-05-periodic-scheduler/real-claude-max.txt)。raw応答/資格情報は公開しない。
+- Final: 独立Reviewer Critical/Important/Minorなし。domain/SQLite5+実CLI2計7件も独立成功。Final Ruling: 全missed slot catch-up/専用cron-calendar-timezone/cursorは今回の明記された後続、costは固定間隔とcoalesceに限られること。Next: Sandboxの実行/破棄境界とArtifactファイル回収、Permission/Approval/Auditへ進む。

@@ -62,7 +62,7 @@ export function jsonObject(value: unknown): JsonObject {
 function jsonValue(value: unknown): JsonValue {
   if (value === null || typeof value === 'boolean' || typeof value === 'string') return value;
   if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (Array.isArray(value)) return value.map((item: unknown) => jsonValue(item));
+  if (Array.isArray(value)) return Array.from(value, (item: unknown) => jsonValue(item));
   return jsonObject(value);
 }
 export function validateEventInput(input: EventInput): void {

@@ -1,0 +1,19 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/schedule-sqlite.test.ts:
+(pass) Schedule definitions remain immutable while enable changes survive reopen [8.77ms]
+
+tests/event-sqlite.test.ts:
+(pass) Event log remains immutable when subscription changes or insertion fails [7.32ms]
+(pass) idempotent Event publication reuses canonical evidence across adapters and rejects conflicts without replacing history [5.91ms]
+
+tests/schedule-cli.test.ts:
+(pass) Schedule CLI publishes a due Event once across worker restarts and preserves enable state [835.19ms]
+
+tests/schedule-domain.test.ts:
+(pass) fixed schedules compute the latest due slot from supplied time and reject unsafe inputs [0.43ms]
+(pass) schedule polling emits the same Event for the same slot and propagates a failed write [0.58ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 4 files. [902.00ms]
