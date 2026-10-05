@@ -1,0 +1,7 @@
+RED: missing snapshot module; actual CLI unknown --room. Native import e2e RED: transport DB not forwarded -> Room not found.
+GREEN: 2 DB-free UT; direct+daemon HTTP-fixture import immutable Room originals, reopen and Context provenance. Targeted 4 pass / 784ms before unknown fixture lint correction.
+Initial full check: unsafe JSON.parse assignments in fixture rejected. Replaced with unknown and assertions.
+Final full check: 311 pass, 9 skip, 0 fail; 320 tests / 162 files / 68.41s. Nonempty static/AST/dry-run gates pass.
+Actual Jev final:1633 subjects,101 warnings,missing=0,unsure=0,errors=[],degraded=[].
+Independent review:no Critical/Important. Deferred Minor: import-specific archive-while-reading / append-failure fixtures. Native save transaction revalidates Room. Stale README corrected under user README-update request.
+Actual Notion REST remains unverified without API credential. No external writes. Owned daemon/temp DB cleaned by fixture.

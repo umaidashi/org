@@ -55,7 +55,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org sandbox cancel TASK_ID
        org workflow run|status|cancel|list|history [OPTIONS]
        org schedule create|list|get|enable|disable [OPTIONS]
-       org knowledge notion PAGE_ID [--json]
+       org knowledge notion PAGE_ID [--room ROOM --human HUMAN] [--json]
        org a2a send|adopt|get|list [OPTIONS]
        org memory capture|extract|consolidate|consolidations|get|list|search|invalidate [OPTIONS]
        org session start|send|resume|reply|stop|get|list|history [OPTIONS]
@@ -260,7 +260,7 @@ async function runApplication(
     return;
   }
   if (command.kind === 'knowledge') {
-    await runKnowledgeCommand(command.command, output);
+    await runKnowledgeCommand({ ...command.command, db }, output);
     return;
   }
   if (command.kind === 'a2a') {

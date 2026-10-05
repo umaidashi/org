@@ -17,6 +17,9 @@ test('Notion CLI rejects malformed input and missing credential before database 
     for (const args of [
       ['knowledge', 'notion', 'https://evil.test'],
       ['knowledge', 'notion', page, 'extra'],
+      ['knowledge', 'notion', page, '--room', 'r'],
+      ['knowledge', 'notion', page, '--human', 'h'],
+      ['knowledge', 'notion', page, '--room', ' ', '--human', 'h'],
       ['knowledge', 'notion', page, '--token', 'private-body'],
     ]) {
       const r = run(args);
@@ -61,6 +64,78 @@ test('Notion CLI direct and daemon paths retain native Markdown using explicit t
   assert.equal(document.content, body.markdown);
   assert.doesNotMatch(direct.stdout, /fixture-credential/);
   assert.equal(existsSync(db), false);
+  const created = run([
+    '--direct',
+    'agent',
+    'create',
+    'reader',
+    '--role',
+    'Reader',
+    '--runtime',
+    'codex',
+  ]);
+  assert.equal(created.status, 0, created.stderr);
+  const listed = run(['--direct', 'agent', 'list', '--json']);
+  const agents: unknown = JSON.parse(listed.stdout);
+  assert.ok(Array.isArray(agents));
+  const agent: unknown = agents[0];
+  assert.ok(
+    agent !== null && typeof agent === 'object' && 'id' in agent && typeof agent.id === 'string',
+  );
+  const madeRoom = run([
+    '--direct',
+    'room',
+    'create',
+    'Knowledge',
+    '--type',
+    'direct',
+    '--human',
+    'founder',
+    '--agent',
+    agent.id,
+    '--json',
+  ]);
+  assert.equal(madeRoom.status, 0, madeRoom.stderr);
+  const room: unknown = JSON.parse(madeRoom.stdout);
+  assert.ok(
+    room !== null && typeof room === 'object' && 'id' in room && typeof room.id === 'string',
+  );
+  const imported = run([
+    '--direct',
+    'knowledge',
+    'notion',
+    page,
+    '--room',
+    room.id,
+    '--human',
+    'founder',
+    '--json',
+  ]);
+  assert.equal(imported.status, 0, imported.stderr);
+  const snapshot: unknown = JSON.parse(imported.stdout);
+  assert.ok(
+    snapshot !== null &&
+      typeof snapshot === 'object' &&
+      'content' in snapshot &&
+      typeof snapshot.content === 'string',
+  );
+  assert.ok(snapshot.content.endsWith(body.markdown));
+  assert.ok(snapshot.content.includes('Notion source: https://www.notion.so/'));
+  assert.match(snapshot.content, /SHA256: [a-f0-9]{64}/);
+  const reopened = run(['--direct', 'room', 'messages', room.id, '--json']);
+  assert.equal(reopened.status, 0, reopened.stderr);
+  assert.deepEqual(JSON.parse(reopened.stdout), [JSON.parse(imported.stdout)]);
+  const outsider = run([
+    '--direct',
+    'knowledge',
+    'notion',
+    page,
+    '--room',
+    room.id,
+    '--human',
+    'outsider',
+  ]);
+  assert.equal(outsider.status, 1);
   const daemon = spawn(
     process.execPath,
     ['--no-env-file', '--preload', preload, cli, '--db', db, 'daemon', '--socket', socket],
@@ -84,6 +159,25 @@ test('Notion CLI direct and daemon paths retain native Markdown using explicit t
     const remote = run(['--socket', socket, 'knowledge', 'notion', page, '--json']);
     assert.equal(remote.status, 0, remote.stderr);
     assert.deepEqual(JSON.parse(remote.stdout), document);
+    const remoteImport = run([
+      '--socket',
+      socket,
+      'knowledge',
+      'notion',
+      page,
+      '--room',
+      room.id,
+      '--human',
+      'founder',
+      '--json',
+    ]);
+    assert.equal(remoteImport.status, 0, remoteImport.stderr);
+    const originals = run(['--socket', socket, 'room', 'messages', room.id, '--json']);
+    assert.equal(originals.status, 0, originals.stderr);
+    assert.deepEqual(JSON.parse(originals.stdout), [
+      JSON.parse(imported.stdout),
+      JSON.parse(remoteImport.stdout),
+    ]);
   } finally {
     run(['--socket', socket, 'daemon', 'stop']);
     daemon.kill('SIGTERM');

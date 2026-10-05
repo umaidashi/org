@@ -638,4 +638,6 @@ bun --env-file=.env src/cli.ts daemon
 bun run start knowledge notion PAGE_ID --json
 ```
 
-`NOTION_API_KEY`には対象ページのread権限を持つIntegration tokenを使います。値はGit・ログ・Runtimeへ渡しません。Notionのnative Markdown APIから一ページをGETし、canonical UUID・content hashを返します。切詰め/取得不能blockを含む応答は拒否し、10秒通信timeout・256KiB応答上限・redirect拒否を適用します。ページや添付URLへの書込・自動retryは行いません。native Markdownの対応範囲を超える意味的完全性、編集version snapshot、Room取込は後続です。アプリのNotion接続とは別認証です。
+`NOTION_API_KEY`には対象ページのread権限を持つIntegration tokenを使います。値はGit・ログ・Runtimeへ渡しません。Notionのnative Markdown APIから一ページをGETし、canonical UUID・content hashを返します。切詰め/取得不能blockを含む応答は拒否し、10秒通信timeout・256KiB応答上限・redirect拒否を適用します。ページや添付URLへの書込・自動retryは行いません。native Markdownの対応範囲を超える意味的完全性、編集version snapshotは後続です。アプリのNotion接続とは別認証です。
+
+Notion文書をRoomの不変原本へ取り込む場合は `knowledge notion PAGE_ID --room ROOM_ID --human HUMAN_ID --json`。active Roomの参加humanに限定し、本文にも出典URL/hashを保持します。各明示取込は新Messageで、自動重複排除やAgent起動は行いません。

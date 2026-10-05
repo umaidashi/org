@@ -982,3 +982,12 @@
 - GREEN6件11.40秒: malformed/noKey実CLIはDB前拒否、test-only HTTP fixtureのdirect/実daemon成功213ms、既存11秒並行e2eでknowledge40秒client成功。静的ゲート293→294files非空成功。自作daemon/DB削除済み。実Notion key未設定のためREST成功は未検証、全check/実jev中。
 - 全check309成功9skip0fail318tests161files60.91秒、型/lint/format/AST/dry-run非空成功。実jev1626対象missing/unsure0/errors/degraded空/warning100。新規候補はUUID validateの正規化（検証後canonical IDを返す意図）とCLI失敗経路（実プロセスのURL/余分引数/未知option/無keyで確認）で、保証との不一致なし。独立最終review中。
 - 独立最終review Critical/Importantなし。Minor保留: hashの独立既知SHA256値と空Markdown成功fixture。Reviewerのdaemonはsandbox listen EPERMで未検証、親の許可済み実daemon e2e成功を根拠とし製品障害とはしない。HTTP fixtureと実Notion REST未検証を区別。[証拠](verification/2026-10-06-notion-knowledge-read/check.txt)。Next: 既存Room原本保存を再利用し、Notion読取文書をContextへ接続する。
+
+### 2026-10-06 — Notion文書のRoom原本取込
+- [設計・計画](superpowers/plans/2026-10-06-notion-room-snapshot.md)。Ruling: 新テーブル/queueなし、既存Room appendとContextを使う。各明示取込は新しい不変Messageであり自動dedup/retry/activationはしない。
+- RED: snapshot module未実装、実CLI --room未対応。GREEN: DBなし2UT22ms、active参加humanをread前検査し失敗時appendなし、本文/metadataに出典とhashを保持。CLI配線後のnative e2eは次に確認する。
+- 前branch ed4afebはmainへ通常push成功、commit対象ゲート76.33秒。Room取込の初回static成功。
+- native取込e2eはRoom not foundでRED。transportで分離されたDBをknowledgeへ上書き配線していなかったことが原因。既存workflow/roomと同じ起動点db配線へ修正し、direct/daemon共通で指定DBを使う。
+- direct/daemon取込・再open・出典Contextのtargeted4成功784ms。初回全checkはfixtureのJSON.parse typed代入3箇所でlint失敗、unknownとassertによる型検査へ訂正。
+- 独立最終review Critical/Importantなし。Minor保留: read中archive/append失敗の取込固有fixture（既存native transaction/domain guardで保存時再検査）。READMEのRoom取込は後続という旧記述は、既存のREADME更新依頼に従い現実装へ訂正する。再reviewなし。
+- 全check311成功9skip0fail320tests162files68.41秒、型/lint/format/AST/dry-run非空成功。修正後実jev1633対象missing/unsure0/errors/degraded空/warning101。snapshot非漏洩/原本/Contextの具体assertを照合し、parse failure候補は実CLI negative pathsで確認。[証拠](verification/2026-10-06-notion-room-snapshot/check.txt)。Next: 新Issueを作らず既存Linear IssueのreadからTaskProvider連携を小さく進める。
