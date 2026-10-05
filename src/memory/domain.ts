@@ -5,9 +5,45 @@ export function memorySearchPhrase(query: string): string {
     throw new Error('Memory search requires 3–1024 Unicode characters without NUL');
   return '"' + query.replaceAll('"', '""') + '"';
 }
-export interface SourceRef {
-  readonly roomId: string;
-  readonly messageId: string;
+export type SourceRef =
+  | { readonly roomId: string; readonly messageId: string }
+  | { readonly uri: string };
+export function taskReviewSource(uri: string): {
+  readonly taskId: string;
+  readonly reviewId: string;
+} {
+  const match = /^org:\/\/tasks\/([^/]+)\/reviews\/([^/]+)$/.exec(uri);
+  if (!match?.[1] || !match[2]) throw new Error('Invalid Memory TaskReview source');
+  const taskId = decodeURIComponent(match[1]);
+  const reviewId = decodeURIComponent(match[2]);
+  if (
+    !taskId.trim() ||
+    !reviewId.trim() ||
+    encodeURIComponent(taskId) !== match[1] ||
+    encodeURIComponent(reviewId) !== match[2]
+  )
+    throw new Error('Invalid Memory TaskReview source');
+  return { taskId, reviewId };
+}
+function memorySource(value: unknown): SourceRef {
+  if (value === null || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('Invalid Memory source');
+  const keys = Object.keys(value);
+  if ('uri' in value && typeof value.uri === 'string' && keys.length === 1) {
+    taskReviewSource(value.uri);
+    return { uri: value.uri };
+  }
+  if (
+    'roomId' in value &&
+    'messageId' in value &&
+    keys.length === 2 &&
+    typeof value.roomId === 'string' &&
+    typeof value.messageId === 'string' &&
+    value.roomId.trim() &&
+    value.messageId.trim()
+  )
+    return { roomId: value.roomId, messageId: value.messageId };
+  throw new Error('Invalid Memory source');
 }
 export interface MemoryInput {
   readonly type: MemoryType;
@@ -51,10 +87,10 @@ export function createMemory(
   if ([identity.id, identity.at, input.content].some((v) => !v.trim()))
     throw new Error('Memory fields must not be empty');
   if (input.sourceRefs.length === 0) throw new Error('Memory requires source evidence');
+  const refs = input.sourceRefs.map(memorySource);
   const sources = new Set<string>();
-  for (const ref of input.sourceRefs) {
-    if (!ref.roomId.trim() || !ref.messageId.trim()) throw new Error('Invalid Memory source');
-    const key = JSON.stringify([ref.roomId, ref.messageId]);
+  for (const ref of refs) {
+    const key = JSON.stringify(ref);
     if (sources.has(key)) throw new Error('Duplicate Memory source');
     sources.add(key);
   }
@@ -97,7 +133,7 @@ export function createMemory(
     scope: input.scope,
     content: input.content,
     confidence: input.confidence,
-    sourceRefs: input.sourceRefs.map((ref) => ({ ...ref })),
+    sourceRefs: refs,
     supersedes: input.supersedes ?? null,
     createdAt: identity.at,
     status: 'active',
@@ -143,18 +179,7 @@ export function decodeMemory(value: unknown): Memory {
       value.type !== 'relational')
   )
     throw new Error('Invalid stored Memory');
-  const refs: SourceRef[] = value.sourceRefs.map((ref: unknown) => {
-    if (
-      ref === null ||
-      typeof ref !== 'object' ||
-      !('roomId' in ref) ||
-      !('messageId' in ref) ||
-      typeof ref.roomId !== 'string' ||
-      typeof ref.messageId !== 'string'
-    )
-      throw new Error('Invalid stored Memory source');
-    return { roomId: ref.roomId, messageId: ref.messageId };
-  });
+  const refs = value.sourceRefs.map(memorySource);
   const labels = (items: unknown): readonly string[] => {
     if (!Array.isArray(items)) throw new Error('Invalid stored Memory tags/entities');
     return items.map((item: unknown) => {

@@ -1,7 +1,7 @@
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
@@ -19,6 +19,32 @@ test('Memory CLI captures evidence, supersedes without altering history, and per
     return JSON.parse(p.stdout);
   };
   try {
+    const uncreated = join(home, 'uncreated', 'org.db');
+    const invalidSource = spawnSync(
+      process.execPath,
+      [
+        '--no-env-file',
+        cli,
+        '--direct',
+        '--db',
+        uncreated,
+        'memory',
+        'capture',
+        '--type',
+        'episodic',
+        '--scope',
+        'global',
+        '--content',
+        'fact',
+        '--confidence',
+        '1',
+        '--source-review',
+        'https://example.invalid/review',
+      ],
+      { encoding: 'utf8', timeout: 10000 },
+    );
+    assert.equal(invalidSource.status, 2, invalidSource.stderr);
+    assert.equal(existsSync(join(home, 'uncreated')), false);
     assert.equal(
       run(['agent', 'create', 'chief', '--role', 'Chief', '--runtime', 'codex']).status,
       0,

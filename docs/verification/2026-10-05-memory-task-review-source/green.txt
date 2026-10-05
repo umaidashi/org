@@ -1,0 +1,13 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-service.test.ts:
+(pass) Memory capture verifies original Message references through injected ports before saving [0.03ms]
+(pass) Memory capture validates immutable Task review evidence through injected readers before saving
+
+tests/memory-domain.test.ts:
+(pass) Typed Memory keeps evidence and validates scope, confidence and replacement identity [0.33ms]
+(pass) Memory scope preserves namespaced Task IDs without accepting unknown or empty namespaces
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 2 files. [25.00ms]

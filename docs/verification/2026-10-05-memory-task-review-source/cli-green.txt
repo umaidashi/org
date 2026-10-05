@@ -1,0 +1,15 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-service.test.ts:
+(pass) Memory capture verifies original Message references through injected ports before saving [1.25ms]
+(pass) Memory capture validates immutable Task review evidence through injected readers before saving [0.04ms]
+
+tests/task-review-cli.test.ts:
+(pass) daemon CLI reviews the observed result once and preserves the decision across reopen [413.12ms]
+
+tests/memory-cli.test.ts:
+(pass) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [1034.83ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 3 files. [1477.00ms]

@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-service.test.ts:
+(pass) Memory capture verifies original Message references through injected ports before saving [0.88ms]
+51 |   if ([identity.id, identity.at, input.content].some((v) => !v.trim()))
+52 |     throw new Error('Memory fields must not be empty');
+53 |   if (input.sourceRefs.length === 0) throw new Error('Memory requires source evidence');
+54 |   const sources = new Set<string>();
+55 |   for (const ref of input.sourceRefs) {
+56 |     if (!ref.roomId.trim() || !ref.messageId.trim()) throw new Error('Invalid Memory source');
+                  ^
+TypeError: undefined is not an object (evaluating 'ref.roomId.trim')
+      at createMemory (<REPO>/src/memory/domain.ts:56:14)
+      at captureMemory (<REPO>/src/memory/service.ts:11:18)
+      at <anonymous> (<REPO>/tests/memory-service.test.ts:59:16)
+(fail) Memory capture validates immutable Task review evidence through injected readers before saving [0.36ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [51.00ms]

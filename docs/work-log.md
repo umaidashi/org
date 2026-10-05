@@ -713,3 +713,12 @@
 - main7e8dd98通常push成功、pre-push全214テスト/実Jev/公開検査55.42秒。
 - 全215/215・型/lint/format/AST成功49.15秒。Docker実機5件別opt-in。実Jev1153判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-memory-full-text/check.txt)。Final独立Reviewer Critical/Important/Minorなし、関連5件1.08秒を独立成功。
 - [SQLite公式FTS5](https://sqlite.org/fts5.html)のexternal-content viewとtrigram制約を照合。新server/Vector DB/依存なし。Next: Memoryの根拠をMessage以外の不変TaskReviewへ接続し、承認済みTaskの保守的episodic extractionへ進む。
+
+## MemoryのTaskReview根拠（進行中）
+
+- [計画](superpowers/plans/2026-10-05-memory-task-review-source.md)。全sourceRefs callerを確認し、保存はMemory、参照検証は既存Message公開Portに集中していた。そこへTaskReviewの公開Portとcanonical org URIを接続し、自動抽出の根拠を先に検証可能にする。
+- 最小UTでURI sourceを旧domainが拒否するRED→canonical org TaskReview URI/Message legacy/混在field・未知URI・重複・異Task/未存在reviewを共有domain/serviceで拒否するGREEN。TaskReaderをDIし保存前に原本を照合する。
+- 実daemon CLI未知--source-review RED→排他capture/再open/原review保持GREEN。TaskReviewの承認/成果物参照は既存原本を利用し、Memory本文を原reviewへ書戻さない。CLI不正URIはDB作成前usage拒否。最初のTask fixtureが現Task型の必須fieldsを欠いてtsgo失敗したため契約へ訂正、型/lint/format/AST成功。
+- Final独立Reviewer Critical/Important/Minorなし、domain/service/CLI/実daemon/Room runtime計9件を独立成功。原本URIはcanonical percent encodingで不正/混在field拒否、get/reviewsの公開Readerで一致を検証。Message legacyはJSON形を維持し、ContextはsourceRefsをそのまま投影する。
+- 全216/216・型/lint/format/AST成功50.58秒、Docker実機5件別opt-in。実Jev1159判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-memory-task-review-source/check.txt)。Ruling: approved/rejectedどちらのreviewも事実の根拠であり、手入力Memory本文の意味を自動保証しない。source unionを明示検証し、Task/Review SQL所有者を跨がない。CLIのsource方式は排他、手動captureは既存local admin操作で本人認証ではない。Event/Workflow/Artifact参照と自動抽出は後続。
+- maina13fd1d通常push成功、pre-push全215テスト/実Jev/公開検査57.52秒。Next: Agentのopt-in Memory policyで、承認済みTaskReviewを保守的episodic Memoryへ原本を保持して一度だけ投影する。

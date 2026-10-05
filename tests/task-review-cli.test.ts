@@ -80,6 +80,8 @@ test('daemon CLI reviews the observed result once and preserves the decision acr
       first !== null &&
         typeof first === 'object' &&
         'actor' in first &&
+        'id' in first &&
+        typeof first.id === 'string' &&
         'reason' in first &&
         'taskVersion' in first &&
         'outputArtifacts' in first,
@@ -89,6 +91,67 @@ test('daemon CLI reviews the observed result once and preserves the decision acr
     assert.equal(first.reason, 'Checked output');
     assert.equal(first.taskVersion, 4);
     assert.deepEqual(first.outputArtifacts, ['output']);
+    const sourceUri = 'org://tasks/task/reviews/' + encodeURIComponent(first.id);
+    const capture = spawnSync(
+      process.execPath,
+      [
+        '--no-env-file',
+        cli,
+        '--db',
+        db,
+        '--socket',
+        socket,
+        'memory',
+        'capture',
+        '--type',
+        'episodic',
+        '--scope',
+        'task:task',
+        '--content',
+        'The result was reviewed',
+        '--confidence',
+        '1',
+        '--source-review',
+        sourceUri,
+        '--json',
+      ],
+      { encoding: 'utf8', timeout: 5000 },
+    );
+    assert.equal(capture.status, 0, capture.stderr);
+    const memory = JSON.parse(capture.stdout) as { id: string; sourceRefs: unknown[] };
+    assert.deepEqual(memory.sourceRefs, [{ uri: sourceUri }]);
+    const getMemory = spawnSync(
+      process.execPath,
+      ['--no-env-file', cli, '--direct', '--db', db, 'memory', 'get', memory.id, '--json'],
+      { encoding: 'utf8', timeout: 5000 },
+    );
+    assert.equal(getMemory.status, 0, getMemory.stderr);
+    assert.deepEqual(JSON.parse(getMemory.stdout), memory);
+    const missing = spawnSync(
+      process.execPath,
+      [
+        '--no-env-file',
+        cli,
+        '--db',
+        db,
+        '--socket',
+        socket,
+        'memory',
+        'capture',
+        '--type',
+        'episodic',
+        '--scope',
+        'task:task',
+        '--content',
+        'Invalid',
+        '--confidence',
+        '1',
+        '--source-review',
+        'org://tasks/task/reviews/absent',
+      ],
+      { encoding: 'utf8', timeout: 5000 },
+    );
+    assert.equal(missing.status, 1, missing.stderr);
     const reopened = new SqliteTaskProvider(db);
     try {
       assert.deepEqual(reopened.reviews('task'), rows);

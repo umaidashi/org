@@ -1,0 +1,53 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-review-cli.test.ts:
+90 |     assert.equal(first.reason, 'Checked output');
+91 |     assert.equal(first.taskVersion, 4);
+92 |     assert.deepEqual(first.outputArtifacts, ['output']);
+93 |     const sourceUri = 'org://tasks/task/reviews/' + encodeURIComponent(first.id);
+94 |     const capture = spawnSync(process.execPath, ['--no-env-file', cli, '--db', db, '--socket', socket, 'memory', 'capture', '--type', 'episodic', '--scope', 'task:task', '--content', 'The result was reviewed', '--confidence', '1', '--source-review', sourceUri, '--json'], {encoding:'utf8',timeout:5000});
+95 |     assert.equal(capture.status,0,capture.stderr);
+                ^
+AssertionError: Error: Unknown option '--source-review'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--source-review"
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|import-github|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org a2a send|get|list [OPTIONS]
+       org memory capture|get|list|search|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+ generatedMessage: false,
+     actual: 2,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/task-review-cli.test.ts:95:12
+      at processTicksAndRejections (native:7:39)
+(fail) daemon CLI reviews the observed result once and preserves the decision across reopen [309.50ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [335.00ms]

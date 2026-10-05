@@ -8,6 +8,7 @@ import type { MemoryInput, MemoryType } from './domain.js';
 import { SqliteMemoryProvider } from './sqlite.js';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
 import { captureMemory } from './service.js';
+import { SqliteTaskProvider } from '../tasks/sqlite.js';
 export type MemoryCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'capture'; readonly input: MemoryInput }
   | { readonly action: 'get'; readonly id: string }
@@ -68,6 +69,7 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       tag: { type: 'string', multiple: true },
       entity: { type: 'string', multiple: true },
       importance: { type: 'string' },
+      'source-review': { type: 'string' },
     },
   });
   const [noun, action, id, ...extra] = parsed.positionals;
@@ -93,6 +95,7 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
           'tag',
           'entity',
           'importance',
+          'source-review',
         ]
       : action === 'list' || action === 'search'
         ? ['db', 'json', 'scope', 'at', 'type', 'tag', 'entity']
@@ -103,6 +106,11 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
     if (!allowed.includes(key)) throw new Error(`Unexpected --${key}`);
   if (action === 'capture') {
     if (id !== undefined) throw new Error('Unexpected capture argument');
+    if (
+      parsed.values['source-review'] !== undefined &&
+      (parsed.values.room !== undefined || parsed.values.message !== undefined)
+    )
+      throw new Error('--source-review and --room/--message are mutually exclusive');
     const input: MemoryInput = {
       ...(parsed.values.tag === undefined ? {} : { tags: parsed.values.tag }),
       ...(parsed.values.entity === undefined ? {} : { entities: parsed.values.entity }),
@@ -113,12 +121,15 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       scope: required(parsed.values.scope, 'scope'),
       content: required(parsed.values.content, 'content'),
       confidence: Number(required(parsed.values.confidence, 'confidence')),
-      sourceRefs: [
-        {
-          roomId: required(parsed.values.room, 'room'),
-          messageId: required(parsed.values.message, 'message'),
-        },
-      ],
+      sourceRefs:
+        parsed.values['source-review'] !== undefined
+          ? [{ uri: required(parsed.values['source-review'], 'source-review') }]
+          : [
+              {
+                roomId: required(parsed.values.room, 'room'),
+                messageId: required(parsed.values.message, 'message'),
+              },
+            ],
       ...(parsed.values['valid-from'] === undefined
         ? {}
         : { validFrom: memoryTime(parsed.values['valid-from']) }),
@@ -168,14 +179,29 @@ export function runMemoryCommand(command: MemoryCommand, output: (line: string) 
     let result: unknown;
     switch (command.action) {
       case 'capture': {
-        const rooms = new SqliteRoomRepository(command.db);
+        let rooms: SqliteRoomRepository | undefined;
+        let tasks: SqliteTaskProvider | undefined;
         try {
-          result = captureMemory(provider, rooms, command.input, {
-            id: randomUUID(),
-            at: new Date().toISOString(),
-          });
+          if (command.input.sourceRefs.some((ref) => 'roomId' in ref))
+            rooms = new SqliteRoomRepository(command.db);
+          if (command.input.sourceRefs.some((ref) => 'uri' in ref))
+            tasks = new SqliteTaskProvider(command.db);
+          result = captureMemory(
+            provider,
+            rooms,
+            command.input,
+            {
+              id: randomUUID(),
+              at: new Date().toISOString(),
+            },
+            tasks,
+          );
         } finally {
-          rooms.close();
+          try {
+            rooms?.close();
+          } finally {
+            tasks?.close();
+          }
         }
         break;
       }
