@@ -630,3 +630,15 @@
 - 全202/202・型/lint/format/AST成功38.38秒、Docker実機5件別途opt-in。実Jev1094判定missing/unsure0、errors/degradedなし。実Docker追加assertは既存tool名を誤記して失敗し、agent.capabilities.changeへ訂正して再検証。
 - 実Docker Task→Artifact→明示レビュー→Auditと既存capability履歴の共存1件1.287秒成功。Final独立Reviewer Critical/Importantなし、新規/既存UT/CLI4件と実Docker1件を独立成功。Minor1をdefer: 同ミリ秒version9開始/version10成功はID文字列sortで成功が先に見える。原本は不変でtask historyの数値version順で参照できる。表示のtie-orderは次のAudit拡張時に修正する。
 - Final Ruling: 保存済み原本projection、actorは開始ownerで本人認証ではない。task.executionは状態履歴であり詳細tool実行記録ではない。新規table/二重書込なし、全Task履歴の線形読取。詳細tool Audit/資格情報/外部操作は後続。Notion Runtime06を再取得し変更された要件がないことを照合。Next: AgentからSandboxへ制約付き実行指示を接続する。
+
+## Agent MessageのSandbox実行（進行中）
+
+- main c5b99d7へ通常push成功、pre-push全202テスト/実Jev/公開検査47.98秒。
+- [計画](superpowers/plans/2026-10-05-sandbox-message-proposal.md)。既存safe-mode RuntimeのTask Room返信を厳密JSONとして読み、明示選択した原本Messageを既存Sandbox実行へ接続する。LLM native tool/MCPを開放せず、host path/権限は既存CLI policyと最新Agent capsだけで決める。
+- proposal pure未module RED→GREEN。同Task/active Room/owner Agent/参加/厳密JSON/version/tool/未知field/コード制限を確認。--proposalの実CLI未知flag RED→GREEN、--codeとの排他/resource/file policy不正拒否を最小UTで検証。既存serviceへproposalRefを渡し、成果物manifestに原本URIを保存する。
+- 実Docker source import/隔離/成果物/原本参照/明示レビュー成功1件1.333秒。実Claude Maxの一周もAPIキーなし・native tools無効でJSON生成→Docker内6*7の自己検証→ANSWER=42/result.txt→waiting_approval→人間review completed成功。最初の実検証scriptはagent createのtext出力へ--jsonを付け誤って失敗し、既存CLI契約に合わせて再実行した。生provider出力とDBはprivate tmpのみ。
+- 全203/203・型/lint/format/AST成功40.15秒。追加parser UT後の全検査と、実生成TypeScriptを含む隔離treeの同bun run check/実Jevを続ける。
+- 最新repo全204/204・型/lint/format/AST成功40.73秒。生成code入り隔離treeは型/lint/AST/204テストに成功したが、project ruleを除外していたため末尾のreview:planと実意味レビューが失敗。Git管理済みruleだけを補い、全check/実Jevを再実行する。cache/秘密のコピーは行わない。
+- Final独立Reviewer Critical/Important/Minorなし。proposal/既存cancel-drain UT4件、実Docker e2e1件も独立成功。
+- 修正した隔離treeのbun run check全体も成功。実生成TypeScriptはlint/AST対象に含め、全204テストと型/lint/format/AST/review:planを確認。実Jev1105判定missing/unsure0、errors/degradedなし。Notion snapshot/秘密は送信しない。[証拠](verification/2026-10-05-sandbox-message-proposal/generated-check.txt)。
+- Final Ruling: tools無効LLMから厳密JSON proposal、owner/Task/Roomを境界検証し、実行policyはCLIのみ。原本参照を成果物manifestに保持。明示CLIの一周であり自動tool loopは未完了。credential injection/本人認証/外部操作も後続。今回defer Minorなし（Task Audit同時刻tie-orderの既存Minorは継続）。Next: 人間のTaskレビューを委譲元Coordinatorへtyped decisionで返す。

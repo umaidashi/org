@@ -17,6 +17,7 @@ export async function runSandboxTask(
   taskId: string,
   now: () => string,
   id: () => string,
+  proposalRef?: string,
 ): Promise<Task> {
   const original = provider.get(taskId);
   authorizeSandboxTask(original, agent, input);
@@ -26,9 +27,14 @@ export async function runSandboxTask(
       throw new SandboxCancelledError('Sandbox execution cancelled');
     if (output.reason !== 'exited' || output.exitCode !== 0)
       throw new Error(`Sandbox execution failed: ${output.reason}, exit ${output.exitCode}`);
-    const content = input.files.length
-      ? JSON.stringify({ stdout: output.stdout, files: output.files ?? [] })
-      : output.stdout;
+    const content =
+      input.files.length || proposalRef !== undefined
+        ? JSON.stringify({
+            ...(proposalRef === undefined ? {} : { proposalRef }),
+            stdout: output.stdout,
+            files: output.files ?? [],
+          })
+        : output.stdout;
     if (
       input.files.length &&
       (output.files?.length !== input.files.length ||

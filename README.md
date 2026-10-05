@@ -303,7 +303,7 @@ bun run start -- --direct sandbox artifact org://artifacts/HASH
 ORG_DOCKER_TEST=1 bun --no-env-file test tests/sandbox-docker-real.test.ts tests/sandbox-cli.test.ts
 ```
 
-repoはHEADのregular fileだけをコピーし、未commit変更・未追跡ファイル・Git履歴・`.env`等の資格情報ファイルを持ち込みません。元repoをマウントしません。stdoutまたはstdoutと選択ファイルのbase64を含むJSONを、privateな`DB_PATH.artifacts`へ内容hashで保存します。保存blobは1MiB以内、選択ファイルは16件以内です。Taskは`waiting_approval`へ進み、既存`task review`で明示承認します。daemon経由でも実行でき、`sandbox cancel TASK_ID`で取消できます。実行は一slotで、停止時は取消・cleanup・Task failed保存を待ってDBを閉じます。直接実行のSIGINT/SIGTERMも同じ取消を行います。credential注入・LLM tool接続は後続です。親SIGKILL後の実行中containerは内部deadlineで有限終了します。作成完了からstart前の異常死は停止containerを残し得ます。
+repoはHEADのregular fileだけをコピーし、未commit変更・未追跡ファイル・Git履歴・`.env`等の資格情報ファイルを持ち込みません。元repoをマウントしません。stdoutまたはstdoutと選択ファイルのbase64を含むJSONを、privateな`DB_PATH.artifacts`へ内容hashで保存します。保存blobは1MiB以内、選択ファイルは16件以内です。Taskは`waiting_approval`へ進み、既存`task review`で明示承認します。daemon経由でも実行でき、`sandbox cancel TASK_ID`で取消できます。実行は一slotで、停止時は取消・cleanup・Task failed保存を待ってDBを閉じます。直接実行のSIGINT/SIGTERMも同じ取消を行います。Task Roomのowner Agentが生成した厳密JSON Messageは`--proposal MESSAGE_ID`で明示選択して実行できます。自動tool loop・credential注入は後続です。親SIGKILL後の実行中containerは内部deadlineで有限終了します。作成完了からstart前の異常死は停止containerを残し得ます。
 
 
 登録後のcapability変更はApprovalを経由します。`agent capabilities`でrevisionを確認し、`approval request`へ変更後のcapability全体を指定します。`--capability`は繰返し指定でき、指定なしは全撤回の申請です。申請だけでは権限は変わりません。
@@ -321,3 +321,5 @@ bun run start -- audit list --json
 権限変更の判断は人間操作に限定します。古いrevisionは適用を拒否し、同じApprovalの再適用は最初の記録を返します。権限と不変Auditを同じトランザクションで保存します。actorはローカル管理操作の申告値であり、本人認証は後続です。外部メール・deploy・支出等の操作はまだ接続していません。
 
 `audit list`はApprovalに加え、Taskの不変履歴から実行開始・成功・失敗を公開します。actorは開始時のowner、入出力は`task history`で読めるversion snapshot参照です。人間レビューの却下は実行失敗に変換しません。詳細tool引数・本人認証はこの履歴projectionの対象外です。
+
+Agentへの生成指示は`{"version":1,"tool":"sandbox","code":"TypeScript"}`だけを返す形にします。Task Roomで`room activate`して生成したMessageを、`sandbox run TASK_ID --proposal MESSAGE_ID --writable --file result.txt`へ渡します。repo・書込・選択ファイル・実行上限はCLI側で指定し、Messageから権限を設定しません。Artifactは`proposalRef`で原本を参照します。

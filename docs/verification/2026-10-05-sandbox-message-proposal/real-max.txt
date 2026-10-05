@@ -1,0 +1,2 @@
+PASS: real Claude Max -> immutable strict JSON proposal -> network-isolated Docker -> checked stdout/file -> waiting_approval -> explicit human review
+PASS: Artifact preserves original proposal URI; no native LLM tools enabled

@@ -10,9 +10,20 @@ export interface SandboxInput {
   readonly repo?: string;
 }
 
+export type SandboxPolicy = Omit<SandboxInput, 'code'>;
+
 export function validateSandboxInput(input: SandboxInput): SandboxInput {
-  if (typeof input.code !== 'string' || !input.code.trim() || input.code.length > 65536)
+  validateSandboxCode(input.code);
+  return { ...validateSandboxPolicy(input), code: input.code };
+}
+
+export function validateSandboxCode(code: unknown): string {
+  if (typeof code !== 'string' || !code.trim() || code.length > 65536)
     throw new Error('Sandbox code must contain 1–65536 characters');
+  return code;
+}
+
+export function validateSandboxPolicy(input: SandboxPolicy): SandboxPolicy {
   if (typeof input.writable !== 'boolean') throw new Error('Invalid Sandbox writable flag');
   for (const [value, maximum] of [
     [input.timeoutMs, 3600000],

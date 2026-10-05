@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { SqliteTaskProvider } from '../src/tasks/sqlite.js';
 import { SqliteAgentRepository } from '../src/agents/sqlite.js';
 import { createTask } from '../src/tasks/domain.js';
+import { SqliteRoomRepository } from '../src/rooms/sqlite.js';
+import { createRoom } from '../src/rooms/domain.js';
 import { createAgent } from '../src/agents/domain.js';
 const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
@@ -54,6 +56,31 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
     tasks.update('task', { owner: 'worker' }, 'assigned');
     tasks.close();
     agents.close();
+    const rooms = new SqliteRoomRepository(db);
+    rooms.create(
+      createRoom(
+        {
+          title: 'Task',
+          type: 'task',
+          taskId: 'task',
+          participants: [{ kind: 'agent', id: 'worker' }],
+        },
+        { id: 'room', createdAt: 'before' },
+      ),
+    );
+    rooms.append(
+      'room',
+      {
+        sender: { kind: 'agent', id: 'worker' },
+        content: JSON.stringify({
+          version: 1,
+          tool: 'sandbox',
+          code: 'import {marker} from "./source.ts";console.log(marker);await Bun.write("source.ts","changed");await Bun.write("result.txt","artifact");if(await Bun.file(".env").exists()||await Bun.file("untracked.txt").exists())throw new Error("leak");',
+        }),
+      },
+      { id: 'proposal', createdAt: 'before' },
+    );
+    rooms.close();
     const run = (args: string[]) =>
       spawnSync(process.execPath, ['--no-env-file', cli, '--direct', '--db', db, ...args], {
         encoding: 'utf8',
@@ -107,8 +134,8 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
         'sandbox',
         'run',
         'task',
-        '--code',
-        "import {marker} from './source.ts';if(await Bun.file('.env').exists()||await Bun.file('untracked.txt').exists())throw new Error('leak');await Bun.write('source.ts','changed');await Bun.write('result.txt','artifact');console.log(marker)",
+        '--proposal',
+        'proposal',
         '--repo',
         home,
         '--file',
@@ -129,6 +156,7 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
         assert.equal(read.status, 0, read.stderr);
         const content: unknown = JSON.parse(read.stdout);
         assert.deepEqual(content, {
+          proposalRef: 'org://rooms/room/messages/proposal',
           stdout: '7\n',
           files: [{ path: 'result.txt', base64: Buffer.from('artifact').toString('base64') }],
         });
