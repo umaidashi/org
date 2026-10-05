@@ -34,3 +34,12 @@ test('Sandbox exports committed regular files, excluding environment and untrack
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('Sandbox repo export cancels before starting Git', async () => {
+  const controller = new AbortController();
+  controller.abort();
+  await assert.rejects(exportSandboxRepo('/missing-repo', controller.signal), {
+    name: 'Error',
+    message: 'Sandbox execution cancelled',
+  });
+});

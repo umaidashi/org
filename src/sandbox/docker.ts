@@ -1,7 +1,7 @@
 import { exportSandboxRepo } from './repo.js';
 import { randomUUID } from 'node:crypto';
 import type { ProcessInput, ProcessResult } from '../runtime/process.js';
-import { validateSandboxInput, type SandboxInput } from './domain.js';
+import { validateSandboxInput, SandboxCancelledError, type SandboxInput } from './domain.js';
 const image = 'oven/bun@sha256:7608db4aeb44f1fe8169cc8ec7055376b3013557b106407ccf092b00e426407d';
 export async function runDockerSandbox(
   run: (input: ProcessInput) => Promise<ProcessResult>,
@@ -26,7 +26,7 @@ export async function runDockerSandbox(
     host.gid < 0
   )
     throw new Error('Sandbox requires a non-root user');
-  const repoFiles = input.repo === undefined ? [] : await exportSandboxRepo(input.repo);
+  const repoFiles = input.repo === undefined ? [] : await exportSandboxRepo(input.repo, signal);
   let id: string | undefined;
   async function command(
     argv: readonly string[],
@@ -47,6 +47,8 @@ export async function runDockerSandbox(
   }
   async function setup(argv: readonly string[], stdin = ''): Promise<ProcessResult> {
     const result = await command(argv, 10000, signal, stdin);
+    if (result.reason === 'cancelled')
+      throw new SandboxCancelledError('Sandbox execution cancelled');
     if (result.reason !== 'exited' || result.exitCode !== 0)
       throw new Error(`Sandbox ${argv[0]} failed: ${result.reason} ${result.stderr}`);
     return result;
@@ -132,6 +134,8 @@ export async function runDockerSandbox(
         '',
         1500000,
       );
+      if (collected.reason === 'cancelled')
+        throw new SandboxCancelledError('Sandbox execution cancelled');
       if (collected.reason !== 'exited' || collected.exitCode !== 0)
         throw new Error('Sandbox artifact collection failed');
       const decoded: unknown = JSON.parse(collected.stdout);

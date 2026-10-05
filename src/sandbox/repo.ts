@@ -1,22 +1,31 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { SandboxCancelledError } from './domain.js';
 const execute = promisify(execFile);
 export async function exportSandboxRepo(
   repo: string,
+  signal?: AbortSignal,
 ): Promise<readonly { readonly path: string; readonly base64: string }[]> {
   const git = async (args: readonly string[]) => {
-    const result = await execute('git', ['-C', repo, ...args], {
-      encoding: 'buffer',
-      timeout: 10000,
-      maxBuffer: 1048576,
-      env: {
-        PATH: process.env.PATH ?? '',
-        HOME: process.env.HOME ?? '',
-        GIT_CONFIG_NOSYSTEM: '1',
-        GIT_CONFIG_GLOBAL: '/dev/null',
-      },
-    });
-    return result.stdout;
+    if (signal?.aborted) throw new SandboxCancelledError('Sandbox execution cancelled');
+    try {
+      const result = await execute('git', ['-C', repo, ...args], {
+        encoding: 'buffer',
+        ...(signal === undefined ? {} : { signal }),
+        timeout: 10000,
+        maxBuffer: 1048576,
+        env: {
+          PATH: process.env.PATH ?? '',
+          HOME: process.env.HOME ?? '',
+          GIT_CONFIG_NOSYSTEM: '1',
+          GIT_CONFIG_GLOBAL: '/dev/null',
+        },
+      });
+      return result.stdout;
+    } catch (error) {
+      if (signal?.aborted) throw new SandboxCancelledError('Sandbox execution cancelled');
+      throw error;
+    }
   };
   const commit = (await git(['rev-parse', '--verify', 'HEAD^{commit}'])).toString('utf8').trim();
   if (!/^[a-f0-9]{40,64}$/.test(commit)) throw new Error('Invalid Git commit');

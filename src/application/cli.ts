@@ -42,8 +42,9 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
        org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
        org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
-       org --direct sandbox run TASK --code TS [--writable] [--timeout-ms MS]
-       org --direct sandbox artifact URI
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
        org schedule create|list|get|enable|disable [OPTIONS]
        org a2a send|get|list [OPTIONS]
        org memory capture|get|list|invalidate [OPTIONS]
@@ -196,6 +197,8 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
 }
 
 export interface ApplicationContext extends SessionContext {
+  readonly runSandbox?: (command: SandboxCommand) => Promise<string>;
+  readonly cancelSandbox?: (taskId: string) => void;
   readonly activateRoom?: (roomId: string, messageId: string) => Promise<unknown>;
   readonly runTask?: (id: string, sessionId: string, messageId: string) => Promise<unknown>;
 }
@@ -211,7 +214,12 @@ async function runApplication(
     return;
   }
   if (command.kind === 'sandbox') {
-    await runSandboxCommand({ ...command.command, db }, output);
+    if (command.command.action === 'cancel') {
+      if (!sessions?.cancelSandbox) throw new Error('Sandbox cancel requires daemon');
+      sessions.cancelSandbox(command.command.taskId);
+      output(JSON.stringify({ taskId: command.command.taskId, state: 'cancelling' }));
+    } else if (sessions?.runSandbox) output(await sessions.runSandbox({ ...command.command, db }));
+    else await runSandboxCommand({ ...command.command, db }, output);
     return;
   }
   if (command.kind === 'schedule') {
@@ -344,8 +352,6 @@ export async function executeApplication(
         throw new Error('Remote commands cannot change transport or database');
     }
     command = parseApplicationCommand(argv);
-    if (remote && command.kind === 'sandbox')
-      throw new Error('Sandbox currently requires --direct');
   } catch (error) {
     return {
       code: 2,

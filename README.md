@@ -150,13 +150,13 @@ bun run start daemon stop --json
 
 既定では1秒ごとにEventをpollingします。`--poll-interval MS`で10〜60000msの範囲を指定できます。poll失敗はstatusの`degraded`とerrorで表示し、次回pollで再試行します。成功すると`running`へ戻ります。
 
-既定socketはDBの絶対パスに`.sock`を付けたものです（既定DBでは`~/.local/share/org/org.db.sock`）。起動側とclient側に同じ`--socket PATH`を指定すれば変更できます。`daemon deliveries --socket PATH`はdaemon経由で取得し、socket指定なしの`deliveries`と`--once`はDBを直接操作する管理コマンドです。clientの接続は5秒でtimeoutします。同じディレクトリの別DBも異なる既定socketを使います。
+既定socketはDBの絶対パスに`.sock`を付けたものです（既定DBでは`~/.local/share/org/org.db.sock`）。起動側とclient側に同じ`--socket PATH`を指定すれば変更できます。`daemon deliveries --socket PATH`はdaemon経由で取得し、socket指定なしの`deliveries`と`--once`はDBを直接操作する管理コマンドです。通常clientの接続は5秒でtimeoutします。RuntimeとSandbox実行は設定された実行期限まで待ちます。同じディレクトリの別DBも異なる既定socketを使います。
 
 TCP listenerは開かず、Unix socketを0600で作成します。同socketの2重起動や既存file/symlinkの置換を拒否します。stop・SIGTERM・SIGINTで終了し、自分が作成したsocket/lockを解放します。`--wake-up`はRoomの未処理Messageを既存履歴も含めて選択し、起動intentを保存してから実行します。停止時は進行中turnを中止してdrainし、未実行Messageは次の起動へ残します。
 
 SIGKILL等で残ったsocket/lockは自動削除しません。稼働中プロセスがないことを確認してから手動で整理してください。
 
-Agent/Task/Room/A2A/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。同じPOSIX process groupの子孫を終了させます。daemon自身のSIGKILL時も監督pipeの切断で同groupを停止します。別groupへ離脱する子孫の隔離は後続です。固定間隔schedulerとDocker Sandboxの直接実行CLIを実装しています。Task実行のretry、Workflow・TUIは未実装です。
+Agent/Task/Room/A2A/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。同じPOSIX process groupの子孫を終了させます。daemon自身のSIGKILL時も監督pipeの切断で同groupを停止します。別groupへ離脱する子孫の隔離は後続です。固定間隔schedulerとDocker Sandboxのdaemon/直接実行CLIを実装しています。Task実行のretry、Workflow・TUIは未実装です。
 
 ## 検証とレビュー
 
@@ -303,7 +303,7 @@ bun run start -- --direct sandbox artifact org://artifacts/HASH
 ORG_DOCKER_TEST=1 bun --no-env-file test tests/sandbox-docker-real.test.ts tests/sandbox-cli.test.ts
 ```
 
-repoはHEADのregular fileだけをコピーし、未commit変更・未追跡ファイル・Git履歴・`.env`等の資格情報ファイルを持ち込みません。元repoをマウントしません。stdoutまたはstdoutと選択ファイルのbase64を含むJSONを、privateな`DB_PATH.artifacts`へ内容hashで保存します。保存blobは1MiB以内、選択ファイルは16件以内です。Taskは`waiting_approval`へ進み、既存`task review`で明示承認します。daemon経由実行・credential注入・LLM tool接続は後続です。親SIGKILL後の実行中containerは内部deadlineで有限終了します。作成完了からstart前の異常死は停止containerを残し得ます。
+repoはHEADのregular fileだけをコピーし、未commit変更・未追跡ファイル・Git履歴・`.env`等の資格情報ファイルを持ち込みません。元repoをマウントしません。stdoutまたはstdoutと選択ファイルのbase64を含むJSONを、privateな`DB_PATH.artifacts`へ内容hashで保存します。保存blobは1MiB以内、選択ファイルは16件以内です。Taskは`waiting_approval`へ進み、既存`task review`で明示承認します。daemon経由でも実行でき、`sandbox cancel TASK_ID`で取消できます。実行は一slotで、停止時は取消・cleanup・Task failed保存を待ってDBを閉じます。直接実行のSIGINT/SIGTERMも同じ取消を行います。credential注入・LLM tool接続は後続です。親SIGKILL後の実行中containerは内部deadlineで有限終了します。作成完了からstart前の異常死は停止containerを残し得ます。
 
 
 登録後のcapability変更はApprovalを経由します。`agent capabilities`でrevisionを確認し、`approval request`へ変更後のcapability全体を指定します。`--capability`は繰返し指定でき、指定なしは全撤回の申請です。申請だけでは権限は変わりません。

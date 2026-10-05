@@ -3,7 +3,7 @@ import type { Task } from '../tasks/domain.js';
 import type { TaskProvider, ExecutionResultWriter } from '../tasks/port.js';
 import { executeAssignedTask } from '../tasks/execution.js';
 import type { ProcessResult } from '../runtime/process.js';
-import { authorizeSandboxTask, type SandboxInput } from './domain.js';
+import { authorizeSandboxTask, SandboxCancelledError, type SandboxInput } from './domain.js';
 export async function runSandboxTask(
   provider: Pick<TaskProvider, 'get' | 'update'> & ExecutionResultWriter,
   agent: Agent,
@@ -22,6 +22,8 @@ export async function runSandboxTask(
   authorizeSandboxTask(original, agent, input);
   const result = await executeAssignedTask(provider, original, now, async () => {
     const output = await run(input);
+    if (output.reason === 'cancelled')
+      throw new SandboxCancelledError('Sandbox execution cancelled');
     if (output.reason !== 'exited' || output.exitCode !== 0)
       throw new Error(`Sandbox execution failed: ${output.reason}, exit ${output.exitCode}`);
     const content = input.files.length

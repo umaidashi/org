@@ -59,3 +59,5 @@ export function authorizeSandboxTask(task: Task, agent: Agent, input: SandboxInp
   if (input.repo !== undefined) requireCapability(agent, 'can_read');
   if (input.writable) requireCapability(agent, 'can_write');
 }
+
+export class SandboxCancelledError extends Error {}

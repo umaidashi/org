@@ -1,3 +1,4 @@
+import { releaseResources } from '../daemon/service.js';
 import { parseArgs } from 'node:util';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -12,6 +13,7 @@ import { runSandboxTask } from './service.js';
 export type SandboxCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'run'; readonly taskId: string; readonly input: SandboxInput }
   | { readonly action: 'artifact'; readonly uri: string }
+  | { readonly action: 'cancel'; readonly taskId: string }
 );
 export function parseSandboxCommand(argv: string[]): SandboxCommand {
   const parsed = parseArgs({
@@ -35,13 +37,18 @@ export function parseSandboxCommand(argv: string[]): SandboxCommand {
   const db = parsed.values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim() || db === ':memory:') throw new Error('Sandbox requires persistent DB');
   const base = { db, json: parsed.values.json ?? false };
+  if (action === 'cancel') {
+    for (const key of Object.keys(parsed.values))
+      if (!['db', 'json'].includes(key)) throw new Error(`Unexpected --${key}`);
+    return { ...base, action, taskId: target };
+  }
   if (action === 'artifact') {
     for (const key of Object.keys(parsed.values))
       if (!['db', 'json'].includes(key)) throw new Error(`Unexpected --${key}`);
     if (!/^org:\/\/artifacts\/[a-f0-9]{64}$/.test(target)) throw new Error('Invalid Artifact URI');
     return { ...base, action, uri: target };
   }
-  if (action !== 'run') throw new Error('Expected sandbox run|artifact');
+  if (action !== 'run') throw new Error('Expected sandbox run|artifact|cancel');
   return {
     ...base,
     action,
@@ -59,15 +66,24 @@ export function parseSandboxCommand(argv: string[]): SandboxCommand {
 export async function runSandboxCommand(
   command: SandboxCommand,
   output: (line: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
+  if (command.action === 'cancel') throw new Error('Sandbox cancel requires daemon');
   const directory = command.db + '.artifacts';
   if (command.action === 'artifact') {
     output(await readSandboxArtifact(directory, command.uri));
     return;
   }
-  const tasks = new SqliteTaskProvider(command.db);
+  const controller = signal === undefined ? new AbortController() : undefined;
+  const interrupt = () => controller?.abort();
+  if (controller) {
+    process.once('SIGINT', interrupt);
+    process.once('SIGTERM', interrupt);
+  }
+  let tasks: SqliteTaskProvider | undefined;
   let agents: SqliteAgentRepository | undefined;
   try {
+    tasks = new SqliteTaskProvider(command.db);
     agents = new SqliteAgentRepository(command.db);
     const task = tasks.get(command.taskId);
     const agent = agents.list().find((a) => a.id === task.owner);
@@ -86,6 +102,7 @@ export async function runSandboxCommand(
             gid: process.getgid?.() ?? 0,
           },
           input,
+          signal ?? controller?.signal,
         ),
       (bytes) => saveSandboxArtifact(directory, bytes),
       command.input,
@@ -95,7 +112,13 @@ export async function runSandboxCommand(
     );
     output(JSON.stringify(result, null, command.json ? undefined : 2));
   } finally {
-    agents?.close();
-    tasks.close();
+    try {
+      releaseResources([agents, tasks].flatMap((resource) => (resource ? [resource] : [])));
+    } finally {
+      if (controller) {
+        process.removeListener('SIGINT', interrupt);
+        process.removeListener('SIGTERM', interrupt);
+      }
+    }
   }
 }

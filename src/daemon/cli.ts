@@ -1,3 +1,5 @@
+import { SandboxJobs } from '../sandbox/jobs.js';
+import { runSandboxCommand } from '../sandbox/cli.js';
 import { SqliteScheduleRepository } from '../schedules/sqlite.js';
 import { pollSchedules } from '../schedules/service.js';
 import { pollExecutionTasks } from '../tasks/autonomy.js';
@@ -144,6 +146,17 @@ function openOperations(
     memory = memoryProvider;
     const wakeupJournal = new SqliteWakeupJournal(db);
     wakeups = wakeupJournal;
+    const sandboxJobs = new SandboxJobs();
+    const shutdown = async () => {
+      const results = await Promise.allSettled([runtime.shutdown(), sandboxJobs.shutdown()]);
+      const errors: unknown[] = [];
+      for (const result of results)
+        if (result.status === 'rejected') {
+          const reason: unknown = result.reason;
+          errors.push(reason);
+        }
+      if (errors.length) throw new AggregateError(errors, 'Daemon runtime shutdown failed');
+    };
     runtime.recover();
     recoverWakeups(wakeupJournal, () => new Date().toISOString());
     recoverInterruptedExecutionTasks(taskProvider, () => new Date().toISOString());
@@ -236,6 +249,17 @@ function openOperations(
           runtime,
           activateRoom: activate,
           runTask: execute,
+          cancelSandbox: (taskId) => sandboxJobs.cancel(taskId),
+          runSandbox: async (command) => {
+            const output: string[] = [];
+            if (command.action === 'run')
+              await sandboxJobs.run(command.taskId, (signal) =>
+                runSandboxCommand(command, (line) => output.push(line), signal),
+              );
+            else await runSandboxCommand(command, (line) => output.push(line));
+            if (output.length !== 1) throw new Error('Sandbox command output missing');
+            return output[0] ?? '';
+          },
           reply: (id, messageId, instruction) =>
             replyToRoomMessage(
               roomRepository,
@@ -246,10 +270,10 @@ function openOperations(
               memoryProvider,
             ),
         }),
-      shutdown: () => runtime.shutdown(),
+      shutdown,
       close: async () => {
         try {
-          await runtime.shutdown();
+          await shutdown();
         } finally {
           releaseResources([
             scheduleRepository,

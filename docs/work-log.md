@@ -607,3 +607,17 @@
 - Final独立Reviewer Important1: capabilitySnapshotがlist()/MAX revisionを別statementで読み、別Adapter変更が間に入ると新revision/旧grantの組を返す。実2Adapterの決定的interleave RED（revision3/can_write、期待revision3/can_run_shell）を確認。共通snapshot関数を単一SELECTへ変更し、revisionとgrantを一SQLite read snapshotで読む一回のfix pass。対象capability実DB/CLI/既存reporting3件GREEN。その他Critical/Important/Minorなし。全suiteを再実行し、同skillの規則に従い再レビューは行わない。
 - 修正後全197/197・型/lint/format/AST成功、39.27秒（Docker実機3件は別途opt-in）。実Jev1072判定missing/unsure0、errors/degradedなし。実Dockerでもgrantなし/pending拒否→human Approval→capability適用→tracked workspace/Artifact→Task明示レビュー成功。[実成否](verification/2026-10-05-permission-approval/real-docker.txt)。
 - Final: 独立Reviewerは新規7件と既存Agent/CLI17件も成功。Important1の不整合snapshot読取を一回fix passでRED→GREEN/全suite確認済み。Critical/Minorなし。Final Ruling: 初期登録grantはbootstrap、登録後変更はhuman Approval、actorは申告local adminで本人認証ではない。capability指定は全体集合、なしは全撤回の申請。Auditは各所有者原本の公開Port集約、他外部operation/credential/service scopeは後続。Next: daemon Sandboxのclient待機/cancel/drainと実行Audit、続いてLLMの制約付きtool接続へ進む。
+
+## main公開：権限変更Approval/Audit
+
+- main51a58d8へ通常push成功、pre-push全197テスト/実Jev/公開検査47.48秒。force-pushなし。
+
+## daemon Sandbox（進行中）
+
+- [計画](superpowers/plans/2026-10-05-daemon-sandbox.md)。既存native Sandbox CLIを再利用し、一実行slot/cancel/shutdown drain/clientの長期待機を先に実e2eへ接続する。Task実行Audit詳細は次の小変更として分ける。
+- SandboxJobsの未module RED→GREEN2件。単一slot/busy拒否/他Task cancel拒否/失敗後解放/shutdown新規拒否/drainをDB不要で確認し、cleanup等の非cancel failureはshutdownへ伝播。期待する中断は型付きSandboxCancelledErrorで区別しTask failedを保存する。
+- 実daemon CLI RED（remote requires --direct）→GREEN。既存runSandboxCommandにsignalを渡しdaemon managed jobで呼出、RuntimeとSandboxを両方shutdown/drainしてからresourcesを解放。既存releaseResourcesを再利用し、close失敗でも他Adapterとsignal listenerを解放する。
+- 実Dockerで6秒turnのclient待機、single slot busy時Task assigned保持、誤Task cancel拒否、正Task cancel→failed、daemon stop→Task failed/drain/DB close、前後container ID差分なしを確認。direct SIGINTもfailed保存/cleanup待機、既存human Approval→Sandbox/Artifact/レビューも成功。3件/9.55秒。Actor/credentials/raw出力は公開ログに含めない。
+- Final独立Reviewer Critical/Important/Minorなし。独立UT/CLI12件・実Docker3件・静的検査成功。追加確認でrepo exportが取消signalを無視する経路を発見し、pre-abortでGitを実行するRED→native execFileへsignal伝播/型付きcancel GREEN。既存全callerは共通exportへ接続し、daemon停止時のコピー処理も中断対象にした。
+- 制限環境の全検査はUnix socket EPERMで失敗したため中断し、socketを許可した環境で再実行。実Docker回帰3件9.59秒成功。最新実Jev1089判定missing/unsure0、errors/degradedなし。独立レビュー後の取消修正は追加回帰で確認し、再レビューは実施しない。
+- 最終全200/200・型/lint/format/AST成功38.68秒。Docker実機5件は既定skipで別検証、今回CLI3件成功。[証拠](verification/2026-10-05-daemon-sandbox/check.txt)。Final Ruling: 一slot/queueなし、cancel応答はcancellingで完了はTask failedで確認、shutdownはcleanup異常を成功扱いしない。既知create/start間stopped container残留、資格情報注入/LLM tool/実行Auditは後続。Next: Task実行Auditを原子的に記録する。
