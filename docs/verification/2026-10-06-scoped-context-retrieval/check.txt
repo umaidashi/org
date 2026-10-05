@@ -1,0 +1,6 @@
+RED: Retriever module missing; added Builder foreign-Room rejection initially missing.
+GREEN:7UT4files60ms. Original Room UT bounds/scope preserved; both Retriever and Builder replaceable through DI. Native SQLite FTS + daemon Runtime context e2e1pass1.64s verifies tied hit ordering and foreign/expired exclusion.
+Initial fullcheck picked up in-flight added RED1fail. Fixed final code fullcheck exit0:284pass8skip0fail292tests151files58.07s;tsgo/Oxlint/Oxfmt/AST nonempty.
+Actual jev exit0:1496subjects92warnings missing0 unsure0 errors[] degraded[]. Public code only.
+Independent final review Critical/Important0;7UT58ms. Minor deferred: tag/entity/importance competing with FTS hit fixtures absent; implementation comparator preserves required order. No reviewer edits.
+Whole goal remains incomplete; nightly consolidation/semantic conflict/other adapters/business e2e/authentication remain separate.

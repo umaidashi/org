@@ -9,6 +9,7 @@ export function selectMemories(
     readonly tag?: string;
     readonly entity?: string;
     readonly query?: string;
+    readonly fullTextIds?: readonly string[];
   },
 ): readonly Memory[] {
   const query = input.query?.toLowerCase() ?? '';
@@ -36,6 +37,8 @@ export function selectMemories(
         relevant(b) - relevant(a) ||
         b.createdAt.localeCompare(a.createdAt) ||
         (b.importance ?? 0) - (a.importance ?? 0) ||
+        Number(input.fullTextIds?.includes(b.id) ?? false) -
+          Number(input.fullTextIds?.includes(a.id) ?? false) ||
         a.id.localeCompare(b.id),
     );
 }

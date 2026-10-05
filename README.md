@@ -576,3 +576,10 @@ bun run start memory extract --room ROOM_ID --message PROPOSAL_MESSAGE_ID --json
 採用はlocal adminの明示操作です。active Room参加Agentのcan_read/can_write、同Roomの提案より前の原本を先行確認し、scopeは`room:ROOM_ID`へ固定します。最大10候補、候補本文16KiB、提案全体64KiB。既存4typeとconfidenceを検証し、根拠と提案Messageの両方をsourceRefsへ残します。
 
 完全一致type/contentはnon-activeも含めて再利用し、無効化・置換された内容を抽出から復活させません。候補の`supersedes`は同Room/typeのactive Memoryだけを明示置換します。全候補を検証後に個別保存するため、保存障害時に部分採用が残る場合があります。同proposalを再実行すると安定IDと原本で照合します。原本Messageは変更しません。confidenceはモデルの申告値で、事実の正しさや本人認証を保証しません。意味による重複・競合判定、夜間consolidation、他scopeへの自動採用は未完了です。
+
+
+## Contextの取得境界
+
+Room返信では、差替え可能なMemoryRetrieverと純粋なContextBuilderを使います。SQLite Adapterはscope・有効期間を再照合し、source本文が3〜1024 Unicode文字のときliteral phraseで全文検索します。scope、tags/entity、新しさ、重要度が同順位の場合に全文一致を優先し、最後はID順です。短文・巨大本文・NULを含む本文は全文検索を行いません。検索障害はRuntime起動前にエラーとなります。
+
+ContextBuilderは入力Messageまでの最大30件、Memory最大20件、UTF-8最大64KiBと省略件数を維持します。別Room履歴と巨大なsourceを拒否します。意味検索・vector rerank・自動summary生成は未完了です。

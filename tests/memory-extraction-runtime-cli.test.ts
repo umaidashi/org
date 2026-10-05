@@ -1,3 +1,5 @@
+import { SqliteMemoryProvider } from '../src/memory/sqlite.js';
+import { createMemory } from '../src/memory/domain.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
@@ -6,14 +8,14 @@ import { cli } from './cli-path.js';
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
-test('daemon Runtime original proposal projects scoped Memory and the next Room turn retrieves it without rewriting evidence', async () => {
+test('daemon Runtime original proposal projects scoped Memory and the next Room turn retrieves it with scoped full-text tie-breaking without rewriting evidence', async () => {
   const home = mkdtempSync('/tmp/org-memory-runtime-'),
     db = home + '/org.db',
     socket = home + '/org.sock';
   const driver = home + '/driver.ts';
   writeFileSync(
     driver,
-    `#!${process.execPath}\nimport assert from'node:assert/strict';const i=JSON.parse(await Bun.stdin.text());let text='INITIAL';if(i.message!=='INITIAL'){const c=JSON.parse(i.instruction);if(i.message==='VERIFY'){assert.ok(c.memories.some(m=>m.type==='procedural'&&m.content==='先に最小UTを実行する'&&m.scope==='room:'+c.room.id));text='CONTEXT_OK';}else{text=JSON.stringify({version:1,tool:'memory',candidates:[{type:'procedural',content:'先に最小UTを実行する',confidence:1,sourceMessageIds:[c.messages.at(-1).id]}]});}}console.log(JSON.stringify({type:'thread.started',thread_id:'memory-provider'}));console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text}}));console.log(JSON.stringify({type:'turn.completed',usage:{}}));`,
+    `#!${process.execPath}\nimport assert from'node:assert/strict';const i=JSON.parse(await Bun.stdin.text());let text='INITIAL';if(i.message!=='INITIAL'){const c=JSON.parse(i.instruction);if(i.message==='SQLite'){assert.deepEqual(c.memories.filter(m=>['a-miss','z-hit','foreign','expired'].includes(m.id)).map(m=>m.id),['z-hit','a-miss']);text='FTS_CONTEXT_OK';}else if(i.message==='VERIFY'){assert.ok(c.memories.some(m=>m.type==='procedural'&&m.content==='先に最小UTを実行する'&&m.scope==='room:'+c.room.id));text='CONTEXT_OK';}else{text=JSON.stringify({version:1,tool:'memory',candidates:[{type:'procedural',content:'先に最小UTを実行する',confidence:1,sourceMessageIds:[c.messages.at(-1).id]}]});}}console.log(JSON.stringify({type:'thread.started',thread_id:'memory-provider'}));console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text}}));console.log(JSON.stringify({type:'turn.completed',usage:{}}));`,
     { mode: 0o700 },
   );
   writeFileSync(
@@ -68,6 +70,32 @@ test('daemon Runtime original proposal projects scoped Memory and the next Room 
     const sourceId = id(
       run(['room', 'send', roomId, '--human', 'founder', '--content', '先に最小UTを実行する']),
     );
+    const memoryProvider = new SqliteMemoryProvider(db);
+    try {
+      for (const [id, content, scope] of [
+        ['a-miss', 'different fact', 'room:' + roomId],
+        ['z-hit', 'SQLite is local', 'room:' + roomId],
+        ['foreign', 'SQLite private', 'agent:other'],
+        ['expired', 'SQLite expired', 'room:' + roomId],
+      ]) {
+        assert.ok(id && content && scope);
+        memoryProvider.create(
+          createMemory(
+            {
+              type: 'semantic',
+              scope,
+              content,
+              confidence: 1,
+              sourceRefs: [{ roomId, messageId: sourceId }],
+              ...(id === 'expired' ? { validUntil: 1 } : {}),
+            },
+            { id, at: '2026-10-01T00:00:00.000Z' },
+          ),
+        );
+      }
+    } finally {
+      memoryProvider.close();
+    }
     daemon = spawn(process.execPath, [
       '--no-env-file',
       cli,
@@ -115,6 +143,12 @@ test('daemon Runtime original proposal projects scoped Memory and the next Room 
       run(['memory', 'extract', '--room', roomId, '--message', proposalId], true),
       memories,
     );
+    const queryId = id(
+      run(['room', 'send', roomId, '--human', 'founder', '--content', 'SQLite'], true),
+    );
+    const fullTextReply = run(['session', 'reply', sessionId, '--room-message', queryId], true);
+    assert.ok(record(fullTextReply));
+    assert.equal(fullTextReply.content, 'FTS_CONTEXT_OK');
   } finally {
     if (daemon) {
       try {

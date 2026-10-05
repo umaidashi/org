@@ -1,4 +1,6 @@
-import { selectMemories } from '../memory/retrieval.js';
+import { createScopedMemoryRetriever, type MemoryRetriever } from '../memory/retriever.js';
+import { boundedContextBuilder } from '../context/builder.js';
+import type { ContextBuilder } from '../context/port.js';
 import type { MemoryProvider } from '../memory/port.js';
 import type { RoomRepository } from './port.js';
 import type { Message } from './domain.js';
@@ -10,7 +12,9 @@ export async function replyToRoomMessage(
   runtime: Pick<LocalAgentRuntime, 'send'>,
   input: { readonly sessionId: string; readonly messageId: string; readonly instruction: string },
   identity: { readonly id: string; readonly at: string },
-  memory?: Pick<MemoryProvider, 'list'>,
+  memory?: Pick<MemoryProvider, 'list'> & Partial<Pick<MemoryProvider, 'search'>>,
+  builder: ContextBuilder = boundedContextBuilder,
+  retriever?: MemoryRetriever,
 ): Promise<Message> {
   const session = sessions.get(input.sessionId);
   const room = rooms.get(session.roomId);
@@ -39,64 +43,20 @@ export async function replyToRoomMessage(
     'global',
   ];
   const at = Date.parse(identity.at);
-  const relevant = selectMemories(memory?.list(scopes) ?? [], {
+  const relevant = (
+    retriever ?? createScopedMemoryRetriever(memory ?? { list: () => [] })
+  ).retrieve({
     scopes,
     at,
     query: source.content,
   });
-  let memories = relevant.slice(0, 20);
-  let history = messages.slice(Math.max(0, index - 29), index + 1);
-  const encode = () =>
-    JSON.stringify({
-      instruction: input.instruction,
-      memories: memories.map(
-        ({
-          id,
-          type,
-          scope,
-          content,
-          confidence,
-          sourceRefs,
-          validFrom,
-          validUntil,
-          tags,
-          entities,
-          importance,
-        }) => ({
-          ...(tags === undefined ? {} : { tags }),
-          ...(entities === undefined ? {} : { entities }),
-          ...(importance === undefined ? {} : { importance }),
-          ...(validFrom === undefined ? {} : { validFrom }),
-          ...(validUntil === undefined ? {} : { validUntil }),
-          id,
-          type,
-          scope,
-          content,
-          confidence,
-          sourceRefs,
-        }),
-      ),
-      omittedMemories: relevant.length - memories.length,
-      room: { id: room.id, title: room.title, type: room.type },
-      omittedMessages: index + 1 - history.length,
-      messages: history.map(({ id, sender, content, replyTo }) => ({
-        id,
-        sender,
-        content,
-        replyTo,
-      })),
-    });
-  let context = encode();
-  while (new TextEncoder().encode(context).byteLength > 65536 && memories.length > 0) {
-    memories = memories.slice(0, -1);
-    context = encode();
-  }
-  while (new TextEncoder().encode(context).byteLength > 65536 && history.length > 1) {
-    history = history.slice(1);
-    context = encode();
-  }
-  if (new TextEncoder().encode(context).byteLength > 65536)
-    throw new Error('Source Message context exceeds 64KiB');
+  const context = builder.build({
+    instruction: input.instruction,
+    room,
+    messages,
+    sourceMessageId: source.id,
+    memories: relevant,
+  });
   const reply = await runtime.send(session.id, source.content, context);
   if (reply.session.id !== session.id || reply.session.status !== 'idle')
     throw new Error('Runtime reply does not match active Session');

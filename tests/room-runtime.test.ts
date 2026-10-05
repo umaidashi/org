@@ -300,3 +300,66 @@ test('Room context includes only active current scopes and excludes another Agen
     memory,
   );
 });
+
+test('Room runtime accepts injected Retriever and ContextBuilder independently of storage and serialization', async () => {
+  const room = createRoom(
+    {
+      title: 'work',
+      type: 'direct',
+      participants: [
+        { kind: 'human', id: 'h' },
+        { kind: 'agent', id: 'a' },
+      ],
+    },
+    { id: 'r', createdAt: '0' },
+  );
+  const source = createMessage(
+    room,
+    { sender: { kind: 'human', id: 'h' }, content: 'question' },
+    { id: 'm', createdAt: '0' },
+  );
+  const session = createSession(
+    { agentId: 'a', roomId: 'r', runtime: 'codex' },
+    { id: 's', at: '0' },
+  );
+  let retrieved = false,
+    built = false;
+  const result = await replyToRoomMessage(
+    {
+      get: () => room,
+      messages: () => [source],
+      append: (_room, input, identity) => createMessage(room, input, identity, source),
+    },
+    { get: () => session },
+    {
+      send: async (_id, message, instruction) => {
+        assert.ok(retrieved && built);
+        assert.equal(message, 'question');
+        assert.equal(instruction, 'INJECTED_CONTEXT');
+        return { session, text: 'answer' };
+      },
+    },
+    { sessionId: 's', messageId: 'm', instruction: 'role' },
+    { id: 'reply', at: '2026-10-06T00:00:00.000Z' },
+    undefined,
+    {
+      build: (input) => {
+        assert.ok(retrieved);
+        assert.equal(input.sourceMessageId, 'm');
+        assert.equal(input.room.id, 'r');
+        assert.deepEqual(input.memories, []);
+        built = true;
+        return 'INJECTED_CONTEXT';
+      },
+    },
+    {
+      retrieve: (input) => {
+        assert.deepEqual(input.scopes, ['room:r', 'agent:a', 'company', 'global']);
+        assert.equal(input.query, 'question');
+        retrieved = true;
+        return [];
+      },
+    },
+  );
+  assert.equal(result.content, 'answer');
+});
