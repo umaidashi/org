@@ -31,6 +31,8 @@ import { runExecutionTask } from '../tasks/execution.js';
 import { recoverInterruptedExecutionTasks } from '../tasks/service.js';
 import { SqliteMemoryProvider } from '../memory/sqlite.js';
 import { projectReviewedTaskMemories } from '../memory/reviews.js';
+import { consolidateRoomMemories } from '../memory/consolidation.js';
+import { pollMemoryConsolidations, validateNightlyRooms } from '../memory/nightly.js';
 import { replyToRoomMessage } from '../rooms/runtime.js';
 import { randomUUID } from 'node:crypto';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
@@ -61,6 +63,7 @@ export interface DaemonCommand {
   readonly sandboxConfig?: string;
   readonly workflowConfig?: string;
   readonly wakeUp: boolean;
+  readonly consolidationRooms?: readonly string[];
 }
 export function parseDaemonCommand(argv: string[]): DaemonCommand {
   const parsed = parseArgs({
@@ -77,9 +80,16 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       'sandbox-config': { type: 'string' },
       'workflow-config': { type: 'string' },
       'wake-up': { type: 'boolean' },
+      'memory-consolidation-room': { type: 'string', multiple: true },
     },
   });
   const [noun, action, ...extra] = parsed.positionals;
+  const consolidationRooms = parsed.values['memory-consolidation-room'];
+  if (consolidationRooms !== undefined) {
+    validateNightlyRooms(consolidationRooms);
+    if (action !== undefined || parsed.values.once)
+      throw new Error('--memory-consolidation-room requires continuous mode');
+  }
   if (noun !== 'daemon' || extra.length) throw new Error('Expected daemon command');
   const db = parsed.values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('Database path must not be empty');
@@ -120,6 +130,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
   )
     throw new Error('--sandbox-config requires continuous mode and --runtime-config');
   const base = {
+    ...(consolidationRooms === undefined ? {} : { consolidationRooms }),
     ...(parsed.values['sandbox-config'] === undefined
       ? {}
       : { sandboxConfig: resolve(parsed.values['sandbox-config']) }),
@@ -150,6 +161,7 @@ function openOperations(
   wakeUp: boolean,
   sandboxPolicy?: SandboxPolicy,
   workflow?: Awaited<ReturnType<typeof configuredWorkflowRuntime>>,
+  consolidationRooms: readonly string[] = [],
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -186,6 +198,10 @@ function openOperations(
     );
     const memoryProvider = new SqliteMemoryProvider(db);
     memory = memoryProvider;
+    for (const roomId of consolidationRooms) {
+      if (roomRepository.get(roomId).id !== roomId)
+        throw new Error('Memory consolidation Room unavailable');
+    }
     const wakeupJournal = new SqliteWakeupJournal(db);
     wakeups = wakeupJournal;
     const sandboxJobs = new SandboxJobs();
@@ -367,6 +383,16 @@ function openOperations(
     return {
       dispatch: () => {
         pollSchedules(scheduleRepository, eventBus, () => Date.now());
+        pollMemoryConsolidations(
+          roomRepository,
+          memoryProvider,
+          {
+            consolidate: (request) =>
+              consolidateRoomMemories(roomRepository, memoryProvider, memoryProvider, request),
+          },
+          consolidationRooms,
+          () => Date.now(),
+        );
         return dispatchEvents(
           eventBus,
           agentRepository,
@@ -547,7 +573,14 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
     try {
       await runLocalDaemon(command.socket, command.interval, () => {
         lease = acquireDatabaseLease(command.db);
-        return openOperations(lease.databasePath, drivers, command.wakeUp, sandboxPolicy, workflow);
+        return openOperations(
+          lease.databasePath,
+          drivers,
+          command.wakeUp,
+          sandboxPolicy,
+          workflow,
+          command.consolidationRooms,
+        );
       });
     } finally {
       lease?.close();

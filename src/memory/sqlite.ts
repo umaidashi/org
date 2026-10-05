@@ -5,9 +5,11 @@ import { isDeepStrictEqual } from 'node:util';
 import { decodeMemory, replaceMemory, memorySearchPhrase } from './domain.js';
 import type { Memory } from './domain.js';
 import type { MemoryProvider } from './port.js';
+import type { MemoryConsolidationHistory } from './nightly.js';
 import {
   planMemoryConsolidation,
   validateConsolidationRequest,
+  validateConsolidationScope,
   type MemoryConsolidationPlan,
   type MemoryConsolidationReceipt,
   type MemoryConsolidationStore,
@@ -59,7 +61,9 @@ function rowMemory(row: unknown): Memory {
   const value: unknown = JSON.parse(row.data);
   return decodeMemory(value);
 }
-export class SqliteMemoryProvider implements MemoryProvider, MemoryConsolidationStore {
+export class SqliteMemoryProvider
+  implements MemoryProvider, MemoryConsolidationStore, MemoryConsolidationHistory
+{
   private readonly db: Database;
   constructor(path: string) {
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
@@ -112,6 +116,40 @@ export class SqliteMemoryProvider implements MemoryProvider, MemoryConsolidation
     if (receipt !== null && receipt.key !== key)
       throw new Error('Stored Memory consolidation key mismatch');
     return receipt;
+  }
+  latestConsolidation(prefix: string): MemoryConsolidationReceipt | null {
+    if (!/^nightly-memory:[a-f0-9]{64}:$/.test(prefix))
+      throw new Error('Invalid nightly consolidation prefix');
+    const row = this.db
+      .query(
+        'SELECT key FROM memory_consolidations WHERE key>=? AND key<? ORDER BY key DESC LIMIT 1',
+      )
+      .get(prefix, prefix + '\uffff');
+    if (row === null) return null;
+    if (
+      typeof row !== 'object' ||
+      !('key' in row) ||
+      typeof row.key !== 'string' ||
+      !row.key.startsWith(prefix)
+    )
+      throw new Error('Invalid consolidation history key');
+    return this.getConsolidation(row.key);
+  }
+  listConsolidations(scope: string): readonly MemoryConsolidationReceipt[] {
+    validateConsolidationScope(scope);
+    const rows = this.db
+      .query(
+        "SELECT key FROM memory_consolidations WHERE json_extract(data,'$.scope')=? ORDER BY rowid",
+      )
+      .all(scope);
+    return rows.map((row) => {
+      if (row === null || typeof row !== 'object' || !('key' in row) || typeof row.key !== 'string')
+        throw new Error('Invalid consolidation history key');
+      const receipt = this.getConsolidation(row.key);
+      if (!receipt || receipt.scope !== scope)
+        throw new Error('Invalid consolidation history scope');
+      return receipt;
+    });
   }
   commitConsolidation(
     plan: MemoryConsolidationPlan,

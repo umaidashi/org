@@ -1,0 +1,6 @@
+RED: nightly poll module missing; native receipt CLI rejected --scope.
+GREEN4relatedUT72ms: explicit Room list/continuous bounds/UTC day/latest missed coalesce/clock rollback/archived/error. Real daemon1pass1.51s: allowed Room one receipt, nonallowlist/archived unchanged, same-day newly captured Memory remains active, restart same receipt/immutable source/no replay. No system clock change or24h sleep.
+Final check exit0:290pass8skip0fail298tests156files58.33s;tsgo/Oxlint/Oxfmt/AST nonempty.
+Actual jev exit0:1544subjects97warnings missing0 unsure0 errors[] degraded[]. Public code only.
+Independent review Critical/Important0;2UT38ms. Minor deferred: native latest PK range/DESC/malformed receipt lack multi-day/multi-prefix SQLite fixture. Comparator/current helper validation implemented as designed; model failure warnings remain advisory and boundary coverage shortfall recorded.
+Remaining: semantic dedup/conflict/summary/all-scope automation, business adapters/e2e/authentication and other requirement rows; whole goal incomplete.

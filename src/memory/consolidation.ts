@@ -23,10 +23,14 @@ export interface MemoryConsolidationStore {
 export interface MemoryConsolidator {
   consolidate(input: MemoryConsolidationRequest): MemoryConsolidationReceipt;
 }
+export function validateConsolidationScope(scope: string): void {
+  if (!/^room:[^\s]+$/.test(scope) || scope.includes('\0'))
+    throw new Error('Invalid Memory consolidation scope');
+}
 export function validateConsolidationRequest(input: MemoryConsolidationRequest): void {
+  validateConsolidationScope(input.scope);
   const time = new Date(input.at);
   if (
-    !/^room:[^\s]+$/.test(input.scope) ||
     !input.key.trim() ||
     input.key.length > 256 ||
     input.key.includes('\0') ||

@@ -15,12 +15,14 @@ import { jsonMemoryExtractor } from './extractor.js';
 import {
   consolidateRoomMemories,
   validateConsolidationRequest,
+  validateConsolidationScope,
   type MemoryConsolidationRequest,
 } from './consolidation.js';
 export type MemoryCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'capture'; readonly input: MemoryInput }
   | { readonly action: 'extract'; readonly roomId: string; readonly messageId: string }
   | { readonly action: 'consolidate'; readonly request: MemoryConsolidationRequest }
+  | { readonly action: 'consolidations'; readonly scope: string }
   | { readonly action: 'get'; readonly id: string }
   | {
       readonly action: 'list' | 'search';
@@ -90,35 +92,43 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
     json: parsed.values.json ?? false,
   };
   const allowed =
-    action === 'consolidate'
-      ? ['db', 'json', 'scope', 'key', 'at']
-      : action === 'extract'
-        ? ['db', 'json', 'room', 'message']
-        : action === 'capture'
-          ? [
-              'db',
-              'json',
-              'type',
-              'scope',
-              'content',
-              'confidence',
-              'room',
-              'message',
-              'supersedes',
-              'valid-from',
-              'valid-until',
-              'tag',
-              'entity',
-              'importance',
-              'source-review',
-            ]
-          : action === 'list' || action === 'search'
-            ? ['db', 'json', 'scope', 'at', 'type', 'tag', 'entity']
-            : action === 'invalidate'
-              ? ['db', 'json', 'reason']
-              : ['db', 'json'];
+    action === 'consolidations'
+      ? ['db', 'json', 'scope']
+      : action === 'consolidate'
+        ? ['db', 'json', 'scope', 'key', 'at']
+        : action === 'extract'
+          ? ['db', 'json', 'room', 'message']
+          : action === 'capture'
+            ? [
+                'db',
+                'json',
+                'type',
+                'scope',
+                'content',
+                'confidence',
+                'room',
+                'message',
+                'supersedes',
+                'valid-from',
+                'valid-until',
+                'tag',
+                'entity',
+                'importance',
+                'source-review',
+              ]
+            : action === 'list' || action === 'search'
+              ? ['db', 'json', 'scope', 'at', 'type', 'tag', 'entity']
+              : action === 'invalidate'
+                ? ['db', 'json', 'reason']
+                : ['db', 'json'];
   for (const key of Object.keys(parsed.values))
     if (!allowed.includes(key)) throw new Error(`Unexpected --${key}`);
+  if (action === 'consolidations') {
+    if (id !== undefined) throw new Error('Unexpected consolidations argument');
+    const scope = required(parsed.values.scope, 'scope');
+    validateConsolidationScope(scope);
+    return { ...base, action, scope };
+  }
   if (action === 'consolidate') {
     if (id !== undefined) throw new Error('Unexpected consolidate argument');
     const request = {
@@ -127,6 +137,8 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       at: required(parsed.values.at, 'at'),
     };
     validateConsolidationRequest(request);
+    if (request.key.startsWith('nightly-memory:'))
+      throw new Error('Nightly consolidation keys are reserved for daemon');
     return { ...base, action, request };
   }
   if (action === 'extract') {
@@ -205,13 +217,18 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
         : { scope: required(parsed.values.scope, 'scope') }),
     };
   }
-  throw new Error('Expected memory capture|extract|consolidate|get|list|search|invalidate');
+  throw new Error(
+    'Expected memory capture|extract|consolidate|consolidations|get|list|search|invalidate',
+  );
 }
 export function runMemoryCommand(command: MemoryCommand, output: (line: string) => void): void {
   const provider = new SqliteMemoryProvider(command.db);
   try {
     let result: unknown;
     switch (command.action) {
+      case 'consolidations':
+        result = provider.listConsolidations(command.scope);
+        break;
       case 'consolidate': {
         const rooms = new SqliteRoomRepository(command.db);
         try {
