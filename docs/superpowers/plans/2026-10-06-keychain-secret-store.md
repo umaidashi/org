@@ -1,0 +1,9 @@
+# native macOS Keychain SecretStore
+
+Environment SecretStoreと同じPortへ、macOSのsecurity find-generic-passwordを使うread-only Adapterを追加する。actor/reference明示grantをlookup前に照合し、常に明示Keychain path/service/accountを指定する。default search listやlogin Keychainへの暗黙lookupはしない。元のstderr/例外/秘密値を返さず固定エラー、native timeout/output上限、資格情報env非継承。ネイティブlookupはDIしてDB/OSなしの最小UTを可能にする。
+
+Workflow host/Agent設定は既存apiKeyEnvと新apiKeyKeychain {path,service,account}のどちらか一つを選べる。全scope/credential metadataをlookup前に検証し、Agent未知scopeからのnative読み取りを拒否する。host識別子のgrantでありRPC認証とは主張しない。
+
+RED→pure adapter tests→config Port交換/実CLI native HTTP fixture→private一時KeychainのOS実lookup→全check/実Jev/branch最終レビュー。proofは新規一時Keychainだけを作成・削除し、既存Keychain itemを書き換えない。値や生認証出力をGit/logへ残さない。
+
+read-only Adapterでありcredential登録CLIやVault、Sandbox注入、完全Agent filesystem/credential isolationは未完了。

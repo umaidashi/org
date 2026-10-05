@@ -1,6 +1,7 @@
 import { createApprovalRequest } from '../approvals/domain.js';
 import { SqliteApprovalStore } from '../approvals/sqlite.js';
 import { invokeApprovedWorkflow } from './approved.js';
+import { KeychainSecretStore } from '../secrets/keychain.js';
 import { EnvironmentSecretStore } from '../secrets/environment.js';
 import type { SecretStore } from '../secrets/port.js';
 import { parseArgs } from 'node:util';
@@ -100,6 +101,40 @@ export function parseWorkflowCommand(argv: string[]): WorkflowCommand {
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
+function workflowSecretStore(value: Record<string, unknown>, actorId: string): SecretStore {
+  const environment = value.apiKeyEnv,
+    keychain = value.apiKeyKeychain;
+  if ((environment === undefined) === (keychain === undefined))
+    throw new Error('Workflow requires exactly one secret credential location');
+  if (environment !== undefined) {
+    if (typeof environment !== 'string' || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(environment))
+      throw new Error(
+        actorId === 'host:workflow'
+          ? 'Invalid Workflow host config'
+          : 'Invalid Agent Workflow scope',
+      );
+    return new EnvironmentSecretStore([
+      { actorId, reference: 'n8n-api-key', environmentVariable: environment },
+    ]);
+  }
+  if (
+    !record(keychain) ||
+    Object.keys(keychain).some((key) => !['path', 'service', 'account'].includes(key)) ||
+    typeof keychain.path !== 'string' ||
+    typeof keychain.service !== 'string' ||
+    typeof keychain.account !== 'string'
+  )
+    throw new Error('Invalid Workflow Keychain credential');
+  return new KeychainSecretStore([
+    {
+      actorId,
+      reference: 'n8n-api-key',
+      path: keychain.path,
+      service: keychain.service,
+      account: keychain.account,
+    },
+  ]);
+}
 export async function configuredWorkflowRuntime(path: string, secrets?: SecretStore) {
   const file = Bun.file(path);
   if (file.size > 65536) throw new Error('Workflow config size limit');
@@ -112,11 +147,10 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
   if (
     !record(value) ||
     Object.keys(value).some(
-      (key) => !['baseUrl', 'apiKeyEnv', 'workflows', 'agentScopes'].includes(key),
+      (key) =>
+        !['baseUrl', 'apiKeyEnv', 'apiKeyKeychain', 'workflows', 'agentScopes'].includes(key),
     ) ||
     typeof value.baseUrl !== 'string' ||
-    typeof value.apiKeyEnv !== 'string' ||
-    !/^[A-Za-z_][A-Za-z0-9_]*$/.test(value.apiKeyEnv) ||
     !Array.isArray(value.workflows)
   )
     throw new Error('Invalid Workflow host config');
@@ -144,14 +178,12 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
     if (
       !record(scope) ||
       Object.keys(scope).some(
-        (key) => !['agentId', 'workflowIds', 'apiKeyEnv', 'effect'].includes(key),
+        (key) => !['agentId', 'workflowIds', 'apiKeyEnv', 'apiKeyKeychain', 'effect'].includes(key),
       ) ||
       typeof scope.agentId !== 'string' ||
       !scope.agentId.trim() ||
       scope.agentId.length > 128 ||
       scope.agentId === 'host:workflow' ||
-      typeof scope.apiKeyEnv !== 'string' ||
-      !/^[A-Za-z_][A-Za-z0-9_]*$/.test(scope.apiKeyEnv) ||
       scope.effect !== 'read_only' ||
       !Array.isArray(scope.workflowIds) ||
       scope.workflowIds.some(
@@ -169,13 +201,14 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
     });
     if (new Set(workflowIds).size !== workflowIds.length)
       throw new Error('Duplicate scoped Workflow ID');
-    return { agentId: scope.agentId, apiKeyEnv: scope.apiKeyEnv, workflowIds };
+    return {
+      agentId: scope.agentId,
+      secretStore: workflowSecretStore(scope, scope.agentId),
+      workflowIds,
+    };
   });
-  const store =
-    secrets ??
-    new EnvironmentSecretStore([
-      { actorId: 'host:workflow', reference: 'n8n-api-key', environmentVariable: value.apiKeyEnv },
-    ]);
+  const configuredSecrets = workflowSecretStore(value, 'host:workflow');
+  const store = secrets ?? configuredSecrets;
   const apiKey = store.getSecret('host:workflow', 'n8n-api-key');
   const runtime = new N8nWorkflowRuntime(
     { baseUrl: value.baseUrl, apiKey, workflows },
@@ -197,11 +230,7 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
       const workflow = workflows.find((candidate) => candidate.id === workflowId);
       if (!scope || !workflow || workflow.effect !== 'read_only')
         throw new Error('Agent Workflow scope denied');
-      const scopedStore =
-        secrets ??
-        new EnvironmentSecretStore([
-          { actorId: agentId, reference: 'n8n-api-key', environmentVariable: scope.apiKeyEnv },
-        ]);
+      const scopedStore = secrets ?? scope.secretStore;
       const apiKey = scopedStore.getSecret(agentId, 'n8n-api-key');
       return new N8nWorkflowRuntime({ baseUrl: host, apiKey, workflows: [workflow] }, (url, init) =>
         fetch(url, {

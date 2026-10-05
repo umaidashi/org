@@ -1,0 +1,8 @@
+bun run check exit 0: 257 pass
+ 8 skip
+ 0 fail
+Ran 265 tests across 133 files. [49.05s]
+Type/lint/format/AST passed, 247 files examined by format. Actual Jev exit 0: {"subjects": 1356, "missing": 0, "unsure": 0, "reported": 77, "errors": [], "degraded": []}
+Native opt-in ORG_KEYCHAIN_TEST=1: 1 pass, 0 fail; 314ms. Private Keychain native lookup and actual CLI/Workflow HTTP exchange, distinct Actor key, no credential env/output; own Keychain deleted and existing search list unchanged.
+Final independent review no Critical/Important/Minor; 4 tests / 3 files / 34ms, diff check passed. Reviewer did not access existing Keychain or rerun OS fixture.
+Limits: read-only adapter/trusted host grants, no RPC authentication or complete physical Agent isolation; Vault/Sandbox injection pending.

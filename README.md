@@ -482,3 +482,17 @@ bun run start session rebuild SESSION_ID --expected-version VERSION --json
 元Sessionの停止と、provider IDを持たない新しいKernel Sessionの保存を一transactionで行います。元のfailed履歴を保持し、新Sessionの`rebuiltFrom`に元ID/versionを記録します。古いversion・非failed・archive済みRoomは拒否し、保存失敗時は元の状態へrollbackします。
 
 rebuild自体はproviderを起動しません。次の新規Room Messageをactivateすると、最新SessionがRoom履歴と現在有効なscope内Memoryからcontextを作り直します。semantic Room Memoryをsummaryとして保持する場合も、このcontextに含まれます。元Message・Memoryは変更しません。Room summaryの自動生成と一般の自律retryは未完了です。Taskや結果不明の外部操作を自動で再実行する機能ではありません。
+
+## macOS Keychainへ交換する
+
+Workflow設定では`apiKeyEnv`の代わりに、暗号化保管されたitemの明示参照を指定できます。hostと各Agentでどちらか一つを選びます。
+
+```json
+{"baseUrl":"https://n8n.example","apiKeyKeychain":{"path":"/absolute/path/org.keychain-db","service":"org-n8n","account":"host"},"workflows":[{"id":"WORKFLOW_ID","path":"org-kernel-check"}],"agentScopes":[{"agentId":"AGENT_ID","workflowIds":["WORKFLOW_ID"],"apiKeyKeychain":{"path":"/absolute/path/org.keychain-db","service":"org-n8n","account":"AGENT_ID"},"effect":"read_only"}]}
+```
+
+AdapterはmacOSの`security find-generic-password`で指定path/service/accountだけを読みます。default search listへ暗黙fallbackせず、未知actor/referenceをOS lookup前に拒否します。OS処理は5秒・出力上限付きで、資格情報envを継承しません。元の認証errorや値を出さず、読み取れない場合は固定エラーです。キーを表示・登録するCLIはありません。
+
+専用の一時Keychainと実CLI/HTTPによる再現テストは`ORG_KEYCHAIN_TEST=1 bun --no-env-file test tests/keychain-real.test.ts`です。自作itemだけを作成・削除し、既存itemを変更しません。通常全検査ではこの実機テストはskipします。
+
+grantは信頼済みhost内部の許可です。Keychainへの交換はAgent RPC認証やAgentプロセスの完全なfilesystem/credential隔離を意味しません。Vault、Sandboxへの限定credential注入は未完了です。
