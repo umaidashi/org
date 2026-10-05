@@ -1,3 +1,4 @@
+import { parseSandboxCommand, runSandboxCommand, type SandboxCommand } from '../sandbox/cli.js';
 import {
   parseScheduleCommand,
   runScheduleCommand,
@@ -33,6 +34,8 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
        org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
        org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org --direct sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org --direct sandbox artifact URI
        org schedule create|list|get|enable|disable [OPTIONS]
        org a2a send|get|list [OPTIONS]
        org memory capture|get|list|invalidate [OPTIONS]
@@ -53,6 +56,7 @@ function required(value: string | undefined, name: string): string {
 }
 
 export type ApplicationCommand =
+  | { readonly kind: 'sandbox'; readonly command: SandboxCommand }
   | { readonly kind: 'schedule'; readonly command: ScheduleCommand }
   | { readonly kind: 'a2a'; readonly command: A2ACommand }
   | { readonly kind: 'memory'; readonly command: MemoryCommand }
@@ -73,6 +77,8 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
     strict: false,
     options: { db: { type: 'string' } },
   });
+  if (probe.positionals[0] === 'sandbox')
+    return { kind: 'sandbox', command: parseSandboxCommand(argv) };
   if (probe.positionals[0] === 'schedule')
     return { kind: 'schedule', command: parseScheduleCommand(argv) };
   if (probe.positionals[0] === 'a2a') return { kind: 'a2a', command: parseA2ACommand(argv) };
@@ -179,6 +185,10 @@ async function runApplication(
   output: (line: string) => void,
   sessions?: ApplicationContext,
 ): Promise<void> {
+  if (command.kind === 'sandbox') {
+    await runSandboxCommand({ ...command.command, db }, output);
+    return;
+  }
   if (command.kind === 'schedule') {
     runScheduleCommand({ ...command.command, db }, output);
     return;
@@ -299,6 +309,8 @@ export async function executeApplication(
         throw new Error('Remote commands cannot change transport or database');
     }
     command = parseApplicationCommand(argv);
+    if (remote && command.kind === 'sandbox')
+      throw new Error('Sandbox currently requires --direct');
   } catch (error) {
     return {
       code: 2,

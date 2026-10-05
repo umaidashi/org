@@ -156,7 +156,7 @@ TCP listenerは開かず、Unix socketを0600で作成します。同socketの2�
 
 SIGKILL等で残ったsocket/lockは自動削除しません。稼働中プロセスがないことを確認してから手動で整理してください。
 
-Agent/Task/Room/A2A/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。同じPOSIX process groupの子孫を終了させます。daemon自身のSIGKILL時も監督pipeの切断で同groupを停止します。別groupへ離脱する子孫の隔離は後続です。scheduler、Task実行のretry、Workflow・Sandbox等のCLIとTUIは未実装です。
+Agent/Task/Room/A2A/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。同じPOSIX process groupの子孫を終了させます。daemon自身のSIGKILL時も監督pipeの切断で同groupを停止します。別groupへ離脱する子孫の隔離は後続です。固定間隔schedulerとDocker Sandboxの直接実行CLIを実装しています。Task実行のretry、Workflow・TUIは未実装です。
 
 ## 検証とレビュー
 
@@ -291,3 +291,16 @@ bun run start -- schedule disable SCHEDULE_ID
 ```
 
 同じslotのEventを再発行せず、停止中に逃した時刻は最新一件にまとめます。時計が巻き戻ると保存済み最大slotに追いつくまで発行を抑止します。cron・専用timezone/calendar設定と全missed runのcatch-upは後続です。JSONはUTC epoch millisecondsの`startAtMs`を保持します。
+
+
+Docker Sandboxでは、assigned ExecutionTaskのownerに`can_run_shell`が必要です。`--repo`には`can_read`、`--writable`には`can_write`も必要です。Docker engineと固定公式Bun imageを使用し、networkなし・rootfs readonly・非root・resource上限付きtmpfsで実行します。
+
+```sh
+bun run start -- --direct sandbox run TASK_ID --code 'console.log(7)' --json
+bun run start -- --direct sandbox run TASK_ID --repo . --writable --code "await Bun.write('result.txt','done')" --file result.txt --json
+bun run start -- --direct task artifacts TASK_ID --json
+bun run start -- --direct sandbox artifact org://artifacts/HASH
+ORG_DOCKER_TEST=1 bun --no-env-file test tests/sandbox-docker-real.test.ts tests/sandbox-cli.test.ts
+```
+
+repoはHEADのregular fileだけをコピーし、未commit変更・未追跡ファイル・Git履歴・`.env`等の資格情報ファイルを持ち込みません。元repoをマウントしません。stdoutまたはstdoutと選択ファイルのbase64を含むJSONを、privateな`DB_PATH.artifacts`へ内容hashで保存します。保存blobは1MiB以内、選択ファイルは16件以内です。Taskは`waiting_approval`へ進み、既存`task review`で明示承認します。daemon経由実行・credential注入・LLM tool接続は後続です。親SIGKILL後の実行中containerは内部deadlineで有限終了します。作成完了からstart前の異常死は停止containerを残し得ます。

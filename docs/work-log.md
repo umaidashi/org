@@ -573,3 +573,22 @@
 - 全183/183・型/lint/format/AST成功、40.40秒。実Jev949判定missing/unsure0・errors/degradedなし。
 - 実Claude Maxでも定期Schedule→scheduler source Event→scoped Memoryだけのmarker→Task成果物/承認待ち→明示レビュー→disable保持/再起動後の次Scheduleを確認し全boolean成功。[実成否](verification/2026-10-05-periodic-scheduler/real-claude-max.txt)。raw応答/資格情報は公開しない。
 - Final: 独立Reviewer Critical/Important/Minorなし。domain/SQLite5+実CLI2計7件も独立成功。Final Ruling: 全missed slot catch-up/専用cron-calendar-timezone/cursorは今回の明記された後続、costは固定間隔とcoalesceに限られること。Next: Sandboxの実行/破棄境界とArtifactファイル回収、Permission/Approval/Auditへ進む。
+
+## main公開：固定間隔Scheduler
+
+- main4186f60へ通常push成功。pre-push全183テスト/実Jev/公開検査49.86秒。force-pushなし。
+
+## Docker Sandbox（進行中）
+
+- 継続指示に従い[計画](superpowers/plans/2026-10-05-docker-sandbox.md)を保存。ExecutionTask ownerとcan_run_shell/can_read/can_write、relative artifact path、code/resource上限のDB不要UTをRED（未module）→GREEN2件。Docker呼出DIによる作成/隔離flags/ID限定cleanup/作成失敗no deleteもRED→GREEN2件。
+- Docker engine29.4.0で公式Bun1.3.4 imageを取得しregistry digest固定。ホストmountを廃し容量64MiBのtmpfsを使用する判断へ計画更新。readonly rootfsにdocker cpが拒否された実失敗を確認し、固定管理コードを標準入力からtmpfsへ配置する実装へ変更。管理配置のみroot、実行は非root、network none/cap-drop ALL/no-new-privileges/resource上限を維持する。
+- 実DockerのTS実行成功、readonly workspace拒否、明示writable成功、timeout、事前cancelを1件の実integrationで確認。静的型/lint/format/AST成功。現段階は空workspaceのrun/destroyのみ、repo export/Artifact回収/Task CLIは未実装であり全体完了ではない。全テスト/実Jev/独立レビューは変更完成後に実行する。
+- Artifactはprivate directoryのSHA256 blobへexclusive作成、不変digest照合/O_NOFOLLOW/regular-file制約。symlink置換のRED（未module）→GREEN1件。Sandbox Task serviceの権限拒否no execution/成功stage RED→GREEN1件、既存LLM Task2件も成功。
+- 共有executeAssignedTaskでrunningと結果stage/failed CASを既存LLM/Sandboxの実2callerへ適用。sandbox --direct CLIとartifact読取を配線し、実Docker CLI→stdout Artifact→waiting_approval→再実行拒否→明示レビューcompletedのe2e成功。CLI配線自体は失敗e2e前に追加してしまったためTDD順序の逸脱を記録し、後続拡張はCLIの失敗を先に確認する。
+- Sandbox remote実行は現段階で拒否し--directのみ。daemon内実行はactive-job cancel/drainへ接続する後続で許可する。既存daemon shutdownの保証を未接続の長期Sandboxへ広げない。repo/file回収は未実装で明示reject。
+- ファイル選択の実Docker/CLI RED（未回収/unknown --file）→GREEN。各directory/fileをO_NOFOLLOWのfd相対openで辿り、symlink差替えのpath競合を避け、regular file/総量1MiB/base64 encodingを検査。stdout+file bundleは単一既存Task Artifactへ保存、encoded blob上限1MiB。
+- repo export RED（未module）、CLI RED（unknown --repo）→GREEN。HEADをcommit hashで固定しnative Git blobを読み、regular file最大2000件/8MiB、個別1MiB。env/key/既知credentials directory・未追跡・未commit変更・Git履歴を除外し、symlink/submodule拒否。実CLIでsource import/作業copy書換/元source不変/envとuntracked不存在/Artifact/明示レビュー成功。
+- Ruling: tar archiveではなくGit object読取を採用し、credential除外/サイズ/regular fileをコピー前に確定する。encoded bundleは一既存Artifactで扱い、複数Artifact transactionを追加しない。costはlarge repo/Artifactやsubmoduleに別対応が必要なこと。実行中containerの親SIGKILLはdeadline対象、作成からstart前の異常死ではstopped containerが残り得る点を区別する。daemon経由/LLM tool/credential injectionは後続。
+- 全190/190・型/lint/format/AST成功、37.36秒。Docker実機3件は既定全検査ではskipし別途opt-in実行。実Docker2件（隔離/ファイル/cancel/output/timeoutとrepo/Task CLI）成功、親SIGKILL後のrunning container期限終了/自動削除1件31.60秒成功。[証拠](verification/2026-10-05-docker-sandbox/real-docker.txt)。親SIGKILL検証中のstopped container残留は対象外の既知制約であり区別する。
+- 実Jev1004判定missing/unsure0、errorsなし。未校正warningは既存/new関数の失敗分岐網羅候補であり自動承認根拠としない。権限拒否/CLI不正引数/作成失敗no delete/symlink拒否/サイズ境界/timeout/cancel/output/既存Task failure-CASの実テストと独立レビューで今回の変更を判定。
+- Final: fresh独立Reviewer Critical/Important/Minorなし。Sandbox7件と既存LLM2件を独立成功。PID1へ同UID SIGSTOPを送るdeadline迂回候補は実Dockerで不成立を確認、期限後自動削除、probe cleanup済み。Final Ruling: one-shot Dockerのみ、daemon接続/credential注入/LLM toolは後続、large repo/encoded blob上限、作成からstart前crashのstopped container残留。costは該当後続と孤児停止containerのcleanupが必要なこと。Next: Permission/Approval/Auditとdaemon Sandbox cancel/drain、LLM tool境界へ進む。

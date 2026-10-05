@@ -1,0 +1,17 @@
+TypeScript/stdout: PASS
+readonly workspace rejection: PASS
+writable workspace: PASS
+selected regular artifact/base64: PASS
+symlink artifact rejection: PASS
+output limit: PASS
+in-flight cancellation: PASS
+pre-aborted cancellation: PASS
+timeout: PASS
+HEAD source import: PASS
+env/untracked exclusion: PASS
+original repo preservation: PASS
+Task waiting_approval/artifact/re-run rejection/explicit review: PASS
+parent SIGKILL running container deadline/automatic removal: PASS (31.60 seconds)
+Independent PID1 SIGSTOP bypass probe: NOT REPRODUCED; deadline removed container
+Native image pinned by registry digest; Docker tests opt-in
+Raw code/output and credentials excluded

@@ -17,3 +17,5 @@ coverage/
 .jev-lint/baseline.json
 .jev-lint/latest-run.json
 .jev-lint/*.json
+
+*.artifacts/

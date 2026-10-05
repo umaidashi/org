@@ -1,5 +1,5 @@
 import type { TaskProvider, ExecutionResultWriter } from './port.js';
-import type { Task } from './domain.js';
+import type { TaskArtifact, Task } from './domain.js';
 import type { SessionStore } from '../sessions/port.js';
 import type { RoomRepository } from '../rooms/port.js';
 import type { Message } from '../rooms/domain.js';
@@ -34,8 +34,7 @@ export async function runExecutionTask(
     throw new Error('Task input already has a Session reply; use a new Message');
   if (!messages.some((m) => m.id === input.messageId && m.roomId === room.id))
     throw new Error('Task input Message not found');
-  const running = provider.update(original.id, { status: 'running' }, now(), original.version);
-  try {
+  const execution = await executeAssignedTask(provider, original, now, async () => {
     const result = await reply(
       session.id,
       input.messageId,
@@ -51,16 +50,35 @@ export async function runExecutionTask(
       result.sender.id !== original.owner
     )
       throw new Error('Task runtime result does not match execution');
-    const task = provider.stageExecutionResult(
-      original.id,
-      {
+    return {
+      result,
+      artifact: {
         id: result.id,
         uri: `org://rooms/${encodeURIComponent(room.id)}/messages/${encodeURIComponent(result.id)}`,
         createdAt: now(),
       },
-      running.version,
-    );
-    return { task, reply: result };
+    };
+  });
+  return { task: execution.task, reply: execution.result };
+}
+
+export async function executeAssignedTask<T>(
+  provider: Pick<TaskProvider, 'update'> & ExecutionResultWriter,
+  original: Task,
+  now: () => string,
+  produce: () => Promise<{ readonly result: T; readonly artifact: TaskArtifact }>,
+): Promise<{ readonly task: Task; readonly result: T }> {
+  if (
+    original.kind !== 'execution_task' ||
+    original.status !== 'assigned' ||
+    original.owner === null
+  )
+    throw new Error('Task execution requires assigned ExecutionTask');
+  const running = provider.update(original.id, { status: 'running' }, now(), original.version);
+  try {
+    const { result, artifact } = await produce();
+    const task = provider.stageExecutionResult(original.id, artifact, running.version);
+    return { task, result };
   } catch (error) {
     try {
       provider.update(original.id, { status: 'failed' }, now(), running.version);
