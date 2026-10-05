@@ -1087,3 +1087,6 @@
 - local Git proof483704aはmain通常push成功90.99秒。Notion Room/Sessionを再取得し、Room messages/summary/Agent MemoryとRuntime Sessionの分離を照合。[設計・計画](superpowers/plans/2026-10-06-room-summary-session-handoff.md)。
 - Ruling: 既存strict semantic Room Memoryをhumanの明示要約依頼で生成/自動採用し、Session stop/既存fresh startへ渡す。新要約store/定期LLM/製品機能は追加しないため未実装APIの人工REDは作らない。31件の非起動Agent Messageで元発言/提案を直近30件から除外し、fresh provider IDとMemory読取を検証する。従来native/invalidation/原本再起動回帰も維持する。
 - Ponytail review: 既存実Memory proofの延長だけで新fixture framework/Port/依存なし。Runtime各turnの120秒上限は維持し、実機test全体期限は5turn分を覆う720秒へ合わせる。常時圧縮/定期summary/意味dedupは未完了。
+- 実Claude Max/native Memory proof3成功0fail36.01秒（実Claude33.51秒）。要約のSQLite/Claude MaxとsourceRefs、直近30件外への原本除外、旧Session停止、新Kernel/provider Session ID、返信Session紐付け、再起動後の原本/Memory不変を確認。一般的な事実忠実性や常時要約は検証したと主張しない。
+- 全check335成功12skip0fail347tests174files78.09秒、型/lint/format/AST/dry-run非空。実jev1752対象warning113/missing・unsure0/errors・degraded空。変更ファイルの命名候補2件は実際のassertとproof helperの動作に照合し、変更不要と判断。
+- 独立最終review Critical/Importantなし、Minorはexactly one候補の件数assert未追加。今回の受入は内容・証拠・Session引継ぎであり件数保証は主張しないため補強候補として保持。独立native再実行は制限環境の既存daemon ready待機で2timeout、real skip。親の実機3成功と全check成功を採用し、独立再実行の成功とは記載しない。Ponytail review: Lean already. Ship. 新製品実装なし、再reviewなし。

@@ -483,7 +483,7 @@ bun run start session rebuild SESSION_ID --expected-version VERSION --json
 
 元Sessionの停止と、provider IDを持たない新しいKernel Sessionの保存を一transactionで行います。元のfailed履歴を保持し、新Sessionの`rebuiltFrom`に元ID/versionを記録します。古いversion・非failed・archive済みRoomは拒否し、保存失敗時は元の状態へrollbackします。
 
-rebuild自体はproviderを起動しません。次の新規Room Messageをactivateすると、最新SessionがRoom履歴と現在有効なscope内Memoryからcontextを作り直します。semantic Room Memoryをsummaryとして保持する場合も、このcontextに含まれます。元Message・Memoryは変更しません。Room summaryの自動生成と一般の自律retryは未完了です。Taskや結果不明の外部操作を自動で再実行する機能ではありません。
+rebuild自体はproviderを起動しません。次の新規Room Messageをactivateすると、最新SessionがRoom履歴と現在有効なscope内Memoryからcontextを作り直します。semantic Room Memoryをsummaryとして保持する場合も、このcontextに含まれます。元Message・Memoryは変更しません。明示要約依頼からsemantic Room Memoryを生成し、元発言が直近30件外になった後も、停止後の新Claude Max Sessionへ引き継ぐ実機e2eを確認しています。常時の自動要約と一般の自律retryは未完了です。Taskや結果不明の外部操作を自動で再実行する機能ではありません。
 
 ## macOS Keychainへ交換する
 

@@ -1,0 +1,6 @@
+Real/native Memory proof: 3 pass, 0 fail, 36.01s; real Claude 33.51s.
+Full check: 335 pass, 12 skip, 0 fail, 347 tests, 174 files, 78.09s.
+Real jev: 1752 subjects, 113 warnings; missing 0, unsure 0, errors [], degraded [].
+Independent review: no Critical/Important; optional exact-count assertion Minor.
+Independent native rerun: 2 daemon-ready timeouts in restricted environment, real skipped. Parent passing results retained.
+Ponytail review: Lean already. Ship.
