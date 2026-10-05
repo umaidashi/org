@@ -1,0 +1,12 @@
+高速UTコマンド更新 — 2026-10-06
+RED: bun run test:unit --test-name-pattern '^Linear list validates'
+0 matched/34files/86skip/68ms、exit1。
+GREEN: 同command 1pass/98filtered/0fail/42files/68ms、exit0。
+全高速UT: 99pass/0fail/42files/107ms、exit0。
+独立review: Critical/Important/Minorなし。独立UT99pass/0fail/147ms。
+追加8ファイルは実DB/実ネットワーク/子プロセスを使わないDI UT。
+実jev: 1728subjects/109warnings/missing0/unsure0/errors[]/degraded[]、exit0。
+製品source変更なし、同一sourceの実判定cache再利用、API新規費用0。dry-runとは区別。
+明示ファイル列挙の維持が必要。追加漏れ自動検出は導入せず、全check/pre-push全テストを維持。
+bun run check: exit0、332pass/12skip/0fail、344tests/171files/80.17s。
+型/lint/format/AST/dry-run非空成功。
