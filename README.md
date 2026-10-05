@@ -240,7 +240,7 @@ bun run start memory list --scope room:ROOM_ID --json
 bun run start memory invalidate MEMORY_ID --reason '根拠が失効した' --json
 ```
 
-`session reply`は現在のRoom・Agent・Taskとcompany/globalのactive Memoryを選択し、scopeと新しさで最大20件に絞って渡します。Context全体の64KiB上限に合わせて省略数を記録します。`memory capture --valid-from ISO --valid-until ISO`で有効期間を指定できます。ミリ秒付きUTC ISOを受け、保存値はUTC epoch millisecondsです。開始は含み終了は含まない期間で、未来・期限切れはContextから除外します。`memory list --at ISO`でも同じ選択を確認でき、指定なしlist/getは期限切れの原本も保持します。captureにrepeatable --tag/--entityと--importance（0〜1）を指定でき、各32件/128文字/重複拒否です。list --type/--tag/--entityで明示filterし、新しい順に表示します。同scopeのContextはsource Messageにtag/entityが文字列一致するMemoryを優先し、recency→importance→IDで選択します。自動抽出、意味的な重複・矛盾判定、full-text retrievalは後続です。
+`session reply`は現在のRoom・Agent・Taskとcompany/globalのactive Memoryを選択し、scopeと新しさで最大20件に絞って渡します。Context全体の64KiB上限に合わせて省略数を記録します。`memory capture --valid-from ISO --valid-until ISO`で有効期間を指定できます。ミリ秒付きUTC ISOを受け、保存値はUTC epoch millisecondsです。開始は含み終了は含まない期間で、未来・期限切れはContextから除外します。`memory list --at ISO`でも同じ選択を確認でき、指定なしlist/getは期限切れの原本も保持します。captureにrepeatable --tag/--entityと--importance（0〜1）を指定でき、各32件/128文字/重複拒否です。list --type/--tag/--entityで明示filterし、新しい順に表示します。同scopeのContextはsource Messageにtag/entityが文字列一致するMemoryを優先し、recency→importance→IDで選択します。memory search QUERY --scope SCOPE --type TYPE --tag TAG --entity ENTITY --at ISOで本文を検索できます。SQLite FTS5 trigramのliteral phrase検索で3〜1024 Unicode文字、現在active/期間内のみを返します。原本とindex追記は同transaction、旧DBは初回にindexを作ります。自然言語の意味検索、自動Context全文query、自動抽出、意味的な重複・矛盾判定は後続です。
 
 ## ExecutionTaskの実行
 

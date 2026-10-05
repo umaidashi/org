@@ -1,4 +1,10 @@
 export type MemoryType = 'semantic' | 'episodic' | 'procedural' | 'relational';
+export function memorySearchPhrase(query: string): string {
+  const length = Array.from(query).length;
+  if (!query.trim() || length < 3 || length > 1024 || query.includes('\0'))
+    throw new Error('Memory search requires 3–1024 Unicode characters without NUL');
+  return '"' + query.replaceAll('"', '""') + '"';
+}
 export interface SourceRef {
   readonly roomId: string;
   readonly messageId: string;

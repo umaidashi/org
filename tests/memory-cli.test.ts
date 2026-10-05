@@ -143,6 +143,42 @@ test('Memory CLI captures evidence, supersedes without altering history, and per
       [],
     );
     assert.equal(run([...capture, '--valid-from', '2026-02-31T00:00:00.000Z']).status, 2);
+    assert.deepEqual(
+      json([
+        'memory',
+        'search',
+        'temporary',
+        '--scope',
+        'room:' + room.id,
+        '--tag',
+        'database',
+        '--at',
+        '2026-06-01T00:00:00.000Z',
+      ]),
+      [bounded],
+    );
+    assert.deepEqual(
+      json(['memory', 'search', 'temporary', '--at', '2027-01-01T00:00:00.000Z']),
+      [],
+    );
+    assert.deepEqual(
+      json([
+        'memory',
+        'search',
+        'temporary',
+        '--scope',
+        'room:foreign',
+        '--at',
+        '2026-06-01T00:00:00.000Z',
+      ]),
+      [],
+    );
+    assert.equal(run(['memory', 'search', 'ab']).status, 2);
+    json(['memory', 'invalidate', bounded.id, '--reason', 'search proof complete']);
+    assert.deepEqual(
+      json(['memory', 'search', 'temporary', '--at', '2026-06-01T00:00:00.000Z']),
+      [],
+    );
     const messages = json(['room', 'messages', room.id]);
     assert.ok(Array.isArray(messages));
     assert.equal(messages.length, 1);

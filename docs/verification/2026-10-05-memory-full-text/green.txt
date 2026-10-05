@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-search.test.ts:
+(pass) Memory FTS backfills legacy originals, indexes atomic inserts and preserves projections across adapters [17.47ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [39.00ms]

@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
-import { decodeMemory, replaceMemory } from './domain.js';
+import { decodeMemory, replaceMemory, memorySearchPhrase } from './domain.js';
 import type { Memory } from './domain.js';
 import type { MemoryProvider } from './port.js';
 function rowMemory(row: unknown): Memory {
@@ -26,6 +26,24 @@ export class SqliteMemoryProvider implements MemoryProvider {
    CREATE TRIGGER IF NOT EXISTS memory_invalidations_no_rowid_replace BEFORE INSERT ON memory_invalidations WHEN EXISTS(SELECT 1 FROM memory_invalidations WHERE rowid=NEW.rowid) BEGIN SELECT RAISE(ABORT,'Memory invalidation immutable'); END;
    CREATE TRIGGER IF NOT EXISTS memory_invalidations_no_update BEFORE UPDATE ON memory_invalidations BEGIN SELECT RAISE(ABORT,'Memory invalidation immutable'); END;
    CREATE TRIGGER IF NOT EXISTS memory_invalidations_no_delete BEFORE DELETE ON memory_invalidations BEGIN SELECT RAISE(ABORT,'Memory invalidation immutable'); END;`);
+      this.db
+        .transaction(() => {
+          if (
+            this.db
+              .query("SELECT name FROM sqlite_schema WHERE type='table' AND name='memory_search'")
+              .get()
+          )
+            return;
+          this.db.exec(`
+          CREATE VIEW IF NOT EXISTS memory_search_content AS SELECT sequence AS rowid,json_extract(data,'$.content') AS content FROM memory_records;
+          CREATE VIRTUAL TABLE memory_search USING fts5(content,content='memory_search_content',content_rowid='rowid',tokenize='trigram');
+          CREATE TRIGGER IF NOT EXISTS memory_records_search_insert AFTER INSERT ON memory_records BEGIN
+            INSERT INTO memory_search(rowid,content) VALUES(new.sequence,json_extract(new.data,'$.content'));
+          END;
+          INSERT INTO memory_search(memory_search) VALUES('rebuild');
+        `);
+        })
+        .immediate();
     } catch (error) {
       this.db.close();
       throw error;
@@ -69,6 +87,20 @@ export class SqliteMemoryProvider implements MemoryProvider {
     return rows
       .map((row) => this.get(rowMemory(row).id))
       .filter((memory) => scopes === undefined || scopes.includes(memory.scope));
+  }
+  search(query: string, scopes?: readonly string[]): readonly Memory[] {
+    const phrase = memorySearchPhrase(query);
+    if (scopes?.length === 0) return [];
+    const scopeFilter =
+      scopes === undefined
+        ? ''
+        : ` AND json_extract(r.data,'$.scope') IN (${scopes.map(() => '?').join(',')})`;
+    return this.db
+      .query(
+        `SELECT r.data FROM memory_search JOIN memory_records r ON r.sequence=memory_search.rowid WHERE memory_search MATCH ?${scopeFilter} ORDER BY r.sequence`,
+      )
+      .all(phrase, ...(scopes ?? []))
+      .map((row) => this.get(rowMemory(row).id));
   }
   invalidate(id: string, reason: string, at: string): Memory {
     if (!reason.trim() || !at.trim())

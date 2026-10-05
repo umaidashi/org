@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-search.test.ts:
+13 |     one=new SqliteMemoryProvider(path); const old=one.create(entry('old'));one.close();one=undefined;
+14 |     const legacy=new Database(path);
+15 |     legacy.exec('DROP TRIGGER IF EXISTS memory_records_search_insert;DROP TABLE IF EXISTS memory_search;DROP VIEW IF EXISTS memory_search_content;');
+16 |     legacy.close();
+17 |     one=new SqliteMemoryProvider(path);two=new SqliteMemoryProvider(path);
+18 |     assert.deepEqual(one.search('日本語',['room:r']),[old]);
+                              ^
+TypeError: one.search is not a function. (In 'one.search("\u65E5\u672C\u8A9E", ["room:r"])', 'one.search' is undefined)
+      at <anonymous> (<REPO>/tests/memory-search.test.ts:18:26)
+(fail) Memory FTS backfills legacy originals, indexes atomic inserts and preserves projections across adapters [12.09ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [45.00ms]

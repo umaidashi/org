@@ -2,7 +2,7 @@ import { parseArgs } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { createMemory } from './domain.js';
+import { createMemory, memorySearchPhrase } from './domain.js';
 import { selectMemories } from './retrieval.js';
 import type { MemoryInput, MemoryType } from './domain.js';
 import { SqliteMemoryProvider } from './sqlite.js';
@@ -12,7 +12,8 @@ export type MemoryCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'capture'; readonly input: MemoryInput }
   | { readonly action: 'get'; readonly id: string }
   | {
-      readonly action: 'list';
+      readonly action: 'list' | 'search';
+      readonly query?: string;
       readonly scope?: string;
       readonly at?: number;
       readonly type?: MemoryType;
@@ -93,7 +94,7 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
           'entity',
           'importance',
         ]
-      : action === 'list'
+      : action === 'list' || action === 'search'
         ? ['db', 'json', 'scope', 'at', 'type', 'tag', 'entity']
         : action === 'invalidate'
           ? ['db', 'json', 'reason']
@@ -137,10 +138,13 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       id: required(id, 'ID'),
       reason: required(parsed.values.reason, 'reason'),
     };
-  if (action === 'list' && id === undefined) {
+  if ((action === 'list' && id === undefined) || action === 'search') {
+    const query = action === 'search' ? required(id, 'QUERY') : undefined;
+    if (query !== undefined) memorySearchPhrase(query);
     if ((parsed.values.tag?.length ?? 0) > 1 || (parsed.values.entity?.length ?? 0) > 1)
       throw new Error('Memory list accepts one --tag/--entity filter');
     return {
+      ...(query === undefined ? {} : { query }),
       ...(parsed.values.type === undefined ? {} : { type: memoryType(parsed.values.type) }),
       ...(parsed.values.tag?.[0] === undefined
         ? {}
@@ -156,7 +160,7 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
         : { scope: required(parsed.values.scope, 'scope') }),
     };
   }
-  throw new Error('Expected memory capture|get|list|invalidate');
+  throw new Error('Expected memory capture|get|list|search|invalidate');
 }
 export function runMemoryCommand(command: MemoryCommand, output: (line: string) => void): void {
   const provider = new SqliteMemoryProvider(command.db);
@@ -178,10 +182,16 @@ export function runMemoryCommand(command: MemoryCommand, output: (line: string) 
       case 'get':
         result = provider.get(command.id);
         break;
-      case 'list': {
-        const records = provider.list(command.scope === undefined ? undefined : [command.scope]);
+      case 'list':
+      case 'search': {
+        const scopes = command.scope === undefined ? undefined : [command.scope];
+        const records =
+          command.action === 'search'
+            ? provider.search(required(command.query, 'QUERY'), scopes)
+            : provider.list(scopes);
+        const at = command.action === 'search' ? (command.at ?? Date.now()) : command.at;
         result = selectMemories(records, {
-          ...(command.at === undefined ? {} : { at: command.at }),
+          ...(at === undefined ? {} : { at }),
           ...(command.type === undefined ? {} : { type: command.type }),
           ...(command.tag === undefined ? {} : { tag: command.tag }),
           ...(command.entity === undefined ? {} : { entity: command.entity }),

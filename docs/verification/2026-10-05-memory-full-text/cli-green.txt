@@ -1,0 +1,11 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-search.test.ts:
+(pass) Memory FTS backfills legacy originals, indexes atomic inserts and preserves projections across adapters [18.07ms]
+
+tests/memory-cli.test.ts:
+(pass) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [1035.43ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 2 files. [1078.00ms]

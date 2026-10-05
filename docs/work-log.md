@@ -703,3 +703,13 @@
 - main24e9dce通常push成功、pre-push全213テスト/実Jev/公開検査57.45秒。
 - 全214/214・型/lint/format/AST成功47.29秒。Docker実機5件別opt-in。実Jev1147判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-memory-retrieval-metadata/check.txt)。Final独立Reviewer Critical/Important/Minorなし、retrieval/CLI/Room runtime5件884msを独立成功。
 - Ruling: optional metadataは未指定legacy JSONへfieldを追加しない。tag/entityは文字列一致で意味推定をしない。scopeが関連度より先、期間を選択前に除外、typeは明示CLI filter（Runtime既定は全4type）。importanceはconfidenceと独立、recencyの同時刻tieで比較する。listは新しい順の共通selectorへ統一し、--atなしでは失効原本も保持。新index/provider/policy factoryなし。full-text/summary/自動抽出/semantic consolidationは後続。
+
+## Memory全文検索（進行中）
+
+- [計画](superpowers/plans/2026-10-05-memory-full-text.md)。Bun SQLiteでFTS5 trigramの日本語検索を実probeし、公式external-content view/trigger/rebuild仕様を照合した。原本をコピーした独立検索serverは不要。native indexを追記transactionへ接続する。
+- 実SQLiteで未search method RED→FTS external-content view/index/trigger/rebuildをnative immediate内に作成GREEN。旧DB backfill、2Adapterの追記/置換/無効化投影、quoted phrase/FTS boolean構文をliteral扱い、search indexをfixtureでDROPした書込失敗の原本rollback、再open/rebuild/元本文不変を確認。
+- CLI未search action RED→公開Port配線GREEN。scope/type/tag/entityと--atの選択、3文字未満usage拒否、期限切れ/foreign scope/invalidated除外を実別プロセスで確認。関連2件1.078秒成功。誤ったhelp行をpatch targetに指定して失敗したため正しい行へ適用し直し、静的検査成功。
+- Ruling: FTSは原本の派生index、本文はimmutable JSONからviewで読む。createとindex追記は同transactionで片方だけ残さない。searchは現在activeを返し、時刻はCLI境界で供給する。Provider.searchはstatus原本投影を返しfilter/時計を共有selectorに任せる。queryはliteral phraseのみ、trigramの3Unicode文字未満は明示拒否。自然言語の意味検索や自動Context queryは別作業。
+- main7e8dd98通常push成功、pre-push全214テスト/実Jev/公開検査55.42秒。
+- 全215/215・型/lint/format/AST成功49.15秒。Docker実機5件別opt-in。実Jev1153判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-memory-full-text/check.txt)。Final独立Reviewer Critical/Important/Minorなし、関連5件1.08秒を独立成功。
+- [SQLite公式FTS5](https://sqlite.org/fts5.html)のexternal-content viewとtrigram制約を照合。新server/Vector DB/依存なし。Next: Memoryの根拠をMessage以外の不変TaskReviewへ接続し、承認済みTaskの保守的episodic extractionへ進む。
