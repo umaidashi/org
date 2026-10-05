@@ -14,3 +14,13 @@ export interface ReportingHistory {
   readonly manager: string | null;
   readonly at: string;
 }
+
+export interface AgentPermissionWriter {
+  capabilitySnapshot(id: string): import('./permissions.js').CapabilitySnapshot;
+  applyCapabilities(
+    approved: import('../approvals/domain.js').ApprovedPermission,
+    actor: import('../rooms/domain.js').Participant,
+    at: string,
+  ): import('./permissions.js').CapabilityChange;
+  capabilityHistory(id?: string): readonly import('./permissions.js').CapabilityChange[];
+}

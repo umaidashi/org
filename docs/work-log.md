@@ -592,3 +592,18 @@
 - 全190/190・型/lint/format/AST成功、37.36秒。Docker実機3件は既定全検査ではskipし別途opt-in実行。実Docker2件（隔離/ファイル/cancel/output/timeoutとrepo/Task CLI）成功、親SIGKILL後のrunning container期限終了/自動削除1件31.60秒成功。[証拠](verification/2026-10-05-docker-sandbox/real-docker.txt)。親SIGKILL検証中のstopped container残留は対象外の既知制約であり区別する。
 - 実Jev1004判定missing/unsure0、errorsなし。未校正warningは既存/new関数の失敗分岐網羅候補であり自動承認根拠としない。権限拒否/CLI不正引数/作成失敗no delete/symlink拒否/サイズ境界/timeout/cancel/output/既存Task failure-CASの実テストと独立レビューで今回の変更を判定。
 - Final: fresh独立Reviewer Critical/Important/Minorなし。Sandbox7件と既存LLM2件を独立成功。PID1へ同UID SIGSTOPを送るdeadline迂回候補は実Dockerで不成立を確認、期限後自動削除、probe cleanup済み。Final Ruling: one-shot Dockerのみ、daemon接続/credential注入/LLM toolは後続、large repo/encoded blob上限、作成からstart前crashのstopped container残留。costは該当後続と孤児停止containerのcleanupが必要なこと。Next: Permission/Approval/Auditとdaemon Sandbox cancel/drain、LLM tool境界へ進む。
+
+## main公開：Docker Sandbox
+
+- maina7c1580へ通常push成功。pre-push全190テスト/実Jev/公開検査45.50秒。force-pushなし。
+
+## 権限変更のApprovalとAudit（進行中）
+
+- 全体Nextに従い[計画](superpowers/plans/2026-10-05-permission-approval.md)を保存。Notion08のpermission変更を最初の実callerにする。pending request/人間decision/Agent revision CAS/approval receiptの実適用と、不変Auditを実CLIで確認する。外部operationや本人認証の空scaffoldは追加しない。
+- Approval domain/serviceのDB不要UTを未module RED→GREEN。pending/reject/異ID/Agent自動承認を拒否し、approvedだけ実writerへ渡す。SQLite request/decisionは不変triggerとnative transaction.immediate、同key同内容原本再利用/異内容conflict、2Adapter/再openを実テスト。
+- Agent capability revision/CASとapproval receiptを公開Portへ追加。Agent所有tableの不変capability historyへactor/task/event/tool/input-output/at/result/approvalのAuditを同transactionで保存。途中INSERT failureを実DBで起こしgrantとAudit両方rollback、古いrevision拒否、2Adapter再試行がfirst receiptを返し新しいgrantを上書きしないことをRED→GREEN。既存Agent transaction helperはnative Bun SQLite immediateへ置換、既存reporting経路も成功。
+- 実CLI RED（unknown --key）→GREEN。request pendingで変更なし→human approve→apply→capability snapshot/Audit→重複apply原本再利用→reject no effectを確認。同timestampのAuditが適用→判断→申請の逆順になるREDを確認し、共通projectionの同Approval tieを申請/判断/適用のphase順へ訂正、GREEN。
+- AuditはApproval原本とAgent変更原本を公開Portから集約し別SQL所有者/専用tableを追加しない。CLI actorはlocal adminの申告記録、本人認証ではない。権限変更decisionはhumanのみ、Agent executorはrequester一致を検査する。外部operationは未接続のまま。
+- Final独立Reviewer Important1: capabilitySnapshotがlist()/MAX revisionを別statementで読み、別Adapter変更が間に入ると新revision/旧grantの組を返す。実2Adapterの決定的interleave RED（revision3/can_write、期待revision3/can_run_shell）を確認。共通snapshot関数を単一SELECTへ変更し、revisionとgrantを一SQLite read snapshotで読む一回のfix pass。対象capability実DB/CLI/既存reporting3件GREEN。その他Critical/Important/Minorなし。全suiteを再実行し、同skillの規則に従い再レビューは行わない。
+- 修正後全197/197・型/lint/format/AST成功、39.27秒（Docker実機3件は別途opt-in）。実Jev1072判定missing/unsure0、errors/degradedなし。実Dockerでもgrantなし/pending拒否→human Approval→capability適用→tracked workspace/Artifact→Task明示レビュー成功。[実成否](verification/2026-10-05-permission-approval/real-docker.txt)。
+- Final: 独立Reviewerは新規7件と既存Agent/CLI17件も成功。Important1の不整合snapshot読取を一回fix passでRED→GREEN/全suite確認済み。Critical/Minorなし。Final Ruling: 初期登録grantはbootstrap、登録後変更はhuman Approval、actorは申告local adminで本人認証ではない。capability指定は全体集合、なしは全撤回の申請。Auditは各所有者原本の公開Port集約、他外部operation/credential/service scopeは後続。Next: daemon Sandboxのclient待機/cancel/drainと実行Audit、続いてLLMの制約付きtool接続へ進む。

@@ -1,3 +1,8 @@
+import {
+  parseApprovalCommand,
+  runApprovalCommand,
+  type ApprovalCommand,
+} from '../approvals/cli.js';
 import { parseSandboxCommand, runSandboxCommand, type SandboxCommand } from '../sandbox/cli.js';
 import {
   parseScheduleCommand,
@@ -29,6 +34,9 @@ import type { CommandResult } from './port.js';
 export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
        org [--db PATH] agent list [--json]
        org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org agent capabilities|capability-history ID [--json]
        org agent reporting-history ID [--json]
        org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
        org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
@@ -56,6 +64,13 @@ function required(value: string | undefined, name: string): string {
 }
 
 export type ApplicationCommand =
+  | { readonly kind: 'approval'; readonly command: ApprovalCommand }
+  | {
+      readonly kind: 'capabilities' | 'capability-history';
+      readonly db: string;
+      readonly json: boolean;
+      readonly id: string;
+    }
   | { readonly kind: 'sandbox'; readonly command: SandboxCommand }
   | { readonly kind: 'schedule'; readonly command: ScheduleCommand }
   | { readonly kind: 'a2a'; readonly command: A2ACommand }
@@ -77,6 +92,8 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
     strict: false,
     options: { db: { type: 'string' } },
   });
+  if (probe.positionals[0] === 'approval' || probe.positionals[0] === 'audit')
+    return { kind: 'approval', command: parseApprovalCommand(argv) };
   if (probe.positionals[0] === 'sandbox')
     return { kind: 'sandbox', command: parseSandboxCommand(argv) };
   if (probe.positionals[0] === 'schedule')
@@ -115,6 +132,8 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
   const allowed: Record<string, readonly string[]> = {
     create: ['role', 'runtime', 'reports-to', 'capability'],
     list: [],
+    capabilities: [],
+    'capability-history': [],
     report: ['to', 'clear'],
     'reporting-history': [],
   };
@@ -123,6 +142,8 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
   for (const option of Object.keys(parsed.values))
     if (!['db', 'json', 'help', ...actionOptions].includes(option))
       throw new UsageError(`Unexpected --${option} for agent ${action}`);
+  if (action === 'capabilities' || action === 'capability-history')
+    return { kind: action, db, json: parsed.values.json ?? false, id: required(name, 'agent id') };
   if (action === 'reporting-history')
     return {
       kind: 'reporting-history',
@@ -185,6 +206,10 @@ async function runApplication(
   output: (line: string) => void,
   sessions?: ApplicationContext,
 ): Promise<void> {
+  if (command.kind === 'approval') {
+    runApprovalCommand({ ...command.command, db }, output);
+    return;
+  }
   if (command.kind === 'sandbox') {
     await runSandboxCommand({ ...command.command, db }, output);
     return;
@@ -248,7 +273,17 @@ async function runApplication(
   let repository: SqliteAgentRepository | undefined;
   try {
     repository = new SqliteAgentRepository(db);
-    if (command.kind === 'report') {
+    if (command.kind === 'capabilities' || command.kind === 'capability-history') {
+      output(
+        JSON.stringify(
+          command.kind === 'capabilities'
+            ? repository.capabilitySnapshot(command.id)
+            : repository.capabilityHistory(command.id),
+          null,
+          command.json ? undefined : 2,
+        ),
+      );
+    } else if (command.kind === 'report') {
       output(
         JSON.stringify(
           setReportingLine(repository, command.id, command.manager, new Date().toISOString()),

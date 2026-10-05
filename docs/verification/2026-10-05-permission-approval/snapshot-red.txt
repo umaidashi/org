@@ -1,0 +1,30 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-permission-sqlite.test.ts:
+80 |     const originalList=b.list.bind(b);
+81 |     b.list=()=>{const rows=originalList();a.applyCapabilities(approval('interleaved',2,['can_run_shell']),actor,'interleaved');return rows;};
+82 |     const snapshot=b.capabilitySnapshot('worker');
+83 |     b.list=originalList;
+84 |     if(snapshot.revision===2)assert.deepEqual(snapshot,{agentId:'worker',revision:2,capabilities:['can_write']});
+85 |     else assert.deepEqual(snapshot,{agentId:'worker',revision:3,capabilities:['can_run_shell']});
+                     ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
+    agentId: 'worker',
+    capabilities: [
++     'can_write'
+-     'can_run_shell'
+    ],
+    revision: 3
+  }
+
+      at innerFail (node:assert:36:32)
+      at deepStrictEqual (node:assert:134:14)
+      at <anonymous> (<REPO>/tests/agent-permission-sqlite.test.ts:85:17)
+(fail) Permission application and Audit roll back together and preserve the original receipt on retry [13.94ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [42.00ms]

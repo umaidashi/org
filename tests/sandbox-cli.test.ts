@@ -40,7 +40,7 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
           name: 'worker',
           role: 'Code',
           runtime: 'codex',
-          capabilities: ['can_run_shell', 'can_write', 'can_read'],
+          capabilities: [],
         },
         { id: 'worker', createdAt: 'before' },
       ),
@@ -60,6 +60,49 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
         timeout: 10000,
       });
     try {
+      assert.equal(run(['sandbox', 'run', 'task', '--code', 'console.log(7)']).status, 1);
+      const requested = run([
+        'approval',
+        'request',
+        'worker',
+        '--key',
+        'sandbox-grants',
+        '--actor',
+        'founder',
+        '--expected-revision',
+        '0',
+        '--capability',
+        'can_run_shell',
+        '--capability',
+        'can_write',
+        '--capability',
+        'can_read',
+        '--json',
+      ]);
+      assert.equal(requested.status, 0, requested.stderr);
+      const request: unknown = JSON.parse(requested.stdout);
+      assert.ok(
+        request !== null &&
+          typeof request === 'object' &&
+          'id' in request &&
+          typeof request.id === 'string',
+      );
+      assert.equal(run(['sandbox', 'run', 'task', '--code', 'console.log(7)']).status, 1);
+      assert.equal(
+        run([
+          'approval',
+          'decide',
+          request.id,
+          '--actor',
+          'founder',
+          '--decision',
+          'approve',
+          '--reason',
+          'Bounded local sandbox',
+        ]).status,
+        0,
+      );
+      assert.equal(run(['approval', 'apply', request.id, '--actor', 'founder']).status, 0);
       const executed = run([
         'sandbox',
         'run',

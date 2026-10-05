@@ -1,0 +1,13 @@
+# 権限変更のApprovalとAudit
+
+Notion08の実際の敏感操作を一つ接続する。Agent capability変更はpending request→人間decision→適用のみ、承認前に既存Agentを書き換えない。
+
+1. 純粋なtyped request/decision/approved-operation検証をTDD。初回operationはagent_capabilities変更だけ。actor/task/event/input-output参照/時刻/result/approval参照を原記録に含める。人間操作はlocal adminの申告actorであり本人認証と混同しない。権限変更decisionはhumanのみ。
+2. Approval SQLiteはrequest/decisionを不変保存、同idempotency key同内容のrequestは原本再利用、異内容拒否。decisionも一回のみ、不正/競合/rollback/reopenを実DB確認する。
+3. Agent公開Portでcapabilities snapshot revisionを取得、承認済みoperationのrevision CASとapproval receipt重複抑止をnative SQLite IMMEDIATE transactionで実行する。変更原本のAuditを同transactionに保存する。Approval AdapterはAgent tableへSQLを発行しない。失敗後/別process再試行は既存receiptを返し再変更しない。
+4. request→pending no effect→人間approve→apply→権限変更履歴/Audit→重複apply/no effect→古いrevision拒否→reject no effectを実CLI e2e。既存capabilityとSandbox/委譲の回帰を全check/実Jev/独立レビューで確認しmainへ記録する。
+
+Ruling: 初回は権限変更という実callerだけでApprovalを成立させ、deploy/email/spend等の未接続operationを先に列挙しない。Auditは各操作を所有するmoduleの原記録に含め、CLI集約は公開Portから読む。単独generic Audit table/queue/DI containerを追加しない。costは外部operationの接続時にtyped operationとaudit sourceを追加すること。Agent認証/外部service scope/SecretStoreは後続。既定local adminのAgent createは初期登録として維持するが、登録後変更はApproval経由のみ。
+Review Focus: pending/rejected/誤Agent/version/idempotencyの権限変更拒否、decision本人認証と申告actorの区別、原記録不変、変更とAuditの原子的rollback、各table所有者、legacy capabilities互換、再試行で古いsnapshotを再適用しないこと。
+
+Ruling: capability listは変更後の全体集合（追加差分ではない）、なしは全撤回申請。local createの初期grantはbootstrapで維持する。Audit timestamp tieは同Approvalの申請/判断/適用順を保つ。Agent snapshotの一SQL読取でgrantとrevisionを同一snapshotへ揃える。Final review Important1をRED→GREEN一回修正し再レビューしない。その他指摘なし。

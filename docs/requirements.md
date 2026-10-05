@@ -8,7 +8,7 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで190テストをローカル検証（Docker実機3件は別途opt-in実行）。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで197テストをローカル検証（Docker実機3件は別途opt-in実行）。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAt・optional reportsToを実装。legacy schema/root JSON互換・循環/不存在拒否・同時変更時再検証・不変履歴/rollback・実CLIを検証。optional capabilitiesの既知値/重複/型/コピーとSQLite legacy互換・CLI明示指定を実装。delegateの送信/activation前can_delegateを検証。permissions/memoryPolicyと他Capability境界は未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | reportsToによるChief→専門Agentの関係と変更履歴を保存。can_delegate付きtyped A2A delegateを宛先ownerのExecutionTaskへ冪等生成し、opt-in daemonで自動実行。自律的な委譲指示の生成は未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | version付きRoom Message・CLI send/get/listを実装。宛先/Task/返信/correlationを検証。実daemon request→resultと再openを確認。can_delegate付きdelegate→parent/source参照の冪等ExecutionTask→自動実行を実daemonと実Claude Maxで検証。Task結果のtyped result/blocker返送とCoordinator通知・snapshot参照検証/返送失敗再試行/再起動重複なしを実daemon/実Maxで確認。自律委譲指示/後続review decision通知は後続 |
@@ -31,9 +31,9 @@
 | Sandbox | local process/Docker、checkout/mount、資格情報の限定注入、destroy | Docker one-shot CLIを実装。networkなし/rootfs readonly/非root/容量制限tmpfs/CPU-memory-pids上限。HEAD regular treeだけをコピーしenv/untracked/Git履歴/原本mountなし。timeout/cancel/output上限/finally ID限定destroyを実Dockerで検証。daemon経由/credential注入/LLM tool接続は未完了 |
 | Artifact | 回収・永続参照・Taskとの関連付け | Runtime結果Messageをorg URIのArtifactへTaskと原子関連付け。実fixture/Codexで検証。Dockerの選択regular file回収/各path componentのO_NOFOLLOW/総量制約/内容hash blob保存とTask承認待ちを実CLIで検証 |
 | Workflow | n8n invoke/status/cancel、Task/Agentから分離 | 未完了 |
-| Permission | read/write/delegate/approve/spend/publish/contact/shell/networkを実行境界で制約 | delegateは送信前とdaemon activation前にcan_delegate必須。旧Agentは既定拒否、reserved metadata迂回も拒否。Sandboxはowner確認/can_run_shell、repoにcan_read、writableにcan_write必須。その他境界/Agent認証/権限変更Approvalは未完了 |
-| Approval | 送信・deploy・削除・契約・支出・権限変更で待機し承認後に実行 | 未完了 |
-| Audit | actor/task/event/tool/input-output/timestamp/result/approvalの参照 | Task結果レビューのactor/task/version/outputArtifacts/timestamp/decisionを不変記録。重要操作全般のAuditは未完了 |
+| Permission | read/write/delegate/approve/spend/publish/contact/shell/networkを実行境界で制約 | delegateは送信前とdaemon activation前にcan_delegate必須。旧Agentは既定拒否、reserved metadata迂回も拒否。Sandboxはowner確認/can_run_shell、repoにcan_read、writableにcan_write必須。登録後capability変更はhuman Approval/revision CAS/一回適用のreceipt/原子Auditで制約し、2Adapter/rollback/実CLIを検証。その他境界/Agent認証/external scopeは未完了 |
+| Approval | 送信・deploy・削除・契約・支出・権限変更で待機し承認後に実行 | 最初の実操作としてcapability変更をpending→human approve/reject→適用へ接続。idempotency key原本再利用/異内容conflict、一判断不変保存/再試行、pending/reject no effect、古いrevision拒否、後続grantの上書き抑止を実CLI/SQLiteで検証。外部送信/deploy/削除/契約/支出は未完了 |
+| Audit | actor/task/event/tool/input-output/timestamp/result/approvalの参照 | Task結果レビューのactor/task/version/outputArtifacts/timestamp/decisionを不変記録。capability変更のactor/task/event/tool/input-output/時刻/result/approval参照を変更と原子保存し、request/decision/applyの公開Port集約をaudit CLIへ接続。同時刻の因果順序も検証。重要操作全般への接続は未完了 |
 | 実行安全性 | idempotency/retry/timeout/concurrency/cancel/secret redaction | Event→Task作成の冪等性/同時実行/receipt復旧を実DB/CLIで検証。一般の外部副作用・retry/timeout/cancel/secret redactionは未完了 |
 | CLI | daemon/agent/room/task/workflow/event/sandbox/logs/tui | Agent/Task/Room/Eventのdaemon経由操作と明示的--direct管理操作を実装・検証。その他は未完了 |
 | TUI | Agent/Room/Task/Eventの監視と対話 | 未完了 |

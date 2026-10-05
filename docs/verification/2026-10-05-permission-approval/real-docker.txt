@@ -1,0 +1,5 @@
+Capability absent/pending denies Docker launch: PASS
+Human decision and atomic grant application: PASS
+New grant permits actual bounded Docker execution: PASS
+HEAD-only workspace, selected Artifact, original repo unchanged: PASS
+Task waiting_approval and explicit result review: PASS

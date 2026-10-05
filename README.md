@@ -304,3 +304,18 @@ ORG_DOCKER_TEST=1 bun --no-env-file test tests/sandbox-docker-real.test.ts tests
 ```
 
 repoはHEADのregular fileだけをコピーし、未commit変更・未追跡ファイル・Git履歴・`.env`等の資格情報ファイルを持ち込みません。元repoをマウントしません。stdoutまたはstdoutと選択ファイルのbase64を含むJSONを、privateな`DB_PATH.artifacts`へ内容hashで保存します。保存blobは1MiB以内、選択ファイルは16件以内です。Taskは`waiting_approval`へ進み、既存`task review`で明示承認します。daemon経由実行・credential注入・LLM tool接続は後続です。親SIGKILL後の実行中containerは内部deadlineで有限終了します。作成完了からstart前の異常死は停止containerを残し得ます。
+
+
+登録後のcapability変更はApprovalを経由します。`agent capabilities`でrevisionを確認し、`approval request`へ変更後のcapability全体を指定します。`--capability`は繰返し指定でき、指定なしは全撤回の申請です。申請だけでは権限は変わりません。
+
+```sh
+bun run start -- agent capabilities AGENT_ID --json
+bun run start -- approval request AGENT_ID --key sandbox-grants --actor founder --expected-revision 0 --capability can_run_shell --capability can_write
+bun run start -- approval get APPROVAL_ID --json
+bun run start -- approval decide APPROVAL_ID --actor founder --decision approve --reason 'Checked scope'
+bun run start -- approval apply APPROVAL_ID --actor founder
+bun run start -- agent capability-history AGENT_ID --json
+bun run start -- audit list --json
+```
+
+権限変更の判断は人間操作に限定します。古いrevisionは適用を拒否し、同じApprovalの再適用は最初の記録を返します。権限と不変Auditを同じトランザクションで保存します。actorはローカル管理操作の申告値であり、本人認証は後続です。外部メール・deploy・支出等の操作はまだ接続していません。
