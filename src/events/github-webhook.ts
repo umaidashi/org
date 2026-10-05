@@ -39,13 +39,14 @@ export function importGithubWebhook(
   const actual = createHmac('sha256', secret).update(input.body, 'utf8').digest();
   if (!timingSafeEqual(actual, Buffer.from(input.signature.slice(7), 'hex')))
     throw new Error('GitHub webhook signature mismatch');
-  if (input.body.includes(secret)) throw new Error('GitHub webhook credential reflection');
   let raw;
   try {
     raw = jsonObject(JSON.parse(input.body));
   } catch {
     throw new Error('Invalid GitHub webhook JSON');
   }
+  if (JSON.stringify(raw).includes(JSON.stringify(secret).slice(1, -1)))
+    throw new Error('GitHub webhook credential reflection');
   const repo = jsonObject(raw.repository),
     issue = jsonObject(raw.issue);
   const action = raw.action;

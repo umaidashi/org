@@ -1,0 +1,14 @@
+GitHub署名済みIssue webhook取込 — 2026-10-06
+RED: missing service 1fail/1error/25ms、CLI --signature未対応exit2。
+Targeted: native direct/daemon + DI 2pass/0fail/0.65s。
+高速UT:100pass/0fail/43files/117ms。
+独立review: Critical0/Important1/Minor0。
+Important: JSON unicode escaped credential reflection。RED1fail/28ms→decoded JSON検査→GREEN1pass/23ms。
+Ponytail review: repo名検証の重複1箇所を削減。独立複雑さreview Lean already. Ship.
+最終bun run check: exit0、334pass/12skip/0fail、346tests/173files/70.21s。
+型/lint/format/AST/dry-run非空。native signed webhook e2eを含む。
+最終実jev: exit0、1747subjects/111warnings/missing0/unsure0/errors[]/degraded[]。
+新warning2件は失敗伝播用のgetSecret/publishOnceを意図的にthrowするDI fixtureの名前候補。実失敗伝播assertを確認し変更不要と判断。
+同body・別delivery→初回Event/一Task、改変署名/no credential→Eventなし、再open原本保持。
+公開HTTP endpoint/実GitHub配送/private repo/他event/REST pollingとの横断dedupは未完了。署名は鮮度を証明しない。
+一Important一fixpass、再reviewなし。

@@ -90,6 +90,20 @@ test('signed Issue webhook validates bytes and scope before publishing and dedup
     );
   }
   assert.equal(writes, 1);
+  const escapedSecret = JSON.stringify({ ...raw, issue: { ...raw.issue, body: secret } }).replace(
+    secret,
+    Array.from(secret, (char) => '\\u' + char.charCodeAt(0).toString(16).padStart(4, '0')).join(''),
+  );
+  assert.ok(!escapedSecret.includes(secret));
+  assert.throws(
+    () =>
+      importGithubWebhook(bus, secrets, {
+        ...input,
+        body: escapedSecret,
+        signature: 'sha256=' + createHmac('sha256', secret).update(escapedSecret).digest('hex'),
+      }),
+    /credential reflection/,
+  );
   assert.throws(
     () =>
       importGithubWebhook(
