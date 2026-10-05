@@ -657,3 +657,12 @@
 - [計画](superpowers/plans/2026-10-05-audit-same-time-order.md)。version9開始/version10成功の同timestampが成功→開始になるRED→同Taskをgroupしnative stable sortで原本順を保持GREEN。ID parser/新ordinal/schemaは追加しない。既存Approval phase/Task CLI4件成功。
 - 全206/206・型/lint/format/AST成功38.94秒。実Jev1112判定missing/unsure0、errors/degradedなし。独立Reviewer Critical/Important/Minorなし、関連3件を独立成功。既存defer Minor1解消。Final Ruling: 同Task同timestampだけ原本history順、異timestamp/Approval phaseは既存規則を維持。Next: Memoryの有効期間をContext選択へ接続する。
 - main31a1551通常push成功、pre-push全205テスト/実Jev/公開検査51.26秒。
+
+## Memory有効期間（進行中）
+
+- [計画](superpowers/plans/2026-10-05-memory-validity.md)。Notion03を再取得してoptional validFrom/validUntilを照合。UTC epoch millisecondsでJSON原本を拡張し、CLIはUTC ISO、Contextは既存返信identity時刻で現在のMemoryだけを選ぶ。期限切れで不変原本を変えない。
+- 最小UTの未export RED→GREEN。JSON optional period/再decode、safeDate整数/from<until、開始inclusive/終了exclusive、期限切れ/未来/invalidated、legacy期間なしを確認。Contextにexpired/futureが混入するREDとCLI未知valid-from flag RED→GREEN。CLI再open/境界/不正2月31日拒否を確認。exactOptionalPropertyTypesでundefined指定fixtureが型失敗し、legacyの未指定fieldsへ訂正した。
+- 実daemon→Runtime fixtureのContextで期限切れ/未来を除外し、従来のprocedural Memory・Task/委譲/人間decision通知の一周を保持。関連6件7.09秒成功。全207/207・型/lint/format/AST成功41.13秒。実Jev1120判定missing/unsure0、errors/degradedなし。
+- Final独立Reviewer Critical/Important/Minorなし、domain/CLI/SQLite/Context6件を独立成功。Final Ruling: periodはUTC epoch milliseconds、CLIはcanonical UTC ISO。原本statusは期間で変えず、Contextと明示list --atだけ判定。時計は返信identityで注入、期間なしlegacyは時刻に依存しない。新timer/schema/providerなし。
+- 次の照合でMemory scopeのID内colon拒否を発見。実生成a2a:/schedule系Task IDにはcolonが含まれ、そのTask scopeをcaptureできない。期間変更とは分け、共有scope validatorを次の小修正でRED→GREENする。
+- main0da84ea通常push成功、pre-push全206テスト/実Jev/公開検査52.95秒。

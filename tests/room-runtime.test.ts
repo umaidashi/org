@@ -254,6 +254,8 @@ test('Room context includes only active current scopes and excludes another Agen
       entry('room', 'room:r', 'active'),
       entry('invalid', 'room:r', 'invalidated'),
       entry('foreignRoom', 'room:other', 'active'),
+      { ...entry('expired', 'room:r', 'active'), validUntil: 100 },
+      { ...entry('future', 'room:r', 'active'), validFrom: 200 },
     ],
   };
   await replyToRoomMessage(
@@ -278,7 +280,7 @@ test('Room context includes only active current scopes and excludes another Agen
       },
     },
     { sessionId: 's', messageId: 'm', instruction: '' },
-    { id: 'reply', at: 'later' },
+    { id: 'reply', at: '1970-01-01T00:00:00.150Z' },
     memory,
   );
 });

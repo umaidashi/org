@@ -1,0 +1,84 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-runtime.test.ts:
+(pass) Room runtime uses history through the source and persists an Agent reply only after success [2.24ms]
+(pass) Room context bounds UTF-8 bytes and reports omitted history, rejecting oversized sources before runtime [12.75ms]
+273 |         );
+274 |         const ids = context.memories.map((m: unknown) => {
+275 |           assert.ok(m !== null && typeof m === 'object' && 'id' in m);
+276 |           return m.id;
+277 |         });
+278 |         assert.deepEqual(ids, ['room', 'agent', 'global']);
+                     ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
++   'expired',
++   'future',
+    'room',
+    'agent',
+    'global'
+  ]
+
+ generatedMessage: true,
+     actual: [ "expired", "future", "room", "agent", "global" ],
+   expected: [ "room", "agent", "global" ],
+   operator: "deepStrictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/room-runtime.test.ts:278:16
+      at send (<REPO>/tests/room-runtime.test.ts:265:20)
+      at replyToRoomMessage (<REPO>/src/rooms/runtime.ts:82:31)
+      at replyToRoomMessage (<REPO>/src/rooms/runtime.ts:20:3)
+      at <REPO>/tests/room-runtime.test.ts:261:9
+      at <REPO>/tests/room-runtime.test.ts:208:100
+(fail) Room context includes only active current scopes and excludes another Agent or Room Memory [2.61ms]
+
+tests/memory-cli.test.ts:
+13 |       encoding: 'utf8',
+14 |       timeout: 10000,
+15 |     });
+16 |   const json = (args: string[]): unknown => {
+17 |     const p = run([...args, '--json']);
+18 |     assert.equal(p.status, 0, p.stderr);
+                ^
+AssertionError: Error: Unknown option '--valid-from'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--valid-from"
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org a2a send|get|list [OPTIONS]
+       org memory capture|get|list|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at json (<REPO>/tests/memory-cli.test.ts:18:12)
+      at <anonymous> (<REPO>/tests/memory-cli.test.ts:103:21)
+(fail) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [403.32ms]
+
+ 2 pass
+ 2 fail
+Ran 4 tests across 2 files. [454.00ms]

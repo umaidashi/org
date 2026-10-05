@@ -17,7 +17,7 @@ test('Event subscription wakes assigned ExecutionTask with scoped Memory and sta
   writeFileSync(count, '');
   writeFileSync(
     driver,
-    `#!${process.execPath}\nimport {appendFileSync} from 'node:fs';const input=JSON.parse(await Bun.stdin.text());const context=JSON.parse(input.instruction);const instruction=context.instruction?JSON.parse(context.instruction):null;if(instruction?.task){if(!instruction.task.id||!context.memories.some(m=>m.content==='TASK_PRACTICE'))throw new Error('Missing Task or scoped Memory');appendFileSync(${JSON.stringify(count)},'turn\\n');if(input.message.includes('job.fail'))process.exit(1);}else if(!input.message.includes('"type":"result"')&&!input.message.includes('"type":"blocker"')&&!input.message.includes('"type":"decision"'))throw new Error('Expected delegation notification');console.log(JSON.stringify({type:'thread.started',thread_id:'provider'}));console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'Task complete'}}));console.log(JSON.stringify({type:'turn.completed',usage:{}}));\n`,
+    `#!${process.execPath}\nimport {appendFileSync} from 'node:fs';const input=JSON.parse(await Bun.stdin.text());const context=JSON.parse(input.instruction);const instruction=context.instruction?JSON.parse(context.instruction):null;if(instruction?.task){if(!instruction.task.id||(!context.memories.some(m=>m.content==='TASK_PRACTICE')||context.memories.some(m=>m.content==='DO_NOT_INCLUDE')))throw new Error('Missing Task or scoped Memory');appendFileSync(${JSON.stringify(count)},'turn\\n');if(input.message.includes('job.fail'))process.exit(1);}else if(!input.message.includes('"type":"result"')&&!input.message.includes('"type":"blocker"')&&!input.message.includes('"type":"decision"'))throw new Error('Expected delegation notification');console.log(JSON.stringify({type:'thread.started',thread_id:'provider'}));console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'Task complete'}}));console.log(JSON.stringify({type:'turn.completed',usage:{}}));\n`,
     { mode: 0o700 },
   );
   writeFileSync(
@@ -146,6 +146,29 @@ test('Event subscription wakes assigned ExecutionTask with scoped Memory and sta
       '--message',
       note.id,
     ]);
+    for (const period of [
+      ['--valid-until', '2000-01-01T00:00:00.000Z'],
+      ['--valid-from', '2100-01-01T00:00:00.000Z'],
+    ]) {
+      entity([
+        '--direct',
+        'memory',
+        'capture',
+        '--type',
+        'semantic',
+        '--scope',
+        'agent:' + chief,
+        '--content',
+        'DO_NOT_INCLUDE',
+        '--confidence',
+        '1',
+        '--room',
+        memoryRoom.id,
+        '--message',
+        note.id,
+        ...period,
+      ]);
+    }
     assert.equal(run(['--direct', 'room', 'archive', memoryRoom.id]).status, 0);
     const work = entity([
       '--direct',

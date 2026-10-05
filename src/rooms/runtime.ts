@@ -1,3 +1,4 @@
+import { memoryIsValidAt } from '../memory/domain.js';
 import type { MemoryProvider } from '../memory/port.js';
 import type { RoomRepository } from './port.js';
 import type { Message } from './domain.js';
@@ -37,8 +38,9 @@ export async function replyToRoomMessage(
     'company',
     'global',
   ];
+  const at = Date.parse(identity.at);
   const relevant = (memory?.list(scopes) ?? [])
-    .filter((m) => m.status === 'active' && scopes.includes(m.scope))
+    .filter((m) => scopes.includes(m.scope) && memoryIsValidAt(m, at))
     .sort(
       (a, b) =>
         scopes.indexOf(a.scope) - scopes.indexOf(b.scope) ||
@@ -50,14 +52,18 @@ export async function replyToRoomMessage(
   const encode = () =>
     JSON.stringify({
       instruction: input.instruction,
-      memories: memories.map(({ id, type, scope, content, confidence, sourceRefs }) => ({
-        id,
-        type,
-        scope,
-        content,
-        confidence,
-        sourceRefs,
-      })),
+      memories: memories.map(
+        ({ id, type, scope, content, confidence, sourceRefs, validFrom, validUntil }) => ({
+          ...(validFrom === undefined ? {} : { validFrom }),
+          ...(validUntil === undefined ? {} : { validUntil }),
+          id,
+          type,
+          scope,
+          content,
+          confidence,
+          sourceRefs,
+        }),
+      ),
       omittedMemories: relevant.length - memories.length,
       room: { id: room.id, title: room.title, type: room.type },
       omittedMessages: index + 1 - history.length,

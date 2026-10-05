@@ -100,6 +100,34 @@ test('Memory CLI captures evidence, supersedes without altering history, and per
     const list = json(['memory', 'list', '--scope', 'room:' + room.id]);
     assert.ok(Array.isArray(list));
     assert.equal(list.length, 2);
+    const bounded = json([
+      ...capture.slice(0, -1),
+      'temporary',
+      '--valid-from',
+      '2026-01-01T00:00:00.000Z',
+      '--valid-until',
+      '2027-01-01T00:00:00.000Z',
+    ]);
+    assert.ok(
+      bounded !== null &&
+        typeof bounded === 'object' &&
+        'id' in bounded &&
+        typeof bounded.id === 'string',
+    );
+    assert.deepEqual(json(['memory', 'get', bounded.id]), bounded);
+    assert.deepEqual(
+      json(['memory', 'list', '--scope', 'room:' + room.id, '--at', '2026-06-01T00:00:00.000Z']),
+      [bounded],
+    );
+    assert.deepEqual(
+      json(['memory', 'list', '--scope', 'room:' + room.id, '--at', '2027-01-01T00:00:00.000Z']),
+      [],
+    );
+    assert.deepEqual(
+      json(['memory', 'list', '--scope', 'room:' + room.id, '--at', '2025-01-01T00:00:00.000Z']),
+      [],
+    );
+    assert.equal(run([...capture, '--valid-from', '2026-02-31T00:00:00.000Z']).status, 2);
     const messages = json(['room', 'messages', room.id]);
     assert.ok(Array.isArray(messages));
     assert.equal(messages.length, 1);

@@ -10,6 +10,8 @@ export interface MemoryInput {
   readonly confidence: number;
   readonly sourceRefs: readonly SourceRef[];
   readonly supersedes?: string;
+  readonly validFrom?: number;
+  readonly validUntil?: number;
 }
 export interface Memory {
   readonly id: string;
@@ -21,6 +23,8 @@ export interface Memory {
   readonly supersedes: string | null;
   readonly createdAt: string;
   readonly status: 'active' | 'superseded' | 'invalidated';
+  readonly validFrom?: number;
+  readonly validUntil?: number;
 }
 export function createMemory(
   input: MemoryInput,
@@ -47,7 +51,18 @@ export function createMemory(
     (!input.supersedes.trim() || input.supersedes === identity.id)
   )
     throw new Error('Invalid superseded Memory');
+  for (const value of [input.validFrom, input.validUntil]) {
+    if (value !== undefined && !validTime(value)) throw new Error('Invalid Memory validity time');
+  }
+  if (
+    input.validFrom !== undefined &&
+    input.validUntil !== undefined &&
+    input.validFrom >= input.validUntil
+  )
+    throw new Error('Invalid Memory validity interval');
   return {
+    ...(input.validFrom === undefined ? {} : { validFrom: input.validFrom }),
+    ...(input.validUntil === undefined ? {} : { validUntil: input.validUntil }),
     id: identity.id,
     type: input.type,
     scope: input.scope,
@@ -88,6 +103,8 @@ export function decodeMemory(value: unknown): Memory {
     typeof value.content !== 'string' ||
     typeof value.createdAt !== 'string' ||
     typeof value.confidence !== 'number' ||
+    ('validFrom' in value && typeof value.validFrom !== 'number') ||
+    ('validUntil' in value && typeof value.validUntil !== 'number') ||
     !Array.isArray(value.sourceRefs) ||
     (value.supersedes !== null && typeof value.supersedes !== 'string') ||
     (value.type !== 'semantic' &&
@@ -116,7 +133,26 @@ export function decodeMemory(value: unknown): Memory {
       confidence: value.confidence,
       sourceRefs: refs,
       ...(value.supersedes === null ? {} : { supersedes: value.supersedes }),
+      ...('validFrom' in value && typeof value.validFrom === 'number'
+        ? { validFrom: value.validFrom }
+        : {}),
+      ...('validUntil' in value && typeof value.validUntil === 'number'
+        ? { validUntil: value.validUntil }
+        : {}),
     },
     { id: value.id, at: value.createdAt },
+  );
+}
+
+function validTime(value: number): boolean {
+  return Number.isSafeInteger(value) && Math.abs(value) <= 8640000000000000;
+}
+export function memoryIsValidAt(memory: Memory, at: number): boolean {
+  if (memory.status !== 'active') return false;
+  if (memory.validFrom === undefined && memory.validUntil === undefined) return true;
+  if (!validTime(at)) throw new Error('Invalid Memory retrieval time');
+  return (
+    (memory.validFrom === undefined || at >= memory.validFrom) &&
+    (memory.validUntil === undefined || at < memory.validUntil)
   );
 }
