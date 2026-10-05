@@ -1,3 +1,5 @@
+import { createTask, type Task } from '../tasks/domain.js';
+import type { IdempotentTaskWriter } from '../tasks/port.js';
 import { requireCapability } from '../agents/domain.js';
 import { createA2AMessage, readA2AMessage, validateA2AReply } from './domain.js';
 import type { A2AInput, A2AMessage } from './domain.js';
@@ -70,4 +72,38 @@ export function listA2AMessages(
       }
       return envelope;
     });
+}
+
+export function delegateA2ATask(
+  rooms: Pick<RoomRepository, 'get' | 'messages'>,
+  agents: Pick<AgentRepository, 'list'>,
+  tasks: { get(id: string): unknown } & IdempotentTaskWriter,
+  roomId: string,
+  messageId: string,
+): Task {
+  if (rooms.get(roomId).archivedAt !== null) throw new Error('Delegation Room is archived');
+  const envelope = listA2AMessages(rooms, roomId, tasks).find(
+    (message) => message.id === messageId,
+  );
+  if (!envelope || envelope.type !== 'delegate' || envelope.from === envelope.to)
+    throw new Error('Expected delegate to another Agent');
+  const known = agents.list();
+  const sender = known.find((agent) => agent.id === envelope.from);
+  if (!sender || !known.some((agent) => agent.id === envelope.to))
+    throw new Error('A2A Agent not found');
+  requireCapability(sender, 'can_delegate');
+  const task = {
+    ...createTask(
+      {
+        title: `Delegate: ${envelope.id}`,
+        objective: `Delegated by Agent ${envelope.from}: ${JSON.stringify(envelope.payload)}`,
+        kind: 'execution_task',
+        ...(envelope.taskId === null ? {} : { parentId: envelope.taskId }),
+        labels: ['a2a-delegate'],
+      },
+      { id: `a2a:${envelope.id}`, createdAt: envelope.createdAt },
+    ),
+    externalRef: `org://rooms/${envelope.roomId}/messages/${envelope.id}`,
+  };
+  return tasks.createAssignedOnce(task, envelope.to, envelope.createdAt);
 }

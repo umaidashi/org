@@ -532,3 +532,16 @@
 - 独立Reviewer Important: 疎配列capabilitiesがsome/mapのhole skipで保存されJSON [null]となり、以後Agent一覧を壊す。domain/実SQLite2件REDを確認し、共通validatorでArray.fromによりholeをundefinedとして検証、6件GREEN。Critical/Minorなし。独立UT11+CLI2成功。再レビューせず修正後全ゲートを実行する。
 - Final: Ruling: 他can_*未対応とlocal管理者のsender指定は今回の明記された制約。reserved metadataの直接記録は許容しdelegate実行側で拒否する。costは記録だけでは送信許可を保証しないこと。Agent本人認証/重要操作Approvalを後続で実装する。
 - Final: fixed 疎配列の永続化破損 — domain/SQLiteの保存前拒否2件RED→GREEN、修正後全176/176・型/lint/format/AST成功、33.63秒。実Jev902判定・missing/unsure0・errors/degradedなし。新規candidateは保存前validation/CLI拒否/legacy回帰と独立レビューに照合し非阻害。次はこのgrantでtyped delegateを冪等ExecutionTask生成へ接続する。
+
+## main公開：delegate Capability
+
+- main6261692へ通常push成功、全176テスト/実Jev/公開検査pre-push38.37秒。force-pushなし。
+
+## Typed delegateからTask実行へ
+
+- [計画](superpowers/plans/2026-10-05-a2a-task-delegation.md)。既存typed原本/can_delegate/TaskProvider.createAssignedOnceと自動Task workerを再利用。source Message IDのnamespaceをTask IDとし、宛先owner/Task parent/source URIを保持。sender/recipient/Room/Task/非archive/別Agentを検証。
+- DB不要UT RED（未export）→GREEN、同一原本で同一candidate・advanced Taskを既存Writerから返す・権限/参照拒否を検証。実daemon e2e RED（delegate must create a Task）→GREEN。Memory context/1Task/1turn/元Room余分返信なし/成果物→明示レビュー/再起動no replay、既存Event/失敗/権限回帰を含む9件成功。
+- Ruling: payload schemaはNotion未指定。JSON全体をTask objectiveに渡し追加schemaは作らない。結果はTask/Artifactで参照しtyped result返送は次変更。costは委譲元Roomへの結果返送が現段階ではないこと。manual activateは割当まで、--wake-upで実行まで。wake-up receipt completedはTask作成完了であり成果完了ではない。
+- 全177/177テスト・静的ゲート成功、34.98秒。実Jev906判定missing/unsure0・errors/degradedなし。生成物のfailure-path候補を参照/権限/保存失敗/実CLIのRED-GREENと照合し非阻害。
+- 実Claude MaxでもAPIキー/tokenなしでCoordinatorから専門Agentへのtyped delegate→scoped Memoryだけのmarker→成果物/承認待ち→隔離markerの明示レビュー→再起動後の次delegateを検証。宛先owner/source参照/余分なRoom返信なし/旧成果物保持を含む全boolean成功。raw応答/ローカルpath/資格情報は公開しない。
+- Final: 独立Reviewer Critical/Important/Minorなし。service6+実CLI1計7件も独立成功。Final Ruling: payload専用schema/typed result返送/Agent本人認証は明記された後続範囲、costは現在のTask/Artifact参照とローカル管理者設定に限られること。Next: 委譲元Roomへtyped resultを保存し、結果返送の復旧/重複防止を検証する。

@@ -1,0 +1,27 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-autonomy-cli.test.ts:
+296 |         (t: unknown) => record(t) && t.id === delegatedTaskId && t.status === 'waiting_approval',
+297 |       );
+298 |     }).catch(() => {
+299 |       const all = json(['task', 'list']);
+300 |       assert.ok(Array.isArray(all));
+301 |       assert.equal(
+                   ^
+AssertionError: delegate must create a Task
+
+false !== true
+
+ generatedMessage: false,
+     actual: false,
+   expected: true,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/task-autonomy-cli.test.ts:301:14
+      at processTicksAndRejections (native:7:39)
+(fail) Event subscription wakes assigned ExecutionTask with scoped Memory and stages one Artifact for explicit review without replay [6947.00ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [6.97s]

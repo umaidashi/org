@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { createRoom, createMessage } from '../src/rooms/domain.js';
-import { sendA2AMessage, listA2AMessages } from '../src/a2a/service.js';
+import { sendA2AMessage, listA2AMessages, delegateA2ATask } from '../src/a2a/service.js';
 import { createA2AMessage } from '../src/a2a/domain.js';
 const room = createRoom(
   {
@@ -182,4 +182,65 @@ test('delegate requires an explicit sender capability before persisting Room evi
     'delegate',
   );
   assert.equal(writes, 1);
+});
+
+test('typed delegation creates an assigned target Task from immutable source without reassigning an advanced Task', () => {
+  const source = createA2AMessage(
+    room,
+    { ...input, type: 'delegate' },
+    { id: 'delegate', createdAt: 'sent' },
+  );
+  const permitted = {
+    list: () =>
+      agents.list().map((agent) => ({ ...agent, capabilities: ['can_delegate'] as const })),
+  };
+  let writes = 0;
+  const planned: import('../src/tasks/domain.js').Task[] = [];
+  const tasks = {
+    get: () => ({ id: 'task' }),
+    createAssignedOnce: (
+      task: import('../src/tasks/domain.js').Task,
+      owner: string,
+      at: string,
+    ) => {
+      writes++;
+      planned.push(task);
+      assert.equal(owner, 'cto');
+      assert.equal(at, 'sent');
+      return { ...task, owner, status: 'assigned' as const, version: 1 };
+    },
+  };
+  const store = { get: () => room, messages: () => [source] };
+  const first = delegateA2ATask(store, permitted, tasks, room.id, source.id);
+  assert.equal(first.owner, 'cto');
+  assert.equal(first.parentId, 'task');
+  assert.match(first.objective, /Research/);
+  assert.equal(first.externalRef, 'org://rooms/room/messages/delegate');
+  delegateA2ATask(store, permitted, tasks, room.id, source.id);
+  assert.deepEqual(planned[0], planned[1]);
+  const advanced = { ...first, status: 'completed' as const, version: 5 };
+  assert.equal(
+    delegateA2ATask(
+      store,
+      permitted,
+      { ...tasks, createAssignedOnce: () => advanced },
+      room.id,
+      source.id,
+    ),
+    advanced,
+  );
+  assert.throws(() => delegateA2ATask(store, agents, tasks, room.id, source.id), /can_delegate/);
+  assert.throws(
+    () =>
+      delegateA2ATask(
+        { ...store, get: () => ({ ...room, archivedAt: 'now' }) },
+        permitted,
+        tasks,
+        room.id,
+        source.id,
+      ),
+    /archived/,
+  );
+  assert.throws(() => delegateA2ATask(store, permitted, tasks, room.id, 'missing'), /delegate/i);
+  assert.equal(writes, 2);
 });

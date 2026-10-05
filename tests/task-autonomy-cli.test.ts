@@ -242,6 +242,102 @@ test('Event subscription wakes assigned ExecutionTask with scoped Memory and sta
     assert.equal(eventTask(event.id)?.status, 'completed');
     assert.equal(entity(['task', 'get', work.id]).status, 'assigned');
     assert.deepEqual(json(['room', 'messages', taskRoom.id]), messages);
+    assert.equal(
+      run([
+        'agent',
+        'create',
+        'coordinator',
+        '--role',
+        'Coordinator',
+        '--runtime',
+        'codex',
+        '--capability',
+        'can_delegate',
+      ]).status,
+      0,
+    );
+    const allAgents = json(['agent', 'list']);
+    assert.ok(Array.isArray(allAgents));
+    const coordinator: unknown = allAgents.find(
+      (a: unknown) => record(a) && a.name === 'coordinator',
+    );
+    assert.ok(record(coordinator) && typeof coordinator.id === 'string');
+    const delegationRoom = entity([
+      'room',
+      'create',
+      'Delegate',
+      '--type',
+      'agent',
+      '--agent',
+      coordinator.id,
+      '--agent',
+      chief,
+    ]);
+    const delegated = entity([
+      'a2a',
+      'send',
+      delegationRoom.id,
+      '--from',
+      coordinator.id,
+      '--to',
+      chief,
+      '--type',
+      'delegate',
+      '--task',
+      work.id,
+      '--payload',
+      '{"objective":"Delegated marker"}',
+    ]);
+    const delegatedTaskId = 'a2a:' + delegated.id;
+    await wait(() => {
+      const all = json(['task', 'list']);
+      assert.ok(Array.isArray(all));
+      return all.some(
+        (t: unknown) => record(t) && t.id === delegatedTaskId && t.status === 'waiting_approval',
+      );
+    }).catch(() => {
+      const all = json(['task', 'list']);
+      assert.ok(Array.isArray(all));
+      assert.equal(
+        all.some((t: unknown) => record(t) && t.id === delegatedTaskId),
+        true,
+        'delegate must create a Task',
+      );
+    });
+    const delegatedTask = entity(['task', 'get', delegatedTaskId]);
+    assert.equal(delegatedTask.status, 'waiting_approval');
+    assert.equal(delegatedTask.owner, chief);
+    assert.equal(delegatedTask.parentId, work.id);
+    assert.equal(
+      delegatedTask.externalRef,
+      `org://rooms/${delegationRoom.id}/messages/${delegated.id}`,
+    );
+    assert.equal(turns(), 4);
+    const sourceMessages = json(['room', 'messages', delegationRoom.id]);
+    assert.ok(Array.isArray(sourceMessages));
+    assert.equal(sourceMessages.length, 1);
+    const completed = entity([
+      'task',
+      'review',
+      delegatedTaskId,
+      '--decision',
+      'approve',
+      '--actor',
+      'test-human',
+      '--reason',
+      'Delegate marker checked',
+      '--expected-version',
+      String(delegatedTask.version),
+    ]);
+    assert.equal(completed.status, 'completed');
+    assert.equal(run(['daemon', 'stop']).status, 0);
+    await daemon.exited;
+    daemon = undefined;
+    daemon = launch();
+    await daemon.ready;
+    await Bun.sleep(100);
+    assert.equal(entity(['task', 'get', delegatedTaskId]).version, completed.version);
+    assert.equal(turns(), 4);
   } finally {
     if (daemon) {
       spawnSync(process.execPath, ['--no-env-file', cli, 'daemon', 'stop', '--socket', socket], {

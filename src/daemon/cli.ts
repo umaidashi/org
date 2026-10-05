@@ -2,7 +2,7 @@ import { pollExecutionTasks } from '../tasks/autonomy.js';
 import { SqliteWakeupJournal } from '../activation/sqlite.js';
 import { pollRoomWakeups, recoverWakeups } from '../activation/poll.js';
 import { activateRoomMessage } from '../activation/service.js';
-import { listA2AMessages, authorizeA2AMessage } from '../a2a/service.js';
+import { listA2AMessages, authorizeA2AMessage, delegateA2ATask } from '../a2a/service.js';
 import { acquireDatabaseLease } from './lease.js';
 import type { DatabaseLease } from './lease.js';
 import { runExecutionTask } from '../tasks/execution.js';
@@ -140,8 +140,14 @@ function openOperations(
     const activate = (roomId: string, messageId: string) => {
       const source = roomRepository.messages(roomId).find((m) => m.id === messageId);
       if (source && 'a2a' in source.metadata) {
-        listA2AMessages(roomRepository, roomId, taskProvider);
+        const envelope = listA2AMessages(roomRepository, roomId, taskProvider).find(
+          (message) => message.id === messageId,
+        );
         authorizeA2AMessage(agentRepository, source);
+        if (envelope?.type === 'delegate') {
+          delegateA2ATask(roomRepository, agentRepository, taskProvider, roomId, messageId);
+          return Promise.resolve([]);
+        }
       }
       return activateRoomMessage(
         roomRepository,
