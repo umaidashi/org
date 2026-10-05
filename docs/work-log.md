@@ -1025,3 +1025,7 @@
 - 全checkは323成功12skip1fail66.60秒、実Claude込みは1成功2fail38.54秒。原因はfixtureがdaemon停止後にRPCで原本を取得していた順序誤り。停止前へ移動しnative2成功1skip0fail4.82秒、実Claudeと全checkを再実行。独立最終review Critical/Importantなし。Minor保留: 実Claude用turn-countは空のため呼出回数の証拠にはしない（原本/Memory比較は実施）、非抽出Roomの委譲guide文言、storage障害/両allowlist併用の専用fixture。再reviewなし。
 - 修正後実Claude込みe2eは3成功0fail45.09秒（実Claude40.34秒）。候補原本→自動採用→次Context→invalidate後no revival→restart原本/Memory保持を確認。実Runtime呼出回数はcount fileで証明していない。
 - 最終全check324成功12skip0fail336tests168files66.93秒、型/lint/format/AST/dry-run非空。実jev1691対象warning109/missing・unsure0/errors・degraded空。proof helperの複数modeと実Claudetestは原本/Memory/Context/失効/restartの具体assertを照合、storage/guide併用専用fixtureは保留。独立reviewのMinorと限界を[証拠](verification/2026-10-06-room-memory-auto-extraction/check.txt)へ記録。Next: 未完了の外部WorkItem同期と安全な読取refreshを小さく切り分ける。
+
+### 2026-10-06 — 既存Linear WorkItemの読取refresh
+- Notion Task抽象化を再取得しWorkItem同期/内部Execution分離を確認。[設計・計画](superpowers/plans/2026-10-06-linear-work-item-refresh.md)。Ruling: local adminの明示version付きtitle/objective置換、既存local編集も置換対象。進捗/labels/内部Taskは保持、URL変更/競合は拒否。同値でもfetch後version確認。実API認証/外部write/自動双方向同期は未完了。
+- Memory自動抽出5930efdはmainへ通常push成功82.14秒。refresh REDは未export1fail39ms、最小service GREEN1UT24ms、native direct/daemon HTTP fixture込み2成功0fail1.02秒。fixtureのid narrowing/Task nullable型を修正して静的検査を再実行する。外部へのmutationはなし。
