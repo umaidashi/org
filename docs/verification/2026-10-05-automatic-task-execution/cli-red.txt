@@ -1,0 +1,29 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-autonomy-cli.test.ts:
+22 |   const memoryRoom=entity(['--direct','room','create','Memory evidence','--type','direct','--human','founder','--agent',chief]);const note=entity(['--direct','room','send',memoryRoom.id,'--human','founder','--content','Memory proof']);
+23 |   entity(['--direct','memory','capture','--type','procedural','--scope','agent:'+chief,'--content','TASK_PRACTICE','--confidence','1','--room',memoryRoom.id,'--message',note.id]);assert.equal(run(['--direct','room','archive',memoryRoom.id]).status,0);
+24 |   const work=entity(['--direct','task','create','WorkItem','--objective','Never auto execute']);assert.equal(run(['--direct','task','assign',work.id,'--owner',chief]).status,0);
+25 |   entity(['--direct','event','subscribe','job.*','--subscriber-type','agent','--subscriber',chief]);
+26 |   daemon=launch();await daemon.ready;
+27 |   const event=entity(['event','publish','job.ready','--source','manual','--payload','{"marker":"done"}']);await wait(()=>eventTask(event.id)?.status==='waiting_approval').catch(()=>{assert.equal(eventTask(event.id)?.status,'waiting_approval');});
+                                                                                                                                                                                                  ^
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ 'assigned'
+- 'waiting_approval'
+
+ generatedMessage: true,
+     actual: "assigned",
+   expected: "waiting_approval",
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/task-autonomy-cli.test.ts:27:190
+      at processTicksAndRejections (native:7:39)
+(fail) Event subscription wakes assigned ExecutionTask with scoped Memory and stages one Artifact for explicit review without replay [5565.48ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [5.59s]

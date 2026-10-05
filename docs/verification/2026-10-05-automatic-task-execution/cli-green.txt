@@ -1,0 +1,15 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/automatic-wake-up-cli.test.ts:
+(pass) daemon automatic wake-up persists outcomes once, drains cancelled turns and does not replay after restart [3370.76ms]
+
+tests/task-autonomy-cli.test.ts:
+(pass) Event subscription wakes assigned ExecutionTask with scoped Memory and stages one Artifact for explicit review without replay [1637.64ms]
+
+tests/task-autonomy.test.ts:
+(pass) automatic Task execution prepares one Task Room/input/Session and stages only assigned work without replay [1.08ms]
+(pass) automatic Task execution defers dependencies, WorkItems and cancellation, and records preparation failure at its observed version [0.40ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 3 files. [5.04s]

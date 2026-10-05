@@ -8,7 +8,7 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで169テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで173テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAt・optional reportsToを実装。legacy schema/root JSON互換・循環/不存在拒否・同時変更時再検証・不変履歴/rollback・実CLIを検証。capabilities/permissions/memoryPolicyは未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | reportsToによるChief→専門Agentの関係と変更履歴を保存。自動委譲は未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | version付きRoom Message・CLI send/get/listを実装。宛先/Task/返信/correlationを検証。実daemon request→resultと再openを確認。自動委譲・wake-upは後続 |
@@ -23,11 +23,11 @@
 | Task状態 | pending/assigned/running/blocked/waiting_approval/completed/failed | 純粋な遷移・参照/依存判断、SQLiteの原子的な状態/不変履歴、rollback/古いversion拒否を検証。Event由来Taskの冪等作成/割当/復旧を追加。manual assigned ExecutionTaskをrunning先保存→Runtime/Room返信→結果Artifactとwaiting_approvalを原子保存。実Codex/CLI・failure/競合・rollbackを検証。単一DB所有のdaemon起動時にrunning ExecutionTaskをfailedへ復旧。成果物の明示レビューでcompleted/failed・対象version/成果物/actor/理由/時刻を不変保存し、依存未完了承認・競合・途中失敗を拒否。外部操作の専用Approvalは未完了 |
 | TaskProvider | create/get/update/list/addComment/linkArtifact、Localと外部Adapter | PortとLocal SQLite Adapterを実装・検証。外部Adapterは未完了 |
 | Event | 不変event log、受信者から独立したpublish、イベントとTaskの分離 | SQLiteとCLIのpublish/get/list。受信者不要・別プロセス読込・原本UPDATE/DELETE/REPLACE拒否・INSERT失敗後復旧を検証。daemon配信は未完了 |
-| Subscription | pattern・filter・enabled、Agent/Workflowへのルーティング | 純粋なpattern/filter判断とSQLite保存、CLI照合/有効無効を実装。Agent参照を公開Portで確認。単発workerでAgentのExecutionTaskを作成/割当。Workflow参照は保存/deferredのみ。実Runtime/Workflow起動は未完了 |
+| Subscription | pattern・filter・enabled、Agent/Workflowへのルーティング | 純粋なpattern/filter判断とSQLite保存、CLI照合/有効無効を実装。Agent参照を公開Portで確認。単発workerでAgentのExecutionTaskを作成/割当。Workflow参照は保存/deferredのみ。--wake-upでAgent Taskの実Runtime自動起動を実daemon/実Maxで検証。Workflow起動は未完了 |
 | Trigger | manual/internal/event/webhook/schedule | 未完了 |
 | Daemon | ローカルAPI/socket、polling、process管理、execution状態、retry/timeout | 常駐polling/Unix socketとstatus/dispatch/stop、--once/deliveriesを実装。実プロセスで新Event処理・停止/再起動・同時起動拒否・0600・原本保護・所有inode cleanup・poll失敗復旧を検証。Agent/Task/Room/Eventはdaemon client化済み。Session Runtimeのprocess管理・timeout/cancel/drain、同POSIX group停止・親SIGKILL時pipe監督（source/bundleを検証）、SQLite PID/token leaseによる同DB別socketの二重daemon拒否・終了PIDからの取得を実装。Task実行のretryは未完了 |
-| Scheduler | 定期実行、Agent wake-up、再起動後の整合性 | Room Messageのopt-in自動wake-upを実装。永続claim/不変結果・同時tick拒否・busy延期・起動時中断復旧・失敗no replay・停止drainと実Maxを検証。定期schedule/Event Task起動/自動retryは未完了 |
-| Runtime | Claude Code/Codex CLI Adapter、role/instruction injection | 明示argv/env/input・timeout/cancel・出力上限の実子プロセス境界を検証。Codex/Claudeのstart/resume引数生成・応答解析・process DI境界をUT検証。共通RuntimeTurn PortとLocalAgentRuntime start/send/resume/stop/shutdown、停止drain・同時実行拒否を実fixture/SQLiteで検証。daemon/CLI配線と実Codexの開始/再開/Room返信を検証。Task runで実Codex結果をwaiting_approvalへ記録。実Claude Maxのsafe-mode/tools無効起動とTask結果を検証。自動Task起動は未完了 |
+| Scheduler | 定期実行、Agent wake-up、再起動後の整合性 | Room Messageのopt-in自動wake-upを実装。永続claim/不変結果・同時tick拒否・busy延期・起動時中断復旧・失敗no replay・停止drainと実Maxを検証。Event由来assigned ExecutionTaskの自動起動・scoped Memory・成果物/承認待ち・明示レビュー・再起動no replayを実daemonと実Claude Maxで検証。定期schedule/自動retryは未完了 |
+| Runtime | Claude Code/Codex CLI Adapter、role/instruction injection | 明示argv/env/input・timeout/cancel・出力上限の実子プロセス境界を検証。Codex/Claudeのstart/resume引数生成・応答解析・process DI境界をUT検証。共通RuntimeTurn PortとLocalAgentRuntime start/send/resume/stop/shutdown、停止drain・同時実行拒否を実fixture/SQLiteで検証。daemon/CLI配線と実Codexの開始/再開/Room返信を検証。Task runで実Codex結果をwaiting_approvalへ記録。実Claude Maxのsafe-mode/tools無効起動とTask結果を検証。--wake-upで依存completedのassigned ExecutionTaskを自動実行。WorkItem除外/失敗/停止/再起動を実CLIで検証 |
 | Sandbox | local process/Docker、checkout/mount、資格情報の限定注入、destroy | 未完了 |
 | Artifact | 回収・永続参照・Taskとの関連付け | Runtime結果Messageをorg URIのArtifactへTaskと原子関連付け。実fixture/Codexで検証。ファイル等の回収は未完了 |
 | Workflow | n8n invoke/status/cancel、Task/Agentから分離 | 未完了 |

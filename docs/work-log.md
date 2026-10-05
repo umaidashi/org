@@ -504,3 +504,16 @@
 - Final: fixed 停止後の誤claimと異常時drain省略 — shutdown leaves later unexecuted Messages unclaimed / shutdown error still drains RED→GREEN、修正後全169/169・全静的ゲート成功。実Jev868判定・missing/unsure0・errors/degradedなし。
 - 実Claude MaxでもAPI key/tokenなしで投稿→coordinatorだけ自動返信→同org/provider Session継続→idle、繰返しno replay/no turnを隔離markerで確認、全boolean成功。[実成否](verification/2026-10-05-automatic-wake-up/real-claude-max.txt)。raw応答は公開しない。Next: Eventで生成した割当ExecutionTaskの自動実行、委譲/権限/結果レビューへ小さく接続する。
 - Jevのpoll catch-hides-failure候補は、catchでfailed終端原記録を確定しwakeupsで公開する実装に照合した。原本へ状態/理由を残し他Messageを進める仕様であり、成功扱いへの握りつぶしではない。非阻害と判断。
+
+## main公開：durable Room wake-up
+
+- remote/local mainは7b86fa0ca74d894d57278d201ac832bc96613ec2で一致。通常pushのpre-push全169テスト・実Jev・公開検査が42.12秒で成功。force-pushなし。
+
+## Event由来ExecutionTaskの自動実行
+
+- Notion09/04の現行仕様を再取得し確認（last edited 2026-10-04T01:51:58.336Z）。[計画](superpowers/plans/2026-10-05-automatic-task-execution.md)。既存Task状態・Task Room・Session・runExecutionTaskを再利用し、新規queue/tableなし。必要Port/callback/identity/signalをDI。
+- assigned ExecutionTask/owner/完了済み依存だけ実行。busyは延期、WorkItemは除外。Task/version付き入力を再利用、結果Artifactとwaiting_approvalは既存原子保存。準備失敗をfailed/CAS履歴へ残し、停止後の次Taskを開始しない。自動承認・自動retryなし。
+- DB不要UT RED→GREEN、実daemon CLI RED（assignedのまま）→GREEN。Event→Subscription→Task→Memory context→Runtime結果→Artifact→明示レビュー、失敗一回/再起動no replay/他Task継続を確認。fixtureのpossibly undefined型検査REDもassertで訂正。[証拠](verification/2026-10-05-automatic-task-execution/)。
+- 全173テスト・tsgo/Oxlint/Oxfmt/AST成功、35.75秒。独立Reviewer Critical/Important/Minorなし、UT3+CLI1も独立成功。
+- 実Claude MaxでもAPIキー/tokenを渡さず、Memoryにだけ置いたmarkerをEvent由来Taskの結果として取得。成果物/承認待ち/明示レビュー/再起動後の次Taskと旧成果物保持の全boolean成功。隔離markerへのe2e-humanレビューは業務成果の人間承認とは区別する。raw応答/ローカルpath/認証情報は公開しない。
+- 最新生成物の実Jev890判定、errors/degradedなし。catch候補はfailedへの明示保存・CAS維持・他Task継続という仕様とUT/CLIの失敗検証に照合し非阻害と判断。Next: typed A2A委譲をExecutionTask生成/実行へ接続し、Permission/Approval境界を進める。

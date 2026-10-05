@@ -1,0 +1,8 @@
+$ bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+tests/task-autonomy.test.ts(196,22): error TS2345: Argument of type '{ runtime?: 'codex' | 'claude'; providerSessionId?: string | null; error?: string | null; version?: number; createdAt?: string; updatedAt?: string; id: string; agentId: string; roomId: string; status: "running"; }' is not assignable to parameter of type 'Session'.
+  Property 'runtime' is optional in type '{ runtime?: "claude" | "codex"; providerSessionId?: string | null; error?: string | null; version?: number; createdAt?: string; updatedAt?: string; id: string; agentId: string; roomId: string; status: "running"; }' but required in type 'Session'.
+error: script "typecheck" exited with code 1
+error: script "check:static" exited with code 1
+error: script "check" exited with code 1

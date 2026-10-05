@@ -252,7 +252,7 @@ bun run start task artifacts TASK_ID --json
 bun run start task history TASK_ID --json
 ```
 
-runningを先に保存し、Runtime返信をRoomに残します。結果Artifactの`org://rooms/.../messages/...`参照・Task履歴・waiting_approvalを原子的に保存します。結果は人間の確認待ちです。daemon起動時は中断されたrunning ExecutionTaskをfailedへ復旧し、履歴と承認待ちの結果を保持します。成果物の承認・却下は次の`task review`で記録します。外部操作の専用Approval API、自動再試行、Event由来Taskの自動実行は後続です。
+runningを先に保存し、Runtime返信をRoomに残します。結果Artifactの`org://rooms/.../messages/...`参照・Task履歴・waiting_approvalを原子的に保存します。結果は人間の確認待ちです。daemon起動時は中断されたrunning ExecutionTaskをfailedへ復旧し、履歴と承認待ちの結果を保持します。成果物の承認・却下は次の`task review`で記録します。`--wake-up`付きdaemonはEvent由来を含むassigned ExecutionTaskを自動実行します。完了済み依存を確認し、Task RoomとSessionを用意してMemory contextを渡します。WorkItemは実行せず、結果を自動承認しません。再起動後も承認済みTaskを再実行しません。外部操作の専用Approval APIと自動再試行は後続です。
 
 同じDBのcontinuous daemonは一台だけ起動できます。socketを変えてもSQLiteのPID/token leaseで二重所有を拒否します。DB/親のsymlinkは実パスへ正規化し、新DBは0600で作成します。終了した所有PIDのleaseは起動時に取得し直し、解放時は自分のtokenだけを削除します。PID reuseは生存扱いで拒否します。continuousモードでin-memory DBは使用できません。
 

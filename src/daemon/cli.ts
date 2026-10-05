@@ -1,3 +1,4 @@
+import { pollExecutionTasks } from '../tasks/autonomy.js';
 import { SqliteWakeupJournal } from '../activation/sqlite.js';
 import { pollRoomWakeups, recoverWakeups } from '../activation/poll.js';
 import { activateRoomMessage } from '../activation/service.js';
@@ -156,21 +157,48 @@ function openOperations(
         messageId,
       );
     };
+    const execute = (taskId: string, sessionId: string, messageId: string) =>
+      runExecutionTask(
+        taskProvider,
+        sessionStore,
+        roomRepository,
+        (id, source, instruction) =>
+          replyToRoomMessage(
+            roomRepository,
+            sessionStore,
+            runtime,
+            { sessionId: id, messageId: source, instruction },
+            { id: randomUUID(), at: new Date().toISOString() },
+            memoryProvider,
+          ),
+        { taskId, sessionId, messageId },
+        () => new Date().toISOString(),
+      );
     return {
       dispatch: () => dispatchEvents(eventBus, agentRepository, taskProvider, journal),
       deliveries: () => journal.list(),
       wakeups: () => wakeupJournal.list(),
       ...(wakeUp
         ? {
-            wakeUp: (signal?: AbortSignal) =>
-              pollRoomWakeups(
+            wakeUp: async (signal?: AbortSignal) => {
+              await pollRoomWakeups(
                 roomRepository,
                 sessionStore,
                 wakeupJournal,
                 activate,
                 () => new Date().toISOString(),
                 signal,
-              ),
+              );
+              await pollExecutionTasks(
+                taskProvider,
+                roomRepository,
+                sessionStore,
+                (agentId, roomId) => runtime.open(agentId, roomId),
+                execute,
+                () => ({ id: randomUUID(), createdAt: new Date().toISOString() }),
+                signal,
+              );
+            },
           }
         : {}),
       command: (argv) =>
@@ -178,23 +206,7 @@ function openOperations(
           store: sessionStore,
           runtime,
           activateRoom: activate,
-          runTask: (taskId, sessionId, messageId) =>
-            runExecutionTask(
-              taskProvider,
-              sessionStore,
-              roomRepository,
-              (id, source, instruction) =>
-                replyToRoomMessage(
-                  roomRepository,
-                  sessionStore,
-                  runtime,
-                  { sessionId: id, messageId: source, instruction },
-                  { id: randomUUID(), at: new Date().toISOString() },
-                  memoryProvider,
-                ),
-              { taskId, sessionId, messageId },
-              () => new Date().toISOString(),
-            ),
+          runTask: execute,
           reply: (id, messageId, instruction) =>
             replyToRoomMessage(
               roomRepository,

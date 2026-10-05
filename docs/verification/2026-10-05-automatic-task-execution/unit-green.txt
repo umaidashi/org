@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-autonomy.test.ts:
+(pass) automatic Task execution prepares one Task Room/input/Session and stages only assigned work without replay [2.49ms]
+(pass) automatic Task execution defers dependencies, WorkItems and cancellation, and records preparation failure at its observed version [0.59ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [26.00ms]
