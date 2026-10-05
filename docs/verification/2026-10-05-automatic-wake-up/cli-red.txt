@@ -1,0 +1,36 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/automatic-wake-up-cli.test.ts:
+13 |  writeFileSync(config,JSON.stringify({codex:{executable:driver,cwd:home,env:[],timeoutMs:10000,maxOutputBytes:4096}}));
+14 |  const run=(args:string[])=>spawnSync(process.execPath,['--no-env-file',cli,'--db',db,...(args.includes('--direct')?[]:['--socket',socket]),...args],{encoding:'utf8',timeout:5000});
+15 |  const json=(args:string[]):unknown=>{const r=run([...args,'--json']);assert.equal(r.status,0,r.stderr);return JSON.parse(r.stdout);};
+16 |  const entity=(args:string[]):Record<string,unknown>&{id:string}=>{const v=json(args);assert.ok(record(v)&&typeof v.id==='string');return {...v,id:v.id};};
+17 |  const turns=()=>readFileSync(count,'utf8').trim().split('\n').filter(Boolean).length;
+18 |  const launch=()=>{const child=spawn(process.execPath,['--no-env-file',cli,'--db',db,'daemon','--socket',socket,'--runtime-config',config,'--wake-up','--poll-interval','20']);const exited=new Promise(resolve=>child.once('exit',resolve));let error='';child.stderr.on('data',(v:Buffer)=>{error+=v.toString();});const ready=new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Not ready:'+error)),5000);child.stdout.on('data',(v:Buffer)=>{if(v.toString().includes('"ready"')){clearTimeout(timer);resolve();}});});return {child,exited,ready};};
+
+error: Not ready:Error: Unknown option '--wake-up'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--wake-up"
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org a2a send|get|list [OPTIONS]
+       org memory capture|get|list|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
+       org daemon status|dispatch|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+      at <anonymous> (<REPO>/tests/automatic-wake-up-cli.test.ts:18:397)
+(fail) daemon automatic wake-up persists outcomes once, drains cancelled turns and does not replay after restart [5292.11ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [5.35s]

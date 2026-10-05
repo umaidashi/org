@@ -1,0 +1,47 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/wakeup-service.test.ts:
+(pass) automatic wake-up claims before a turn, records failure once, continues later messages and does not replay [1.03ms]
+(pass) automatic wake-up defers busy Sessions without claiming and restart marks unfinished intent failed without another turn [0.30ms]
+136 |   await pollRoomWakeups(rooms, { list: () => [] }, store, async () => {
+137 |     calls++;
+138 |     controller.abort();
+139 |     throw new Error('Runtime cancelled');
+140 |   }, () => 'now', controller.signal);
+141 |   assert.equal(calls, 1);
+               ^
+AssertionError: Expected values to be strictly equal:
+
+2 !== 1
+
+ generatedMessage: true,
+     actual: 2,
+   expected: 1,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/wakeup-service.test.ts:141:10
+      at processTicksAndRejections (native:7:39)
+(fail) shutdown leaves later unexecuted Messages unclaimed for the next daemon [1.98ms]
+
+tests/daemon-server.test.ts:
+(pass) SIGINT releases the daemon while preserving replacement socket and lock entries [72.63ms]
+(pass) continuous daemon polls new Events, serves local clients and releases socket across restart [640.76ms]
+(pass) daemon refuses to replace an existing file and client failure creates no database [105.00ms]
+{"state":"ready","socket":"/tmp/org-server-cleanup-E0fO8y/org.sock"}
+(pass) adapter close failure still releases owned socket, lock and process umask [3.78ms]
+{"state":"ready","socket":"/tmp/org-server-poll-Qoyktp/org.sock"}
+(pass) poll errors remain visible through status and periodic polling recovers without restart [25.96ms]
+{"state":"ready","socket":"/tmp/org-server-wake-bCXia4/org.sock"}
+(pass) automatic wake-up tick never overlaps and shutdown drains it before closing adapters [63.17ms]
+{"state":"ready","socket":"/tmp/org-server-wake-error-LIvU6b/org.sock"}
+error: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()
+  path: "http://org.local/v1/stop",
+ errno: 0,
+  code: "ECONNRESET"
+
+(fail) shutdown error still drains the active wake-up before adapter close [24.72ms]
+
+ 8 pass
+ 2 fail
+Ran 10 tests across 2 files. [968.00ms]

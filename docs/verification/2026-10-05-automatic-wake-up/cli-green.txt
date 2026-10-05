@@ -1,0 +1,24 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/automatic-wake-up-cli.test.ts:
+(pass) daemon automatic wake-up persists outcomes once, drains cancelled turns and does not replay after restart [2379.11ms]
+
+tests/wakeup-service.test.ts:
+(pass) automatic wake-up claims before a turn, records failure once, continues later messages and does not replay [1.63ms]
+(pass) automatic wake-up defers busy Sessions without claiming and restart marks unfinished intent failed without another turn [0.83ms]
+
+tests/daemon-server.test.ts:
+(pass) SIGINT releases the daemon while preserving replacement socket and lock entries [73.64ms]
+(pass) continuous daemon polls new Events, serves local clients and releases socket across restart [656.59ms]
+(pass) daemon refuses to replace an existing file and client failure creates no database [157.11ms]
+{"state":"ready","socket":"/tmp/org-server-cleanup-UrRtjc/org.sock"}
+(pass) adapter close failure still releases owned socket, lock and process umask [7.12ms]
+{"state":"ready","socket":"/tmp/org-server-poll-MwEhg5/org.sock"}
+(pass) poll errors remain visible through status and periodic polling recovers without restart [27.68ms]
+
+tests/wakeup-sqlite.test.ts:
+(pass) Wakeup SQLite claims once, preserves immutable intent and result, rejects failure and reopens [10.08ms]
+
+ 9 pass
+ 0 fail
+Ran 9 tests across 4 files. [3.35s]

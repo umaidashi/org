@@ -7,6 +7,8 @@ import type { CommandResult } from '../application/port.js';
 export interface DaemonOperations {
   dispatch(): readonly Delivery[];
   deliveries(): readonly Delivery[];
+  wakeUp?(signal?: AbortSignal): Promise<void>;
+  wakeups?(): unknown;
   close(): void | Promise<void>;
   shutdown?(): Promise<void>;
   command?(argv: string[]): CommandResult | Promise<CommandResult>;
@@ -33,6 +35,10 @@ export async function runLocalDaemon(
   let operations: DaemonOperations | undefined;
   let server: ReturnType<typeof Bun.serve> | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
+  const wakeController = new AbortController();
+  let wakeTask: Promise<void> | undefined;
+  let stopping = false;
+  let wakeError: string | null = null;
   let onSignal: (() => void) | undefined;
   try {
     mkdirSync(lock, { mode: 0o700 });
@@ -47,12 +53,34 @@ export async function runLocalDaemon(
       resolveStopped = resolve;
       rejectStopped = reject;
     });
+    const wake = () => {
+      if (stopping || wakeTask || !activeOperations.wakeUp) return;
+      wakeTask = Promise.resolve()
+        .then(() => activeOperations.wakeUp?.(wakeController.signal))
+        .then(
+          () => {
+            wakeError = null;
+          },
+          () => {
+            wakeError = 'Wake-up polling failed';
+          },
+        )
+        .finally(() => {
+          wakeTask = undefined;
+        });
+    };
     let stopPromise: Promise<void> | undefined;
     const stop = (): Promise<void> => {
       if (stopPromise) return stopPromise;
+      stopping = true;
+      wakeController.abort();
       if (timer) clearInterval(timer);
       stopPromise = (async () => {
-        await activeOperations.shutdown?.();
+        try {
+          await activeOperations.shutdown?.();
+        } finally {
+          await wakeTask;
+        }
         await server?.stop();
         resolveStopped?.();
       })();
@@ -98,9 +126,16 @@ export async function runLocalDaemon(
         try {
           if (request.method === 'GET' && path === '/v1/status')
             return Response.json(
-              { ...status, pid: process.pid, pollIntervalMs: interval },
+              {
+                ...status,
+                ...(wakeError === null ? {} : { state: 'degraded', error: wakeError }),
+                pid: process.pid,
+                pollIntervalMs: interval,
+              },
               { headers },
             );
+          if (request.method === 'GET' && path === '/v1/wakeups')
+            return Response.json(activeOperations.wakeups?.() ?? [], { headers });
           if (request.method === 'GET' && path === '/v1/deliveries')
             return Response.json(activeOperations.deliveries(), { headers });
           if (request.method === 'POST' && path === '/v1/dispatch') {
@@ -126,6 +161,7 @@ export async function runLocalDaemon(
     chmodSync(socket, 0o600);
     timer = setInterval(() => {
       status = pollDispatch(() => activeOperations.dispatch());
+      wake();
     }, interval);
     onSignal = () => {
       void stop().catch((error) => rejectStopped?.(error));
@@ -133,8 +169,11 @@ export async function runLocalDaemon(
     process.once('SIGTERM', onSignal);
     process.once('SIGINT', onSignal);
     console.log(JSON.stringify({ state: 'ready', socket }));
+    wake();
     await stopped;
   } finally {
+    stopping = true;
+    wakeController.abort();
     if (timer) clearInterval(timer);
     if (onSignal) {
       process.removeListener('SIGTERM', onSignal);
@@ -144,7 +183,15 @@ export async function runLocalDaemon(
       await server?.stop(true);
     } finally {
       try {
-        await operations?.close();
+        try {
+          try {
+            await operations?.shutdown?.();
+          } finally {
+            await wakeTask;
+          }
+        } finally {
+          await operations?.close();
+        }
       } finally {
         try {
           if (socketInode !== undefined && entry(socket)?.ino === socketInode) unlinkSync(socket);

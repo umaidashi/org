@@ -1,0 +1,1 @@
+Critical: none. Important: shutdown must not claim unexecuted later messages and shutdown errors must still drain wake task. Minor: none. Independent service 2 and SQLite 1 pass. Fix pass: both regression cases RED; AbortSignal at shared poll boundary and finally drain -> targeted 10 pass. Parent final full suite: 169 pass, 0 fail. No re-review.

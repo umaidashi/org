@@ -34,7 +34,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org [--db PATH] daemon --once [--json]
        org [--db PATH] daemon deliveries [--json]
        org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
-       org daemon status|dispatch|stop --socket PATH [--json]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
 
 Register and list persistent Agent identities. Runtime processes are not started.
 Default DB: ~/.local/share/org/org.db`;

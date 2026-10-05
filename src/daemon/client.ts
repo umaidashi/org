@@ -1,6 +1,6 @@
 export async function requestDaemon(
   socket: string,
-  action: 'status' | 'dispatch' | 'stop' | 'deliveries',
+  action: 'status' | 'dispatch' | 'stop' | 'deliveries' | 'wakeups',
 ): Promise<unknown> {
   const response = await fetch(`http://org.local/v1/${action}`, {
     unix: socket,

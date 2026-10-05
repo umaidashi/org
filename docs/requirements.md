@@ -8,13 +8,13 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで161テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで169テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAt・optional reportsToを実装。legacy schema/root JSON互換・循環/不存在拒否・同時変更時再検証・不変履歴/rollback・実CLIを検証。capabilities/permissions/memoryPolicyは未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | reportsToによるChief→専門Agentの関係と変更履歴を保存。自動委譲は未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | version付きRoom Message・CLI send/get/listを実装。宛先/Task/返信/correlationを検証。実daemon request→resultと再openを確認。自動委譲・wake-upは後続 |
 | Room | Direct/Group/Agent/Task、同じAgentの複数Room、参加者・archive | Local SQLiteとCLIを実装。種類別参加者構成・Agent/Task参照・archiveを検証。Human認証は未完了 |
 | Message | Roomごとの永続履歴、replyTo・sender・metadata | 追記専用SQLite履歴とCLI。別プロセス読み直し・同Room返信・sender参加・metadata・archive後拒否・原本UPDATE/DELETE/REPLACE拒否・INSERT失敗後の復旧を検証 |
-| Activation | coordinator既定、直接mention、mention_only/all/rule_based | optional coordinatorId、参加Agent mention検証、coordinator/mention_only/all/typed A2A宛先のpure選択とCLI targetsを実装。通常Agent返信の連鎖/自己起動を抑止。実daemonと旧JSON再openを確認。daemon専用manual activateでSession準備/再利用→Runtime/context返信、返信重複抑止・failureを実subprocessで検証。実Claude Maxでもcoordinatorだけ/Session継続/返信再利用を確認。自動wake-up・rule_based定義/評価は未完了 |
+| Activation | coordinator既定、直接mention、mention_only/all/rule_based | optional coordinatorId、参加Agent mention検証、coordinator/mention_only/all/typed A2A宛先のpure選択とCLI targetsを実装。通常Agent返信の連鎖/自己起動を抑止。実daemonと旧JSON再openを確認。daemon専用manual activateでSession準備/再利用→Runtime/context返信、返信重複抑止・failureを実subprocessで検証。実Claude Maxでもcoordinatorだけ/Session継続/返信再利用を確認。opt-in daemon pollingでRoom自動wake-up・不変intent/結果・busy延期・中断復旧/no replay・cancel/drainを実processで検証し、実Claude Maxの自動投稿→返信/Session継続も確認。rule_based定義/評価は未完了 |
 | Session | Room/Identityとの分離、start/send/resume/stop、履歴から再構築 | 独立Session ID/provider ID・pure状態遷移・version競合拒否・SQLite状態/不変履歴の原子保存を実装。rollback/REPLACE拒否/別プロセス読込を検証。serviceによるRuntime turn結線とstop先保存/late応答保護、restart recovery関数を実装。両Adapter+SQLite+実Bun fixtureで開始/再開/停止を検証。CLI/daemon起動配線・起動時recovery・設定済みdriver・停止時drainを実装。実Codexの開始/再開/停止を確認。実Claude MaxもAPIキーなしで開始/同provider IDで再開/Task結果/停止を検証。履歴から再構築は未完了 |
 | Memory | semantic/episodic/procedural/relational、scope、根拠参照、confidence | 4type/scope/confidence/Message根拠検証とSQLite追記記録を実装。CLI capture/get/list/invalidateを別プロセスで検証。期間等は後続 |
 | Memory更新 | extraction、dedup、conflict、supersede/invalidate、原履歴不変 | 同scope/typeのactiveを原記録不変のままsupersede、理由付きinvalidateを追記しstatusを投影。全UNIQUEキーのREPLACE/UPDATE/DELETE拒否と再openを検証。自動extraction/dedup/conflictは未完了 |
@@ -26,7 +26,7 @@
 | Subscription | pattern・filter・enabled、Agent/Workflowへのルーティング | 純粋なpattern/filter判断とSQLite保存、CLI照合/有効無効を実装。Agent参照を公開Portで確認。単発workerでAgentのExecutionTaskを作成/割当。Workflow参照は保存/deferredのみ。実Runtime/Workflow起動は未完了 |
 | Trigger | manual/internal/event/webhook/schedule | 未完了 |
 | Daemon | ローカルAPI/socket、polling、process管理、execution状態、retry/timeout | 常駐polling/Unix socketとstatus/dispatch/stop、--once/deliveriesを実装。実プロセスで新Event処理・停止/再起動・同時起動拒否・0600・原本保護・所有inode cleanup・poll失敗復旧を検証。Agent/Task/Room/Eventはdaemon client化済み。Session Runtimeのprocess管理・timeout/cancel/drain、同POSIX group停止・親SIGKILL時pipe監督（source/bundleを検証）、SQLite PID/token leaseによる同DB別socketの二重daemon拒否・終了PIDからの取得を実装。Task実行のretryは未完了 |
-| Scheduler | 定期実行、Agent wake-up、再起動後の整合性 | 未完了 |
+| Scheduler | 定期実行、Agent wake-up、再起動後の整合性 | Room Messageのopt-in自動wake-upを実装。永続claim/不変結果・同時tick拒否・busy延期・起動時中断復旧・失敗no replay・停止drainと実Maxを検証。定期schedule/Event Task起動/自動retryは未完了 |
 | Runtime | Claude Code/Codex CLI Adapter、role/instruction injection | 明示argv/env/input・timeout/cancel・出力上限の実子プロセス境界を検証。Codex/Claudeのstart/resume引数生成・応答解析・process DI境界をUT検証。共通RuntimeTurn PortとLocalAgentRuntime start/send/resume/stop/shutdown、停止drain・同時実行拒否を実fixture/SQLiteで検証。daemon/CLI配線と実Codexの開始/再開/Room返信を検証。Task runで実Codex結果をwaiting_approvalへ記録。実Claude Maxのsafe-mode/tools無効起動とTask結果を検証。自動Task起動は未完了 |
 | Sandbox | local process/Docker、checkout/mount、資格情報の限定注入、destroy | 未完了 |
 | Artifact | 回収・永続参照・Taskとの関連付け | Runtime結果Messageをorg URIのArtifactへTaskと原子関連付け。実fixture/Codexで検証。ファイル等の回収は未完了 |

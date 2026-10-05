@@ -91,7 +91,7 @@ bun run start room send ROOM_ID --human founder --content 'CTOに質問' --menti
 bun run start room targets ROOM_ID --message MESSAGE_ID --json
 ```
 
-`targets`は起動対象Agent IDを選びます。`room activate ROOM_ID --message MESSAGE_ID`はdaemonの設定済みRuntimeでそのAgentを起動し、履歴・Memoryを含むcontextから返信を保存します。Sessionを再利用し、保存済み返信があれば新しいturnを実行しません。実Claude Maxでもcoordinatorだけの起動、同じSessionでの継続、返信の再利用を確認済みです。自動pollingによるwake-upは後続です。通常の人間発言はcoordinatorだけ、明示mentionやA2A宛先はそのAgentを選びます。複数Agent Roomではcoordinatorを指定し、単一Agentの既存RoomではそのAgentを使います。mention_onlyは明示宛先のみ、allは人間発言で全参加Agentを選びます。普通のAgent返信で再発火せず、sender自身も選びません。
+`targets`は起動対象Agent IDを選びます。`room activate ROOM_ID --message MESSAGE_ID`はdaemonの設定済みRuntimeでそのAgentを起動し、履歴・Memoryを含むcontextから返信を保存します。Sessionを再利用し、保存済み返信があれば新しいturnを実行しません。実Claude Maxでもcoordinatorだけの起動、同じSessionでの継続、返信の再利用を確認済みです。自動pollingはdaemon起動時に`--wake-up --runtime-config PATH`を指定すると有効になります。`daemon wakeups --json`でintent/結果を参照できます。失敗・中断を自動で繰返さず、必要なら`room activate`で再試行します。通常の人間発言はcoordinatorだけ、明示mentionやA2A宛先はそのAgentを選びます。複数Agent Roomではcoordinatorを指定し、単一Agentの既存RoomではそのAgentを使います。mention_onlyは明示宛先のみ、allは人間発言で全参加Agentを選びます。普通のAgent返信で再発火せず、sender自身も選びません。
 
 mentionは参加Agentだけを指定でき、`--mention`は複数回使えます。archive後は選択できません。rule_basedは明示宛先の選択に対応し、独自ルールの定義・評価は未実装です。
 
@@ -152,7 +152,9 @@ bun run start daemon stop --json
 
 既定socketはDBの絶対パスに`.sock`を付けたものです（既定DBでは`~/.local/share/org/org.db.sock`）。起動側とclient側に同じ`--socket PATH`を指定すれば変更できます。`daemon deliveries --socket PATH`はdaemon経由で取得し、socket指定なしの`deliveries`と`--once`はDBを直接操作する管理コマンドです。clientの接続は5秒でtimeoutします。同じディレクトリの別DBも異なる既定socketを使います。
 
-TCP listenerは開かず、Unix socketを0600で作成します。同socketの2重起動や既存file/symlinkの置換を拒否します。stop・SIGTERM・SIGINTで終了し、自分が作成したsocket/lockを解放します。SIGKILL等で残ったsocket/lockは自動削除しません。稼働中プロセスがないことを確認してから手動で整理してください。
+TCP listenerは開かず、Unix socketを0600で作成します。同socketの2重起動や既存file/symlinkの置換を拒否します。stop・SIGTERM・SIGINTで終了し、自分が作成したsocket/lockを解放します。`--wake-up`はRoomの未処理Messageを既存履歴も含めて選択し、起動intentを保存してから実行します。停止時は進行中turnを中止してdrainし、未実行Messageは次の起動へ残します。
+
+SIGKILL等で残ったsocket/lockは自動削除しません。稼働中プロセスがないことを確認してから手動で整理してください。
 
 Agent/Task/Room/A2A/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。同じPOSIX process groupの子孫を終了させます。daemon自身のSIGKILL時も監督pipeの切断で同groupを停止します。別groupへ離脱する子孫の隔離は後続です。scheduler、Task実行のretry、Workflow・Sandbox等のCLIとTUIは未実装です。
 

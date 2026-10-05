@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/wakeup-sqlite.test.ts:
+(pass) Wakeup SQLite claims once, preserves immutable intent and result, rejects failure and reopens [10.78ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [33.00ms]

@@ -489,3 +489,18 @@
 - 全161テスト・静的ゲート成功。実Jev816対象・missing/unsure0・errors/degradedなし。補助failure-path候補は対象UT/CLI検証と独立レビューに照合し非阻害と判断。独立Reviewer Critical/Important/Minorなし、2UT/fixtureCLI/11秒transportの4テスト独立成功。
 - provider完了後・返信保存前のcrashはturnを再実行し得る。manual段階でexactly-once・自動retryを主張しない。次は同操作をdurable自動wake-upと復旧へ結ぶ。
 - 実Claude MaxでもAPIキー/tokenを渡さず隔離marker Roomのcoordinatorだけ起動→繰返し返信再利用/no turn→同org/provider Session継続→idleを検証し全boolean成功。[実Max成否](verification/2026-10-05-room-wake-up/real-claude-max.txt)。初回はJSON.stringifyのproperty順比較で返信一致だけfalseになり、deep equalityへ訂正して再実行成功。raw応答/認証値は公開しない。
+
+## main公開：Room Activationとmanual wake-up
+
+- mainへfast-forwardし通常push成功。remote/local mainは9fb578bfbb26b5bb6f7f7c8b60683aa9c221f916で一致。公開内容/履歴・全161テスト・実Jevのpre-pushゲートが33.67秒で成功。force-pushなし。
+
+## daemonのdurable自動wake-up
+
+- [計画](superpowers/plans/2026-10-05-automatic-wake-up.md)。SQLiteのimmutable intent/resultをJOINしてstate投影。Message単位claimをBEGIN IMMEDIATE（Bun native transaction.immediate）で二重拒否、終端結果参照とrollback/reopen、全UNIQUE/sequence REPLACE・UPDATE・DELETE拒否を実DB RED→GREEN。
+- pollRoomWakeupsはRoom/Session/Journal/activate/clockをDI。通常Agent返信を対象外にし、busyは未claim延期。永続claim→既存activation→結果/失敗を確定、失敗で他Messageを止めず、終端を再実行しない。起動未確定intentはfailedへ復旧。DB不要2UT RED→GREEN。
+- --wake-upはcontinuous/runtime-config必須のopt-in。daemon wakeups/GETを配線。tick重複抑止、Runtime cancel→drain→DB close。実daemon fixtureで投稿から自動coordinator/mention、driver failure一回、停止pendingturnのdrain、再起動のno replay/未確定復旧をRED→GREEN。対象9件成功。opt-in/async非並列/close順の契約も確認。
+- Ruling: intentはMessage単位。all policyの一部成功後失敗はmanual activateで残りを再試行し保存済み返信を再利用する。無制限retryは作らない。costは一部失敗後にmanual操作が必要なこと。定期schedule/Task retry/per-Agent receiptは後続に残す。
+- 修正前の全167テスト・静的ゲート成功、実Jev866判定missing/unsure0・errors/degradedなし。独立Reviewer Important：停止後も既存pollが後続Messageをclaimし、Runtime closedで未実行まで永久failedになる。shutdown reject時のdrain省略も指摘。2件REDを再現し、serverからAbortSignalを渡して次claim前に終了、shutdownのfinallyでdrainを保証して10件GREEN。Critical/Minorなし。修正後全ゲート/実Jevを実行中。再レビューは行わない。
+- Final: fixed 停止後の誤claimと異常時drain省略 — shutdown leaves later unexecuted Messages unclaimed / shutdown error still drains RED→GREEN、修正後全169/169・全静的ゲート成功。実Jev868判定・missing/unsure0・errors/degradedなし。
+- 実Claude MaxでもAPI key/tokenなしで投稿→coordinatorだけ自動返信→同org/provider Session継続→idle、繰返しno replay/no turnを隔離markerで確認、全boolean成功。[実成否](verification/2026-10-05-automatic-wake-up/real-claude-max.txt)。raw応答は公開しない。Next: Eventで生成した割当ExecutionTaskの自動実行、委譲/権限/結果レビューへ小さく接続する。
+- Jevのpoll catch-hides-failure候補は、catchでfailed終端原記録を確定しwakeupsで公開する実装に照合した。原本へ状態/理由を残し他Messageを進める仕様であり、成功扱いへの握りつぶしではない。非阻害と判断。

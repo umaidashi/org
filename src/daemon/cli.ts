@@ -1,3 +1,5 @@
+import { SqliteWakeupJournal } from '../activation/sqlite.js';
+import { pollRoomWakeups, recoverWakeups } from '../activation/poll.js';
 import { activateRoomMessage } from '../activation/service.js';
 import { listA2AMessages } from '../a2a/service.js';
 import { acquireDatabaseLease } from './lease.js';
@@ -25,13 +27,14 @@ import { runLocalDaemon } from './server.js';
 import type { DaemonOperations } from './server.js';
 import { executeApplication } from '../application/cli.js';
 export interface DaemonCommand {
-  readonly action: 'once' | 'deliveries' | 'run' | 'status' | 'dispatch' | 'stop';
+  readonly action: 'once' | 'deliveries' | 'wakeups' | 'run' | 'status' | 'dispatch' | 'stop';
   readonly db: string;
   readonly json: boolean;
   readonly socket: string;
   readonly socketClient: boolean;
   readonly interval: number;
   readonly runtimeConfig?: string;
+  readonly wakeUp: boolean;
 }
 export function parseDaemonCommand(argv: string[]): DaemonCommand {
   const parsed = parseArgs({
@@ -45,6 +48,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       socket: { type: 'string' },
       'poll-interval': { type: 'string' },
       'runtime-config': { type: 'string' },
+      'wake-up': { type: 'boolean' },
     },
   });
   const [noun, action, ...extra] = parsed.positionals;
@@ -69,7 +73,13 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
     throw new Error('--runtime-config is only available in continuous mode');
   if (parsed.values['runtime-config'] !== undefined && !parsed.values['runtime-config'].trim())
     throw new Error('Runtime config path required');
+  if (
+    parsed.values['wake-up'] &&
+    (action !== undefined || parsed.values.once || parsed.values['runtime-config'] === undefined)
+  )
+    throw new Error('--wake-up requires continuous mode and --runtime-config');
   const base = {
+    wakeUp: parsed.values['wake-up'] ?? false,
     db,
     json: parsed.values.json ?? false,
     socket,
@@ -79,16 +89,18 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       ? {}
       : { runtimeConfig: resolve(parsed.values['runtime-config']) }),
   };
+  if (action === 'wakeups' && !parsed.values.once) return { ...base, action, socketClient: true };
   if (action === 'deliveries' && !parsed.values.once) return { ...base, action };
   if (action === undefined && parsed.values.once) return { ...base, action: 'once' };
   if (action === undefined && !parsed.values.once) return { ...base, action: 'run' };
   if ((action === 'status' || action === 'dispatch' || action === 'stop') && !parsed.values.once)
     return { ...base, action, socketClient: true };
-  throw new Error('Expected daemon [--once], status|dispatch|deliveries|stop');
+  throw new Error('Expected daemon [--once], status|dispatch|deliveries|wakeups|stop');
 }
 function openOperations(
   db: string,
   drivers: ReturnType<typeof configuredDrivers>,
+  wakeUp: boolean,
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -97,6 +109,7 @@ function openOperations(
   let rooms: SqliteRoomRepository | undefined;
   let sessions: SqliteSessionStore | undefined;
   let memory: SqliteMemoryProvider | undefined;
+  let wakeups: SqliteWakeupJournal | undefined;
   try {
     const eventBus = new SqliteEventBus(db);
     events = eventBus;
@@ -118,36 +131,53 @@ function openOperations(
     );
     const memoryProvider = new SqliteMemoryProvider(db);
     memory = memoryProvider;
+    const wakeupJournal = new SqliteWakeupJournal(db);
+    wakeups = wakeupJournal;
     runtime.recover();
+    recoverWakeups(wakeupJournal, () => new Date().toISOString());
     recoverInterruptedExecutionTasks(taskProvider, () => new Date().toISOString());
+    const activate = (roomId: string, messageId: string) => {
+      const source = roomRepository.messages(roomId).find((m) => m.id === messageId);
+      if (source && 'a2a' in source.metadata) listA2AMessages(roomRepository, roomId, taskProvider);
+      return activateRoomMessage(
+        roomRepository,
+        sessionStore,
+        (agentId, roomId) => runtime.open(agentId, roomId),
+        (sessionId, messageId) =>
+          replyToRoomMessage(
+            roomRepository,
+            sessionStore,
+            runtime,
+            { sessionId, messageId, instruction: '' },
+            { id: randomUUID(), at: new Date().toISOString() },
+            memoryProvider,
+          ),
+        roomId,
+        messageId,
+      );
+    };
     return {
       dispatch: () => dispatchEvents(eventBus, agentRepository, taskProvider, journal),
       deliveries: () => journal.list(),
+      wakeups: () => wakeupJournal.list(),
+      ...(wakeUp
+        ? {
+            wakeUp: (signal?: AbortSignal) =>
+              pollRoomWakeups(
+                roomRepository,
+                sessionStore,
+                wakeupJournal,
+                activate,
+                () => new Date().toISOString(),
+                signal,
+              ),
+          }
+        : {}),
       command: (argv) =>
         executeApplication(argv, db, true, {
           store: sessionStore,
           runtime,
-          activateRoom: (roomId, messageId) => {
-            const source = roomRepository.messages(roomId).find((m) => m.id === messageId);
-            if (source && 'a2a' in source.metadata)
-              listA2AMessages(roomRepository, roomId, taskProvider);
-            return activateRoomMessage(
-              roomRepository,
-              sessionStore,
-              (agentId, roomId) => runtime.open(agentId, roomId),
-              (sessionId, messageId) =>
-                replyToRoomMessage(
-                  roomRepository,
-                  sessionStore,
-                  runtime,
-                  { sessionId, messageId, instruction: '' },
-                  { id: randomUUID(), at: new Date().toISOString() },
-                  memoryProvider,
-                ),
-              roomId,
-              messageId,
-            );
-          },
+          activateRoom: activate,
           runTask: (taskId, sessionId, messageId) =>
             runExecutionTask(
               taskProvider,
@@ -181,6 +211,7 @@ function openOperations(
           await runtime.shutdown();
         } finally {
           releaseResources([
+            wakeupJournal,
             memoryProvider,
             sessionStore,
             roomRepository,
@@ -195,7 +226,7 @@ function openOperations(
   } catch (error) {
     try {
       releaseResources(
-        [memory, sessions, rooms, tasks, agents, events, journal].flatMap((resource) =>
+        [wakeups, memory, sessions, rooms, tasks, agents, events, journal].flatMap((resource) =>
           resource ? [resource] : [],
         ),
       );
@@ -212,7 +243,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
     try {
       await runLocalDaemon(command.socket, command.interval, () => {
         lease = acquireDatabaseLease(command.db);
-        return openOperations(lease.databasePath, drivers);
+        return openOperations(lease.databasePath, drivers, command.wakeUp);
       });
     } finally {
       lease?.close();
@@ -222,6 +253,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
   }
   if (
     command.action === 'status' ||
+    command.action === 'wakeups' ||
     command.action === 'dispatch' ||
     command.action === 'stop' ||
     (command.action === 'deliveries' && command.socketClient)

@@ -281,3 +281,99 @@ test('poll errors remain visible through status and periodic polling recovers wi
     rmSync(home, { recursive: true, force: true });
   }
 });
+test('automatic wake-up tick never overlaps and shutdown drains it before closing adapters', async () => {
+  const home = mkdtempSync('/tmp/org-server-wake-'),
+    socket = join(home, 'org.sock');
+  let release: (() => void) | undefined;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let calls = 0,
+    active = 0,
+    closed = false;
+  const done = runLocalDaemon(socket, 10, () => ({
+    dispatch: () => [],
+    deliveries: () => [],
+    wakeUp: async () => {
+      calls++;
+      active++;
+      try {
+        await held;
+      } finally {
+        active--;
+      }
+    },
+    shutdown: async () => {
+      release?.();
+    },
+    close: () => {
+      assert.equal(active, 0);
+      closed = true;
+    },
+  }));
+  try {
+    await Bun.sleep(60);
+    assert.equal(calls, 1);
+    assert.equal(active, 1);
+  } finally {
+    const stopped = await fetch('http://org.local/v1/stop', {
+      unix: socket,
+      method: 'POST',
+      headers: { Connection: 'close' },
+    });
+    await stopped.json();
+    await done;
+    assert.equal(closed, true);
+    assert.equal(active, 0);
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+test('shutdown error still drains the active wake-up before adapter close', async () => {
+  const home = mkdtempSync('/tmp/org-server-wake-error-'),
+    socket = join(home, 'org.sock');
+  let release: (() => void) | undefined;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let active = false,
+    closed = false;
+  const done = runLocalDaemon(socket, 10, () => ({
+    dispatch: () => [],
+    deliveries: () => [],
+    wakeUp: async () => {
+      active = true;
+      await held;
+      active = false;
+    },
+    shutdown: async () => {
+      setTimeout(() => release?.(), 60);
+      throw new Error('shutdown failed');
+    },
+    close: () => {
+      assert.equal(active, false);
+      closed = true;
+    },
+  })).then(
+    () => undefined,
+    (error: unknown) => error,
+  );
+  try {
+    await Bun.sleep(20);
+    assert.equal(active, true);
+    const response = await fetch('http://org.local/v1/stop', {
+      unix: socket,
+      method: 'POST',
+      headers: { Connection: 'close' },
+    });
+    await response.json();
+    const error = await done;
+    assert.ok(error instanceof Error);
+    assert.match(error.message, /shutdown failed/);
+    assert.equal(closed, true);
+    assert.equal(active, false);
+  } finally {
+    release?.();
+    await done;
+    rmSync(home, { recursive: true, force: true });
+  }
+});
