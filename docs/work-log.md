@@ -694,3 +694,12 @@
 - Final独立Reviewer Important1: 有効な公開.github repositoryを先頭文字制限が拒否。Critical/Minorなし、UT2件/fixture CLI1件を独立成功。GitHub公式のcommunity health repository名と照合し、取込が失敗するRED→単一segmentのdot/hyphenを許し`.`/`..`/query/hash/encoded traversalを拒否するGREENを確認。一回のfix pass、全suite/実Jevを再実行し再レビューはしない。
 - 最終全213/213・型/lint/format/AST成功47.48秒。Docker実機5件は別opt-in。実Jev1141判定missing/unsure0、errors/degradedなし。[検証記録](verification/2026-10-05-github-public-events/check.txt)。Important1修正済み、Critical/Minorなし。再レビューは行わない。
 - Ruling: 外部元はpublic repository限定、人間の明示CLIでread-only取込、LLMへの外部権限付与ではない。payloadは原GitHub Event全体、camel Event名をsnake case＋actionへ正規化。最初の観測原本を保持し、安定ID/type/source/time不一致はfail closed。actor metadataの後日変化は原本を変えない。各Event保存は既存transactionで原子的、batch保存途中失敗は再取込で重複を防ぐ。最大300件/30日/遅延あり、自動poll/ETag/webhook/private repoは未完了。Next: Memory retrievalのtype/tag/entity/importanceを既存Contextへ小さく接続する。
+
+## Memory retrieval metadata（進行中）
+
+- [計画](superpowers/plans/2026-10-05-memory-retrieval-metadata.md)。既存Memory JSONとContext selectorを再利用する。tag/entityのliteral relevanceと明示type/tag/entity filter、有効期間/原本不変を小さく接続。新検索server/vector/indexは追加しない。full-text/自動抽出は後続。
+- 最小UT未module RED→optional metadataのJSON roundtrip/legacy未指定/各32件128文字/重複/importance0〜1/異型拒否/不変選択/関連tag優先/recency/同時刻importance GREEN。CLI未知--tag RED→capture/list filter GREEN。Context fields欠落RED→共通pure selectorとmetadata投影GREEN。
+- 実CLI再openと実daemon Runtime fixtureで同Task scopeのtags/entities/importanceを受信しforeign Taskを除外、既存委譲/結果/明示レビューの一周保持。関連6件4.76秒成功。decodeのunion key参照がtsgoで失敗したため、明示unknown fieldをguard/mapで検証し型assertを使わず訂正、静的検査成功。
+- main24e9dce通常push成功、pre-push全213テスト/実Jev/公開検査57.45秒。
+- 全214/214・型/lint/format/AST成功47.29秒。Docker実機5件別opt-in。実Jev1147判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-memory-retrieval-metadata/check.txt)。Final独立Reviewer Critical/Important/Minorなし、retrieval/CLI/Room runtime5件884msを独立成功。
+- Ruling: optional metadataは未指定legacy JSONへfieldを追加しない。tag/entityは文字列一致で意味推定をしない。scopeが関連度より先、期間を選択前に除外、typeは明示CLI filter（Runtime既定は全4type）。importanceはconfidenceと独立、recencyの同時刻tieで比較する。listは新しい順の共通selectorへ統一し、--atなしでは失効原本も保持。新index/provider/policy factoryなし。full-text/summary/自動抽出/semantic consolidationは後続。

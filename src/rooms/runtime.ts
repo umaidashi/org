@@ -1,4 +1,4 @@
-import { memoryIsValidAt } from '../memory/domain.js';
+import { selectMemories } from '../memory/retrieval.js';
 import type { MemoryProvider } from '../memory/port.js';
 import type { RoomRepository } from './port.js';
 import type { Message } from './domain.js';
@@ -39,21 +39,33 @@ export async function replyToRoomMessage(
     'global',
   ];
   const at = Date.parse(identity.at);
-  const relevant = (memory?.list(scopes) ?? [])
-    .filter((m) => scopes.includes(m.scope) && memoryIsValidAt(m, at))
-    .sort(
-      (a, b) =>
-        scopes.indexOf(a.scope) - scopes.indexOf(b.scope) ||
-        b.createdAt.localeCompare(a.createdAt) ||
-        a.id.localeCompare(b.id),
-    );
+  const relevant = selectMemories(memory?.list(scopes) ?? [], {
+    scopes,
+    at,
+    query: source.content,
+  });
   let memories = relevant.slice(0, 20);
   let history = messages.slice(Math.max(0, index - 29), index + 1);
   const encode = () =>
     JSON.stringify({
       instruction: input.instruction,
       memories: memories.map(
-        ({ id, type, scope, content, confidence, sourceRefs, validFrom, validUntil }) => ({
+        ({
+          id,
+          type,
+          scope,
+          content,
+          confidence,
+          sourceRefs,
+          validFrom,
+          validUntil,
+          tags,
+          entities,
+          importance,
+        }) => ({
+          ...(tags === undefined ? {} : { tags }),
+          ...(entities === undefined ? {} : { entities }),
+          ...(importance === undefined ? {} : { importance }),
           ...(validFrom === undefined ? {} : { validFrom }),
           ...(validUntil === undefined ? {} : { validUntil }),
           id,

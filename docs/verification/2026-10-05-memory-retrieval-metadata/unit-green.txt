@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-retrieval.test.ts:
+(pass) Memory retrieval preserves bounded metadata, scope isolation and literal relevance before recency [2.14ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [24.00ms]

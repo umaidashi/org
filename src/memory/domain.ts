@@ -12,6 +12,9 @@ export interface MemoryInput {
   readonly supersedes?: string;
   readonly validFrom?: number;
   readonly validUntil?: number;
+  readonly tags?: readonly string[];
+  readonly entities?: readonly string[];
+  readonly importance?: number;
 }
 export interface Memory {
   readonly id: string;
@@ -25,6 +28,9 @@ export interface Memory {
   readonly status: 'active' | 'superseded' | 'invalidated';
   readonly validFrom?: number;
   readonly validUntil?: number;
+  readonly tags?: readonly string[];
+  readonly entities?: readonly string[];
+  readonly importance?: number;
 }
 export function createMemory(
   input: MemoryInput,
@@ -60,7 +66,24 @@ export function createMemory(
     input.validFrom >= input.validUntil
   )
     throw new Error('Invalid Memory validity interval');
+  for (const values of [input.tags, input.entities]) {
+    if (
+      values !== undefined &&
+      (values.length > 32 ||
+        new Set(values).size !== values.length ||
+        values.some((value) => !value.trim() || value.length > 128))
+    )
+      throw new Error('Invalid Memory tags/entities');
+  }
+  if (
+    input.importance !== undefined &&
+    (!Number.isFinite(input.importance) || input.importance < 0 || input.importance > 1)
+  )
+    throw new Error('Invalid Memory importance');
   return {
+    ...(input.tags === undefined ? {} : { tags: [...input.tags] }),
+    ...(input.entities === undefined ? {} : { entities: [...input.entities] }),
+    ...(input.importance === undefined ? {} : { importance: input.importance }),
     ...(input.validFrom === undefined ? {} : { validFrom: input.validFrom }),
     ...(input.validUntil === undefined ? {} : { validUntil: input.validUntil }),
     id: identity.id,
@@ -105,6 +128,7 @@ export function decodeMemory(value: unknown): Memory {
     typeof value.confidence !== 'number' ||
     ('validFrom' in value && typeof value.validFrom !== 'number') ||
     ('validUntil' in value && typeof value.validUntil !== 'number') ||
+    ('importance' in value && typeof value.importance !== 'number') ||
     !Array.isArray(value.sourceRefs) ||
     (value.supersedes !== null && typeof value.supersedes !== 'string') ||
     (value.type !== 'semantic' &&
@@ -125,8 +149,22 @@ export function decodeMemory(value: unknown): Memory {
       throw new Error('Invalid stored Memory source');
     return { roomId: ref.roomId, messageId: ref.messageId };
   });
+  const labels = (items: unknown): readonly string[] => {
+    if (!Array.isArray(items)) throw new Error('Invalid stored Memory tags/entities');
+    return items.map((item: unknown) => {
+      if (typeof item !== 'string') throw new Error('Invalid stored Memory tags/entities');
+      return item;
+    });
+  };
+  const tags = 'tags' in value ? labels(value.tags) : undefined;
+  const entities = 'entities' in value ? labels(value.entities) : undefined;
   return createMemory(
     {
+      ...(tags === undefined ? {} : { tags }),
+      ...(entities === undefined ? {} : { entities }),
+      ...('importance' in value && typeof value.importance === 'number'
+        ? { importance: value.importance }
+        : {}),
       type: value.type,
       scope: value.scope,
       content: value.content,

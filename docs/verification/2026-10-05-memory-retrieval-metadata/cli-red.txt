@@ -1,0 +1,49 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-cli.test.ts:
+13 |       encoding: 'utf8',
+14 |       timeout: 10000,
+15 |     });
+16 |   const json = (args: string[]): unknown => {
+17 |     const p = run([...args, '--json']);
+18 |     assert.equal(p.status, 0, p.stderr);
+                ^
+AssertionError: Error: Unknown option '--tag'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--tag"
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|import-github|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org a2a send|get|list [OPTIONS]
+       org memory capture|get|list|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at json (<REPO>/tests/memory-cli.test.ts:18:12)
+      at <anonymous> (<REPO>/tests/memory-cli.test.ts:103:21)
+(fail) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [408.16ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [431.00ms]

@@ -251,7 +251,12 @@ test('Room context includes only active current scopes and excludes another Agen
       entry('global', 'global', 'active'),
       entry('agent', 'agent:a', 'active'),
       entry('foreignAgent', 'agent:other', 'active'),
-      entry('room', 'room:r', 'active'),
+      {
+        ...entry('room', 'room:r', 'active'),
+        tags: ['question'],
+        entities: ['org'],
+        importance: 0.8,
+      },
       entry('invalid', 'room:r', 'invalidated'),
       entry('foreignRoom', 'room:other', 'active'),
       { ...entry('expired', 'room:r', 'active'), validUntil: 100 },
@@ -276,6 +281,17 @@ test('Room context includes only active current scopes and excludes another Agen
           return m.id;
         });
         assert.deepEqual(ids, ['room', 'agent', 'global']);
+        const first: unknown = context.memories[0];
+        assert.ok(
+          first !== null &&
+            typeof first === 'object' &&
+            'tags' in first &&
+            'entities' in first &&
+            'importance' in first,
+        );
+        assert.deepEqual(first.tags, ['question']);
+        assert.deepEqual(first.entities, ['org']);
+        assert.equal(first.importance, 0.8);
         return { session, text: 'answer' };
       },
     },

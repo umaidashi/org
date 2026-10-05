@@ -1,0 +1,19 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-runtime.test.ts:
+(pass) Room runtime uses history through the source and persists an Agent reply only after success [2.11ms]
+(pass) Room context bounds UTF-8 bytes and reports omitted history, rejecting oversized sources before runtime [11.92ms]
+(pass) Room context includes only active current scopes and excludes another Agent or Room Memory [1.23ms]
+
+tests/memory-retrieval.test.ts:
+(pass) Memory retrieval preserves bounded metadata, scope isolation and literal relevance before recency [1.62ms]
+
+tests/task-autonomy-cli.test.ts:
+(pass) Event subscription wakes assigned ExecutionTask with scoped Memory and stages one Artifact for explicit review without replay [3919.98ms]
+
+tests/memory-cli.test.ts:
+(pass) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [795.40ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 4 files. [4.76s]

@@ -103,6 +103,14 @@ test('Memory CLI captures evidence, supersedes without altering history, and per
     const bounded = json([
       ...capture.slice(0, -1),
       'temporary',
+      '--tag',
+      'database',
+      '--tag',
+      '日本語',
+      '--entity',
+      'org',
+      '--importance',
+      '0.9',
       '--valid-from',
       '2026-01-01T00:00:00.000Z',
       '--valid-until',
@@ -115,6 +123,13 @@ test('Memory CLI captures evidence, supersedes without altering history, and per
         typeof bounded.id === 'string',
     );
     assert.deepEqual(json(['memory', 'get', bounded.id]), bounded);
+    assert.deepEqual(
+      json(['memory', 'list', '--type', 'semantic', '--tag', 'database', '--entity', 'org']),
+      [bounded],
+    );
+    assert.deepEqual(json(['memory', 'list', '--type', 'procedural', '--tag', 'database']), []);
+    assert.equal(run([...capture, '--importance', 'NaN']).status, 2);
+    assert.equal(run([...capture, '--tag', 'duplicate', '--tag', 'duplicate']).status, 2);
     assert.deepEqual(
       json(['memory', 'list', '--scope', 'room:' + room.id, '--at', '2026-06-01T00:00:00.000Z']),
       [bounded],
