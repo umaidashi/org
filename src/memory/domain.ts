@@ -32,7 +32,7 @@ export function createMemory(
 ): Memory {
   if (!['semantic', 'episodic', 'procedural', 'relational'].includes(input.type))
     throw new Error('Invalid Memory type');
-  if (!/^(global|company|(?:department|project|agent|room|task):[^\s:]+)$/.test(input.scope))
+  if (!/^(global|company|(?:department|project|agent|room|task):[^\s]+)$/.test(input.scope))
     throw new Error('Invalid Memory scope');
   if (!Number.isFinite(input.confidence) || input.confidence < 0 || input.confidence > 1)
     throw new Error('Invalid Memory confidence');

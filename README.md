@@ -231,7 +231,7 @@ bun run start room messages ROOM_ID --json
 
 ## Typed Memory
 
-原Messageを根拠にMemoryを明示的に登録します。scope・type・confidenceを指定し、本文と根拠は変更しません。更新は新しいMemoryで置き換え、無効化も理由付きで追記します。
+原Messageを根拠にMemoryを明示的に登録します。scopeのID部分はcolonを含むa2a:/schedule系Task IDも受け、Contextは完全一致で選択します。scope・type・confidenceを指定し、本文と根拠は変更しません。更新は新しいMemoryで置き換え、無効化も理由付きで追記します。
 
 ```sh
 bun run start memory capture --type semantic --scope room:ROOM_ID --room ROOM_ID --message MESSAGE_ID --confidence 0.8 --content '決定した内容' --json

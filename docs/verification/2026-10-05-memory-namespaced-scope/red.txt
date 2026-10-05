@@ -1,0 +1,69 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-autonomy-cli.test.ts:
+41 |       ],
+42 |       { encoding: 'utf8', timeout: 5000 },
+43 |     );
+44 |   const json = (args: string[]): unknown => {
+45 |     const r = run([...args, '--json']);
+46 |     assert.equal(r.status, 0, r.stderr);
+                ^
+AssertionError: Error: Invalid Memory scope
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org a2a send|get|list [OPTIONS]
+       org memory capture|get|list|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+ generatedMessage: false,
+     actual: 2,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at json (<REPO>/tests/task-autonomy-cli.test.ts:46:12)
+      at entity (<REPO>/tests/task-autonomy-cli.test.ts:69:11)
+      at <REPO>/tests/task-autonomy-cli.test.ts:470:9
+      at processTicksAndRejections (native:7:39)
+(fail) Event subscription wakes assigned ExecutionTask with scoped Memory and stages one Artifact for explicit review without replay [4834.59ms]
+
+tests/memory-domain.test.ts:
+(pass) Typed Memory keeps evidence and validates scope, confidence and replacement identity
+31 |   identity: { readonly id: string; readonly at: string },
+32 | ): Memory {
+33 |   if (!['semantic', 'episodic', 'procedural', 'relational'].includes(input.type))
+34 |     throw new Error('Invalid Memory type');
+35 |   if (!/^(global|company|(?:department|project|agent|room|task):[^\s:]+)$/.test(input.scope))
+36 |     throw new Error('Invalid Memory scope');
+                                               ^
+error: Invalid Memory scope
+      at createMemory (<REPO>/src/memory/domain.ts:36:43)
+      at <anonymous> (<REPO>/tests/memory-domain.test.ts:42:18)
+(fail) Memory scope preserves namespaced Task IDs without accepting unknown or empty namespaces [0.71ms]
+
+ 1 pass
+ 2 fail
+Ran 3 tests across 2 files. [4.87s]

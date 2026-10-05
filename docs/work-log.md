@@ -666,3 +666,11 @@
 - Final独立Reviewer Critical/Important/Minorなし、domain/CLI/SQLite/Context6件を独立成功。Final Ruling: periodはUTC epoch milliseconds、CLIはcanonical UTC ISO。原本statusは期間で変えず、Contextと明示list --atだけ判定。時計は返信identityで注入、期間なしlegacyは時刻に依存しない。新timer/schema/providerなし。
 - 次の照合でMemory scopeのID内colon拒否を発見。実生成a2a:/schedule系Task IDにはcolonが含まれ、そのTask scopeをcaptureできない。期間変更とは分け、共有scope validatorを次の小修正でRED→GREENする。
 - main0da84ea通常push成功、pre-push全206テスト/実Jev/公開検査52.95秒。
+
+## 名前空間付きTask Memory scope（進行中）
+
+- [計画](superpowers/plans/2026-10-05-memory-namespaced-scope.md)。全callerを確認し、scopeをsplitする処理はなく完全一致で選択しているため、共有validatorのsuffixだけをcolon対応にする。既知prefix/空suffix/空白拒否は維持する。
+- 最小UTと実daemon CLIでcolon付きTask scope captureが失敗するRED（1成功/2失敗）→共有validatorのsuffixをopaque IDとして受けるGREEN（3成功/3.73秒）。同Task MemoryだけContextへ渡し、別Task Memory混入を拒否するRuntime fixtureで検証。
+- 全208/208・型/lint/format/AST成功41.73秒、Docker実機5件は別opt-in。実Jev1121判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-memory-namespaced-scope/check.txt)。Final独立Reviewer Critical/Important/Minorなし、最小UT/実CLI3件を独立成功3.46秒。
+- Final Ruling: 既知prefix/非空suffix/空白拒否を維持し、ID内colonを許可。Contextは完全一致であり別Taskへ範囲を広げない。新parser/schemaなし。Next: Git partial cloneの不足blobがSandbox repo export中にhost通信を起こさないことを実Gitで検証する。
+- main53d5c2c通常push成功、pre-push全207テスト/実Jev/公開検査49.14秒。
