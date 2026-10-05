@@ -863,3 +863,12 @@
 - RED: 新規UTはmodule未実装、実CLIはlogs未対応exit2。GREEN: 新規UT/実CLI/既存Approval CLI3成功845ms。Audit収集を公開Port注入serviceへ共有し、絞り込み後の末尾件数・入力先行拒否を実装。
 - daemon経由logs/Audit一致・クライアントDB非作成を実CLI3成功992msで確認。全check259成功8skip0失敗267テスト135file47.86秒、tsgo/lint/format251file/AST fixture成功。実jev1365回答warning77/errors・degraded空で完了。[検証](verification/2026-10-06-audit-logs/check.txt)。
 - 独立最終レビューCritical/Importantなし。Minor保留: filter UTに同一Taskかつ異なるEventのfixtureがなく、Event条件除去を検出しない。Reviewerのdaemon実行はsandbox EPERM、上記の許可済み実daemon検証で補完。継続follow/TUIは未完了。Next: daemon公開読取を使うTUI監視の小さなe2e。
+
+### 2026-10-06 — 読取TUI監視
+- logs 389a170をmainへ通常push。commit対象のpre-push全検査・実jev60.65秒で成功。
+- [計画](superpowers/plans/2026-10-06-tui-monitor.md): 既存daemon公開listの読取Portを注入しAgent/Room/Task/Eventを監視。新依存・DB直接読取・業務書込なし。全体の対話TUIは別途未完了。
+- RED: readMonitor module未実装。追加RED: 日本語端末cell幅を超過する表示。GREEN: Bun既存stringWidthでcell幅に制限、制御文字除去/本文非表示/未知shape・読取失敗拒否を最小UTで検証。初回型検査の未使用fixture変数とlintのunsafe/control regex指摘を修正。
+- 実PTY: 日本語表示、r更新、q/Ctrl-C終了、30列12行resize再描画、daemon不在時のエラーとcanonical/echo・cursor/画面復元を確認。自作daemonだけを停止。一時DBに既存データなし。
+- 独立レビューImportant: 多数Agent/RoomでTask/Eventが画面外になる。再現UTの失敗を確認後、全4見出しと代表行へ高さを配分しGREEN5件163ms。再レビューせず一度のfix passで全検査。
+- Minor保留: object型の応答で必須id等が欠けても空行で表示する。監視応答の必須field検証は追加改善項目。終了時は進行中readのtimeoutまで最大約5秒待つ点、5行未満で全見出しが入らない点をREADMEへ明記。
+- fix後の実PTYでも11Agent/10Room/1Task/1Eventの全見出し・代表行を確認、自作daemon停止。全check264成功8skip0失敗272テスト137file54.96秒、型/lint/format255file/AST成功。実jev1386回答warning79/errors・degraded空。[検証](verification/2026-10-06-tui-monitor/check.txt)。Next: TUIから指定Roomへの明示human入力と原本Message保存を小さく検証。

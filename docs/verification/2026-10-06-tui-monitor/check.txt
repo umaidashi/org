@@ -1,0 +1,7 @@
+RED: missing monitor module; Japanese cell clipping and crowded screen hiding Task/Event each failed before their fixes.
+GREEN: 5 tests2files163ms. Command Port is injected, only 4 public read lists; no payload/body display.
+Real PTY: Japanese/r/q/Ctrl-C; 30columns12rows resize; canonical/echo/cursor/alternate-screen restoration after normal and unavailable-daemon exits. Native CLI nonTTY exit1 and invalid/direct extra args exit2 without DB creation.
+After Important fix: real PTY11Agents10Rooms1Task1Event showed all four headings and representative rows. Owned daemon stopped.
+bun run check exit0: tsgo/Oxlint/Oxfmt255files/AST fixtures;264pass8skip0fail272tests137files54.96s;nonempty jev dry-run.
+Actual jev exit0:1386answers79warnings/errors/degraded empty.
+Independent review Critical0 Important1 fixed by RED/GREEN+whole-suite; Minor1 deferred (object records may lack required fields and display blank). No second review. Read timeout may delay exit by up to5seconds; documented.

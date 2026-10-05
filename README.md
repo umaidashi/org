@@ -506,3 +506,12 @@ bun run start logs --event EVENT_ID --json
 ```
 
 `logs`は`audit list`と同じ不変記録を時系列で読みます。Task/Event指定は完全一致のAND条件です。絞り込み後の最新100件を表示し、`--limit`は1〜1000件を指定できます。通常はdaemonへ接続し、DBを直接読む管理操作には`--direct`を指定します。本文・秘密情報を追加表示する機能ではなく、継続followやTUIは未完了です。
+
+## daemonの監視TUI
+
+```sh
+bun run start tui
+bun run start --socket /absolute/path/org.sock tui
+```
+
+実端末からAgent/Room/Task/Eventの一覧を1秒間隔で読みます。`r`で更新、`q`またはCtrl-Cで終了します。日本語の端末幅とresizeを扱い、終了・接続失敗時にraw modeと画面を復元します。各一覧は最大10行を取得し、画面高さを4種類に配分して代表行を表示します（5行未満では全見出しを表示できません）。表示はID/name/title/role/type/statusのみです。終了は進行中読取のtimeout（最大約5秒）まで待つ場合があります。daemon接続専用で`--direct`には対応しません。会話入力やTask操作はまだTUIに接続していません。

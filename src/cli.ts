@@ -3,6 +3,7 @@ import { executeApplication, parseApplicationCommand, usage } from './applicatio
 import type { CommandResult } from './application/port.js';
 import { parseTransport } from './application/transport.js';
 import { requestApplication } from './daemon/client.js';
+import { runTui } from './tui/cli.js';
 import { parseDaemonCommand, runDaemonCommand } from './daemon/cli.js';
 
 export async function main(argv: string[]): Promise<number> {
@@ -14,6 +15,17 @@ export async function main(argv: string[]): Promise<number> {
         `${usage}\nNormal commands connect to daemon. Use --direct for local database administration.`,
       );
       return 0;
+    }
+    if (transport.argv[0] === 'tui') {
+      if (transport.direct || transport.argv.length !== 1)
+        throw new Error('Expected org tui with daemon transport');
+      try {
+        await runTui(transport.socket);
+        return 0;
+      } catch (error) {
+        console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+        return 1;
+      }
     }
     if (transport.daemon) {
       if (transport.direct) throw new Error('--direct is not available for daemon commands');
