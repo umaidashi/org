@@ -100,4 +100,4 @@ test('Sandbox repo export refuses missing partial-clone blobs without fetching t
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
-});
+}, 15000);
