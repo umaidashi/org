@@ -1,4 +1,5 @@
 import { checkGeneratedCode } from './generated-code-check.js';
+import { verifyCodeGitHandoff } from './code-git-handoff.js';
 import { runDockerSandbox } from '../src/sandbox/docker.js';
 import { runProcess } from '../src/runtime/process.js';
 import { cli } from './cli-path.js';
@@ -311,10 +312,12 @@ async function proof(code = false) {
     assert.equal(artifacts.length, 1);
     const artifact = artifacts[0];
     assert.ok(artifact && typeof artifact.id === 'string');
+    let checkedFiles: readonly { readonly path: string; readonly base64: string }[] | undefined;
+    let checkedContent: string | undefined;
     if (code) {
       const stored = entity(['task', 'artifact-content', task.id, '--artifact', artifact.id]);
-      assert.equal(typeof stored.content, 'string');
-      const contents: unknown = JSON.parse(String(stored.content));
+      assert.ok(typeof stored.content === 'string');
+      const contents: unknown = JSON.parse(stored.content);
       assert.ok(
         record(contents) &&
           typeof contents.proposalRef === 'string' &&
@@ -364,6 +367,8 @@ async function proof(code = false) {
       await checkGeneratedCode(files);
       assert.equal(verified.exitCode, 0, verified.stderr);
       assert.equal(verified.stdout, 'INDEPENDENT_CODE_CHECK_OK\n');
+      checkedFiles = files;
+      checkedContent = stored.content;
     } else {
       const output = list(['room', 'messages', taskRoom.id]).find((m) => m.id === artifact.id);
       assert.ok(output && typeof output.content === 'string');
@@ -381,7 +386,7 @@ async function proof(code = false) {
       list(['session', 'list']).some((s) => s.agentId === worker.id && s.runtime === 'claude'),
     );
     assert.equal(chiefSession.runtime, 'claude');
-    json([
+    const reviewed = json([
       'task',
       'review',
       task.id,
@@ -396,6 +401,18 @@ async function proof(code = false) {
       '--expected-version',
       String(task.version),
     ]);
+    if (code) {
+      assert.ok(record(reviewed) && reviewed.status === 'completed');
+      assert.ok(
+        Array.isArray(reviewed.outputArtifacts) && reviewed.outputArtifacts.includes(artifact.id),
+      );
+      assert.ok(checkedFiles && checkedContent !== undefined);
+      assert.equal(
+        entity(['task', 'artifact-content', task.id, '--artifact', artifact.id]).content,
+        checkedContent,
+      );
+      await verifyCodeGitHandoff(checkedFiles, home + '/code-git');
+    }
     const decision = await wait(() =>
       list(['a2a', 'list', room.id]).find((m) => m.type === 'decision' && m.replyTo === adopted.id),
     );

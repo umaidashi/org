@@ -1071,3 +1071,9 @@
 - Ponytail review: `src/events/github-webhook.ts` reuse: repo名の二重検証を削減、既存入力validatorからcanonical repositoryを返して再利用。新抽象化/依存/server/queue/tableなし。Ruling: trust境界の署名/shape/identity/日時検証は削らない。全checkと実jevを実行する。
 - 高速UT100成功0fail43files117ms。独立最終review Important1、Critical/Minorなし。Unicode escapeされた認証secretがraw文字列検査を迂回して復号後Eventへ残る欠陥を独立再現。escaped fixtureでRED1fail28msを確認し、復号後JSONとJSON正規化したsecretを照合する一行へ置換（raw検査は削除）。GREEN1UT成功。複雑さ専用reviewはLean already. Ship. 再reviewなし、一fixpass後のnative/全check/実jevを再実行する。
 - Important一fixpass後の最終全check334成功12skip0fail346tests173files70.21秒、型/lint/format/AST/dry-run非空。native署名取込e2eも成功。実jev1747対象warning111/missing・unsure0/errors・degraded空。新warning2件は意図的にthrowするgetSecret/publishOnceのfixture名候補、例外伝播assertを確認し変更不要と判断。Critical/Minorなし、Ponytail独立review Lean already. Ship. [証拠](verification/2026-10-06-github-webhook-import/check.txt)。一Important一fixpass完了、再reviewなし。Next: Artifactからlocal Git変更/検証済みbranchへの引渡しを既存CLIで確認し、Draft PRまでのローカル準備を進める。
+
+### 2026-10-06 — 承認済みArtifactからlocal Git branchへの引渡し
+- webhook538e4edはmain通常push成功90.60秒。[設計・計画](superpowers/plans/2026-10-06-reviewed-code-git-handoff.md)。新製品Adapterなし、既存実code proof・runProcess・exportSandboxRepoを再利用。Task結果承認と外部publish Approvalを混同せず、owned temporary repo/file-only bare remoteだけで準備を検証する。
+- shared test helper未実装RED1fail1error29ms。native Git GREEN1成功、unsafe pathは出力directory作成前に拒否。main不変/差分2path/原本base64 blob一致/clean working tree/remote head一致を確認。実code proofにはhuman review completed・対象Artifact binding・再読取一致の後だけ接続する。
+- Ponytail review: 同じGit手順はnative小e2eと実Claude proofの二箇所で必要なので一つのtest helperへ集約し、既存Process境界/HEAD exportを再利用。製品側にGitHub SDK/PR Adapter/Approval種別/新Portは追加しない。実GitHub Draft PRは未完了。
+- native Git1成功600ms、静的ゲート非空成功。既存実Claudeコードproofにはチェック済み2ファイルだけをhuman review後に引渡し、completed/Artifact binding/同blob再読取りを照合。実Claude/Docker、通常全check、実jevを実行中。生成private Artifactは意味APIへ送らない。

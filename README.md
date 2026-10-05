@@ -666,3 +666,5 @@ WorkItemをCoordinator Roomへ渡すには、`room create TITLE --type task --ta
 `event import-github-webhook OWNER/REPO --payload RAW_JSON --signature sha256=HEX --delivery UUID --json`は、hostの`GITHUB_WEBHOOK_SECRET`でraw UTF-8 bodyのHMAC-SHA256を検証し、既存EventBusへ一度だけ保存します。公開repoのissues opened/edited/closed/reopenedだけが対象です。payloadは64KiBまで、repo/Issue URL/日時も照合します。
 
 同じbodyはdelivery headerが変わっても初回Eventを返し、既存Subscriptionから重複Taskを作りません。新Issueや外部APIへの書込みは行いません。これは署名済みpayloadのCLI取込境界で、公開HTTP endpoint・GitHubからの実配送・REST pollingとの横断dedupは未実装です。署名は配送の鮮度を証明しません。
+
+実コードproof (`ORG_CLAUDE_CODE_TEST=1`) は生成物checkと人間Task reviewの後、同じArtifactを再読取りし、固定2ファイルをowned temporary Git repoのbranchへcommitします。mainの不変、差分path、各blob原本一致、file-only bare remoteのhead一致を検証します。Git設定・hooks・protocolを限定し、生成コードをhostで実行しません。これはDraft PR前のローカル準備で、GitHubへの公開やpublish Approvalの完了ではありません。
