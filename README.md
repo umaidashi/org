@@ -660,3 +660,9 @@ WorkItemをCoordinator Roomへ渡すには、`room create TITLE --type task --ta
 `task refresh-linear linear:issue:UUID --expected-version N --json` は指定versionのtitle/objectiveを外部の現在値へ明示置換します。ローカルで編集した本文も置換対象です。status・owner・labels・依存・Artifact・内部Executionは保持し、出典URL変更や読取中のversion競合を拒否します。同値は履歴を追加しません。外部への書込みはありません。
 
 実Claude二Agentのコード生成・生成Bunテスト・独立Docker検証・生成物の隔離 `bun run check`・review/Memory/restartは、`ORG_CLAUDE_CODE_TEST=1 bun test tests/coordinator-claude-real.test.ts` でopt-in実行します。DockerとClaude Maxログインが必要です。依存準備だけ公開package/lockでnetworkを使い、生成コード実行時はnetworkなし・host mountなしです。runtime-valid explicit-anyの拒否検証は `ORG_GENERATED_GATE_TEST=1`。業務IssueやDraft PRはこの専用fixtureとは別に検証します。
+
+### 署名済みGitHub Issue webhookの明示取込
+
+`event import-github-webhook OWNER/REPO --payload RAW_JSON --signature sha256=HEX --delivery UUID --json`は、hostの`GITHUB_WEBHOOK_SECRET`でraw UTF-8 bodyのHMAC-SHA256を検証し、既存EventBusへ一度だけ保存します。公開repoのissues opened/edited/closed/reopenedだけが対象です。payloadは64KiBまで、repo/Issue URL/日時も照合します。
+
+同じbodyはdelivery headerが変わっても初回Eventを返し、既存Subscriptionから重複Taskを作りません。新Issueや外部APIへの書込みは行いません。これは署名済みpayloadのCLI取込境界で、公開HTTP endpoint・GitHubからの実配送・REST pollingとの横断dedupは未実装です。署名は配送の鮮度を証明しません。

@@ -1060,3 +1060,12 @@
 - GREEN: 同じLinear list pattern1成功98filtered0fail68ms、全高速UT99成功0fail42files107ms。新ファイルはDB/実HTTP/子プロセスなし。型・全checkを実行中。実jevは既存1728対象の同一source判定をcache再利用して成功、API新規費用0、dry-runではない。
 - 全check332成功12skip0fail344tests171files80.17秒、型/lint/format/AST/dry-run非空。独立最終review Critical/Important/Minorなし、独立高速UT99成功147ms。全check/jevは親結果を採用、再reviewなし。[証拠](verification/2026-10-06-fast-unit-coverage/check.txt)。
 - 全体目標は未達成。Next: 実Notion/Linear認証と、指定済み業務Issue→指定repo→Draft PRの一周。キーと業務対象を非同期で依頼した。一般tool loop/意味Memory処理/外部write等の未完了は要件表に保持し、fixtureやlocal読取の成功で全体完了としない。新Issue作成や未指定repoへの変更は行わない。
+
+### 2026-10-06 — 全体目標再開とGitHub署名済みIssue webhook取込
+- ユーザー「キーなかったら何もできない？」へ停止理由の誤りを訂正、「全体ゴールの達成にむけて再開せよ」で再開。キー待ちは実API検証だけに限定しローカル未完了を進める。ユーザーponytail ultraを適用、新server/queue/table/依存なし。
+- 高速UT40f5809はmain通常push成功90.97秒。Notion Securityを再取得し署名/秘密/冪等境界と公式GitHub webhook資料を照合。[設計・計画](superpowers/plans/2026-10-06-github-webhook-import.md)。Ruling: 公開Issue4action、明示CLI payload取込だけ。外部HTTP受信とGitHub実配送は別の未完了。署名されないheaderの変更で再起動しないようbody hashをIDとし初回deliveryを保持する。
+- RED: service moduleなし1fail1error25ms、実CLI --signature未対応exit2。GREEN最小DI UT1成功35ms、改変/不正署名/別repo/private/URL/日付/PR/secret反射/資格情報例外/storage伝播を確認。初回lintはaction union narrowing不足を拒否し、明示string guardへ訂正する。
+- ユーザー「ponytail:ponytail-reviewで常に無駄な実装を調査」をAGENTS/quality-reviewへ反映。各変更で複雑さレビューと判断を記録し、正しさ/安全性レビューも維持する。
+- native初回はfixtureがdaemon --onceへ--directを追加し再open時に拒否された。daemonだけdirectを付けない形へ訂正。次回はexternalRefをobjectと仮定して失敗し、既存canonical org:event URIの期待値へ訂正。製品の失敗とは区別し成功扱いしない。
+- native+DI targeted2成功0fail0.65秒。direct/daemonで同body・別deliveryの再送が初回Event/一Taskを保持、無key/署名改変はEventなし、再open後もTask不変を確認。
+- Ponytail review: `src/events/github-webhook.ts` reuse: repo名の二重検証を削減、既存入力validatorからcanonical repositoryを返して再利用。新抽象化/依存/server/queue/tableなし。Ruling: trust境界の署名/shape/identity/日時検証は削らない。全checkと実jevを実行する。

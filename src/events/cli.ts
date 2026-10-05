@@ -8,9 +8,13 @@ import type { EventInput, SubscriptionInput } from './domain.js';
 import { matchingSubscriptions, publishEvent, registerSubscription } from './service.js';
 import { SqliteEventBus } from './sqlite.js';
 import { importGithubEvents, validateGithubRepository } from './github.js';
+import { importGithubWebhook, validateGithubWebhookInput } from './github-webhook.js';
+import type { GithubWebhookInput } from './github-webhook.js';
+import { EnvironmentSecretStore } from '../secrets/environment.js';
 export type EventCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'publish'; readonly input: EventInput }
   | { readonly action: 'import-github'; readonly repository: string }
+  | { readonly action: 'import-github-webhook'; readonly input: GithubWebhookInput }
   | { readonly action: 'subscribe'; readonly input: SubscriptionInput }
   | { readonly action: 'list' | 'subscriptions' }
   | { readonly action: 'get' | 'matches' | 'enable' | 'disable'; readonly id: string }
@@ -33,6 +37,8 @@ export function parseEventCommand(argv: string[]): EventCommand {
       json: { type: 'boolean' },
       source: { type: 'string' },
       payload: { type: 'string' },
+      signature: { type: 'string' },
+      delivery: { type: 'string' },
       'subscriber-type': { type: 'string' },
       subscriber: { type: 'string' },
       filter: { type: 'string' },
@@ -46,11 +52,13 @@ export function parseEventCommand(argv: string[]): EventCommand {
   };
   required(base.db, '--db');
   const allowed =
-    action === 'publish'
-      ? ['db', 'json', 'source', 'payload']
-      : action === 'subscribe'
-        ? ['db', 'json', 'subscriber-type', 'subscriber', 'filter']
-        : ['db', 'json'];
+    action === 'import-github-webhook'
+      ? ['db', 'json', 'payload', 'signature', 'delivery']
+      : action === 'publish'
+        ? ['db', 'json', 'source', 'payload']
+        : action === 'subscribe'
+          ? ['db', 'json', 'subscriber-type', 'subscriber', 'filter']
+          : ['db', 'json'];
   for (const key of Object.keys(parsed.values))
     if (!allowed.includes(key)) throw new Error(`Unexpected --${key}`);
   if (action === 'publish') {
@@ -60,6 +68,16 @@ export function parseEventCommand(argv: string[]): EventCommand {
       payload: jsonObject(JSON.parse(parsed.values.payload ?? '{}')),
     };
     validateEventInput(input);
+    return { ...base, action, input };
+  }
+  if (action === 'import-github-webhook') {
+    const input = {
+      repository: required(target, 'OWNER/REPO'),
+      body: required(parsed.values.payload, '--payload'),
+      signature: required(parsed.values.signature, '--signature'),
+      delivery: required(parsed.values.delivery, '--delivery'),
+    };
+    validateGithubWebhookInput(input);
     return { ...base, action, input };
   }
   if (action === 'import-github')
@@ -85,7 +103,7 @@ export function parseEventCommand(argv: string[]): EventCommand {
   if (action === 'get' || action === 'matches' || action === 'enable' || action === 'disable')
     return { ...base, action, id: required(target, 'ID') };
   throw new Error(
-    'Expected event publish|import-github|get|list|subscribe|subscriptions|matches|enable|disable',
+    'Expected event publish|import-github|import-github-webhook|get|list|subscribe|subscriptions|matches|enable|disable',
   );
 }
 export async function runEventCommand(
@@ -97,6 +115,19 @@ export async function runEventCommand(
     const identity = { id: randomUUID(), createdAt: new Date().toISOString() };
     let result: unknown;
     switch (command.action) {
+      case 'import-github-webhook':
+        result = importGithubWebhook(
+          bus,
+          new EnvironmentSecretStore([
+            {
+              actorId: 'github:host',
+              reference: 'github:webhook',
+              environmentVariable: 'GITHUB_WEBHOOK_SECRET',
+            },
+          ]),
+          command.input,
+        );
+        break;
       case 'import-github':
         result = await importGithubEvents(bus, (url, init) => fetch(url, init), command.repository);
         break;

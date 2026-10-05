@@ -38,6 +38,7 @@ bun run review:semantic
 |---|---|
 | 実装前 | Agentが対象テストのREDを確認 |
 | 小さな変更後 | Agentが対象unit/integration/e2eを実行 |
+| 各変更のレビュー | `ponytail:ponytail-review`で不要な抽象化・依存・既存処理の重複を確認。削減候補と判定を作業ログに記録し、正しさ・安全性のレビューも維持 |
 | 検証単位の完了時 | Agentが `bun run check` と `bun run review:semantic`、指摘の判定・必要な修正・再検証 |
 | pre-commit | Lefthookがステージ済みtreeで `check:static`（型・lint・format・AST） |
 | pre-push | Lefthookが実際にpushされる各commitのtreeで全検査と実際のjev意味レビュー |

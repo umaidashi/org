@@ -11,4 +11,5 @@
 - 実装前に `docs/coding-guidelines.md` と `docs/reference-implementation.md` を読む。最初のリファレンスは実際にテストされる `src/agents/`。
 - 生成物にも `bun run check` を適用し、結果を記録する。lint/ASTが空実行していないことを確認する。
 - jev-lintは `docs/quality-review.md` に従う。dry-runは実レビュー完了ではない。API送信対象に秘密情報やNotionのsnapshotを含めない。
+- 各変更で `ponytail:ponytail-review` により不要な実装・既存処理の重複を確認し、削減候補と判定を作業ログに残す。正しさ・安全性のレビューも別途維持する。
 - 検査はまず全てローカルで行う。GHAは作らない。Lefthookのpre-commitはステージ済みtree、pre-pushはpush対象のcommitを検査する。タイミングは `docs/quality-review.md` に従う。
