@@ -1052,3 +1052,9 @@
 - RED: list service exportなし1fail39ms、実CLI --team未対応exit2（DB作成前）。既存request/DTO parserを共有し、read旧2UT/refresh/list4成功37ms。新fixture init.body文字列narrowing不足をlintが検出して修正。公式schemaのTeamFilter.key:StringComparatorも確認。native direct/daemon一覧と既存get/import/refreshのHTTP fixtureを実行する。新partial/oversize/Team/重複/next cursor/終端を先行検証し、automatic paginationは行わない。
 - native HTTP fixture direct/daemon一覧＋既存get/import/refresh4成功0fail1.30秒。DBなし読取/不正引数/キー不足の非漏洩を確認。list固有の第二page serialization、重複ID/別Team/同cursor拒否と終端を追加し旧reader込み3UT成功36ms。全check/実jev実行中。
 - 最終全check332成功12skip0fail344tests171files77.41秒、型/lint/format/AST/dry-run非空。実jev1728対象warning109/missing・unsure0/errors・degraded空、新reader/list test固有の指摘なし。独立最終review Critical/Important/Minorなし、独立3UT31ms。Ruling: limitは上限なので短い非終端pageも受理。実API認証/現行schema実接続、全TaskProvider write/自動同期は未完了。再reviewなし。[証拠](verification/2026-10-06-linear-issue-list/check.txt)。mainへ通常反映する。
+
+### 2026-10-06 — 新しいDB不要UTの高速コマンドへの追加
+- Linear list3115626はmainへ通常push成功90.49秒、pre-push全検査/実jev/公開履歴検査成功。
+- [設計・計画](superpowers/plans/2026-10-06-fast-unit-coverage.md)。Ruling: 新runnerや自動分類なし、既存明示リストへ最近のDB不要8ファイルだけ追加。実DB/ネットワーク/Runtime/e2eは全checkで維持する。
+- RED: test:unitへ新Linear listのtest-name-patternを渡すと0件、34files/86skip、exit1。最初のpatternは実test名と不一致だったため実名へ訂正して同じ未対象REDを確認。
+- GREEN: 同じLinear list pattern1成功98filtered0fail68ms、全高速UT99成功0fail42files107ms。新ファイルはDB/実HTTP/子プロセスなし。型・全checkを実行中。実jevは既存1728対象の同一source判定をcache再利用して成功、API新規費用0、dry-runではない。

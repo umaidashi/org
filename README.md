@@ -168,6 +168,8 @@ bun run check        # tsgo・Oxlint・Oxfmt・AST・全テスト・jev dry-run
 bun run review:semantic
 ```
 
+`test:unit`にはLinear読取・一覧・WorkItem取込/refresh、Notion読取・Room取込、Room Memory自動採用、Workflow観測対象選択のDI UTも含みます。外部HTTPは注入した応答で検証し、実ネットワークや認証情報を必要としません。
+
 DIを必須にし、業務判断は純粋な関数、serviceは必要なPortだけを引数に取ります。IDと時刻も呼び出し元から渡します。UTではDBやプロセスの起動が不要です。永続化・rollbackは実SQLiteで、ユーザー操作はe2eで検証します。
 
 検査はすべてローカルです。GitHub Actionsは使いません。
