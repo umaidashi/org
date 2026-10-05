@@ -1,3 +1,4 @@
+import { parseTaskWorkflowBinding } from './domain.js';
 import { Database } from 'bun:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -50,6 +51,9 @@ function request(raw: unknown): ApprovalRequest {
     (operation.effect === 'write' || operation.effect === 'irreversible')
   )
     parsed = {
+      ...(operation.binding === undefined
+        ? {}
+        : { binding: parseTaskWorkflowBinding(operation.binding) }),
       kind: operation.kind,
       host: text(operation.host),
       workflowId: text(operation.workflowId),

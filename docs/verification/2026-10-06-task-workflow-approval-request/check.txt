@@ -1,0 +1,7 @@
+RED: request service absent; native CLI --room unknown before implementation.
+GREEN: native DI guards current version/owner/active Room/Agent original proposal/can_write, strict canonical/copied binding; real CLI request duplicate/human approve/reopen/manual apply denied/stale reference/pre-DB malformed version and assigned unchanged;3tests2files353ms.
+Initial full check failed on optional capabilities fixture type; corrected to explicit fallback array before rerun.
+bun run check exit0: tsgo/Oxlint/Oxfmt261files/AST fixture;271pass8skip0fail279tests140files53.14s;nonempty dry-run.
+Actual jev exit0:1430answers82warnings/errors/degraded empty; no credentials/DB/Notion snapshots sent.
+Independent final review Critical0 Important0 Minor0;related3pass.
+Request only: no external invocation or credential lookup; allowlist and wait/resume next.

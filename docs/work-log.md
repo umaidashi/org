@@ -880,3 +880,9 @@
 - 実PTY日本語「日本語で相談 --socket literal」を入力、別公開CLIで原本Messageが完全一致1件と確認。/refresh再読込・/quit終了後canonical/echo復元。最初の別CLI読取はsandbox socket制約で失敗、許可済みローカル実行で成功（application不具合と扱わない）。
 - 独立レビューImportant: readline close後のbuffer済み次行を書込む。注入Port/AsyncIterable loopへ切出し、停止中の2行送信REDを確認後、loop先頭とawait後の停止guardで1回書込・refresh/promptなしGREEN。再レビューせず一度のfix pass、Critical/Minorなし。
 - 全check268成功8skip0失敗276テスト138file51.11秒、型/lint/format258file/AST成功。実jev1418回答warning80/errors・degraded空。修正後実PTYでも原本1件を再表示/quit、自作daemon停止。[検証](verification/2026-10-06-tui-room-chat/check.txt)。Next: Agent提案に対するWorkflow操作ApprovalをTask/version/Messageに拘束する小さなnative serviceから承認待ち・再開へ接続。
+
+### 2026-10-06 — Task原本に拘束したWorkflow操作Approval要求
+- TUI Room対話ef6627bをmainへ通常push。対象commit pre-push全検査・実jev62.57秒で成功。
+- [計画](superpowers/plans/2026-10-06-task-workflow-approval-request.md): assigned Taskのcurrent owner/version/active Task Room/原本Agent提案へ承認要求を固定。binding canonical URI/コピー/SQLite互換を実装。Taskと5capabilityを先行確認しrequestOnceで保存。外部呼出し・credential lookup・Task状態変更なし。
+- RED: request service未実装、実CLI --room未対応。GREEN: native DI guardsと実CLI要求/再要求一致/人間判断/再open原本一致/古い参照拒否/manual apply拒否/不正version先行拒否。追加fixtureのoptional型エラーで初回check失敗、explicit fallback配列へ修正して全検査成功。
+- 全check271成功8skip0失敗279テスト140file53.14秒、型/lint/format261file/AST成功。実jev1430回答warning82/errors・degraded空。独立最終レビュー指摘なし、関連3成功。[検証](verification/2026-10-06-task-workflow-approval-request/check.txt)。Next: 同原本のTask承認待ち/再開、scope再照合・先行claim・外部呼出し一回をnative実CLIへ接続。

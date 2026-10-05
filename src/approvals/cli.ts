@@ -1,3 +1,8 @@
+import {
+  requestTaskWorkflowApproval,
+  type TaskWorkflowApprovalInput,
+} from '../workflows/task-approval.js';
+import { SqliteRoomRepository } from '../rooms/sqlite.js';
 import { parseArgs } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
@@ -14,6 +19,7 @@ import { collectAudit } from '../audit/service.js';
 import { selectAuditLogs, type LogFilter } from '../audit/logs.js';
 export type ApprovalCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'request'; readonly input: ApprovalRequestInput }
+  | { readonly action: 'request-task-workflow'; readonly input: TaskWorkflowApprovalInput }
   | { readonly action: 'get'; readonly id: string }
   | { readonly action: 'list' | 'audit' }
   | { readonly action: 'logs'; readonly filter: LogFilter }
@@ -45,6 +51,9 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
       'request-id': { type: 'string' },
       effect: { type: 'string' },
       limit: { type: 'string' },
+      room: { type: 'string' },
+      message: { type: 'string' },
+      'expected-version': { type: 'string' },
     },
   });
   const [noun, action, target, ...extra] = parsed.positionals;
@@ -58,17 +67,19 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
   const allowed =
     noun === 'logs'
       ? ['task', 'event', 'limit']
-      : noun === 'audit'
-        ? []
-        : action === 'request-workflow'
-          ? ['key', 'actor', 'host', 'input-digest', 'request-id', 'effect', 'task', 'event']
-          : action === 'request'
-            ? ['key', 'actor', 'capability', 'expected-revision', 'task', 'event']
-            : action === 'decide'
-              ? ['actor', 'decision', 'reason']
-              : action === 'apply'
-                ? ['actor']
-                : [];
+      : action === 'request-task-workflow'
+        ? ['room', 'message', 'expected-version', 'host', 'effect']
+        : noun === 'audit'
+          ? []
+          : action === 'request-workflow'
+            ? ['key', 'actor', 'host', 'input-digest', 'request-id', 'effect', 'task', 'event']
+            : action === 'request'
+              ? ['key', 'actor', 'capability', 'expected-revision', 'task', 'event']
+              : action === 'decide'
+                ? ['actor', 'decision', 'reason']
+                : action === 'apply'
+                  ? ['actor']
+                  : [];
   for (const key of Object.keys(parsed.values))
     if (!['db', 'json', ...allowed].includes(key)) throw new Error(`Unexpected --${key}`);
   if (noun === 'logs') {
@@ -96,6 +107,42 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
     return { ...base, action };
   }
   const id = required(target, 'ID');
+  if (action === 'request-task-workflow') {
+    const effect = parsed.values.effect;
+    if (effect !== 'write' && effect !== 'irreversible') throw new Error('Invalid Workflow effect');
+    const version = required(parsed.values['expected-version'], '--expected-version');
+    if (!/^(0|[1-9][0-9]*)$/.test(version)) throw new Error('Invalid Task version');
+    const input: TaskWorkflowApprovalInput = {
+      taskId: id,
+      roomId: required(parsed.values.room, '--room'),
+      messageId: required(parsed.values.message, '--message'),
+      expectedVersion: Number(version),
+      host: required(parsed.values.host, '--host'),
+      effect,
+    };
+    createApprovalRequest(
+      {
+        key: 'validate',
+        actor: { kind: 'agent', id: 'validate' },
+        taskId: id,
+        eventId: null,
+        operation: {
+          kind: 'workflow_invocation',
+          host: input.host,
+          workflowId: 'validate',
+          inputDigest: '0'.repeat(64),
+          requestId: 'validate',
+          effect,
+          binding: {
+            taskVersion: input.expectedVersion,
+            proposalRef: `org://rooms/${encodeURIComponent(input.roomId)}/messages/${encodeURIComponent(input.messageId)}`,
+          },
+        },
+      },
+      { id: 'validate', createdAt: 'validate' },
+    );
+    return { ...base, action, input };
+  }
   if (action === 'request-workflow') {
     const effect = required(parsed.values.effect, '--effect');
     if (effect !== 'write' && effect !== 'irreversible')
@@ -161,6 +208,24 @@ export function runApprovalCommand(command: ApprovalCommand, output: (line: stri
   try {
     let result: unknown;
     switch (command.action) {
+      case 'request-task-workflow': {
+        agents = new SqliteAgentRepository(command.db);
+        const tasks = new SqliteTaskProvider(command.db);
+        try {
+          const rooms = new SqliteRoomRepository(command.db);
+          try {
+            result = requestTaskWorkflowApproval(tasks, agents, rooms, store, command.input, {
+              id: randomUUID(),
+              createdAt: new Date().toISOString(),
+            });
+          } finally {
+            rooms.close();
+          }
+        } finally {
+          tasks.close();
+        }
+        break;
+      }
       case 'request': {
         if (command.input.operation.kind === 'agent_capabilities') {
           agents = new SqliteAgentRepository(command.db);

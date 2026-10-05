@@ -6,6 +6,42 @@ export interface PermissionOperation {
   readonly expectedRevision: number;
   readonly capabilities: readonly Capability[];
 }
+export interface TaskWorkflowBinding {
+  readonly taskVersion: number;
+  readonly proposalRef: string;
+}
+export function parseTaskWorkflowBinding(value: unknown): TaskWorkflowBinding {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    Object.keys(value).some((key) => !['taskVersion', 'proposalRef'].includes(key)) ||
+    !('taskVersion' in value) ||
+    typeof value.taskVersion !== 'number' ||
+    !Number.isSafeInteger(value.taskVersion) ||
+    value.taskVersion < 0 ||
+    !('proposalRef' in value) ||
+    typeof value.proposalRef !== 'string' ||
+    value.proposalRef.length > 2048
+  )
+    throw new Error('Invalid Task Workflow binding');
+  const match = /^org:\/\/rooms\/([^/]+)\/messages\/([^/]+)$/.exec(value.proposalRef);
+  try {
+    if (!match) throw new Error('Invalid reference');
+    const room = decodeURIComponent(match[1] ?? ''),
+      message = decodeURIComponent(match[2] ?? '');
+    text(room);
+    text(message);
+    if (
+      value.proposalRef !==
+      `org://rooms/${encodeURIComponent(room)}/messages/${encodeURIComponent(message)}`
+    )
+      throw new Error('Invalid reference');
+  } catch {
+    throw new Error('Invalid Task Workflow proposal reference');
+  }
+  return { taskVersion: value.taskVersion, proposalRef: value.proposalRef };
+}
 export interface WorkflowOperation {
   readonly kind: 'workflow_invocation';
   readonly host: string;
@@ -13,6 +49,7 @@ export interface WorkflowOperation {
   readonly inputDigest: string;
   readonly requestId: string;
   readonly effect: 'write' | 'irreversible';
+  readonly binding?: TaskWorkflowBinding;
 }
 export interface ApprovalRequestInput {
   readonly key: string;
@@ -78,7 +115,9 @@ export function createApprovalRequest(
     if (
       Object.keys(value).some(
         (key) =>
-          !['kind', 'host', 'workflowId', 'inputDigest', 'requestId', 'effect'].includes(key),
+          !['kind', 'host', 'workflowId', 'inputDigest', 'requestId', 'effect', 'binding'].includes(
+            key,
+          ),
       )
     )
       throw new Error('Invalid Workflow Approval operation');
@@ -104,7 +143,10 @@ export function createApprovalRequest(
       host.toString().replace(/\/$/, '') !== value.host
     )
       throw new Error('Invalid Workflow Approval host');
+    if (value.binding !== undefined && (input.actor.kind !== 'agent' || input.taskId === null))
+      throw new Error('Task Workflow binding requires Agent and Task');
     operation = {
+      ...(value.binding === undefined ? {} : { binding: parseTaskWorkflowBinding(value.binding) }),
       kind: value.kind,
       host: value.host,
       workflowId: value.workflowId,

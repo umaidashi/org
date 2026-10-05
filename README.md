@@ -523,3 +523,12 @@ bun run start tui --room ROOM_ID --human founder
 ```
 
 active Roomに参加するhuman IDを指定して、日本語の一行入力をRoom Messageとして保存します。直近20件を表示し、`/refresh`または空行で再読込、`/quit`・Ctrl-C・EOFで終了します。失敗した送信を自動再試行しません。表示本文は各2048文字で制御文字を除去します。Human IDはローカルの宣言的identityで、本人認証ではありません。Agentの自動返信にはdaemonの既存opt-in wake-up設定が必要です。自動refresh/streamingやTask操作は未完了です。
+
+## AgentのWorkflow提案を承認対象に固定する
+
+```sh
+bun run start approval request-task-workflow TASK_ID --room ROOM_ID --message MESSAGE_ID --expected-version VERSION --host https://n8n.example --effect write --json
+bun run start approval decide APPROVAL_ID --actor founder --decision approve --reason '原本提案を確認' --json
+```
+
+assigned ExecutionTaskの最新version、owner Agent、active Task Roomの原本提案Messageを確認し、Task/version/Message参照とhost/Workflow/input hash/request ID/effectを不変Approvalへ固定します。read/delegate/network/contact/writeのcapabilityが必要です。要求は冪等で、同Taskの異なる提案は競合します。この段階では外部操作やcredential lookupを行わず、Task状態も変更しません。手動Workflow runへの流用はできません。host/Agent allowlistと待機・再開executorは未接続です。
