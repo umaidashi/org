@@ -1,0 +1,11 @@
+Linear既存Issue一覧 — 2026-10-06
+RED: 未export UT 1fail/39ms、実CLI --team未対応exit2（DB未作成）。
+Targeted: direct/daemon HTTP fixture＋既存get/import/refresh 4pass/0fail/1.30s。
+最終reader/list UT: 3pass/0fail/36ms。
+bun run check: exit0、332pass/12skip/0fail、344tests/171files/77.41s。
+型・lint・format・AST・jev dry-run非空成功。
+実jev: exit0、1728subjects/109warnings、missing0/unsure0/errors[]/degraded[]。
+変更reader/list test固有の指摘なし。
+独立最終review: Critical/Important/Minorなし。独立reader/list UT 3pass/31ms。
+Ruling: limitは上限なので短い非終端pageも有効。実API認証/現行schema実接続、全TaskProvider write/自動同期は未検証・未完了。
+API keyなしのHTTP fixtureを実Linear API成功とは扱わない。新Issue作成・外部mutationなし。
