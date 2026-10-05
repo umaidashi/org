@@ -400,3 +400,9 @@ bun run start daemon --workflow-config ./workflow.local.json
 host設定のAPIキー環境変数はdaemon起動時に渡します。Agent Runtime設定や`--wake-up`は不要です。入力は元EventのID/type/source/payload/createdAtで、保存するWorkflow receiptは本文のhashだけです。Deliveryの`workflowRequestId`は不変requestを指し、`taskId`はnullです。先にclaimした配送を再起動時に再送せず、started receiptから配送記録だけを回復します。結果不明やhost不一致はdeferredのままです。Workflow自身のreceipt Eventはこの自動購読から除外します。
 
 設定なしで既にdeferredとなった配送を、自動で復活させることはありません。必要なら判断のうえ新しい購読またはEventを作ります。Task/AgentのWorkflow委譲と外部権限scopeは後続です。
+
+## SecretStore
+
+WorkflowのAPIキーは`SecretStore` Port経由でhost側だけが解決します。初期Environment Adapterは、hostが指定したactor/secret参照/env名のgrantだけを読み、未知actor・未知参照はenv読取前に拒否します。欠損・過大値・lookup失敗のエラーは固定文言で、秘密や元の例外を出力しません。秘密値を表示するCLIはありません。
+
+現在のWorkflow configは`host:workflow`の`n8n-api-key`参照を解決します。これは信頼済みhost内部の識別子で、Agent認証ではありません。Agent別Workflow scope、最新Task owner/capability照合、重要操作のApproval、Sandboxへの限定credential注入は後続です。Environment参照自体は暗号化保管機能を提供しません。

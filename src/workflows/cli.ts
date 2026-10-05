@@ -1,3 +1,5 @@
+import { EnvironmentSecretStore } from '../secrets/environment.js';
+import type { SecretStore } from '../secrets/port.js';
 import { parseArgs } from 'node:util';
 import { resolve } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
@@ -71,7 +73,7 @@ export function parseWorkflowCommand(argv: string[]): WorkflowCommand {
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
-export async function configuredWorkflowRuntime(path: string) {
+export async function configuredWorkflowRuntime(path: string, secrets?: SecretStore) {
   const file = Bun.file(path);
   if (file.size > 65536) throw new Error('Workflow config size limit');
   let value: unknown;
@@ -99,8 +101,12 @@ export async function configuredWorkflowRuntime(path: string) {
       throw new Error('Invalid Workflow allowlist');
     return { id: workflow.id, path: workflow.path };
   });
-  const apiKey = process.env[value.apiKeyEnv];
-  if (apiKey === undefined) throw new Error('Workflow API credential environment variable missing');
+  const store =
+    secrets ??
+    new EnvironmentSecretStore([
+      { actorId: 'host:workflow', reference: 'n8n-api-key', environmentVariable: value.apiKeyEnv },
+    ]);
+  const apiKey = store.getSecret('host:workflow', 'n8n-api-key');
   const runtime = new N8nWorkflowRuntime(
     { baseUrl: value.baseUrl, apiKey, workflows },
     (url, init) => fetch(url, init),

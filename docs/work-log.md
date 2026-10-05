@@ -791,3 +791,11 @@
 - CPU上限1の公式固定n8nで参照success/cancelと実Event購読→daemon→Workflow success→不変receipt/独立delivery参照→再起動no replay成功。Agent資格情報/業務service呼出しなし、raw input/API keyはreceiptへ保存しない。成功後自作containerだけを終了し、全検査を再実行する。
 - 最終全235/235・型/lint/format/AST成功109.77秒、外部実機opt-in7件は通常skip（n8nは別実行成功）。実Jev1257判定missing/unsure0、errors/degradedなし、warning76。[検証記録](verification/2026-10-05-workflow-subscriptions/check.txt)。
 - Ruling: catch-hides-failure候補は生Provider errorを公開せず、deferred receiptに失敗を保存して自動再送を止める意図的境界。配送保存failureは伝達し次pollでstartedから回復する。具体的failure/restart/host変更UTと独立レビューで確認し、網羅保証を主張しない。明示host allowlistだけを使い、既存deferred配送は勝手に復活させない。自分のWorkflow receiptは購読入力から除外。停止は現在のbounded native呼出しをdrainし、以降のclaimを中止する。Next: Notion Securityを再照合済み、Agent別のcredential/external Workflow scopeをhostで制限し、Task/Agent委譲へ接続する。
+
+## Scoped SecretStore（進行中）
+
+- Notion Security/Runtime/Kernelを再取得し、Agentごとのcredential/external service scopeとSecretStore Portを再確認。[計画](superpowers/plans/2026-10-05-scoped-secret-store.md)を保存しbranch feat/scoped-secret-storeで進める。既存Workflow APIキーのhost lookupを最初の実callerとして接続し、Task/Agent委譲は後続の境界を満たしてから進める。
+- main10eac5b通常push成功、pre-push全検査/実Jev/公開検査105.61秒。
+- SecretStore未module RED→明示grantのみのenv lookup/unknown actorやreferenceはlookup前に拒否/呼出側grant mutation非影響/重複grant拒否/例外・欠損値・過大値非漏洩のGREEN。Workflow configはSecretStoreをDIしhost参照一件だけ解決する最初の実callerへ接続。3件成功87ms。lintの非null assertionはassert.okへ訂正する。
+- 最終全238/238・型/lint/format/AST成功80.36秒。外部実機opt-in7件は通常skip、既存Workflowの実CLI/daemon fixtureは全検査で成功。実Jev1263判定missing/unsure0、errors/degradedなし、warning76。[証拠](verification/2026-10-05-scoped-secret-store/check.txt)。Final独立Reviewer Critical/Important/Minorなし、関連UT/実CLI/daemon計10件1.92秒を独立成功。初回listen制約は許可実行へ切替して再確認、秘密参照/変更なし。
+- Ruling: env参照はhostの明示grantのみ、未知actor/referenceは読取前に拒否する。native Workflowがhost:workflow/n8n-api-keyを解決し、資格情報をAgent promptや公開receiptへ出さない。actor識別は信頼済みhost callerの契約でありAgent認証ではない。env参照の初期Adapterで、暗号化保管/Keychain/Vault/credential injectionを完了した扱いにしない。Next: Agent別Workflow scopeと限定credential grantをnative hostで照合し、最新Task owner/version/capability/Roomの境界を満たす一Workflow委譲を小e2eへ接続する。

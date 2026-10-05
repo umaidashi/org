@@ -8,7 +8,7 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで235テストをローカル検証（外部実機7件は別途opt-in実行）。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで238テストをローカル検証（外部実機7件は別途opt-in実行）。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAt・optional reportsToを実装。legacy schema/root JSON互換・循環/不存在拒否・同時変更時再検証・不変履歴/rollback・実CLIを検証。optional capabilitiesの既知値/重複/型/コピーとSQLite legacy互換・CLI明示指定を実装。delegateの送信/activation前can_delegateを検証。memoryPolicyはnone/reviewed-tasksの明示opt-inを登録/SQLite/CLI/不変TaskReview由来Memoryで検証。permissionsの外部scopeと他Capability境界は未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | reportsToによるChief→専門Agentの関係と変更履歴を保存。can_delegate付きtyped A2A delegateを宛先ownerのExecutionTaskへ冪等生成し、opt-in daemonで自動実行。自律的な委譲指示の生成は未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | version付きRoom Message・CLI send/get/listを実装。宛先/Task/返信/correlationを検証。実daemon request→resultと再openを確認。can_delegate付きdelegate→parent/source参照の冪等ExecutionTask→自動実行を実daemonと実Claude Maxで検証。Task結果のtyped result/blocker返送とCoordinator通知・snapshot参照検証/返送失敗再試行/再起動重複なしを実daemon/実Maxで確認。人間TaskReviewを原本/前後history/成果物照合してtyped decisionで返送、通知retry/再起動no duplicateを実daemon、同Session Coordinator再開を実Claude Maxで検証。自律委譲指示は後続 |
@@ -38,7 +38,7 @@
 | CLI | daemon/agent/room/task/workflow/event/sandbox/logs/tui | Agent/Task/Room/Eventのdaemon経由操作と明示的--direct管理操作を実装・検証。その他は未完了 |
 | TUI | Agent/Room/Task/Eventの監視と対話 | 未完了 |
 | 外部連携 | Linear TaskProvider、GitHub Event、Notion knowledge/docs | 公開GitHub Eventの明示REST GET→原本Event→Subscription→一Taskを実装。実CLI再取込/再open/6秒HTTP待機と実公開GitHub→実Claude Max→Artifact→人間reviewを検証。最新300件/30日のAPI制約あり。private/webhook/自動poll、Linear/Notion Adapterは未完了 |
-| Ports | Agent/Memory/Task/Workflow/Event/Scheduler/Sandbox/SecretStoreの交換可能性 | 未完了 |
+| Ports | Agent/Memory/Task/Workflow/Event/Scheduler/Sandbox/SecretStoreの交換可能性 | 各既存Portへ初期Adapterを接続。SecretStore PortとEnvironment Adapterは明示actor/reference grantだけを解決しWorkflow host APIキーへ接続。lookup DI/未知actor先行拒否/例外・値非漏洩を最小UTで検証。Agent別credential/external scope・別Adapterの実交換は未完了 |
 | 運営の実務e2e | Issue→委譲→実装→テスト→レビュー→Draft PR→人間判断→記憶 | 未完了 |
 | ログ | 依頼・承認・判断・変更・テスト結果をリポジトリ/Gitへ記録 | `docs/work-log.md`、Notion snapshot、RED/GREEN、実jevレビューを記録。継続する |
 
