@@ -357,3 +357,16 @@ host policyのJSONに上記を保存します。任意の`repo`はhostが読み�
 ```sh
 ORG_DOCKER_TEST=1 bun --no-env-file test tests/runtime-sandbox-cli.test.ts
 ```
+
+
+## n8n WorkflowRuntimeの参照
+
+WorkflowRuntimeはAgentRuntimeと独立し、n8nのproduction Webhookでinvoke、公開Execution APIでstatus/cancelします。host allowlist外のWorkflowや不一致の実行IDを拒否し、invokeを自動再試行しません。CLIと永続receiptへの接続は次の実装段階です。
+
+[成功用参照Workflow](docs/reference/workflows/org-kernel-check.json)と[停止用参照Workflow](docs/reference/workflows/org-kernel-wait.json)はローカル検証用です。WebhookがexecutionIdを返し、後者は60秒待機するためstopを確認できます。公式n8n2.41.6で検証しています。
+
+```sh
+ORG_N8N_TEST_CONFIG=/private/path/config.json bun --no-env-file test tests/workflow-n8n-real.test.ts
+```
+
+実機test設定はbaseUrl、apiKey、workflows（id/path配列）を持つprivateな一時JSONです。リポジトリには保存しません。通常の全testではこの実機testをskipします。

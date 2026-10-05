@@ -1,0 +1,2 @@
+PASS: official n8n 2.41.6 webhook invoke -> verified execution ID/Workflow -> success status; waiting execution -> public stop -> canceled status
+PASS: loopback-only disposable n8n; no business service calls; API credential not included in webhook or output

@@ -744,3 +744,14 @@
 - Final独立Reviewer Critical/Important/Minorなし。関連UT13件44msを独立成功。取消/shutdownは既存SandboxJobsを再利用し、assigned-only CLIを維持。多段tool loop/資格情報注入は未完了。
 - 最終全222/222・型/lint/format/AST成功51.04秒。Docker opt-in6件は通常skip、新実Docker1件は別実行成功。実Jev1195判定missing/unsure0、errors/degradedなし。生成code追加treeも全222/222成功54.17秒、実Jev1197判定missing/unsure0、errors/degradedなし。[検証記録](verification/2026-10-05-runtime-sandbox-artifact/check.txt)。モデルのfailure-path warningは全失敗枝の網羅保証ではなく、既存・新境界の具体的失敗UTと独立レビューを合わせて判定。完全な枝網羅を主張しない。
 - Ruling: host policyが有効なshell AgentのExecutionTaskだけ一提案を実行する。code以外のproposal fieldは拒否、最新capability/Task版/owner/Roomでfail closed。Task返信原本を保存してから生成物をstageし、人間review前のcompletedや自動retryは行わない。一般のAgent/既定設定はMessage成果物、multi-step tool loop/credential injectionは後続。Next: 外部Workflow契約を確認し、既存Task/権限境界で小さくinvoke/status/cancelを接続する。
+- main37283b2通常push成功、pre-push全222テスト/実Jev/公開検査63.00秒。Notion Runtime Portを再取得しWorkflowのinvoke/status/cancel契約を確認。n8n公式APIの一次資料に照合し、存在しないendpointを推測で実装しない。
+
+## n8n WorkflowRuntime（進行中）
+
+- [計画](superpowers/plans/2026-10-05-n8n-workflow-runtime.md)。Notion Runtimeを再取得し、n8n公式Webhook/Execution controllerへ照合。存在しない任意Workflow execute RESTを作らず、host allowlistのWebhookと公開Execution APIを使う。固定版2.41.6のローカル実機を準備中。外部業務への書込は行わない。
+- Adapter未module RED→固定host/Workflow allowlist/実行ID/状態/redirect禁止/入力・応答上限のDB不要UT GREEN。既存GitHub bounded JSON readerを共有native HTTPへ移し、実際の二callerで再利用した。
+- ローカルn8n fixtureのscopeにuser/project用workflow:executeを含めAPI key作成400で拒否。固定版の公開scope一覧へ訂正。再作成直後の起動待ちも一度失敗し、起動済みで再実行して成功。raw API keyはprivate tmpのみ。
+- 公式n8n2.41.6固定digestのloopback-only使い捨てcontainerでproduction Webhook→実行ID/Workflow照合→success、Wait execution→公開stop→canceledを確認。外部業務serviceへの呼出しなし。リポジトリのopt-in実機テスト1件499msも成功。
+- Final独立Reviewer Important1: native JSON.parse例外が不正応答本文を含む。架空secret markerが例外へ漏れるREDを確認し、二caller共通のJSON境界で固定エラーへ変換するGREEN。一回のfix passとして全check/実Jevを再実行し、再レビューは行わない。Critical/Minorなし。
+- 修正後全226/226・型/lint/format/AST成功47.32秒。実機opt-in7件は通常skip、実n8nは別実行1件455ms成功。実Jev1211判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-n8n-workflow-runtime/check.txt)。Important1解消、再レビューなし。
+- Ruling: invokeはhostが許可したWebhookへ一度POSTし、返った実行IDを公開APIで確認して要求Workflowへ一致させる。cancelも許可Workflowの実行を確認してからstopする。APIキーは公開API headerだけ、Webhookへ転送しない。HTTPエラー/不正JSONに生本文を含めない。response内の業務outputは取得せずincludeData=false。今回はPort/Adapter/参照実機まで、CLI・永続receipt・Task/Agent委譲は次の小e2eで接続する。新依存/Designer/独自queueなし。

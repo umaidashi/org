@@ -1,3 +1,4 @@
+import { boundedJson } from '../runtime/http.js';
 import { createEvent, jsonObject } from './domain.js';
 import type { Event } from './domain.js';
 import type { EventBus } from './port.js';
@@ -53,34 +54,6 @@ function decodeGithubEvent(value: unknown, repository: string): Event {
     { id: `github:${repo.id}:${raw.id}`, createdAt: new Date(timestamp).toISOString() },
   );
 }
-async function boundedJson(response: Response): Promise<unknown> {
-  if (!response.body) throw new Error('Missing GitHub response body');
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  try {
-    while (true) {
-      const chunk: unknown = await reader.read();
-      if (
-        chunk === null ||
-        typeof chunk !== 'object' ||
-        !('done' in chunk) ||
-        typeof chunk.done !== 'boolean'
-      )
-        throw new Error('Invalid GitHub response chunk');
-      if (chunk.done) break;
-      const value = 'value' in chunk ? chunk.value : undefined;
-      if (!(value instanceof Uint8Array)) throw new Error('Invalid GitHub response bytes');
-      size += value.byteLength;
-      if (size > 4 * 1024 * 1024) throw new Error('GitHub response size limit');
-      chunks.push(value);
-    }
-    return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
-  } finally {
-    await reader.cancel();
-    reader.releaseLock();
-  }
-}
 export async function importGithubEvents(
   bus: Pick<EventBus, 'list' | 'publishOnce'>,
   request: (url: string, init: RequestInit) => Promise<Response>,
@@ -106,7 +79,7 @@ export async function importGithubEvents(
       await response.body?.cancel();
       throw new Error(`GitHub Event request failed: ${response.status}`);
     }
-    const body = await boundedJson(response);
+    const body = await boundedJson(response, 4 * 1024 * 1024);
     if (!Array.isArray(body) || body.length > 100) throw new Error('Invalid GitHub Event page');
     incoming.push(...body.map((value: unknown) => decodeGithubEvent(value, repo)));
     if (body.length < 100) break;

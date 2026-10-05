@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/workflow-n8n-real.test.ts:
+(pass) native n8n reference workflows return verified execution IDs, success and cancellation status [429.33ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [455.00ms]
