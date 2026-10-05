@@ -1,0 +1,6 @@
+RED: refresh service export absent1fail39ms. GREEN DI UT1pass24ms; native CLI direct/daemon HTTP fixture2pass0fail1.02s.
+Explicit version refresh replaces title/objective, preserves local labels/status/internal Execution; same remote no-op with no history, stale version rejection, fetch-time race rejected even on unchanged result, issue/URL identity rejection, read error no write, history immutable and reopen.
+Initial static fixture narrowing/nullable Task annotation corrected; static successful.
+Full check325pass12skip0fail337tests169files67.64s; type/lint/format/AST/dry-run nonempty. ActualJev1699subjects110warnings missing/unsure0 errors/degradedempty. ID validator warning compared to invalid-ID native parser tests and existing Linear reader validation.
+No external mutation/automatic bidirectional sync. Direct external API not verified because LINEAR_API_KEY absent. Terminal WorkItem remains immutable via existing TaskProvider.
+Independent review noCritical/Important; Minor deferred README terminal immutability mention. Reviewer8UT/domain/SQLite passed; restricted socket prevented separate CLI proof. Parent actual CLI/full-check evidence retained. Declined external auth/write/autosync/terminal reopening remain unverified or out of this step, not overall complete.

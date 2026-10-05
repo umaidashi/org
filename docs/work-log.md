@@ -1029,3 +1029,5 @@
 ### 2026-10-06 — 既存Linear WorkItemの読取refresh
 - Notion Task抽象化を再取得しWorkItem同期/内部Execution分離を確認。[設計・計画](superpowers/plans/2026-10-06-linear-work-item-refresh.md)。Ruling: local adminの明示version付きtitle/objective置換、既存local編集も置換対象。進捗/labels/内部Taskは保持、URL変更/競合は拒否。同値でもfetch後version確認。実API認証/外部write/自動双方向同期は未完了。
 - Memory自動抽出5930efdはmainへ通常push成功82.14秒。refresh REDは未export1fail39ms、最小service GREEN1UT24ms、native direct/daemon HTTP fixture込み2成功0fail1.02秒。fixtureのid narrowing/Task nullable型を修正して静的検査を再実行する。外部へのmutationはなし。
+- 全check325成功12skip0fail337tests169files67.64秒、型/lint/format/AST/dry-run非空。実jev1699対象warning110/missing・unsure0/errors・degraded空。validator失敗候補はnative無効ID入力と既存reader guardを照合。[証拠](verification/2026-10-06-linear-work-item-refresh/check.txt)。独立最終review中。
+- 独立最終review Critical/Importantなし。Minor保留: READMEにterminal WorkItem不変の明記なし（既存domainは拒否、guardは保持）。Ruling: 実Linear認証はkey未設定で未検証、外部write/自動同期/terminal再開はこの明示refreshの対象外として未完了を維持。review sandboxのdaemon readiness timeoutはparent実CLI2成功と区別し、全check/jevはparent実行結果を証拠にする。再reviewなし。
