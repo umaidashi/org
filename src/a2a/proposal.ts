@@ -100,3 +100,45 @@ export function adoptDelegationProposal(
   }
   return verified(saved);
 }
+
+export function adoptCoordinatorReply(
+  rooms: Pick<RoomRepository, 'get' | 'messages' | 'append'>,
+  agents: Pick<AgentRepository, 'list'>,
+  tasks: { get(id: string): unknown },
+  roomId: string,
+  sourceId: string,
+  replyIds: readonly string[],
+): A2AMessage | null {
+  const room = rooms.get(roomId);
+  const messages = rooms.messages(roomId);
+  const source = messages.find((m) => m.id === sourceId && m.roomId === roomId);
+  if (!source || source.sender.kind !== 'human') return null;
+  if (
+    room.id !== roomId ||
+    room.archivedAt !== null ||
+    room.activationPolicy !== 'coordinator' ||
+    room.coordinatorId === undefined ||
+    !room.participants.some((p) => p.kind === 'human' && p.id === source.sender.id)
+  )
+    throw new Error('Automatic delegation Room unavailable');
+  const replies = messages.filter(
+    (m) =>
+      replyIds.includes(m.id) &&
+      m.roomId === roomId &&
+      m.replyTo === source.id &&
+      m.sender.kind === 'agent' &&
+      m.sender.id === room.coordinatorId &&
+      !Object.hasOwn(m.metadata, 'a2a'),
+  );
+  if (replies.length > 1) throw new Error('Ambiguous Coordinator delegation replies');
+  const reply = replies[0];
+  if (!reply) return null;
+  let value: unknown;
+  try {
+    value = JSON.parse(reply.content);
+  } catch {
+    return null;
+  }
+  if (!record(value) || value.tool !== 'a2a') return null;
+  return adoptDelegationProposal(rooms, agents, tasks, { roomId, messageId: reply.id });
+}

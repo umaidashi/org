@@ -60,3 +60,17 @@ test('daemon Workflow host config enables continuous Workflow polling without Ag
   ])
     assert.throws(() => parseDaemonCommand(args));
 });
+
+test('automatic delegation Room allowlist requires configured continuous wake-up and rejects invalid IDs', () => {
+  const base = ['daemon', '--runtime-config', '/tmp/runtime.json', '--wake-up'];
+  assert.deepEqual(parseDaemonCommand([...base, '--delegation-room', 'r']).delegationRooms, ['r']);
+  for (const args of [
+    ['daemon', '--delegation-room', 'r'],
+    [...base, '--once', '--delegation-room', 'r'],
+    [...base, '--delegation-room', 'r', '--delegation-room', 'r'],
+    [...base, '--delegation-room', '  '],
+    [...base, '--delegation-room', 'r\0'],
+    [...base, '--delegation-room', 'x'.repeat(129)],
+  ])
+    assert.throws(() => parseDaemonCommand(args));
+});

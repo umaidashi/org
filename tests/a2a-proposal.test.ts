@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { createMessage, createRoom, type Message } from '../src/rooms/domain.js';
 import { createAgent } from '../src/agents/domain.js';
-import { adoptDelegationProposal, parseDelegationProposal } from '../src/a2a/proposal.js';
+import {
+  adoptCoordinatorReply,
+  adoptDelegationProposal,
+  parseDelegationProposal,
+} from '../src/a2a/proposal.js';
 const room = createRoom(
   {
     title: 'Company',
@@ -187,4 +191,33 @@ test('adoption propagates storage failure and only recovers an exactly matching 
   );
   assert.equal(result.to, 'cto');
   assert.equal(f.messages.length, 2);
+});
+
+test('automatic adoption accepts only canonical Coordinator reply to human input and propagates marked invalid proposals', () => {
+  const f = fixture();
+  const human = createMessage(
+    room,
+    { sender: { kind: 'human', id: 'founder' }, content: 'Delegate research' },
+    { id: 'human', createdAt: 'before' },
+  );
+  f.messages.unshift(human);
+  const source = f.messages[1];
+  assert.ok(source);
+  f.messages[1] = { ...source, replyTo: human.id };
+  const agents = { list: () => [chief, cto] },
+    tasks = { get: () => null };
+  assert.equal(adoptCoordinatorReply(f.store, agents, tasks, 'r', 'proposal', [source.id]), null);
+  assert.equal(adoptCoordinatorReply(f.store, agents, tasks, 'r', 'human', ['missing']), null);
+  const adopted = adoptCoordinatorReply(f.store, agents, tasks, 'r', 'human', [source.id]);
+  assert.ok(adopted);
+  assert.equal(adopted.to, 'cto');
+  assert.equal(f.messages.length, 3);
+  f.messages[1] = { ...source, replyTo: human.id, content: 'ordinary text' };
+  assert.equal(adoptCoordinatorReply(f.store, agents, tasks, 'r', 'human', [source.id]), null);
+  f.messages[1] = {
+    ...source,
+    replyTo: human.id,
+    content: JSON.stringify({ tool: 'a2a', type: 'delegate', to: 'cto' }),
+  };
+  assert.throws(() => adoptCoordinatorReply(f.store, agents, tasks, 'r', 'human', [source.id]));
 });

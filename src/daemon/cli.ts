@@ -1,3 +1,4 @@
+import { adoptCoordinatorReply } from '../a2a/proposal.js';
 import { observeTaskWorkflow } from '../workflows/task-observe.js';
 import { SqliteApprovalStore } from '../approvals/sqlite.js';
 import { requestTaskWorkflowApproval } from '../workflows/task-approval.js';
@@ -64,6 +65,7 @@ export interface DaemonCommand {
   readonly workflowConfig?: string;
   readonly wakeUp: boolean;
   readonly consolidationRooms?: readonly string[];
+  readonly delegationRooms?: readonly string[];
 }
 export function parseDaemonCommand(argv: string[]): DaemonCommand {
   const parsed = parseArgs({
@@ -80,10 +82,27 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       'sandbox-config': { type: 'string' },
       'workflow-config': { type: 'string' },
       'wake-up': { type: 'boolean' },
+      'delegation-room': { type: 'string', multiple: true },
       'memory-consolidation-room': { type: 'string', multiple: true },
     },
   });
   const [noun, action, ...extra] = parsed.positionals;
+  const delegationRooms = parsed.values['delegation-room'];
+  if (
+    delegationRooms !== undefined &&
+    (delegationRooms.length > 32 ||
+      new Set(delegationRooms).size !== delegationRooms.length ||
+      delegationRooms.some(
+        (id) => !id.trim() || /\s/.test(id) || id.length > 128 || id.includes('\0'),
+      ) ||
+      action !== undefined ||
+      parsed.values.once ||
+      !parsed.values['wake-up'] ||
+      parsed.values['runtime-config'] === undefined)
+  )
+    throw new Error(
+      '--delegation-room requires valid unique IDs and configured continuous wake-up',
+    );
   const consolidationRooms = parsed.values['memory-consolidation-room'];
   if (consolidationRooms !== undefined) {
     validateNightlyRooms(consolidationRooms);
@@ -130,6 +149,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
   )
     throw new Error('--sandbox-config requires continuous mode and --runtime-config');
   const base = {
+    ...(delegationRooms === undefined ? {} : { delegationRooms }),
     ...(consolidationRooms === undefined ? {} : { consolidationRooms }),
     ...(parsed.values['sandbox-config'] === undefined
       ? {}
@@ -162,6 +182,7 @@ function openOperations(
   sandboxPolicy?: SandboxPolicy,
   workflow?: Awaited<ReturnType<typeof configuredWorkflowRuntime>>,
   consolidationRooms: readonly string[] = [],
+  delegationRooms: readonly string[] = [],
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -202,6 +223,16 @@ function openOperations(
       if (roomRepository.get(roomId).id !== roomId)
         throw new Error('Memory consolidation Room unavailable');
     }
+    for (const id of delegationRooms) {
+      const room = roomRepository.get(id);
+      if (
+        room.id !== id ||
+        room.archivedAt !== null ||
+        room.activationPolicy !== 'coordinator' ||
+        room.coordinatorId === undefined
+      )
+        throw new Error('Automatic delegation requires active Coordinator Room');
+    }
     const wakeupJournal = new SqliteWakeupJournal(db);
     wakeups = wakeupJournal;
     const sandboxJobs = new SandboxJobs();
@@ -220,7 +251,7 @@ function openOperations(
     runtime.recover();
     recoverWakeups(wakeupJournal, () => new Date().toISOString());
     recoverInterruptedExecutionTasks(taskProvider, () => new Date().toISOString());
-    const activate = (roomId: string, messageId: string) => {
+    const activate = async (roomId: string, messageId: string) => {
       const source = roomRepository.messages(roomId).find((m) => m.id === messageId);
       if (source && 'a2a' in source.metadata) {
         const envelope = listA2AMessages(roomRepository, roomId, taskProvider).find(
@@ -232,22 +263,56 @@ function openOperations(
           return Promise.resolve([]);
         }
       }
-      return activateRoomMessage(
+      const replies = await activateRoomMessage(
         roomRepository,
         sessionStore,
         (agentId, roomId) => runtime.open(agentId, roomId),
-        (sessionId, messageId) =>
-          replyToRoomMessage(
+        (sessionId, messageId) => {
+          const room = roomRepository.get(roomId);
+          return replyToRoomMessage(
             roomRepository,
             sessionStore,
             runtime,
-            { sessionId, messageId, instruction: '' },
+            {
+              sessionId,
+              messageId,
+              instruction:
+                delegationRooms.includes(roomId) &&
+                source?.sender.kind === 'human' &&
+                sessionStore.get(sessionId).agentId === room.coordinatorId
+                  ? JSON.stringify({
+                      delegation: {
+                        policy:
+                          'If specialist delegation is needed, reply only one JSON object with version=1, tool=a2a, type=delegate, to=one allowed target ID, payload={objective:string}. Otherwise reply ordinary text. No other fields.',
+                        targets: agentRepository
+                          .list()
+                          .filter(
+                            (a) =>
+                              a.reportsTo === room.coordinatorId &&
+                              room.participants.some((p) => p.kind === 'agent' && p.id === a.id),
+                          )
+                          .map((a) => ({ id: a.id, name: a.name, role: a.role })),
+                      },
+                    })
+                  : '',
+            },
             { id: randomUUID(), at: new Date().toISOString() },
             memoryProvider,
-          ),
+          );
+        },
         roomId,
         messageId,
       );
+      if (delegationRooms.includes(roomId))
+        adoptCoordinatorReply(
+          roomRepository,
+          agentRepository,
+          taskProvider,
+          roomId,
+          messageId,
+          replies.map((m) => m.id),
+        );
+      return replies;
     };
     const execute = (taskId: string, sessionId: string, messageId: string) => {
       const shellTask =
@@ -580,6 +645,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
           sandboxPolicy,
           workflow,
           command.consolidationRooms,
+          command.delegationRooms,
         );
       });
     } finally {

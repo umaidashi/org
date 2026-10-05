@@ -513,7 +513,13 @@ bun run start logs --event EVENT_ID --json
 bun run start a2a adopt ROOM_ID --message COORDINATOR_MESSAGE_ID --json
 ```
 
-Coordinatorの原本Messageにある厳密JSON `{"version":1,"tool":"a2a","type":"delegate","to":"SPECIALIST_ID","payload":{"objective":"調査内容"}}`を、local adminが明示採用します。送信者・Room・Task・相関IDはhostが固定し、直属の参加専門AgentとCoordinatorのread/write/delegate権限を確認します。原本参照を持つtyped delegateを一度だけ保存し、同じ原本の再採用は同じ結果を返します。`--wake-up` daemonが既存の委譲Task実行・結果通知・人間レビューへ接続します。自動proposal採用・本人認証・一般tool loopは未完了です。
+Coordinatorの原本Messageにある厳密JSON `{"version":1,"tool":"a2a","type":"delegate","to":"SPECIALIST_ID","payload":{"objective":"調査内容"}}`を、local adminが明示採用します。送信者・Room・Task・相関IDはhostが固定し、直属の参加専門AgentとCoordinatorのread/write/delegate権限を確認します。原本参照を持つtyped delegateを一度だけ保存し、同じ原本の再採用は同じ結果を返します。`--wake-up` daemonが既存の委譲Task実行・結果通知・人間レビューへ接続します。本人認証・一般tool loopは未完了です。
+
+```sh
+bun run start daemon --wake-up --runtime-config /absolute/runtime.json --delegation-room ROOM_ID
+```
+
+`--delegation-room`を指定したactive Coordinator Roomだけ、人間へのCoordinator返信を自動採用します（繰返し可、最大32）。直属参加専門Agentの候補をContextへ渡し、strict `tool=a2a`返信は既存の権限検査を通します。通常本文はそのまま表示し、結果・decisionへの返信から再委譲しません。返信保存後・採用前の中断はfailed wakeupとして保持するため、`room activate`または`a2a adopt`で明示回復します。自動retryはしません。
 
 ## daemonの監視TUI
 
