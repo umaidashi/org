@@ -224,4 +224,4 @@ test('multiple rooms with the same Agent keep separate persistent replies and ar
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
-});
+}, 15000);

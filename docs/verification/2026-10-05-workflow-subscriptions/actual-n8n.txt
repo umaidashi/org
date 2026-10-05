@@ -1,0 +1,2 @@
+PASS: actual Event subscription -> daemon -> official local n8n -> success -> immutable Workflow receipt and separate delivery reference -> restart without replay
+PASS: no Agent credentials, business service calls, or raw input/API credentials in Workflow receipts; private fixtures only

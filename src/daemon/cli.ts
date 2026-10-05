@@ -1,3 +1,5 @@
+import { configuredWorkflowRuntime } from '../workflows/cli.js';
+import { pollWorkflowDeliveries } from '../workflows/delivery.js';
 import { validateSandboxPolicy, type SandboxPolicy } from '../sandbox/domain.js';
 import { produceTaskSandboxArtifact } from '../sandbox/service.js';
 import { runDockerSandbox } from '../sandbox/docker.js';
@@ -52,6 +54,7 @@ export interface DaemonCommand {
   readonly interval: number;
   readonly runtimeConfig?: string;
   readonly sandboxConfig?: string;
+  readonly workflowConfig?: string;
   readonly wakeUp: boolean;
 }
 export function parseDaemonCommand(argv: string[]): DaemonCommand {
@@ -67,6 +70,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       'poll-interval': { type: 'string' },
       'runtime-config': { type: 'string' },
       'sandbox-config': { type: 'string' },
+      'workflow-config': { type: 'string' },
       'wake-up': { type: 'boolean' },
     },
   });
@@ -98,6 +102,11 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
   )
     throw new Error('--wake-up requires continuous mode and --runtime-config');
   if (
+    parsed.values['workflow-config'] !== undefined &&
+    (action !== undefined || parsed.values.once || !parsed.values['workflow-config'].trim())
+  )
+    throw new Error('--workflow-config requires a path and continuous mode');
+  if (
     parsed.values['sandbox-config'] !== undefined &&
     (action !== undefined ||
       parsed.values.once ||
@@ -109,6 +118,9 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
     ...(parsed.values['sandbox-config'] === undefined
       ? {}
       : { sandboxConfig: resolve(parsed.values['sandbox-config']) }),
+    ...(parsed.values['workflow-config'] === undefined
+      ? {}
+      : { workflowConfig: resolve(parsed.values['workflow-config']) }),
     wakeUp: parsed.values['wake-up'] ?? false,
     db,
     json: parsed.values.json ?? false,
@@ -132,6 +144,7 @@ function openOperations(
   drivers: ReturnType<typeof configuredDrivers>,
   wakeUp: boolean,
   sandboxPolicy?: SandboxPolicy,
+  workflow?: Awaited<ReturnType<typeof configuredWorkflowRuntime>>,
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -293,13 +306,28 @@ function openOperations(
     return {
       dispatch: () => {
         pollSchedules(scheduleRepository, eventBus, () => Date.now());
-        return dispatchEvents(eventBus, agentRepository, taskProvider, journal);
+        return dispatchEvents(
+          eventBus,
+          agentRepository,
+          taskProvider,
+          journal,
+          workflow !== undefined,
+        );
       },
       deliveries: () => journal.list(),
       wakeups: () => wakeupJournal.list(),
-      ...(wakeUp
+      ...(wakeUp || workflow !== undefined
         ? {
             wakeUp: async (signal?: AbortSignal) => {
+              if (workflow)
+                await pollWorkflowDeliveries(
+                  eventBus,
+                  journal,
+                  { ...workflow, workflows: new Set(workflow.workflows.map((w) => w.id)) },
+                  () => new Date().toISOString(),
+                  signal,
+                );
+              if (!wakeUp) return;
               await pollRoomWakeups(
                 roomRepository,
                 sessionStore,
@@ -390,6 +418,10 @@ function openOperations(
 }
 export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
   if (command.action === 'run') {
+    const workflow =
+      command.workflowConfig === undefined
+        ? undefined
+        : await configuredWorkflowRuntime(command.workflowConfig);
     const drivers = configuredDrivers(command.runtimeConfig);
     let sandboxPolicy: SandboxPolicy | undefined;
     if (command.sandboxConfig !== undefined) {
@@ -407,7 +439,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
     try {
       await runLocalDaemon(command.socket, command.interval, () => {
         lease = acquireDatabaseLease(command.db);
-        return openOperations(lease.databasePath, drivers, command.wakeUp, sandboxPolicy);
+        return openOperations(lease.databasePath, drivers, command.wakeUp, sandboxPolicy, workflow);
       });
     } finally {
       lease?.close();

@@ -774,3 +774,20 @@
 - 訂正後全230/230・型/lint/format/AST成功80.75秒、外部実機opt-in7件は通常skip（n8nは別実行成功）。実Jev1242判定で正常終了、詳細は[検証記録](verification/2026-10-05-workflow-cli-receipts/check.txt)とsemantic summary。実daemon→n8nの安全な成否markerを同directoryへ保存した。
 - Ruling: 不変Eventを外部invoke前にclaimし同key再送を拒否する。結果不明はunconfirmedのまま自動retryしない。host/Workflow/実行IDを観測とcancel前に照合し、inputはhashのみ、API keyはenvからnative API headerだけ。CLI e2eは最新の配布用Bun bundleを共有し、長い2scenarioの全体budgetだけ明示、各子process制限は維持。Agent外部scope/Task委譲は後続。Next: 明示host configのdaemonでEvent購読からWorkflowを一度だけ起動し、restart時の配送回復を小e2eで確認する。
 - 実Jev missing/unsure0、errors/degradedなし、warning73。Workflow CLI/service/n8nとその追加テストにwarningなし。既存候補は全失敗枝の網羅保証を意味せず、具体的失敗UTと独立レビューで判断する。
+- main328922c通常push成功、pre-push全検査/実Jev/公開検査141.48秒。hook bypassなし。
+
+## Event購読からWorkflowへ（進行中）
+
+- 同[計画](superpowers/plans/2026-10-05-n8n-workflow-runtime.md)の後続へ進む。branch feat/workflow-subscriptions。既存DeliveryPlan/Event receiptを再利用し、Workflow実行参照をTask IDと区別する。
+- 未delivery module RED→DB不要DIのclaim-before-invoke/再起動時started receipt回復/no replay/自分のreceipt Event除外GREEN、1件3.70ms。SQLite migrationとdaemon host configの配線は未完了。
+- 旧SQLite schemaでcompleteWorkflow未method RED→nullable workflow_request_idをtransaction内migrationし、Task IDをnullのまま保持するGREEN。旧Task配送も含む4件成功75ms。
+- daemon --workflow-config未option RED→CLIと同じbounded host config loaderを二callerで再利用し、Agent wake-upなしでも非同期Workflow pollを有効化するGREEN。既存同期Task配送は維持する。
+- 実daemon e2eの最初はEvent subscribe引数を誤記してusage errorとなり、既存CLI契約へ訂正。購読→native HTTP fixture→delivery→再起動no replay成功、CLI二件3.91秒。新testのnullable stdout/stderr型境界も訂正。
+- 追加DIで配送保存だけの失敗を伝達しstarted receiptから回復、取消済みpollはclaimしない、不明結果は再送しないことを確認。host設定変更時にrequest IDも変わり再送されるREDを追加し、配送identityだけでrequest IDを決定してhost相違はdeferするGREEN。外部結果不明を新hostへ転送しない。
+- 購読版の最初の全checkは231 pass/7 skip/4 fail、242件147.59秒。新規Workflow検証は成功、既存Room/daemonの複数CLI scenarioが既定5秒timeout。全成功とは扱わない。実Jevはcheck失敗により未実行。実n8nは先のCPU高負荷を避け、別の使い捨て固定imageにCPU0.5/768MiB/PID128制限を設定して検証する。
+- 独立Final Reviewer Critical/Important/Minorなし、関連16件1.51秒と実CLI/HTTP/再起動2件成功。再レビューは行わない。
+- 既存4つの長い複数CLI scenarioも各operationの5秒上限と全体の既定5秒が競合するため、当該scenarioだけ合計15秒を明示する。operation上限と通常UTは変更せず、sleep追加/hook bypassなし。全体実時間は継続計測する。
+- CPU0.5の実n8n fixture準備はTimeoutErrorで失敗、実機成功とは扱わない。readinessはその後200。fixtureだけをCPU上限1の使い捨て環境へ再作成し、実装のHTTP10秒制限は維持する。生例外/応答/APIキーはprivate tmpのみ。
+- CPU上限1の公式固定n8nで参照success/cancelと実Event購読→daemon→Workflow success→不変receipt/独立delivery参照→再起動no replay成功。Agent資格情報/業務service呼出しなし、raw input/API keyはreceiptへ保存しない。成功後自作containerだけを終了し、全検査を再実行する。
+- 最終全235/235・型/lint/format/AST成功109.77秒、外部実機opt-in7件は通常skip（n8nは別実行成功）。実Jev1257判定missing/unsure0、errors/degradedなし、warning76。[検証記録](verification/2026-10-05-workflow-subscriptions/check.txt)。
+- Ruling: catch-hides-failure候補は生Provider errorを公開せず、deferred receiptに失敗を保存して自動再送を止める意図的境界。配送保存failureは伝達し次pollでstartedから回復する。具体的failure/restart/host変更UTと独立レビューで確認し、網羅保証を主張しない。明示host allowlistだけを使い、既存deferred配送は勝手に復活させない。自分のWorkflow receiptは購読入力から除外。停止は現在のbounded native呼出しをdrainし、以降のclaimを中止する。Next: Notion Securityを再照合済み、Agent別のcredential/external Workflow scopeをhostで制限し、Task/Agent委譲へ接続する。

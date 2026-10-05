@@ -71,7 +71,7 @@ export function parseWorkflowCommand(argv: string[]): WorkflowCommand {
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
-async function configuredRuntime(path: string) {
+export async function configuredWorkflowRuntime(path: string) {
   const file = Bun.file(path);
   if (file.size > 65536) throw new Error('Workflow config size limit');
   let value: unknown;
@@ -112,7 +112,8 @@ export async function runWorkflowCommand(
   command: WorkflowCommand,
   output: (line: string) => void,
 ): Promise<void> {
-  const configured = 'config' in command ? await configuredRuntime(command.config) : undefined;
+  const configured =
+    'config' in command ? await configuredWorkflowRuntime(command.config) : undefined;
   if (command.action === 'run' && !configured?.workflows.some((w) => w.id === command.target))
     throw new Error('Workflow is not allowed');
   const bus = new SqliteEventBus(command.db);

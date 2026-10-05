@@ -36,8 +36,14 @@ export function dispatchEvents(
   agents: Pick<AgentRepository, 'list'>,
   tasks: IdempotentTaskWriter,
   journal: Pick<DeliveryJournal, 'begin' | 'complete' | 'defer'>,
+  workflowPolling = false,
 ): readonly Delivery[] {
-  const plans = planDeliveries(bus.list(), bus.subscriptions());
+  const plans = planDeliveries(
+    bus.list(),
+    bus
+      .subscriptions()
+      .filter((subscription) => !workflowPolling || subscription.subscriberType !== 'workflow'),
+  );
   const agentIds = new Set(agents.list().map((agent) => agent.id));
   return plans.map((plan) => {
     const receipt = journal.begin(plan);

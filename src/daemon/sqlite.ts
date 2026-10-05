@@ -22,6 +22,9 @@ function decode(value: unknown): Delivery {
     eventId: text(value.event_id),
     subscriptionId: text(value.subscription_id),
     taskId: value.task_id === null ? null : text(value.task_id),
+    ...(value.workflow_request_id === null
+      ? {}
+      : { workflowRequestId: text(value.workflow_request_id) }),
     status: value.status,
     attempts: value.attempts,
     reason: value.reason === null ? null : text(value.reason),
@@ -35,6 +38,11 @@ export class SqliteDeliveryJournal implements DeliveryJournal {
     try {
       this.db.exec(`PRAGMA busy_timeout=5000;
         CREATE TABLE IF NOT EXISTS deliveries(key TEXT PRIMARY KEY, event_id TEXT NOT NULL, subscription_id TEXT NOT NULL, task_id TEXT, status TEXT NOT NULL, attempts INTEGER NOT NULL, reason TEXT, UNIQUE(event_id, subscription_id));`);
+      this.transaction(() => {
+        const columns = this.db.query('PRAGMA table_info(deliveries)').all();
+        if (!columns.some((column) => record(column) && column.name === 'workflow_request_id'))
+          this.db.exec('ALTER TABLE deliveries ADD COLUMN workflow_request_id TEXT');
+      });
     } catch (error) {
       this.db.close();
       throw error;
@@ -85,6 +93,24 @@ export class SqliteDeliveryJournal implements DeliveryJournal {
       this.db
         .query("UPDATE deliveries SET task_id=?, status='delivered' WHERE key=?")
         .run(taskId, key);
+      return this.get(key);
+    });
+  }
+  completeWorkflow(key: string, requestId: string): Delivery {
+    if (!requestId.trim()) throw new Error('Workflow request required');
+    return this.transaction(() => {
+      const receipt = this.get(key);
+      if (
+        receipt.status === 'delivered' &&
+        receipt.workflowRequestId === requestId &&
+        receipt.taskId === null
+      )
+        return receipt;
+      if (receipt.status !== 'pending' || receipt.taskId !== null)
+        throw new Error('Delivery state conflict');
+      this.db
+        .query("UPDATE deliveries SET workflow_request_id=?, status='delivered' WHERE key=?")
+        .run(requestId, key);
       return this.get(key);
     });
   }

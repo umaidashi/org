@@ -47,3 +47,16 @@ test('daemon Sandbox host policy is explicit and requires continuous configured 
   ])
     assert.throws(() => parseDaemonCommand(args));
 });
+
+test('daemon Workflow host config enables continuous Workflow polling without Agent credentials', () => {
+  assert.equal(
+    parseDaemonCommand(['daemon', '--workflow-config', '/tmp/workflow.json']).workflowConfig,
+    '/tmp/workflow.json',
+  );
+  for (const args of [
+    ['daemon', '--workflow-config', ''],
+    ['daemon', '--once', '--workflow-config', '/tmp/workflow.json'],
+    ['daemon', 'status', '--workflow-config', '/tmp/workflow.json'],
+  ])
+    assert.throws(() => parseDaemonCommand(args));
+});

@@ -13,6 +13,7 @@ export interface Delivery {
   readonly eventId: string;
   readonly subscriptionId: string;
   readonly taskId: string | null;
+  readonly workflowRequestId?: string;
   readonly status: 'pending' | 'delivered' | 'deferred';
   readonly attempts: number;
   readonly reason: string | null;

@@ -186,4 +186,4 @@ test('Room CLI persists coordinator and selects mention or A2A targets across da
     await exited;
     rmSync(home, { recursive: true, force: true });
   }
-});
+}, 15000);

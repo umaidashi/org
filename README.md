@@ -123,7 +123,7 @@ bun run start event enable SUBSCRIPTION_ID --json
 
 publishは受信者を指定せず不変のEvent原本を保存します。patternの`*`はdot区切りの1区間、末尾`**`は0以上の区間に一致します。filterはpayloadの指定keyのJSON値との完全一致です。Subscriptionを変更してもEvent原本は変わりません。
 
-Agent購読は登録済みIDを確認します。Workflow購読は外部識別子を保存するだけで、存在確認・実行はまだ行いません。`matches`は照合結果の取得です。
+Agent購読は登録済みIDを確認します。Workflow購読はhost allowlistの外部識別子を指定し、`--workflow-config`を持つdaemonが一度だけ起動します。`matches`は照合結果の取得です。
 
 ## EventからTaskへの処理
 
@@ -389,3 +389,14 @@ bun run start workflow history REQUEST_ID --json
 ```
 
 runの戻り値`payload.requestId`をstatus/cancel/historyへ渡します。claimは外部呼出しより先に保存し、通信失敗でも同じkeyを自動再送しません。不明な結果はunconfirmed Eventとして残ります。原入力はhashだけを記録し、観測は追記します。status/cancelは保存済みreceiptと同host/Workflowを照合します。これは手動local admin操作で、Task/Agentの自動Workflow委譲は後続です。
+
+## Event購読からWorkflowを起動する
+
+```sh
+bun run start --direct event subscribe manual.requested --subscriber-type workflow --subscriber WORKFLOW_ID --json
+bun run start daemon --workflow-config ./workflow.local.json
+```
+
+host設定のAPIキー環境変数はdaemon起動時に渡します。Agent Runtime設定や`--wake-up`は不要です。入力は元EventのID/type/source/payload/createdAtで、保存するWorkflow receiptは本文のhashだけです。Deliveryの`workflowRequestId`は不変requestを指し、`taskId`はnullです。先にclaimした配送を再起動時に再送せず、started receiptから配送記録だけを回復します。結果不明やhost不一致はdeferredのままです。Workflow自身のreceipt Eventはこの自動購読から除外します。
+
+設定なしで既にdeferredとなった配送を、自動で復活させることはありません。必要なら判断のうえ新しい購読またはEventを作ります。Task/AgentのWorkflow委譲と外部権限scopeは後続です。

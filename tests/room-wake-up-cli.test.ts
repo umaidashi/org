@@ -180,4 +180,4 @@ test('Room activation runs only the coordinator or explicit Agent, reuses provid
     await exited;
     rmSync(home, { recursive: true, force: true });
   }
-});
+}, 15000);

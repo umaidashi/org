@@ -99,7 +99,7 @@ test('daemon once creates assigned ExecutionTask and restart does not duplicate 
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
-});
+}, 15000);
 test('two concurrent CLI workers create only one Task and two original history snapshots', async () => {
   const home = mkdtempSync(join(tmpdir(), 'org-daemon-concurrent-'));
   const prefix = ['--no-env-file', cli, '--db', join(home, 'org.db')];

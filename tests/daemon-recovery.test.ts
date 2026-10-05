@@ -79,3 +79,38 @@ test('real Task commit survives receipt failure and retry finishes receipt witho
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('Workflow delivery stores its request separately from Task identity and survives legacy schema reopen', () => {
+  const home = mkdtempSync('/tmp/org-workflow-delivery-schema-');
+  const path = home + '/org.db';
+  const legacy = new Database(path);
+  legacy.exec(
+    'CREATE TABLE deliveries(key TEXT PRIMARY KEY,event_id TEXT NOT NULL,subscription_id TEXT NOT NULL,task_id TEXT,status TEXT NOT NULL,attempts INTEGER NOT NULL,reason TEXT,UNIQUE(event_id,subscription_id));',
+  );
+  legacy.close();
+  let journal: SqliteDeliveryJournal | undefined;
+  try {
+    journal = new SqliteDeliveryJournal(path);
+    const event = createEvent(
+      { type: 'manual.requested', source: 'manual' },
+      { id: 'e', createdAt: 'now' },
+    );
+    const subscription = createSubscription(
+      { subscriberType: 'workflow', subscriberId: 'flow', eventPattern: '**' },
+      { id: 's', createdAt: 'now' },
+    );
+    const plan = planDeliveries([event], [subscription])[0];
+    assert.ok(plan);
+    journal.begin(plan);
+    const receipt = journal.completeWorkflow(plan.key, 'workflow:request');
+    assert.equal(receipt.taskId, null);
+    assert.equal(receipt.workflowRequestId, 'workflow:request');
+    assert.throws(() => journal?.complete(plan.key, 'task'), /conflict/);
+    journal.close();
+    journal = new SqliteDeliveryJournal(path);
+    assert.deepEqual(journal.list(), [receipt]);
+  } finally {
+    journal?.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+});

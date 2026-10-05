@@ -57,7 +57,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org session start|send|resume|reply|stop|get|list|history [OPTIONS]
        org [--db PATH] daemon --once [--json]
        org [--db PATH] daemon deliveries [--json]
-       org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH]
        org daemon status|dispatch|wakeups|stop --socket PATH [--json]
 
 Register and list persistent Agent identities. Runtime processes are not started.
