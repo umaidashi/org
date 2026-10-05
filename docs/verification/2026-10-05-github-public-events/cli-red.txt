@@ -1,0 +1,53 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/github-events-cli.test.ts:
+32 |     assert.equal(run(['agent', 'create', 'reader', '--role', 'Reader', '--runtime', 'codex']).status, 0);
+33 |     const agents = JSON.parse(run(['agent', 'list', '--json']).stdout) as {id:string}[];
+34 |     const agent = agents[0]; assert.ok(agent);
+35 |     assert.equal(run(['event', 'subscribe', 'github.pull_request.opened', '--subscriber-type', 'agent', '--subscriber', agent.id]).status, 0);
+36 |     const first = run(['event', 'import-github', 'Fixture/Repo', '--json']);
+37 |     assert.equal(first.status, 0, first.stderr);
+                ^
+AssertionError: Error: Expected event publish|get|list|subscribe|subscriptions|matches|enable|disable
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org a2a send|get|list [OPTIONS]
+       org memory capture|get|list|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+ generatedMessage: false,
+     actual: 2,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/github-events-cli.test.ts:37:12
+      at <REPO>/tests/github-events-cli.test.ts:12:9
+(fail) GitHub CLI imports immutable originals into daemon Subscription Tasks and survives long HTTP responses [193.22ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [219.00ms]

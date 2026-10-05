@@ -1,0 +1,12 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/github-events.test.ts:
+(pass) GitHub import validates public responses and reuses first originals across mutable metadata [6.43ms]
+(pass) GitHub import caps pagination and validates later pages before any publication [5.42ms]
+
+tests/github-events-cli.test.ts:
+(pass) GitHub CLI imports immutable originals into daemon Subscription Tasks and survives long HTTP responses [6622.56ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 2 files. [6.67s]

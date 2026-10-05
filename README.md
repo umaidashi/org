@@ -1,6 +1,6 @@
 # org — AI Company Kernel
 
-Agent・Task・Room・Memory・Event・Runtimeを組み合わせ、AIの組織と実務をローカルで動かすTypeScriptプロジェクトです。現在はAgent registry、ローカルTaskProvider、Room・Message、Event・Subscription、EventからTaskを作る常駐daemonとローカルsocketが動きます。Sessionの永続化とCodex/Claude Runtimeへの接続も実装しています。Messageを根拠とするTyped Memoryとscope付きContextを実装しています。外部連携などは未実装です。[要件と進捗](docs/requirements.md)を参照してください。
+Agent・Task・Room・Memory・Event・Runtimeを組み合わせ、AIの組織と実務をローカルで動かすTypeScriptプロジェクトです。現在はAgent registry、ローカルTaskProvider、Room・Message、Event・Subscription、EventからTaskを作る常駐daemonとローカルsocketが動きます。Sessionの永続化とCodex/Claude Runtimeへの接続も実装しています。Messageを根拠とするTyped Memoryとscope付きContextを実装しています。公開GitHub Eventの明示取込も接続しています。LinearやNotionの外部Adapterは後続です。[要件と進捗](docs/requirements.md)を参照してください。
 
 ## セットアップ
 
@@ -278,7 +278,7 @@ org agent list --json
 
 上司がいるAgentのJSONには`reportsTo`が含まれます。存在しない上司や循環は拒否し、変更と履歴を一緒に保存します。同じ関係の再設定は履歴を増やしません。上司関係は組織の記録であり、実行権限や自動委譲は別の境界です。
 
-Agentのdelegate権限は作成時に`--capability can_delegate`で明示します。省略したAgentはtyped A2Aのdelegateを送信・自動起動できません。通常のRoom metadata経由でも起動前に検証します。既知の他のcan_*値は保存できますが、対応する実行境界の権限制約は後続です。ローカル管理者のCLI操作をAgent本人として認証する機能ではありません。作成後の権限変更APIはまだありません。
+Agentのdelegate権限は作成時に`--capability can_delegate`で明示します。省略したAgentはtyped A2Aのdelegateを送信・自動起動できません。通常のRoom metadata経由でも起動前に検証します。既知の他のcan_*値は保存できますが、対応する実行境界の権限制約は後続です。ローカル管理者のCLI操作をAgent本人として認証する機能ではありません。作成後の権限変更はhuman Approvalとrevision CASで適用します（下記Approval参照）。
 
 `--wake-up`付きdaemonでtyped A2Aの`delegate`を送ると、宛先AgentにExecutionTaskを一度だけ割り当てます。JSON payloadをTask指示に含め、`--task`参照は親Taskとして保持します。元Roomの通常返信turnは発行せず、Task RoomでMemoryを含めて実行し、成果物を承認待ちへ保存します。`room activate`による手動delegateはTask割当まで行います。結果はTask/Artifactで参照できます。--wake-up workerが委譲元へtyped result（成果物なし失敗はblocker）を返し、既存activationでCoordinatorへ通知します。返送失敗でTask結果を失わず、次tick/再起動では返送だけを再試行します。人間がtask reviewした後は、レビュー原本と前後Task履歴を照合したtyped decisionを委譲元へ返します。owner Agentは記録済みの人間判断を報告し、承認を代行しません。
 
@@ -323,3 +323,14 @@ bun run start -- audit list --json
 `audit list`はApprovalに加え、Taskの不変履歴から実行開始・成功・失敗を公開します。actorは開始時のowner、入出力は`task history`で読めるversion snapshot参照です。人間レビューの却下は実行失敗に変換しません。詳細tool引数・本人認証はこの履歴projectionの対象外です。
 
 Agentへの生成指示は`{"version":1,"tool":"sandbox","code":"TypeScript"}`だけを返す形にします。Task Roomで`room activate`して生成したMessageを、`sandbox run TASK_ID --proposal MESSAGE_ID --writable --file result.txt`へ渡します。repo・書込・選択ファイル・実行上限はCLI側で指定し、Messageから権限を設定しません。Artifactは`proposalRef`で原本を参照します。
+
+## 公開GitHub Eventの取込
+
+```sh
+bun run start -- event import-github OWNER/REPO --json
+bun run start -- event subscribe github.pull_request.opened --subscriber-type agent --subscriber AGENT_ID
+```
+
+公開RESTを認証なしGETで読み、GitHub repo ID/Event IDを保存IDへ変換します。PullRequestEvent/action openedはgithub.pull_request.opened、PushEventはgithub.pushになります。payloadはGitHub Event全体で、filterはidやrepoなどの原fieldを指定します。再取込は最初の原本を保持し、SubscriptionとdaemonでTaskを一度だけ作ります。
+
+固定API host・redirect拒否・ページ10秒/4MiB・最大300件で、Agentが外部操作をする機能ではありません。取込途中の保存失敗は再実行で原本を再利用します。[公式API](https://docs.github.com/en/rest/activity/events)は最新300件/30日、30秒〜6時間遅延です。自動poll・webhook・private repoの認証は後続です。

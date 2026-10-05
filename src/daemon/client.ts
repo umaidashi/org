@@ -35,7 +35,9 @@ export async function requestApplication(socket: string, argv: string[]): Promis
       (command.kind === 'room' && command.command.action === 'activate') ||
       (command.kind === 'task' && command.command.action.kind === 'run')
         ? null
-        : AbortSignal.timeout(5000),
+        : AbortSignal.timeout(
+            command.kind === 'event' && command.command.action === 'import-github' ? 40000 : 5000,
+          ),
     headers: { 'Content-Type': 'application/json', Connection: 'close' },
     body: JSON.stringify({ argv }),
   });

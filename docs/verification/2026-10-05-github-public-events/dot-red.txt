@@ -1,0 +1,23 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/github-events.test.ts:
+(pass) GitHub import validates public responses and reuses first originals across mutable metadata [7.86ms]
+(pass) GitHub import caps pagination and validates later pages before any publication [5.70ms]
+2 | import type { Event } from './domain.js';
+3 | import type { EventBus } from './port.js';
+4 | 
+5 | export function validateGithubRepository(repository: string): string {
+6 |   if (!/^[a-zA-Z0-9][a-zA-Z0-9-]*\/[a-zA-Z0-9_][a-zA-Z0-9_.-]*$/.test(repository))
+7 |     throw new Error('Expected GitHub OWNER/REPO');
+                  ^
+error: Expected GitHub OWNER/REPO
+      at validateGithubRepository (<REPO>/src/events/github.ts:7:15)
+      at importGithubEvents (<REPO>/src/events/github.ts:86:16)
+      at importGithubEvents (<REPO>/src/events/github.ts:82:3)
+      at <anonymous> (<REPO>/tests/github-events.test.ts:156:26)
+      at <anonymous> (<REPO>/tests/github-events.test.ts:148:92)
+(fail) GitHub repository validation accepts dot repositories while denying path traversal [0.28ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [54.00ms]

@@ -7,8 +7,10 @@ import { jsonObject, validateEventInput, validateSubscriptionInput } from './dom
 import type { EventInput, SubscriptionInput } from './domain.js';
 import { matchingSubscriptions, publishEvent, registerSubscription } from './service.js';
 import { SqliteEventBus } from './sqlite.js';
+import { importGithubEvents, validateGithubRepository } from './github.js';
 export type EventCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'publish'; readonly input: EventInput }
+  | { readonly action: 'import-github'; readonly repository: string }
   | { readonly action: 'subscribe'; readonly input: SubscriptionInput }
   | { readonly action: 'list' | 'subscriptions' }
   | { readonly action: 'get' | 'matches' | 'enable' | 'disable'; readonly id: string }
@@ -60,6 +62,12 @@ export function parseEventCommand(argv: string[]): EventCommand {
     validateEventInput(input);
     return { ...base, action, input };
   }
+  if (action === 'import-github')
+    return {
+      ...base,
+      action,
+      repository: validateGithubRepository(required(target, 'OWNER/REPO')),
+    };
   if (action === 'subscribe') {
     const input = {
       subscriberType: subscriberType(parsed.values['subscriber-type']),
@@ -76,17 +84,22 @@ export function parseEventCommand(argv: string[]): EventCommand {
   }
   if (action === 'get' || action === 'matches' || action === 'enable' || action === 'disable')
     return { ...base, action, id: required(target, 'ID') };
-  throw new Error('Expected event publish|get|list|subscribe|subscriptions|matches|enable|disable');
+  throw new Error(
+    'Expected event publish|import-github|get|list|subscribe|subscriptions|matches|enable|disable',
+  );
 }
-export function runEventCommand(
+export async function runEventCommand(
   command: EventCommand,
   output: (line: string) => void = console.log,
-): void {
+): Promise<void> {
   const bus = new SqliteEventBus(command.db);
   try {
     const identity = { id: randomUUID(), createdAt: new Date().toISOString() };
     let result: unknown;
     switch (command.action) {
+      case 'import-github':
+        result = await importGithubEvents(bus, (url, init) => fetch(url, init), command.repository);
+        break;
       case 'publish':
         result = publishEvent(bus, command.input, identity);
         break;

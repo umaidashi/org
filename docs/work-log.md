@@ -683,3 +683,14 @@
 - 全209/209・型/lint/format/AST成功40.75秒、Docker実機5件別opt-in。実Docker CLI tracked workspace→Artifact→人間review成功1件1.59秒。実Jev1124判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-sandbox-git-no-fetch/check.txt)。
 - Ruling: Sandbox準備で不足Git objectを補完しない。事前に利用者が完全cloneを用意する。hostの通信/認証helperを暗黙起動せず、既存失敗伝播と取消を維持する。新transport/credential abstractionなし。
 - main423d120通常push成功、pre-push全208テスト/実Jev/公開検査48.57秒。Next: 公開GitHub Eventの明示read-only取込を既存Event/Subscriptionへ接続し、小さな実サービスe2eを積み重ねる。
+
+## 公開GitHub Event取込（進行中）
+
+- [計画](superpowers/plans/2026-10-05-github-public-events.md)。Notion Event/MVPの外部GitHub Eventを既存journalへ接続する。固定公開REST GET、認証/外部書込なし。公式API version2026-03-10、最新300件/30日、30秒〜6時間遅延を確認。全履歴/realtimeとは扱わない。
+- 最小UT未module RED→公開response/ID精度/UTC日付/固定GET/認証なし/原本保持/不正/HTTP失敗/size上限GREEN。実CLIは旧配線へ一時復帰してunknown command RED→await配線GREEN。fetchだけnative preload fixtureへ差し替え、本物のCLI/SQLite/daemonでSubscription→assigned Task/6秒応答/再import原本維持/no duplicate/再openを確認。3件6.67秒。
+- Response readerのDOM型がanyでlint失敗したため、受信chunkをunknownとしてdone/bytes検証する境界へ訂正。テストのnullable child stdoutもguardを追加し静的検査成功。native GETはページ10秒/4MiB、最大300件。後続ページ不正なら書込前拒否を確認。
+- 実公開GitHub GET→保存原本→ID filter Subscription→一Task→実Claude Max（APIキー/native toolsなし）→原Message Artifact→明示human review completedを検証。生Event/Provider/DBはprivate tmpだけ。公開証拠は成否markerのみ。
+- main89dfd7c通常push成功、pre-push全209テスト/実Jev/公開検査51.14秒。
+- Final独立Reviewer Important1: 有効な公開.github repositoryを先頭文字制限が拒否。Critical/Minorなし、UT2件/fixture CLI1件を独立成功。GitHub公式のcommunity health repository名と照合し、取込が失敗するRED→単一segmentのdot/hyphenを許し`.`/`..`/query/hash/encoded traversalを拒否するGREENを確認。一回のfix pass、全suite/実Jevを再実行し再レビューはしない。
+- 最終全213/213・型/lint/format/AST成功47.48秒。Docker実機5件は別opt-in。実Jev1141判定missing/unsure0、errors/degradedなし。[検証記録](verification/2026-10-05-github-public-events/check.txt)。Important1修正済み、Critical/Minorなし。再レビューは行わない。
+- Ruling: 外部元はpublic repository限定、人間の明示CLIでread-only取込、LLMへの外部権限付与ではない。payloadは原GitHub Event全体、camel Event名をsnake case＋actionへ正規化。最初の観測原本を保持し、安定ID/type/source/time不一致はfail closed。actor metadataの後日変化は原本を変えない。各Event保存は既存transactionで原子的、batch保存途中失敗は再取込で重複を防ぐ。最大300件/30日/遅延あり、自動poll/ETag/webhook/private repoは未完了。Next: Memory retrievalのtype/tag/entity/importanceを既存Contextへ小さく接続する。

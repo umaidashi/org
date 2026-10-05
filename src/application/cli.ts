@@ -41,7 +41,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
        org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
        org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
-       org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org [--db PATH] event publish|import-github|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
        org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
        org sandbox artifact URI
        org sandbox cancel TASK_ID
@@ -275,7 +275,7 @@ async function runApplication(
     return;
   }
   if (command.kind === 'event') {
-    runEventCommand({ ...command.command, db }, output);
+    await runEventCommand({ ...command.command, db }, output);
     return;
   }
   let repository: SqliteAgentRepository | undefined;

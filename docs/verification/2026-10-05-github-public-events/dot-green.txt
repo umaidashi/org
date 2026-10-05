@@ -1,0 +1,10 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/github-events.test.ts:
+(pass) GitHub import validates public responses and reuses first originals across mutable metadata [6.77ms]
+(pass) GitHub import caps pagination and validates later pages before any publication [5.37ms]
+(pass) GitHub repository validation accepts dot repositories while denying path traversal
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 1 file. [35.00ms]
