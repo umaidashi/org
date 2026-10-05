@@ -61,6 +61,63 @@ test('Linear CLI read preserves existing issue without creating database and rej
     const remote = run(['--socket', socket, 'task', 'linear-get', 'ORG-1', '--json']);
     assert.equal(remote.status, 0, remote.stderr);
     assert.deepEqual(JSON.parse(remote.stdout), JSON.parse(direct.stdout));
+    const imported = run(['--socket', socket, 'task', 'import-linear', 'ORG-1', '--json']);
+    assert.equal(imported.status, 0, imported.stderr);
+    const work: unknown = JSON.parse(imported.stdout);
+    assert.ok(
+      work !== null && typeof work === 'object' && 'id' in work && typeof work.id === 'string',
+    );
+    assert.ok('kind' in work && work.kind === 'work_item');
+    assert.ok('externalRef' in work && work.externalRef === issue.url);
+    const updated = run([
+      '--socket',
+      socket,
+      'task',
+      'update',
+      work.id,
+      '--title',
+      'Local progress',
+      '--json',
+    ]);
+    assert.equal(updated.status, 0, updated.stderr);
+    const again = run(['--socket', socket, 'task', 'import-linear', 'ORG-1', '--json']);
+    assert.equal(again.status, 0, again.stderr);
+    assert.deepEqual(JSON.parse(again.stdout), JSON.parse(updated.stdout));
+    const child = run([
+      '--socket',
+      socket,
+      'task',
+      'create',
+      'Internal step',
+      '--objective',
+      'Inspect only',
+      '--kind',
+      'execution_task',
+      '--parent',
+      work.id,
+      '--json',
+    ]);
+    assert.equal(child.status, 0, child.stderr);
+    const parsedChild: unknown = JSON.parse(child.stdout);
+    assert.ok(
+      parsedChild !== null &&
+        typeof parsedChild === 'object' &&
+        'parentId' in parsedChild &&
+        parsedChild.parentId === work.id &&
+        'externalRef' in parsedChild &&
+        parsedChild.externalRef === null,
+    );
+    const listing = run(['--socket', socket, 'task', 'list', '--json']);
+    assert.equal(listing.status, 0, listing.stderr);
+    const tasks: unknown = JSON.parse(listing.stdout);
+    assert.ok(Array.isArray(tasks));
+    assert.equal(tasks.length, 2);
+    assert.equal(run(['--socket', socket, 'daemon', 'stop']).status, 0);
+    await exited;
+    daemon = undefined;
+    const reopened = run(['--direct', 'task', 'get', work.id, '--json']);
+    assert.equal(reopened.status, 0, reopened.stderr);
+    assert.deepEqual(JSON.parse(reopened.stdout), JSON.parse(updated.stdout));
   } finally {
     if (daemon) {
       run(['--socket', socket, 'daemon', 'stop']);

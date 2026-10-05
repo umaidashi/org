@@ -999,3 +999,9 @@
 - 全check初回lintはfixture RequestInit.bodyのString変換を拒否。実際のJSON string契約をassertしてからparseするよう訂正し、再実行する。
 - 独立最終review Critical/Importantなし、Minor2。Ruling: URL内の別Issue番号受理は誤った出典となるためImportantへ格上げ、OTHER-9応答fixtureでRED1fail27msを確認しidentifier一致へ修正。Minor保留: 新reader固有のoversized/不正JSON/body中断/UUID正規化fixture（共通boundedJsonとguardは存在）。再reviewなし一修正pass。
 - URL重要指摘修正GREEN2UT26ms、最終全check314成功9skip0fail323tests164files60.36秒、型/lint/format/AST/dry-run非空成功。実jev1648対象missing/unsure0/errors/degraded空/warning102、新reader失敗経路候補は検査済みHTTP/GraphQL/identity/secret境界と未追加fixtureを区別。40秒clientは既存11秒e2e成功。NOTION_API_KEY/LINEAR_API_KEY未設定を値非表示で再確認。[証拠](verification/2026-10-06-linear-issue-read/check.txt)。Next: 既存Issueをlocal WorkItemへ接続し、再取込/内部Execution分離を確認する。
+
+### 2026-10-06 — 既存Linear Issueのlocal WorkItem取込
+- [設計・計画](superpowers/plans/2026-10-06-linear-work-item-import.md)。Ruling: initial snapshotのみ、同内容再取込はcurrent local状態を返す。外部変更はconflictで、双方向同期/新Issue/mutationはしない。
+- RED: DI service未実装、native once操作未実装2fail38ms、実CLI import-linear未対応。GREEN: mappingとnative同内容再取込/local更新保持成功。rollback fixtureはhistoryがmissing Taskを拒否する既存契約を見落としていたため、not found＋実SQLゼロ件へ訂正。
+- Linear read76ce8c7はmainへ通常push成功72.35秒。native/service3成功44ms。初回staticはunion一枝に2kindをまとめたためswitch narrowingが残りlint拒否、別discriminant枝へ分けた。
+- targeted4成功630ms、最終全check317成功9skip0fail326tests166files62.29秒、型/lint/format/AST/dry-run非空成功。実jev1656対象missing/unsure0/errors/degraded空/warning102、新service/native onceの指摘なし。独立最終review Critical/Importantなし。Minor保留: 二接続は順次で同時競合を実証しない、direct取込/内部Execution作成時query増加の明示assertなし。停止後direct再openは成功。既存Coordinator実機証拠を要件表の古い未完了記述へ反映。[証拠](verification/2026-10-06-linear-work-item-import/check.txt)。Next: 業務一周の未完了（実装・テスト・Draft PR）の境界を既存Sandbox/Artifactと照合する。

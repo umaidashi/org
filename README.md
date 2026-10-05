@@ -645,3 +645,5 @@ Notion文書をRoomの不変原本へ取り込む場合は `knowledge notion PAG
 ## 既存Linear Issueの読取
 
 `bun --env-file=.env src/cli.ts --direct task linear-get ORG-1 --json` は既存Issueを読み取ります。`LINEAR_API_KEY`はPersonal API keyを設定し、daemon経由はdaemon起動時に設定します。UUIDまたはTEAM番号を指定でき、固定GraphQL queryのみで新Issue・mutation・local WorkItem同期は行いません。HTTP fixtureのCLI検証と実Linear APIの認証成功は区別します。
+
+`task import-linear ORG-1 --json` は既存Issueの初回snapshotをlocal WorkItemへ保存します。同じ内容の再取込は現在のlocal進捗を返し、外部本文変更はconflictを返します。内部作業は `task create TITLE --objective OBJECTIVE --kind execution_task --parent WORK_ITEM_ID` で分離できます。双方向同期は未実装です。

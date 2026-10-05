@@ -22,6 +22,7 @@ test('daemon command preserves long Runtime replies even with options before the
       requestApplication(socket, ['--json', 'room', 'activate', 'r', '--message', 'm']),
       requestApplication(socket, ['session', 'get', 's']),
       requestApplication(socket, ['task', 'linear-get', 'ORG-1']),
+      requestApplication(socket, ['task', 'import-linear', 'ORG-1']),
       requestApplication(socket, ['knowledge', 'notion', '3ee8a4020cb681d18daacc1e0016d596']),
       requestApplication(socket, ['--json', 'session', 'get', 's']),
       requestApplication(socket, [

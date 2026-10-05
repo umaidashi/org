@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
@@ -116,6 +117,39 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
         )
         .run(task.id, task.version, JSON.stringify(task));
       this.append(task);
+    });
+  }
+  importWorkItemOnce(task: Task): Task {
+    if (
+      task.kind !== 'work_item' ||
+      task.status !== 'pending' ||
+      task.owner !== null ||
+      task.version !== 0 ||
+      task.externalRef === null ||
+      !task.externalRef.trim()
+    )
+      throw new Error('Import requires a new externally referenced WorkItem');
+    return this.transaction(() => {
+      const row = this.db.query('SELECT data FROM tasks WHERE id=?').get(task.id);
+      if (row) {
+        const original = this.history(task.id)[0]?.task;
+        if (
+          !original ||
+          !isDeepStrictEqual(original, {
+            ...task,
+            createdAt: original.createdAt,
+            updatedAt: original.updatedAt,
+          })
+        )
+          throw new Error('WorkItem import conflict');
+        return this.get(task.id);
+      }
+      this.validateReferences(task);
+      this.db
+        .query('INSERT INTO tasks(id, version, data) VALUES (?, ?, ?)')
+        .run(task.id, task.version, JSON.stringify(task));
+      this.append(task);
+      return task;
     });
   }
   createAssignedOnce(task: Task, owner: string, at: string): Task {

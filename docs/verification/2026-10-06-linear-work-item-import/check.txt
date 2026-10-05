@@ -1,0 +1,7 @@
+RED: service module absent; actualCLI import-linear unsupported; native importWorkItemOnce absent2fail38ms.
+GREEN: DI mapping/native initialsnapshot replay preserving local edits/remote conflict/trigger rollback3pass44ms. Corrected rollback fixture: missing Task history rejects, inspector confirms zero history.
+Initial static: grouped discriminant kinds caused nonexhaustive switch -> separate union branches.
+Native HTTP fixture CLI: existingIssue→WorkItem→localtitleupdate→sameissue reimport retains current→internalExecution child with null externalRef. Daemonstop then directreopen retains work. Query-only; actualexternalAPI unverified.
+Full check317pass9skip0fail326tests166files62.29s; type/lint/format/AST/dry-run nonempty. ActualJev1656subjects102warnings missing/unsure0 errors/degradedempty.
+Independentreview noCritical/Important. DeferredMinors: simultaneous competing imports not exercised (two connections sequential); direct import and exact externalquery count during internalTask creation not asserted.
+Initialsnapshot only; changedremote content conflicts. No bidirectional sync or Linear mutation.

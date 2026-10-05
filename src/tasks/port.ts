@@ -28,3 +28,7 @@ export interface TaskProvider {
 export interface ExecutionResultWriter {
   stageExecutionResult(id: string, artifact: TaskArtifact, expectedVersion: number): Task;
 }
+
+export interface WorkItemImporter {
+  importWorkItemOnce(task: Task): Task;
+}
