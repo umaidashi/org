@@ -1,0 +1,6 @@
+RED: missing hook/daemon flag; later fixture queried RPC after daemon shutdown: full323pass12skip1fail66.60s, real1pass2fail38.54s. Moved original-message capture before stop.
+GREEN native2pass1skip0fail4.82s; actual Claude Max3pass0fail45.09s (real40.34s). Proposal original -> auto Room Memory -> next Context -> invalidation no revival -> restart same originals/Memory. Real Runtime invocation count not established by empty fixture counter.
+Full check324pass12skip0fail336tests168files66.93s; type/lint/format/AST/dry-run nonempty. ActualJev1691subjects109warnings missing/unsure0 errors/degradedempty.
+Warning ruling: proof helper exercises multiple modes; real test checks actual provider proposals/Memory/scoped Context/invalidation/restart. Existing extractor strict-validation coverage retained; hook partial-storage and paired-allowlist dedicated fixtures deferred, not claimed verified.
+Independent final review no Critical/Important. Minor deferred: real counter evidence, delegation guide wording outside extraction allowlist, partial-storage/paired-allowlist fixtures.
+Only explicit active Room allowlist/human inputs. No new LLM call, queue, retry or table. Individual records atomic; batch not atomic, manual extract recovery.

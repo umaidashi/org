@@ -1,3 +1,6 @@
+import { validateRoomAllowlist } from '../rooms/domain.js';
+import { extractRoomReplyMemories } from '../memory/extraction.js';
+import { jsonMemoryExtractor } from '../memory/extractor.js';
 import { adoptCoordinatorReply } from '../a2a/proposal.js';
 import { observeTaskWorkflow } from '../workflows/task-observe.js';
 import { SqliteApprovalStore } from '../approvals/sqlite.js';
@@ -66,6 +69,7 @@ export interface DaemonCommand {
   readonly wakeUp: boolean;
   readonly consolidationRooms?: readonly string[];
   readonly delegationRooms?: readonly string[];
+  readonly extractionRooms?: readonly string[];
 }
 export function parseDaemonCommand(argv: string[]): DaemonCommand {
   const parsed = parseArgs({
@@ -83,26 +87,27 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       'workflow-config': { type: 'string' },
       'wake-up': { type: 'boolean' },
       'delegation-room': { type: 'string', multiple: true },
+      'memory-extraction-room': { type: 'string', multiple: true },
       'memory-consolidation-room': { type: 'string', multiple: true },
     },
   });
   const [noun, action, ...extra] = parsed.positionals;
   const delegationRooms = parsed.values['delegation-room'];
-  if (
-    delegationRooms !== undefined &&
-    (delegationRooms.length > 32 ||
-      new Set(delegationRooms).size !== delegationRooms.length ||
-      delegationRooms.some(
-        (id) => !id.trim() || /\s/.test(id) || id.length > 128 || id.includes('\0'),
-      ) ||
+  const extractionRooms = parsed.values['memory-extraction-room'];
+  for (const [flag, ids] of [
+    ['--delegation-room', delegationRooms],
+    ['--memory-extraction-room', extractionRooms],
+  ] as const) {
+    if (ids === undefined) continue;
+    validateRoomAllowlist(ids);
+    if (
       action !== undefined ||
       parsed.values.once ||
       !parsed.values['wake-up'] ||
-      parsed.values['runtime-config'] === undefined)
-  )
-    throw new Error(
-      '--delegation-room requires valid unique IDs and configured continuous wake-up',
-    );
+      parsed.values['runtime-config'] === undefined
+    )
+      throw new Error(`${flag} requires configured continuous wake-up`);
+  }
   const consolidationRooms = parsed.values['memory-consolidation-room'];
   if (consolidationRooms !== undefined) {
     validateNightlyRooms(consolidationRooms);
@@ -150,6 +155,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
     throw new Error('--sandbox-config requires continuous mode and --runtime-config');
   const base = {
     ...(delegationRooms === undefined ? {} : { delegationRooms }),
+    ...(extractionRooms === undefined ? {} : { extractionRooms }),
     ...(consolidationRooms === undefined ? {} : { consolidationRooms }),
     ...(parsed.values['sandbox-config'] === undefined
       ? {}
@@ -183,6 +189,7 @@ function openOperations(
   workflow?: Awaited<ReturnType<typeof configuredWorkflowRuntime>>,
   consolidationRooms: readonly string[] = [],
   delegationRooms: readonly string[] = [],
+  extractionRooms: readonly string[] = [],
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -222,6 +229,11 @@ function openOperations(
     for (const roomId of consolidationRooms) {
       if (roomRepository.get(roomId).id !== roomId)
         throw new Error('Memory consolidation Room unavailable');
+    }
+    for (const id of extractionRooms) {
+      const room = roomRepository.get(id);
+      if (room.id !== id || room.archivedAt !== null)
+        throw new Error('Automatic Memory requires active Room');
     }
     for (const id of delegationRooms) {
       const room = roomRepository.get(id);
@@ -269,6 +281,34 @@ function openOperations(
         (agentId, roomId) => runtime.open(agentId, roomId),
         (sessionId, messageId) => {
           const room = roomRepository.get(roomId);
+          const instruction = {
+            ...(delegationRooms.includes(roomId) &&
+            source?.sender.kind === 'human' &&
+            sessionStore.get(sessionId).agentId === room.coordinatorId
+              ? {
+                  delegation: {
+                    policy:
+                      'If specialist delegation is needed, reply only one JSON object with version=1, tool=a2a, type=delegate, to=one allowed target ID, payload={objective:string}. Otherwise reply ordinary text or another allowed tool proposal. No other fields.',
+                    targets: agentRepository
+                      .list()
+                      .filter(
+                        (a) =>
+                          a.reportsTo === room.coordinatorId &&
+                          room.participants.some((p) => p.kind === 'agent' && p.id === a.id),
+                      )
+                      .map((a) => ({ id: a.id, name: a.name, role: a.role })),
+                  },
+                }
+              : {}),
+            ...(extractionRooms.includes(roomId) && source?.sender.kind === 'human'
+              ? {
+                  memory: {
+                    policy:
+                      'For durable Room Memory requests, reply only JSON {version:1,tool:memory,candidates:[{type:semantic|episodic|procedural|relational,content:string,confidence:number,sourceMessageIds:[prior same-Room message ID],supersedes?:existing Memory ID}]}. Otherwise reply ordinary text or another allowed tool proposal. Memory writes require read/write capabilities and remain in this Room.',
+                  },
+                }
+              : {}),
+          };
           return replyToRoomMessage(
             roomRepository,
             sessionStore,
@@ -276,25 +316,7 @@ function openOperations(
             {
               sessionId,
               messageId,
-              instruction:
-                delegationRooms.includes(roomId) &&
-                source?.sender.kind === 'human' &&
-                sessionStore.get(sessionId).agentId === room.coordinatorId
-                  ? JSON.stringify({
-                      delegation: {
-                        policy:
-                          'If specialist delegation is needed, reply only one JSON object with version=1, tool=a2a, type=delegate, to=one allowed target ID, payload={objective:string}. Otherwise reply ordinary text. No other fields.',
-                        targets: agentRepository
-                          .list()
-                          .filter(
-                            (a) =>
-                              a.reportsTo === room.coordinatorId &&
-                              room.participants.some((p) => p.kind === 'agent' && p.id === a.id),
-                          )
-                          .map((a) => ({ id: a.id, name: a.name, role: a.role })),
-                      },
-                    })
-                  : '',
+              instruction: Object.keys(instruction).length ? JSON.stringify(instruction) : '',
             },
             { id: randomUUID(), at: new Date().toISOString() },
             memoryProvider,
@@ -308,6 +330,16 @@ function openOperations(
           roomRepository,
           agentRepository,
           taskProvider,
+          roomId,
+          messageId,
+          replies.map((m) => m.id),
+        );
+      if (extractionRooms.includes(roomId))
+        extractRoomReplyMemories(
+          roomRepository,
+          agentRepository,
+          memoryProvider,
+          jsonMemoryExtractor,
           roomId,
           messageId,
           replies.map((m) => m.id),
@@ -646,6 +678,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
           workflow,
           command.consolidationRooms,
           command.delegationRooms,
+          command.extractionRooms,
         );
       });
     } finally {

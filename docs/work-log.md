@@ -1016,3 +1016,12 @@
 - 通常最終全check319成功11skip0fail330tests166files63.97秒、型/lint/format/AST/dry-run非空成功。実jev1668対象missing/unsure0/errors/degraded空/warning107。helper nameはformatter含む同じgate適用、非empty/時間境界は具体assert、実物claimはopt-in結果待ち。全体test期限は3RuntimeとDocker/隔離gateの合計上限を覆う900秒へ広げ、failed Taskは即失敗する。
 - 修正後実コードproof6成功2skip0fail126.77秒、生成test再実行/独立Dockerassert/生成物の隔離format→bun run check（AST fixture含む非空）成功後にhuman approve→Memory→same Coordinator providerSession→restart no duplicate。全最終check319成功11skip0fail330tests166files59.54秒、実jev1668対象missing/unsure0/errors/degraded空/warning107。raw生成物は私有Artifactに保持し意味APIへ送信しない。Minor保留: 第二引数非整数/安全整数外/negative overflowの独立assert。既存算術実機経路の回帰確認中。
 - 共通proof変更後の既存実Claude算術経路＋最終生成物negative回帰は7成功1skip0fail51.08秒（算術49.36秒、negative1.66秒）。一fixpass完了、再reviewなし。WorkItem85aae6aはmain通常push成功76.00秒。自作daemon/DB/専用gate container/imageをfixture cleanup、私有診断は削除する。
+
+### 2026-10-06 — 明示RoomのMemory候補自動採用
+- [設計・計画](superpowers/plans/2026-10-06-room-memory-auto-extraction.md)。Ruling: 既存Extractor/createOnceへ接続するだけで新LLM呼出/queue/retryなし。human入力直後の一件typed memoryだけ、固定Room scope/過去根拠/read-write能力を照合。reply保存と採用/複数候補全体のatomic保証はしない、failed wakeup後manual extractで回復する。
+- RED: hook exportなし、実CLI --memory-extraction-room未対応。初回UT fixtureはreply根拠をcreateMessageへ渡していなかったため訂正。DBなしhook＋nightly3成功55ms。Room allowlist validatorを3用途で再利用し、native opt-in/nonoptin/次Context/invalidate/restart10成功2.27秒。guideは構造化JSONへまとめ、delegationとの併用で片方のschemaを壊さない。
+- 実コード証拠66c1b2aはmainへ通常push成功79.78秒。
+- Runtime guide/既存委譲込みtargeted12成功4.98秒。実Claude opt-inを同じproofへ追加した際、fixtureのcheck変数shadowと実driver env/timeout条件を置換し損ねたためstatic失敗、checkPrompt/実Max用env120秒へ訂正。誤設定の自作daemonだけ停止して再実行する。
+- 全checkは323成功12skip1fail66.60秒、実Claude込みは1成功2fail38.54秒。原因はfixtureがdaemon停止後にRPCで原本を取得していた順序誤り。停止前へ移動しnative2成功1skip0fail4.82秒、実Claudeと全checkを再実行。独立最終review Critical/Importantなし。Minor保留: 実Claude用turn-countは空のため呼出回数の証拠にはしない（原本/Memory比較は実施）、非抽出Roomの委譲guide文言、storage障害/両allowlist併用の専用fixture。再reviewなし。
+- 修正後実Claude込みe2eは3成功0fail45.09秒（実Claude40.34秒）。候補原本→自動採用→次Context→invalidate後no revival→restart原本/Memory保持を確認。実Runtime呼出回数はcount fileで証明していない。
+- 最終全check324成功12skip0fail336tests168files66.93秒、型/lint/format/AST/dry-run非空。実jev1691対象warning109/missing・unsure0/errors・degraded空。proof helperの複数modeと実Claudetestは原本/Memory/Context/失効/restartの具体assertを照合、storage/guide併用専用fixtureは保留。独立reviewのMinorと限界を[証拠](verification/2026-10-06-room-memory-auto-extraction/check.txt)へ記録。Next: 未完了の外部WorkItem同期と安全な読取refreshを小さく切り分ける。

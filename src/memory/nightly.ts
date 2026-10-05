@@ -1,3 +1,4 @@
+import { validateRoomAllowlist } from '../rooms/domain.js';
 import { createHash } from 'node:crypto';
 import type { RoomRepository } from '../rooms/port.js';
 import type { MemoryConsolidationReceipt, MemoryConsolidator } from './consolidation.js';
@@ -6,12 +7,7 @@ export interface MemoryConsolidationHistory {
   listConsolidations(scope: string): readonly MemoryConsolidationReceipt[];
 }
 export function validateNightlyRooms(ids: readonly string[]): void {
-  if (
-    ids.length > 32 ||
-    new Set(ids).size !== ids.length ||
-    ids.some((id) => !id.trim() || /\s/.test(id) || id.length > 128 || id.includes('\0'))
-  )
-    throw new Error('Invalid nightly Memory Room allowlist');
+  validateRoomAllowlist(ids);
 }
 export function pollMemoryConsolidations(
   rooms: Pick<RoomRepository, 'get'>,

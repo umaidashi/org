@@ -82,3 +82,54 @@ export function extractRoomMemories(
   }
   return results;
 }
+
+export function extractRoomReplyMemories(
+  rooms: Pick<RoomRepository, 'get' | 'messages'>,
+  agents: Pick<AgentRepository, 'list'>,
+  memories: Pick<MemoryProvider, 'list' | 'createOnce'>,
+  extractor: MemoryExtractor,
+  roomId: string,
+  sourceId: string,
+  replyIds: readonly string[],
+): readonly Memory[] {
+  const room = rooms.get(roomId),
+    messages = rooms.messages(roomId);
+  const source = messages.find((message) => message.id === sourceId && message.roomId === roomId);
+  if (!source || source.sender.kind !== 'human') return [];
+  if (
+    room.id !== roomId ||
+    room.archivedAt !== null ||
+    !room.participants.some((p) => p.kind === 'human' && p.id === source.sender.id)
+  )
+    throw new Error('Automatic Memory Room unavailable');
+  const proposals = messages.filter((message) => {
+    if (
+      !replyIds.includes(message.id) ||
+      message.roomId !== roomId ||
+      message.replyTo !== source.id ||
+      message.sender.kind !== 'agent' ||
+      Object.hasOwn(message.metadata, 'a2a')
+    )
+      return false;
+    let value: unknown;
+    try {
+      value = JSON.parse(message.content);
+    } catch {
+      return false;
+    }
+    return (
+      value !== null &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      'tool' in value &&
+      value.tool === 'memory'
+    );
+  });
+  if (proposals.length > 1) throw new Error('Ambiguous Memory extraction replies');
+  const proposal = proposals[0];
+  if (!proposal) return [];
+  return extractRoomMemories(rooms, agents, memories, extractor, {
+    roomId,
+    messageId: proposal.id,
+  });
+}

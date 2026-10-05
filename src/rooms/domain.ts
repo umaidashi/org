@@ -220,3 +220,12 @@ export function createMessage(
     metadata,
   };
 }
+
+export function validateRoomAllowlist(ids: readonly string[]): void {
+  if (
+    ids.length > 32 ||
+    new Set(ids).size !== ids.length ||
+    ids.some((id) => !id.trim() || /\s/.test(id) || id.length > 128 || id.includes('\0'))
+  )
+    throw new Error('Invalid Room allowlist');
+}

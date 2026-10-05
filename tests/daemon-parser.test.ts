@@ -74,3 +74,18 @@ test('automatic delegation Room allowlist requires configured continuous wake-up
   ])
     assert.throws(() => parseDaemonCommand(args));
 });
+
+test('Memory extraction Room opt-in rejects duplicate or malformed IDs and requires continuous wake-up', () => {
+  const base = ['daemon', '--wake-up', '--runtime-config', '/tmp/config.json'];
+  assert.deepEqual(parseDaemonCommand([...base, '--memory-extraction-room', 'r']).extractionRooms, [
+    'r',
+  ]);
+  for (const args of [
+    ['daemon', '--memory-extraction-room', 'r'],
+    [...base, '--once', '--memory-extraction-room', 'r'],
+    [...base, '--memory-extraction-room', 'r', '--memory-extraction-room', 'r'],
+    [...base, '--memory-extraction-room', ' '],
+    [...base, '--memory-extraction-room', 'x'.repeat(129)],
+  ])
+    assert.throws(() => parseDaemonCommand(args));
+});
