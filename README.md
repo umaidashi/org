@@ -583,3 +583,14 @@ bun run start memory extract --room ROOM_ID --message PROPOSAL_MESSAGE_ID --json
 Room返信では、差替え可能なMemoryRetrieverと純粋なContextBuilderを使います。SQLite Adapterはscope・有効期間を再照合し、source本文が3〜1024 Unicode文字のときliteral phraseで全文検索します。scope、tags/entity、新しさ、重要度が同順位の場合に全文一致を優先し、最後はID順です。短文・巨大本文・NULを含む本文は全文検索を行いません。検索障害はRuntime起動前にエラーとなります。
 
 ContextBuilderは入力Messageまでの最大30件、Memory最大20件、UTF-8最大64KiBと省略件数を維持します。別Room履歴と巨大なsourceを拒否します。意味検索・vector rerank・自動summary生成は未完了です。
+
+
+## 完全同値Memoryの整理
+
+```sh
+bun run start memory consolidate --scope room:ROOM_ID --key REVIEW_KEY --at 2026-10-06T00:00:00.000Z --json
+```
+
+active Roomの有効なMemoryだけを対象に、type/content/confidence/有効期間/tags/entities/importanceが完全に同値のものを整理します。最も古いcreatedAt/IDをkeeperとし、他を理由付きinvalidateします。元Message・Memory・sourceRefsは変更しません。各根拠はinactiveになった原記録にも残り、keeperへ自動mergeしません。
+
+失効と不変receiptは同じtransactionで保存し、開始後に公開Room Portでactiveを再確認して、対象snapshotの変更やstorage障害を全rollbackします。同じkey/scopeは元receiptを返して再整理せず、時刻も更新しません。新しく整理する場合は新しいkeyを選びます。これはlocal adminの明示操作で、夜間自動処理・意味重複/競合推論は後続です。異なるDBや外部Roomとの分散transactionは保証しません。

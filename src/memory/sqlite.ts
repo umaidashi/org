@@ -5,13 +5,61 @@ import { isDeepStrictEqual } from 'node:util';
 import { decodeMemory, replaceMemory, memorySearchPhrase } from './domain.js';
 import type { Memory } from './domain.js';
 import type { MemoryProvider } from './port.js';
+import {
+  planMemoryConsolidation,
+  validateConsolidationRequest,
+  type MemoryConsolidationPlan,
+  type MemoryConsolidationReceipt,
+  type MemoryConsolidationStore,
+} from './consolidation.js';
+function consolidationReceipt(row: unknown): MemoryConsolidationReceipt | null {
+  if (row === null) return null;
+  if (typeof row !== 'object' || !('data' in row) || typeof row.data !== 'string')
+    throw new Error('Stored Memory consolidation missing');
+  const value: unknown = JSON.parse(row.data);
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    !('key' in value) ||
+    !('scope' in value) ||
+    !('at' in value) ||
+    !('keepers' in value) ||
+    !('invalidated' in value) ||
+    typeof value.key !== 'string' ||
+    typeof value.scope !== 'string' ||
+    typeof value.at !== 'string' ||
+    !Array.isArray(value.keepers) ||
+    !Array.isArray(value.invalidated)
+  )
+    throw new Error('Invalid stored Memory consolidation');
+  const ids = (values: readonly unknown[]): readonly string[] =>
+    values.map((id) => {
+      if (typeof id !== 'string' || !id.trim())
+        throw new Error('Invalid consolidation Memory reference');
+      return id;
+    });
+  const receipt = {
+    key: value.key,
+    scope: value.scope,
+    at: value.at,
+    keepers: ids(value.keepers),
+    invalidated: ids(value.invalidated),
+  };
+  validateConsolidationRequest(receipt);
+  if (
+    new Set([...receipt.keepers, ...receipt.invalidated]).size !==
+    receipt.keepers.length + receipt.invalidated.length
+  )
+    throw new Error('Conflicting consolidation Memory references');
+  return receipt;
+}
 function rowMemory(row: unknown): Memory {
   if (row === null || typeof row !== 'object' || !('data' in row) || typeof row.data !== 'string')
     throw new Error('Stored Memory missing');
   const value: unknown = JSON.parse(row.data);
   return decodeMemory(value);
 }
-export class SqliteMemoryProvider implements MemoryProvider {
+export class SqliteMemoryProvider implements MemoryProvider, MemoryConsolidationStore {
   private readonly db: Database;
   constructor(path: string) {
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
@@ -20,6 +68,10 @@ export class SqliteMemoryProvider implements MemoryProvider {
       this.db.exec(`PRAGMA busy_timeout=5000;
    CREATE TABLE IF NOT EXISTS memory_records(sequence INTEGER PRIMARY KEY AUTOINCREMENT,id TEXT UNIQUE NOT NULL,data TEXT NOT NULL,supersedes TEXT UNIQUE);
    CREATE TABLE IF NOT EXISTS memory_invalidations(id TEXT PRIMARY KEY,reason TEXT NOT NULL,at TEXT NOT NULL);
+   CREATE TABLE IF NOT EXISTS memory_consolidations(key TEXT PRIMARY KEY,data TEXT NOT NULL);
+   CREATE TRIGGER IF NOT EXISTS memory_consolidations_no_replace BEFORE INSERT ON memory_consolidations WHEN EXISTS(SELECT 1 FROM memory_consolidations WHERE key=NEW.key OR rowid=NEW.rowid) BEGIN SELECT RAISE(ABORT,'Memory consolidation immutable'); END;
+   CREATE TRIGGER IF NOT EXISTS memory_consolidations_no_update BEFORE UPDATE ON memory_consolidations BEGIN SELECT RAISE(ABORT,'Memory consolidation immutable'); END;
+   CREATE TRIGGER IF NOT EXISTS memory_consolidations_no_delete BEFORE DELETE ON memory_consolidations BEGIN SELECT RAISE(ABORT,'Memory consolidation immutable'); END;
    CREATE TRIGGER IF NOT EXISTS memory_records_no_conflicting_replace BEFORE INSERT ON memory_records WHEN EXISTS(SELECT 1 FROM memory_records WHERE id=NEW.id OR sequence=NEW.sequence OR (NEW.supersedes IS NOT NULL AND supersedes=NEW.supersedes)) BEGIN SELECT RAISE(ABORT,'Memory immutable'); END;
    CREATE TRIGGER IF NOT EXISTS memory_records_no_update BEFORE UPDATE ON memory_records BEGIN SELECT RAISE(ABORT,'Memory immutable'); END;
    CREATE TRIGGER IF NOT EXISTS memory_records_no_delete BEFORE DELETE ON memory_records BEGIN SELECT RAISE(ABORT,'Memory immutable'); END;
@@ -52,6 +104,51 @@ export class SqliteMemoryProvider implements MemoryProvider {
   }
   close(): void {
     this.db.close();
+  }
+  getConsolidation(key: string): MemoryConsolidationReceipt | null {
+    const receipt = consolidationReceipt(
+      this.db.query('SELECT data FROM memory_consolidations WHERE key=?').get(key),
+    );
+    if (receipt !== null && receipt.key !== key)
+      throw new Error('Stored Memory consolidation key mismatch');
+    return receipt;
+  }
+  commitConsolidation(
+    plan: MemoryConsolidationPlan,
+    authorize: () => void,
+  ): MemoryConsolidationReceipt {
+    validateConsolidationRequest(plan);
+    return this.atomic(() => {
+      authorize();
+      const previous = this.getConsolidation(plan.key);
+      if (previous) {
+        if (previous.scope !== plan.scope)
+          throw new Error('Memory consolidation key scope conflict');
+        return previous;
+      }
+      const request = { key: plan.key, scope: plan.scope, at: plan.at };
+      const expected = planMemoryConsolidation(this.list([plan.scope]), request);
+      if (!isDeepStrictEqual(expected, plan))
+        throw new Error('Memory consolidation snapshot conflict');
+      for (const { keeper, obsolete } of plan.duplicates) {
+        this.db
+          .query('INSERT INTO memory_invalidations(id,reason,at) VALUES (?,?,?)')
+          .run(
+            obsolete.id,
+            'Exact duplicate of org://memories/' + encodeURIComponent(keeper.id),
+            plan.at,
+          );
+      }
+      const receipt: MemoryConsolidationReceipt = {
+        ...request,
+        keepers: [...new Set(plan.duplicates.map((pair) => pair.keeper.id))].sort(),
+        invalidated: plan.duplicates.map((pair) => pair.obsolete.id),
+      };
+      this.db
+        .query('INSERT INTO memory_consolidations(key,data) VALUES (?,?)')
+        .run(plan.key, JSON.stringify(receipt));
+      return receipt;
+    });
   }
   private atomic<T>(operation: () => T): T {
     this.db.exec('BEGIN IMMEDIATE');

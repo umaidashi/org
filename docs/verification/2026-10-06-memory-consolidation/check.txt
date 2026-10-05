@@ -1,0 +1,8 @@
+RED: Consolidator module absent; SQLite table absent; CLI --key unsupported. Stored key/JSON key mismatch initially accepted; fixed.
+GREEN: pure exact-metadata selection/Room guards/key replay; SQLite atomic invalidations+immutable receipt/current snapshot comparison/storage-failure rollback/PK-rowid mutation denial/reopen; native CLI original source retention/active filtering/idempotency.
+Independent final review Important1: archive between selection and commit succeeded. Actual Room+Memory SQLite RED -> required authorize callback inside BEGIN IMMEDIATE -> GREEN no receipt/invalidation. Room public Port read preserves table ownership; local same-DB lock guarantee, no external distributed transaction claim.
+Minor deferred: confidence/entities/importance/validFrom differences and createdAt keeper ordering lack separate fixtures; implementation keys/sort correct.
+After fix4target tests476ms; native daemon consolidation -> restart -> original receipt, one active and immutable source PASS; owned daemon/temp DB removed.
+Final check exit0:288pass8skip0fail296tests154files57.69s;tsgo/Oxlint/Oxfmt/AST nonempty.
+Actual jev exit0:1520subjects93warnings missing0 unsure0 errors[] degraded[]. Public code only. Failure-path warning: selection filtering/Room/current-plan/storage conflict paths checked; other metadata precedence fixture coverage remains Minor, not guarantee of semantic conflict handling.
+Remaining: nightly daemon integration, semantic dedup/conflict, other scopes/adapters/full business e2e/authentication; whole goal incomplete.
