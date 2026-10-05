@@ -1,0 +1,10 @@
+Initial actualClaude+Docker proof4pass1skip148.48s. Productcode unchanged.
+Independent review Important3: generated tests not rerun; poll130s shorter than Runtime120s+Docker30s; generated bun check absent. Zero-generated-tests and150s projection fixtures RED2fail -> counted test guard and180s deadline GREEN5pass2skip53ms.
+Actual retry failedTask after188.20s (not success); fail-fast diagnosis added. Next actual retry105.98s reached generated gate but NodeNext missing extension rejected -> explicit .js import guidance.
+Generated isolated gate uses same publicpackage/lock/configs and AST fixtures in disposable Linux image. Dependency-only preparation network, execution no network/nonroot/readonly/no hostmount/caps dropped/bounded named container and image cleanup. Rawprivate Artifacts never sent Jev or Git.
+Negative generated gate runtime-valid explicit-any correctly rejected by actual Oxlint6pass2skip1.55s after correcting fixture import.
+Final actual codeproof6pass2skip0fail126.77s: two actualClaude Agents, nativeSandbox code/artifacts, returned Buntests executed with nonzero test count, independent Docker assertions, generated formatter+bun run check including AST fixture/nonzero subjects, approve then immutable episodicMemory/Coordinator providerSession continuity/restart no duplicate.
+Final normal check319pass11skip0fail330tests166files59.54s; static/AST/dry-run nonempty. ActualJev1668subjects107warnings missing/unsure0 errors/degradedempty (publicproof code only).
+DeferredMinor: independent assertions lack second-arg noninteger/unsafe input/negative overflow.
+Whole goal incomplete: businessIssue/repo and DraftPR not verified; actualLinear/Notion credentials absent.
+Existing actualClaude arithmetic regression plus final negative gate:7pass1skip0fail51.08s (arithmetic49.36s, negative1.66s). No rereview; onefixpass complete.

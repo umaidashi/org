@@ -1,3 +1,6 @@
+import { checkGeneratedCode } from './generated-code-check.js';
+import { runDockerSandbox } from '../src/sandbox/docker.js';
+import { runProcess } from '../src/runtime/process.js';
 import { cli } from './cli-path.js';
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
@@ -17,7 +20,7 @@ async function waitForProjection<T>(
   read: () => T | undefined,
   clock = { now: () => performance.now(), sleep: () => Bun.sleep(50) },
 ): Promise<T> {
-  const deadline = clock.now() + 130000;
+  const deadline = clock.now() + 180000;
   while (clock.now() < deadline) {
     const value = read();
     if (value !== undefined) return value;
@@ -54,7 +57,28 @@ function assertSpecialistResult(content: string): void {
 test('real proof rejects incorrect results containing the expected token', () => {
   assert.throws(() => assertSpecialistResult('NOT_RESULT_42'));
 });
-async function proof() {
+function assertGeneratedTests(result: { exitCode: number | null; stderr: string }): void {
+  assert.equal(result.exitCode, 0);
+  assert.match(result.stderr, /\b[1-9][0-9]* pass\b/);
+  assert.match(result.stderr, /\b0 fail\b/);
+  assert.match(result.stderr, /Ran [1-9][0-9]* tests?\b/);
+}
+test('code proof refuses a successful process with zero executed generated tests', () => {
+  assert.throws(() => assertGeneratedTests({ exitCode: 0, stderr: '0 pass\n0 fail\nRan 0 tests' }));
+});
+test('code proof polling permits combined Runtime and Docker limits', async () => {
+  let time = 0;
+  assert.equal(
+    await waitForProjection(() => (time >= 150000 ? 'ready' : undefined), {
+      now: () => time,
+      sleep: async () => {
+        time += 100;
+      },
+    }),
+    'ready',
+  );
+});
+async function proof(code = false) {
   const home = mkdtempSync('/tmp/org-a2a-proposal-cli-'),
     db = home + '/org.db',
     socket = home + '/org.sock';
@@ -104,6 +128,7 @@ async function proof() {
       '--runtime-config',
       home + '/runtime.json',
       '--wake-up',
+      ...(code ? ['--sandbox-config', home + '/sandbox.json'] : []),
       ...(delegationRoom === undefined ? [] : ['--delegation-room', delegationRoom]),
       '--poll-interval',
       '20',
@@ -157,6 +182,16 @@ async function proof() {
         'claude',
         '--memory-policy',
         'reviewed-tasks',
+        ...(code
+          ? [
+              '--capability',
+              'can_run_shell',
+              '--capability',
+              'can_write',
+              '--capability',
+              'can_read',
+            ]
+          : []),
       ]).status,
       0,
     );
@@ -188,8 +223,9 @@ async function proof() {
       type: 'delegate',
       to: worker.id,
       payload: {
-        objective:
-          'Use only supplied information. Calculate 6 * 7 and reply exactly RESULT_42. Do not use tools or external services.',
+        objective: code
+          ? 'Implement answer.ts exporting sumIntegers(a:number,b:number):number. Accept only safe integers and throw on noninteger or unsafe sum. Write answer.test.ts with Bun tests of valid and invalid inputs. Import from ./answer.js (Bun resolves answer.ts). Follow strict TypeScript with no any, no non-null assertions, no floating promises. Run bun --no-env-file test answer.test.ts inside Sandbox and throw if tests fail. Use no external services. Return only the host Sandbox JSON proposal with TypeScript code that writes these files and executes tests.'
+          : 'Use only supplied information. Calculate 6 * 7 and reply exactly RESULT_42. Do not use tools or external services.',
       },
     });
     const executable = Bun.which('claude');
@@ -207,6 +243,17 @@ async function proof() {
       }),
       { mode: 0o600 },
     );
+    if (code)
+      writeFileSync(
+        home + '/sandbox.json',
+        JSON.stringify({
+          writable: true,
+          files: ['answer.ts', 'answer.test.ts'],
+          timeoutMs: 30000,
+          maxOutputBytes: 65536,
+        }),
+        { mode: 0o600 },
+      );
     await launch();
     const source = entity([
       'room',
@@ -233,13 +280,13 @@ async function proof() {
     const adoptedId = adopted.id;
     assert.equal(adopted.from, chief.id);
     assert.equal(adopted.to, worker.id);
-    const task = await wait(() =>
-      list(['task', 'list']).find(
-        (t) =>
-          t.externalRef === `org://rooms/${room.id}/messages/${adoptedId}` &&
-          t.status === 'waiting_approval',
-      ),
-    );
+    const task = await wait(() => {
+      const candidate = list(['task', 'list']).find(
+        (t) => t.externalRef === `org://rooms/${room.id}/messages/${adoptedId}`,
+      );
+      if (candidate?.status === 'failed') throw new Error('Specialist execution failed');
+      return candidate?.status === 'waiting_approval' ? candidate : undefined;
+    });
     assert.ok(typeof task.id === 'string' && typeof task.version === 'number');
     assert.equal(task.owner, worker.id);
     const taskRoom = list(['room', 'list']).find((r) => r.taskId === task.id);
@@ -248,11 +295,66 @@ async function proof() {
     assert.equal(artifacts.length, 1);
     const artifact = artifacts[0];
     assert.ok(artifact && typeof artifact.id === 'string');
-    const output = list(['room', 'messages', taskRoom.id]).find((m) => m.id === artifact.id);
-    assert.ok(output && typeof output.content === 'string');
-    assertSpecialistResult(output.content);
-    assert.ok(record(output.sender));
-    assert.equal(output.sender.id, worker.id);
+    if (code) {
+      const stored = entity(['task', 'artifact-content', task.id, '--artifact', artifact.id]);
+      assert.equal(typeof stored.content, 'string');
+      const contents: unknown = JSON.parse(String(stored.content));
+      assert.ok(
+        record(contents) &&
+          typeof contents.proposalRef === 'string' &&
+          Array.isArray(contents.files),
+      );
+      const taskRoomId = taskRoom.id;
+      const proposalMessage = list(['room', 'messages', taskRoomId]).find(
+        (m) =>
+          typeof m.id === 'string' &&
+          contents.proposalRef === `org://rooms/${taskRoomId}/messages/${m.id}`,
+      );
+      assert.ok(
+        proposalMessage &&
+          record(proposalMessage.sender) &&
+          proposalMessage.sender.id === worker.id,
+      );
+      const files = Array.from(contents.files, (file: unknown) => {
+        assert.ok(record(file) && typeof file.path === 'string' && typeof file.base64 === 'string');
+        return { path: file.path, base64: file.base64 };
+      });
+      assert.deepEqual(
+        files.map((f) => f.path),
+        ['answer.ts', 'answer.test.ts'],
+      );
+      const implementation = files[0],
+        generatedTests = files[1];
+      assert.ok(implementation && generatedTests);
+      const verified = await runDockerSandbox(
+        runProcess,
+        {
+          executable: 'docker',
+          env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
+          cwd: home,
+          uid: process.getuid?.() ?? 0,
+          gid: process.getgid?.() ?? 0,
+        },
+        {
+          writable: true,
+          files: [],
+          timeoutMs: 30000,
+          maxOutputBytes: 65536,
+          code: `import {writeFileSync} from 'node:fs';import assert from 'node:assert/strict';writeFileSync('/workspace/answer.ts',Buffer.from(${JSON.stringify(implementation.base64)},'base64'));writeFileSync('/workspace/answer.test.ts',Buffer.from(${JSON.stringify(generatedTests.base64)},'base64'));const tests=Bun.spawnSync(['bun','--no-env-file','test','answer.test.ts']);process.stderr.write(tests.stderr);assert.equal(tests.exitCode,0);const {sumIntegers}=await import('/workspace/answer.ts');assert.equal(sumIntegers(2,3),5);assert.equal(sumIntegers(-4,1),-3);assert.equal(sumIntegers(0,0),0);assert.equal(sumIntegers(40,2),42);assert.throws(()=>sumIntegers(1.5,2));assert.throws(()=>sumIntegers(Number.MAX_SAFE_INTEGER,1));console.log('INDEPENDENT_CODE_CHECK_OK');`,
+        },
+      );
+      assert.equal(verified.reason, 'exited');
+      assertGeneratedTests(verified);
+      await checkGeneratedCode(files);
+      assert.equal(verified.exitCode, 0, verified.stderr);
+      assert.equal(verified.stdout, 'INDEPENDENT_CODE_CHECK_OK\n');
+    } else {
+      const output = list(['room', 'messages', taskRoom.id]).find((m) => m.id === artifact.id);
+      assert.ok(output && typeof output.content === 'string');
+      assertSpecialistResult(output.content);
+      assert.ok(record(output.sender));
+      assert.equal(output.sender.id, worker.id);
+    }
     const chiefSession = list(['session', 'list']).find(
       (s) => s.agentId === chief.id && s.roomId === room.id,
     );
@@ -272,7 +374,9 @@ async function proof() {
       '--actor',
       'founder',
       '--reason',
-      'Verified native specialist Artifact RESULT_42',
+      code
+        ? 'Verified generated code with independent real Docker assertions'
+        : 'Verified native specialist Artifact RESULT_42',
       '--expected-version',
       String(task.version),
     ]);
@@ -320,6 +424,19 @@ async function proof() {
       list(['room', 'messages', room.id]).find((m) => m.id === original.id)?.content,
       original.content,
     );
+  } catch (error) {
+    if (code && daemon) {
+      const rooms = list(['room', 'list']);
+      const debug = rooms
+        .filter((r) => r.type === 'task' && typeof r.id === 'string')
+        .map((r) => ({ roomId: r.id, messages: list(['room', 'messages', String(r.id)]) }));
+      writeFileSync(
+        '/tmp/org-code-loop-private-debug-' + process.pid + '.json',
+        JSON.stringify(debug),
+        { mode: 0o600 },
+      );
+    }
+    throw error;
   } finally {
     if (daemon) {
       run(['daemon', 'stop']);
@@ -331,6 +448,31 @@ async function proof() {
 }
 test.skipIf(process.env.ORG_CLAUDE_DELEGATION_TEST !== '1')(
   'real Claude Coordinator and specialist preserve Artifact review Memory and same provider session across restart',
-  proof,
+  () => proof(),
   360000,
+);
+
+test.skipIf(process.env.ORG_CLAUDE_CODE_TEST !== '1')(
+  'real Claude delegation generates code and tests in Docker before human review Memory and restart',
+  () => proof(true),
+  900000,
+);
+
+test.skipIf(process.env.ORG_GENERATED_GATE_TEST !== '1')(
+  'generated code gate rejects runtime-valid explicit-any source',
+  async () => {
+    const code =
+      "export function sumIntegers(a:number,b:number):number {const result:any=a+b;if(!Number.isSafeInteger(a)||!Number.isSafeInteger(b)||!Number.isSafeInteger(result))throw new Error('invalid');return result;}";
+    const tests =
+      "import {test,expect} from 'bun:test';import {sumIntegers} from './answer.js';test('addition',()=>{expect(sumIntegers(2,3)).toBe(5);});";
+    await assert.rejects(
+      () =>
+        checkGeneratedCode([
+          { path: 'answer.ts', base64: Buffer.from(code).toString('base64') },
+          { path: 'answer.test.ts', base64: Buffer.from(tests).toString('base64') },
+        ]),
+      /no-explicit-any/,
+    );
+  },
+  240000,
 );

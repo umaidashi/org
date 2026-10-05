@@ -647,3 +647,5 @@ Notion文書をRoomの不変原本へ取り込む場合は `knowledge notion PAG
 `bun --env-file=.env src/cli.ts --direct task linear-get ORG-1 --json` は既存Issueを読み取ります。`LINEAR_API_KEY`はPersonal API keyを設定し、daemon経由はdaemon起動時に設定します。UUIDまたはTEAM番号を指定でき、固定GraphQL queryのみで新Issue・mutation・local WorkItem同期は行いません。HTTP fixtureのCLI検証と実Linear APIの認証成功は区別します。
 
 `task import-linear ORG-1 --json` は既存Issueの初回snapshotをlocal WorkItemへ保存します。同じ内容の再取込は現在のlocal進捗を返し、外部本文変更はconflictを返します。内部作業は `task create TITLE --objective OBJECTIVE --kind execution_task --parent WORK_ITEM_ID` で分離できます。双方向同期は未実装です。
+
+実Claude二Agentのコード生成・生成Bunテスト・独立Docker検証・生成物の隔離 `bun run check`・review/Memory/restartは、`ORG_CLAUDE_CODE_TEST=1 bun test tests/coordinator-claude-real.test.ts` でopt-in実行します。DockerとClaude Maxログインが必要です。依存準備だけ公開package/lockでnetworkを使い、生成コード実行時はnetworkなし・host mountなしです。runtime-valid explicit-anyの拒否検証は `ORG_GENERATED_GATE_TEST=1`。業務IssueやDraft PRはこの専用fixtureとは別に検証します。
