@@ -991,3 +991,11 @@
 - direct/daemon取込・再open・出典Contextのtargeted4成功784ms。初回全checkはfixtureのJSON.parse typed代入3箇所でlint失敗、unknownとassertによる型検査へ訂正。
 - 独立最終review Critical/Importantなし。Minor保留: read中archive/append失敗の取込固有fixture（既存native transaction/domain guardで保存時再検査）。READMEのRoom取込は後続という旧記述は、既存のREADME更新依頼に従い現実装へ訂正する。再reviewなし。
 - 全check311成功9skip0fail320tests162files68.41秒、型/lint/format/AST/dry-run非空成功。修正後実jev1633対象missing/unsure0/errors/degraded空/warning101。snapshot非漏洩/原本/Contextの具体assertを照合し、parse failure候補は実CLI negative pathsで確認。[証拠](verification/2026-10-06-notion-room-snapshot/check.txt)。Next: 新Issueを作らず既存Linear IssueのreadからTaskProvider連携を小さく進める。
+
+### 2026-10-06 — 既存Linear Issue読取
+- [設計・計画](superpowers/plans/2026-10-06-linear-issue-read.md)。公式GraphQLを確認。Ruling: まず既存Issue queryのみ、新Issue/mutationは作らない。read-only DTOから小さく進め、同期TaskProvider契約を変更しない。
+- RED: module未実装、実CLI linear-get未対応。GREEN2DBなしUT29ms、固定query/variables/host/Personal keyとGraphQL200部分失敗・identity・秘密非漏洩を確認。
+- Room取込c73d1d4はmainへ通常push成功75.66秒。Linear initial staticは既存commonをbaseと誤記したため型エラー、commonへ訂正。native HTTP fixture direct/daemon読取・malformed/無key・DB未作成3成功449ms。既存11秒並行e2eへlinear-getを追加、旧5秒でRED1fail11.05秒。40秒条件へ変更しGREEN/全check中。実Linear APIはkey未設定のため未検証。
+- 全check初回lintはfixture RequestInit.bodyのString変換を拒否。実際のJSON string契約をassertしてからparseするよう訂正し、再実行する。
+- 独立最終review Critical/Importantなし、Minor2。Ruling: URL内の別Issue番号受理は誤った出典となるためImportantへ格上げ、OTHER-9応答fixtureでRED1fail27msを確認しidentifier一致へ修正。Minor保留: 新reader固有のoversized/不正JSON/body中断/UUID正規化fixture（共通boundedJsonとguardは存在）。再reviewなし一修正pass。
+- URL重要指摘修正GREEN2UT26ms、最終全check314成功9skip0fail323tests164files60.36秒、型/lint/format/AST/dry-run非空成功。実jev1648対象missing/unsure0/errors/degraded空/warning102、新reader失敗経路候補は検査済みHTTP/GraphQL/identity/secret境界と未追加fixtureを区別。40秒clientは既存11秒e2e成功。NOTION_API_KEY/LINEAR_API_KEY未設定を値非表示で再確認。[証拠](verification/2026-10-06-linear-issue-read/check.txt)。Next: 既存Issueをlocal WorkItemへ接続し、再取込/内部Execution分離を確認する。

@@ -39,6 +39,7 @@ export async function requestApplication(socket: string, argv: string[]): Promis
         : AbortSignal.timeout(
             command.kind === 'workflow' ||
               command.kind === 'knowledge' ||
+              (command.kind === 'task' && command.command.action.kind === 'linear-get') ||
               (command.kind === 'event' && command.command.action === 'import-github')
               ? 40000
               : 5000,

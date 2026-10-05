@@ -1,3 +1,5 @@
+import { readLinearIssue, validateLinearIssueId } from '../linear/read.js';
+import { EnvironmentSecretStore } from '../secrets/environment.js';
 import { readSandboxArtifact } from '../sandbox/artifact.js';
 import { randomUUID } from 'node:crypto';
 import { reviewTaskResult } from './review.js';
@@ -13,6 +15,7 @@ import { assignTask } from './service.js';
 import { SqliteTaskProvider } from './sqlite.js';
 
 type TaskAction =
+  | { kind: 'linear-get'; id: string }
   | { kind: 'review'; id: string; input: TaskReviewInput }
   | { kind: 'observe-workflow'; id: string; expectedVersion: number }
   | { kind: 'resume-workflow'; id: string; approvalId: string; expectedVersion: number }
@@ -83,6 +86,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const [command, action, id, ...extra] = positionals;
   if (command !== 'task' || extra.length > 0) throw new Error('Unexpected task argument');
   const allowed: Record<string, readonly string[]> = {
+    'linear-get': [],
     review: ['actor', 'reason', 'decision', 'expected-version'],
     reviews: [],
     run: ['session', 'room-message'],
@@ -120,6 +124,11 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const db = values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('The database path must not be empty');
   const common = { db, json: values.json ?? false };
+  if (action === 'linear-get')
+    return {
+      ...common,
+      action: { kind: 'linear-get', id: validateLinearIssueId(required(id, 'Issue ID')) },
+    };
   if (action === 'create')
     return {
       ...common,
@@ -275,6 +284,14 @@ export async function runTaskCommand(
   command: TaskCommand,
   output: (line: string) => void = console.log,
 ): Promise<void> {
+  if (command.action.kind === 'linear-get') {
+    const secrets = new EnvironmentSecretStore([
+      { actorId: 'linear:host', reference: 'linear:read', environmentVariable: 'LINEAR_API_KEY' },
+    ]);
+    const result = await readLinearIssue(fetch, secrets, command.action.id);
+    output(JSON.stringify(result, null, command.json ? undefined : 2));
+    return;
+  }
   const provider = new SqliteTaskProvider(command.db);
   try {
     const action = command.action;

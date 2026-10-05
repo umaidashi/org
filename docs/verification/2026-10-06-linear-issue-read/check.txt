@@ -1,0 +1,8 @@
+RED: reader absent / CLI linear-get unsupported.
+GREEN: 2 DB-free UT29ms; realCLI direct/daemon using explicit test-only HTTP fixture3pass449ms. Missing credential/malformed inputs refused before DB creation.
+Timeout RED: existing11s native parallel e2e extended with linear-get failed old5s client11.05s; changed to40s.
+Initial static corrections: common variable typo and test RequestInit.body requires string assertion.
+Independent review: no original Critical/Important; wrong-Issue URL Minor regraded Important due false provenance. NewOTHER-9 URL fixture RED1fail27ms -> URL identifier equality GREEN2pass26ms. No rereview.
+Final full check314pass9skip0fail323tests164files60.36s; type/lint/format/AST/dry-run nonempty. ActualJev1648subjects102warnings missing/unsure0 errors/degradedempty.
+Deferred Minor: reader-specific oversized/malformed JSON/body interruption/UUID normalization fixtures. Existing boundedJson and guards inspected.
+ActualLinear API remains unverified; APIkey absent. No mutations or external writes.
