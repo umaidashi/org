@@ -961,3 +961,13 @@
 - 実Claude Max OAuth Coordinatorの自動adopt→専門Agentcodex fixture→human review→restart no duplicate成功。tools/MCP/slash無効、業務外部書込みなし、自作daemon/private DB削除済み。専門Agent実LLMの検証とは扱わない。実jev1585対象missing/unsure0/errors/degraded空/warning97。[証拠](verification/2026-10-06-coordinator-auto-adoption/check.txt)。
 - 独立最終review10UT40ms成功、Critical/Importantなし。Minor保留: 新hookのwrong replyTo/Coordinator変更/typed A2A返信/人間参加解除/append失敗を直接検証するfixture不足。対応guardは実装され既存adoption類似経路は検証済み。再reviewなし。
 - 固定コード全check301成功8skip0fail309tests158files62.32秒。型/lint/format/AST/dry-run非空成功。全体ゴール未完了。Next: 実務e2eへ近づけるためCoordinatorと専門Agentを両方実Claude Maxで動かし、review→Memory→Coordinator再開まで証拠をそろえる。
+
+### 2026-10-06 — 実Coordinator・実専門Agentの最小一周
+- [検証計画](superpowers/plans/2026-10-06-real-coordinator-specialist-loop.md)。新しい製品基盤は足さず、既存両Agentの実Claude Max/TaskReview/Memory/Coordinator同Session再開を確認する。業務Issue/コード/Draft PRの完成とはしない。
+- 自動委譲2e488e4はmainへ通常push成功、対象commit全検査/実jev/公開検査71.93秒。
+- 両Agent実Claude Max OAuthのprivate一周成功: 自動delegate→専門Agent原本RESULT_42 Artifactをapprove前確認→human review→canonical TaskReview根拠episodic Memory→同Coordinator Kernel/provider Sessionでdecision返信→再起動後同delegate/Task/Memory/decision原本保持。自作daemon/private DB削除済み。業務Issue/コード/Draft PRは未検証。
+- Ruling: 実機証拠だけでなく再実行可能なopt-inテストをGitへ残す。ORG_CLAUDE_DELEGATION_TEST=1のみ実Claudeを起動し、通常suiteはskipして高速性を維持。製品変更のない証拠追加なので新規製品REDは不要、既存CLI契約/実結果をassertする。初回staticはentity戻り値型と非同期id narrowingで失敗、既存fixtureと同じ明示型/constへ訂正。
+- 追跡opt-in実機テストは1成功0fail47.08秒。独立最終review Important2: 同ID件数では別ID duplicate Taskを見逃す、poll回数上限はRuntime120秒より早く切れる。既存判断を切出した最小DIテストで両REDを確認し、delegate externalRefで全ID計数、monotonic130秒deadlineへ修正。
+- Ruling: reviewer MinorのRESULT_42部分一致は、不正なNOT_RESULT_42でも自動approveを許すためImportantへ格上げ。追加RED1failを確認しtrim後の完全一致へ修正。三つのDBなしregression GREEN。Minor保留: fixture shutdownのexit待機にはhard-kill期限がない。再reviewせず一修正passで全suite/実機/実jevを再実行中。
+- 修正後追跡opt-in実機テスト4成功0fail52.76秒。全check304成功9skip0fail313tests159files62.69秒、型/lint/format/AST/dry-run非空成功。実jev1603対象missing/unsure0/errors/degraded空/warning98。独立reviewの一fixpass完了、再reviewなし。[証拠](verification/2026-10-06-real-coordinator-specialist-loop/check.txt)。
+- Next: Notion root/MVPと要件照合を再確認し、必須の未完了と将来Adapter候補を区別して次の業務経路を選ぶ。実機一周が通っただけで全体完成とはしない。

@@ -240,7 +240,7 @@ bun run start memory list --scope room:ROOM_ID --json
 bun run start memory invalidate MEMORY_ID --reason '根拠が失効した' --json
 ```
 
-`session reply`は現在のRoom・Agent・Taskとcompany/globalのactive Memoryを選択し、scopeと新しさで最大20件に絞って渡します。Context全体の64KiB上限に合わせて省略数を記録します。`memory capture --valid-from ISO --valid-until ISO`で有効期間を指定できます。ミリ秒付きUTC ISOを受け、保存値はUTC epoch millisecondsです。開始は含み終了は含まない期間で、未来・期限切れはContextから除外します。`memory list --at ISO`でも同じ選択を確認でき、指定なしlist/getは期限切れの原本も保持します。captureにrepeatable --tag/--entityと--importance（0〜1）を指定でき、各32件/128文字/重複拒否です。list --type/--tag/--entityで明示filterし、新しい順に表示します。同scopeのContextはsource Messageにtag/entityが文字列一致するMemoryを優先し、recency→importance→IDで選択します。memory search QUERY --scope SCOPE --type TYPE --tag TAG --entity ENTITY --at ISOで本文を検索できます。SQLite FTS5 trigramのliteral phrase検索で3〜1024 Unicode文字、現在active/期間内のみを返します。原本とindex追記は同transaction、旧DBは初回にindexを作ります。自然言語の意味検索、自動Context全文query、自動抽出、意味的な重複・矛盾判定は後続です。
+`session reply`は現在のRoom・Agent・Taskとcompany/globalのactive Memoryを選択し、scopeと新しさで最大20件に絞って渡します。Context全体の64KiB上限に合わせて省略数を記録します。`memory capture --valid-from ISO --valid-until ISO`で有効期間を指定できます。ミリ秒付きUTC ISOを受け、保存値はUTC epoch millisecondsです。開始は含み終了は含まない期間で、未来・期限切れはContextから除外します。`memory list --at ISO`でも同じ選択を確認でき、指定なしlist/getは期限切れの原本も保持します。captureにrepeatable --tag/--entityと--importance（0〜1）を指定でき、各32件/128文字/重複拒否です。list --type/--tag/--entityで明示filterし、新しい順に表示します。同scopeのContextはsource Messageにtag/entityが文字列一致するMemoryを優先し、recency→importance→IDで選択します。memory search QUERY --scope SCOPE --type TYPE --tag TAG --entity ENTITY --at ISOで本文を検索できます。SQLite FTS5 trigramのliteral phrase検索で3〜1024 Unicode文字、現在active/期間内のみを返します。原本とindex追記は同transaction、旧DBは初回にindexを作ります。Room Contextはsource本文のliteral FTSを既存のscope/metadata/recency/importance優先順位後のtie-breakerに使います。自然言語の意味検索、一般自動抽出、意味的な重複・矛盾判定は後続です。
 
 ## ExecutionTaskの実行
 
@@ -620,3 +620,11 @@ bun run start memory consolidations --scope room:ROOM_ID --json
 Room指定は繰り返し可能（最大32）、既定では無効です。Runtime設定やLLMは不要です。最初のpollで現在UTC日の一回を処理し、翌日以降も最初のpollで一回。停止中の日は現在日にまとめ、同日poll・再起動・時計巻戻りで再整理しません。archived Roomは対象外です。同日追加のMemoryは次のUTC日に整理します。
 
 不変receiptはkey/scope/実処理時刻/keeper・失効IDを保存します。nightly-memory:のkeyはdaemon専用で、手動consolidateには指定できません。全文やAPIキーはreceiptへ追加保存しません。DB障害・不正履歴はdaemonのpoll errorとして報告します。対象は同値metadataの整理で、意味重複・競合推論・自動summary生成・全scopeの自動処理は未完了です。
+
+## 両AgentのClaude Max実機検証
+
+```sh
+ORG_CLAUDE_DELEGATION_TEST=1 bun --no-env-file test tests/coordinator-claude-real.test.ts
+```
+
+ログイン済みClaude CLIをPATHから使い、native toolsを無効にしたCoordinatorと直属専門Agentで、自動委譲→算術成果物→人間レビュー→根拠付きMemory→同Coordinator Session再開→再起動後の重複なしを確認します。一時DB/daemonは終了時に削除します。通常の全検査はこの実機テストをskipします。Issueからコード実装・Draft PRまでの実務e2eは未完了です。
