@@ -57,7 +57,7 @@ async function proof(auto: boolean, real = false) {
     assert.equal(r.status, 0, r.stderr);
     return JSON.parse(r.stdout);
   };
-  const entity = (args: string[]) => {
+  const entity = (args: string[]): Record<string, unknown> & { id: string } => {
     const v = json(args);
     assert.ok(record(v) && typeof v.id === 'string');
     return { ...v, id: v.id };
@@ -205,6 +205,90 @@ async function proof(auto: boolean, real = false) {
       assert.equal(readFileSync(count, 'utf8'), turns);
       assert.deepEqual(list(['room', 'messages', roomId]), originals);
       assert.deepEqual(list(['memory', 'list', '--scope', 'room:' + roomId]), after);
+      if (real) {
+        const summaryPrompt =
+          'Supplied facts: the database is SQLite; the runtime is Claude Max. Summarize both facts into exactly one semantic Room Memory with confidence 1. Preserve both product names. Use this human message ID from Context as the sole sourceMessageIds entry. Reply only the host Memory JSON schema, no markdown.';
+        const summarySource = entity([
+          'room',
+          'send',
+          roomId,
+          '--human',
+          'founder',
+          '--content',
+          summaryPrompt,
+        ]);
+        const summaryReply = await wait(() =>
+          list(['room', 'messages', roomId]).find((m) => m.replyTo === summarySource.id),
+        );
+        const summary = await wait(() =>
+          list(['memory', 'list', '--scope', 'room:' + roomId]).find(
+            (m) => m.type === 'semantic' && m.status === 'active',
+          ),
+        );
+        assert.ok(typeof summary.content === 'string');
+        assert.match(summary.content, /SQLite/);
+        assert.match(summary.content, /Claude Max/);
+        assert.deepEqual(summary.sourceRefs, [
+          { roomId, messageId: summarySource.id },
+          { roomId, messageId: summaryReply.id },
+        ]);
+        const old = list(['session', 'list']).find(
+          (s) => s.agentId === agent.id && s.roomId === roomId && s.status === 'idle',
+        );
+        assert.ok(old && typeof old.id === 'string' && typeof old.providerSessionId === 'string');
+        assert.equal(entity(['session', 'stop', old.id]).status, 'stopped');
+        for (let i = 0; i < 31; i++)
+          entity([
+            'room',
+            'send',
+            roomId,
+            '--agent',
+            agent.id,
+            '--content',
+            'Retention fixture ' + i,
+          ]);
+        assert.ok(
+          !list(['room', 'messages', roomId])
+            .slice(-30)
+            .some((m) => m.id === summarySource.id || m.id === summaryReply.id),
+        );
+        const recall = entity([
+          'room',
+          'send',
+          roomId,
+          '--human',
+          'founder',
+          '--content',
+          'Use only the semantic Room Memory in the Context memories array. If it preserves both supplied facts from the summary, reply only ROOM_SUMMARY_OK; otherwise reply only NO_SUMMARY. Do not emit tool proposals.',
+        ]);
+        const recalled = await wait(() =>
+          list(['room', 'messages', roomId]).find((m) => m.replyTo === recall.id),
+        );
+        assert.equal(recalled.content, 'ROOM_SUMMARY_OK');
+        const fresh = list(['session', 'list']).find(
+          (s) =>
+            s.id !== old.id && s.agentId === agent.id && s.roomId === roomId && s.status === 'idle',
+        );
+        assert.ok(fresh && typeof fresh.providerSessionId === 'string');
+        assert.notEqual(fresh.providerSessionId, old.providerSessionId);
+        assert.equal(
+          recalled.metadata && record(recalled.metadata) ? recalled.metadata.sessionId : undefined,
+          fresh.id,
+        );
+        const summaryOriginals = list(['room', 'messages', roomId]),
+          summaryMemories = list(['memory', 'list', '--scope', 'room:' + roomId]);
+        assert.equal(
+          summaryOriginals.find((m) => m.id === summarySource.id)?.content,
+          summaryPrompt,
+        );
+        json(['daemon', 'stop']);
+        await exited;
+        daemon = undefined;
+        await launch();
+        await Bun.sleep(100);
+        assert.deepEqual(list(['room', 'messages', roomId]), summaryOriginals);
+        assert.deepEqual(list(['memory', 'list', '--scope', 'room:' + roomId]), summaryMemories);
+      }
     }
   } finally {
     if (daemon) {
@@ -221,7 +305,7 @@ test.each([false, true])(
   20000,
 );
 test.skipIf(process.env.ORG_MEMORY_EXTRACTION_TEST !== '1')(
-  'real Claude Memory proposal auto adoption reaches scoped Context and preserves invalidation across restart',
+  'real Claude adopts Room Memory and restores generated summary into a fresh Session beyond the history window without rewriting originals',
   () => proof(true, true),
-  420000,
+  720000,
 );

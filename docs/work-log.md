@@ -1082,3 +1082,8 @@
 - 最小Max probe初回は実行スクリプトのAgent入力漏れによるTypeErrorで外部turn未実行、必須入力を訂正。probeはprocess exited/exit0/errorBytes0・PROBE_OK一致で正常（本文非表示）。時間経過後の実jev三回目はexit0/errors空へ復旧。専門Runtime失敗の旧理由は原記録から確定できないためtimeout等を断定せず、同じlimitsで実コード一周を一度再実行する。
 - 実コード再実行6成功2skip0fail147.35秒、GENERATED_BUN_CHECK_OK/LOCAL_GIT_HANDOFF_OK。実Claude2Agent/実Docker/生成物check/human review completed→同Artifact再読取→local branch commit/file-only bare push→Memory/same providerSession/restartを確認。main不変/原本blob一致/差分2path/local remote head一致、host生成コード実行なし。
 - 最終実jev1752対象warning113/missing・unsure0/errors・degraded空。新helper失敗経路候補はpath/base64先行拒否・既存process timeout/exit拒否/caller finally cleanupで照合（個々のGitエラー強制注入は未追加）。fixture名候補は実Git main/diff/blob/remote head assertを照合。製品変更なし、全check335成功を最終結果として維持。独立正しさ/安全性/Ponytail review指摘なし、再reviewなし。[証拠](verification/2026-10-06-reviewed-code-git-handoff/check.txt)。実GitHub Draft PR/publish Approval/業務repoは未完了。自作private diagnosticを削除してmainへ通常反映する。
+
+### 2026-10-06 — Room要約から新Claude Sessionへの引継ぎ
+- local Git proof483704aはmain通常push成功90.99秒。Notion Room/Sessionを再取得し、Room messages/summary/Agent MemoryとRuntime Sessionの分離を照合。[設計・計画](superpowers/plans/2026-10-06-room-summary-session-handoff.md)。
+- Ruling: 既存strict semantic Room Memoryをhumanの明示要約依頼で生成/自動採用し、Session stop/既存fresh startへ渡す。新要約store/定期LLM/製品機能は追加しないため未実装APIの人工REDは作らない。31件の非起動Agent Messageで元発言/提案を直近30件から除外し、fresh provider IDとMemory読取を検証する。従来native/invalidation/原本再起動回帰も維持する。
+- Ponytail review: 既存実Memory proofの延長だけで新fixture framework/Port/依存なし。Runtime各turnの120秒上限は維持し、実機test全体期限は5turn分を覆う720秒へ合わせる。常時圧縮/定期summary/意味dedupは未完了。
