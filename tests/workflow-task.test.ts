@@ -109,10 +109,12 @@ test('Workflow Task rechecks latest owner permission and version before one scop
   assert.equal(events.size, 0);
   retarget = false;
   current = task;
-  assert.equal((await produce()).uri, 'org://artifacts/proof');
+  const artifact = await produce();
+  assert.ok(artifact);
+  assert.equal(artifact.uri, 'org://artifacts/proof');
   assert.equal(calls, 1);
   await assert.rejects(produce(), /Duplicate Event/);
   assert.equal(calls, 1);
-  assert.equal(events.size, 2);
+  assert.equal(events.size, 3);
   assert.ok(!JSON.stringify([...events.values()]).includes('PRIVATE_INPUT'));
 });

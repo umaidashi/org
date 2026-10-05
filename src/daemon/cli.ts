@@ -1,3 +1,6 @@
+import { SqliteApprovalStore } from '../approvals/sqlite.js';
+import { requestTaskWorkflowApproval } from '../workflows/task-approval.js';
+import { resumeTaskWorkflow } from '../workflows/task-resume.js';
 import { produceTaskWorkflowArtifact } from '../workflows/task.js';
 import { configuredWorkflowRuntime } from '../workflows/cli.js';
 import { pollWorkflowDeliveries } from '../workflows/delivery.js';
@@ -156,7 +159,10 @@ function openOperations(
   let sessions: SqliteSessionStore | undefined;
   let memory: SqliteMemoryProvider | undefined;
   let wakeups: SqliteWakeupJournal | undefined;
+  let approvals: SqliteApprovalStore | undefined;
   try {
+    const approvalStore = new SqliteApprovalStore(db);
+    approvals = approvalStore;
     const eventBus = new SqliteEventBus(db);
     events = eventBus;
     const scheduleRepository = new SqliteScheduleRepository(db);
@@ -264,7 +270,11 @@ function openOperations(
           ...(workflowScope
             ? {
                 instruction:
-                  'Return only JSON: {"version":1,"tool":"workflow","workflowId":"allowed ID","input":{}}. Use one short read-only Workflow from this host allowlist: ' +
+                  'Return only JSON: {"version":1,"tool":"workflow","workflowId":"allowed ID","input":{}}. Use one short ' +
+                  (workflowScope.effect === 'read_only'
+                    ? 'read-only Workflow'
+                    : 'Workflow requiring human Approval') +
+                  ' from this host allowlist: ' +
                   JSON.stringify(workflowScope.workflowIds) +
                   '. Credentials remain on the host. The native result is saved for human review.',
               }
@@ -292,7 +302,27 @@ function openOperations(
                 eventBus,
                 running,
                 message,
-                workflow,
+                {
+                  ...workflow,
+                  requestApproval: (running, message, effect) => {
+                    requestTaskWorkflowApproval(
+                      taskProvider,
+                      agentRepository,
+                      roomRepository,
+                      approvalStore,
+                      {
+                        taskId: running.id,
+                        roomId: message.roomId,
+                        messageId: message.id,
+                        expectedVersion: running.version,
+                        host: workflow.host,
+                        effect,
+                        phase: 'running',
+                      },
+                      { id: randomUUID(), createdAt: new Date().toISOString() },
+                    );
+                  },
+                },
                 (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
                 () => new Date().toISOString(),
                 () => randomUUID(),
@@ -398,6 +428,22 @@ function openOperations(
           runtime,
           activateRoom: activate,
           runTask: execute,
+          resumeTaskWorkflow: (taskId, approvalId, expectedVersion) => {
+            if (!workflow) throw new Error('Workflow host config missing');
+            return resumeTaskWorkflow(
+              taskProvider,
+              agentRepository,
+              roomRepository,
+              approvalStore,
+              eventBus,
+              workflow,
+              { taskId, approvalId, expectedVersion },
+              (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
+              () => new Date().toISOString(),
+              randomUUID,
+              workflowController.signal,
+            );
+          },
           cancelSandbox: (taskId) => sandboxJobs.cancel(taskId),
           runSandbox: async (command) => {
             const output: string[] = [];
@@ -425,6 +471,7 @@ function openOperations(
           await shutdown();
         } finally {
           releaseResources([
+            approvalStore,
             scheduleRepository,
             wakeupJournal,
             memoryProvider,
@@ -441,9 +488,18 @@ function openOperations(
   } catch (error) {
     try {
       releaseResources(
-        [schedules, wakeups, memory, sessions, rooms, tasks, agents, events, journal].flatMap(
-          (resource) => (resource ? [resource] : []),
-        ),
+        [
+          approvals,
+          schedules,
+          wakeups,
+          memory,
+          sessions,
+          rooms,
+          tasks,
+          agents,
+          events,
+          journal,
+        ].flatMap((resource) => (resource ? [resource] : [])),
       );
     } catch (cleanup) {
       throw new AggregateError([error, cleanup], 'Daemon initialization failed');

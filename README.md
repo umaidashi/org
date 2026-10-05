@@ -532,3 +532,18 @@ bun run start approval decide APPROVAL_ID --actor founder --decision approve --r
 ```
 
 assigned ExecutionTaskの最新version、owner Agent、active Task Roomの原本提案Messageを確認し、Task/version/Message参照とhost/Workflow/input hash/request ID/effectを不変Approvalへ固定します。read/delegate/network/contact/writeのcapabilityが必要です。要求は冪等で、同Taskの異なる提案は競合します。この段階では外部操作やcredential lookupを行わず、Task状態も変更しません。手動Workflow runへの流用はできません。host/Agent allowlistと待機・再開executorは未接続です。
+
+## Agent Workflowの承認待ちと再開
+
+hostの`workflows`とAgentの`agentScopes`で同じ`effect: "write"`または`"irreversible"`を明示すると、Runtime提案を操作Approvalへ固定してTaskが`waiting_approval`に止まります。この時点ではAgent credentialを読まず、外部Workflowを呼びません。outputArtifactがないため結果レビューもできません。
+
+```sh
+bun run start approval list --json
+bun run start approval decide APPROVAL_ID --actor founder --decision approve --reason '対象と入力を確認' --json
+bun run start task get TASK_ID --json
+bun run start task resume-workflow TASK_ID --approval APPROVAL_ID --expected-version VERSION --json
+```
+
+再開はdaemon専用です。承認原本のTask/version/owner/Message/input hashと、現在のTask snapshot・capability・dependency・host/Agent scopeを再照合し、Agent専用キーを解決後にも再確認します。先行claimの後に一度だけ実行し、verified successのArtifactを結果レビュー待ちへ保存します。pending/rejected/不一致・古いversion・重複再開は呼出しません。operation待機とApprovalは再起動後も保持されます。通信失敗・timeout・停止の不確定結果はreceiptへ記録し、自動再実行しません。
+
+操作Approvalと実行結果レビューは別の判断です。write effectは信頼済みhost宣言で、Workflow nodeの副作用を検査しません。一般の長時間Workflow継続観測、本人認証、完全process隔離は未完了です。Approval保存とTask待機更新は別所有者のため原子的ではなく、Task更新が失敗すると要求だけが残る場合があります。

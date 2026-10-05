@@ -15,7 +15,7 @@ export async function runExecutionTask(
     readonly instruction?: string;
   },
   now: () => string,
-  produceArtifact?: (running: Task, reply: Message) => Promise<TaskArtifact>,
+  produceArtifact?: (running: Task, reply: Message) => Promise<TaskArtifact | null>,
 ): Promise<{ readonly task: Task; readonly reply: Message }> {
   const original = provider.get(input.taskId);
   if (
@@ -74,7 +74,9 @@ export async function executeAssignedTask<T>(
   provider: Pick<TaskProvider, 'update'> & ExecutionResultWriter,
   original: Task,
   now: () => string,
-  produce: (running: Task) => Promise<{ readonly result: T; readonly artifact: TaskArtifact }>,
+  produce: (
+    running: Task,
+  ) => Promise<{ readonly result: T; readonly artifact: TaskArtifact | null }>,
 ): Promise<{ readonly task: Task; readonly result: T }> {
   if (
     original.kind !== 'execution_task' ||
@@ -85,7 +87,10 @@ export async function executeAssignedTask<T>(
   const running = provider.update(original.id, { status: 'running' }, now(), original.version);
   try {
     const { result, artifact } = await produce(running);
-    const task = provider.stageExecutionResult(original.id, artifact, running.version);
+    const task =
+      artifact === null
+        ? provider.update(original.id, { status: 'waiting_approval' }, now(), running.version)
+        : provider.stageExecutionResult(original.id, artifact, running.version);
     return { task, result };
   } catch (error) {
     try {

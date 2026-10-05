@@ -1,0 +1,9 @@
+RED: write producer resolved credential before waiting; real daemon rejected write Agent scope. Fixture direct/socket misuse corrected before product RED.
+GREEN: native daemon Runtime/HTTP 2tests1495ms: no invoke/status before human approve, no result review on empty artifacts, restart preserves waiting Task, one Agent-key invoke, verified artifact, duplicate denied, human result review complete, Audit Approval ref.
+DB-free UT: current Task/history/Approval/owner/Room/caps/dependencies, postlookup retarget, claim precedes invoke, duplicate, terminal error vs uncertain transport/cancel, raw private error excluded. can_write revocation after lookup RED→GREEN.
+Independent final review Important1: unconfirmed observation absent; status rejection RED→GREEN, terminal status observations and uncertain receipts added. Existing read_only e2e updated to verify third immutable success observation. No rereview.
+Additional check: another Task approval ref accepted due full request passed as identity. RED→GREEN by supplying only id/createdAt to reconstruction.
+Final bun run check exit0: tsgo/Oxlint/Oxfmt265files/AST fixtures;274pass8skip0fail282tests143files54.57s;nonempty dry-run.
+Actual jev exit0:1450answers84warnings/errors/degraded empty. No credentials/DB/Notion snapshots sent.
+Real Claude Max OAuth + official n8n2.41.6 local disposable reference: write proposal→human Approval→restart→scoped distinct execution:read Actor key→one invoke→verified success Artifact→human result review→episodic Memory→restart no replay. Keys remain outside Runtime/output. No business writes. Owned container deleted; private0700/0600 proof outsideGit.
+Whole goal incomplete: long execution observation/resume, general Memory extraction/consolidation, external Adapters/full business E2E, auth/isolation, remaining TUI operations.

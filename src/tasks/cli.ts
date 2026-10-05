@@ -14,6 +14,7 @@ import { SqliteTaskProvider } from './sqlite.js';
 
 type TaskAction =
   | { kind: 'review'; id: string; input: TaskReviewInput }
+  | { kind: 'resume-workflow'; id: string; approvalId: string; expectedVersion: number }
   | { kind: 'run'; id: string; sessionId: string; messageId: string }
   | { kind: 'create'; input: TaskInput }
   | { kind: 'get' | 'history' | 'comments' | 'artifacts' | 'reviews'; id: string }
@@ -74,6 +75,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       direction: { type: 'string' },
       'clear-dependencies': { type: 'boolean' },
       'clear-labels': { type: 'boolean' },
+      approval: { type: 'string' },
       'clear-parent': { type: 'boolean' },
     },
   });
@@ -83,6 +85,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     review: ['actor', 'reason', 'decision', 'expected-version'],
     reviews: [],
     run: ['session', 'room-message'],
+    'resume-workflow': ['approval', 'expected-version'],
     create: ['objective', 'kind', 'priority', 'parent', 'dependency', 'label'],
     list: ['kind', 'status', 'owner'],
     get: [],
@@ -166,6 +169,16 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       },
     };
   }
+  if (action === 'resume-workflow')
+    return {
+      ...common,
+      action: {
+        kind: action,
+        id: taskId,
+        approvalId: required(values.approval, '--approval'),
+        expectedVersion: priority(required(values['expected-version'], '--expected-version')),
+      },
+    };
   if (action === 'run')
     return {
       ...common,
@@ -265,6 +278,8 @@ export async function runTaskCommand(
       case 'reviews':
         result = provider.reviews(action.id);
         break;
+      case 'resume-workflow':
+        throw new Error('Workflow resume requires daemon');
       case 'run':
         throw new Error('Task run requires daemon');
       case 'create': {

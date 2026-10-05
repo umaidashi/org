@@ -205,7 +205,16 @@ test('scoped Runtime Workflow produces a verified Task artifact, human-reviewed 
     assert.equal(manifest.status, 'success');
     assert.ok(!artifact.content.includes('PRIVATE_INPUT'));
     const history = await run(['workflow', 'history', manifest.requestId]);
-    assert.ok(Array.isArray(history) && history.length === 2);
+    assert.ok(Array.isArray(history) && history.length === 3);
+    assert.ok(
+      history.some(
+        (event) =>
+          record(event) &&
+          event.type === 'workflow.status_observed' &&
+          record(event.payload) &&
+          event.payload.status === 'success',
+      ),
+    );
     assert.ok(!JSON.stringify(history).includes('PRIVATE_INPUT'));
     await run([
       'task',

@@ -15,6 +15,7 @@ export interface TaskWorkflowApprovalInput {
   readonly expectedVersion: number;
   readonly host: string;
   readonly effect: 'write' | 'irreversible';
+  readonly phase?: 'running';
 }
 export function requestTaskWorkflowApproval(
   tasks: Pick<TaskProvider, 'get'>,
@@ -33,7 +34,12 @@ export function requestTaskWorkflowApproval(
   if (room.id !== input.roomId) throw new Error('Room mismatch');
   const message = rooms.messages(input.roomId).find((m) => m.id === input.messageId);
   if (!message) throw new Error('Task proposal Message not found');
-  requireTaskOwnerMessage(task, room, message);
+  requireTaskOwnerMessage(
+    task,
+    room,
+    message,
+    input.phase === 'running' ? input.expectedVersion : undefined,
+  );
   const owner = agents.list().find((a) => a.id === task.owner);
   if (!owner) throw new Error('Task owner Agent not found');
   for (const capability of [

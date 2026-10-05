@@ -1,3 +1,5 @@
+import { createApprovalDecision } from '../approvals/domain.js';
+import type { Approval } from '../approvals/domain.js';
 import { createApprovalRequest } from '../approvals/domain.js';
 import { SqliteApprovalStore } from '../approvals/sqlite.js';
 import { invokeApprovedWorkflow } from './approved.js';
@@ -184,12 +186,12 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
       !scope.agentId.trim() ||
       scope.agentId.length > 128 ||
       scope.agentId === 'host:workflow' ||
-      scope.effect !== 'read_only' ||
+      !['read_only', 'write', 'irreversible'].includes(String(scope.effect)) ||
       !Array.isArray(scope.workflowIds) ||
       scope.workflowIds.some(
         (id: unknown) =>
           typeof id !== 'string' ||
-          !workflows.some((workflow) => workflow.id === id && workflow.effect === 'read_only'),
+          !workflows.some((workflow) => workflow.id === id && workflow.effect === scope.effect),
       )
     )
       throw new Error('Invalid Agent Workflow scope');
@@ -202,6 +204,7 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
     if (new Set(workflowIds).size !== workflowIds.length)
       throw new Error('Duplicate scoped Workflow ID');
     return {
+      effect: scope.effect,
       agentId: scope.agentId,
       secretStore: workflowSecretStore(scope, scope.agentId),
       workflowIds,
@@ -221,8 +224,53 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
     workflows: workflows.map((workflow) => ({ ...workflow })),
     agentScopes: agentScopes.map((scope) => ({
       agentId: scope.agentId,
+      effect: scope.effect,
       workflowIds: [...scope.workflowIds],
     })),
+    approvedAgentRuntime: (
+      agentId: string,
+      workflowId: string,
+      approval: Approval,
+      signal?: AbortSignal,
+    ) => {
+      const { request, decision } = approval;
+      if (!decision || decision.decision !== 'approve')
+        throw new Error('Agent Workflow requires human Approval');
+      createApprovalRequest(request, request);
+      createApprovalDecision(request, decision, decision.createdAt);
+      const scope = agentScopes.find(
+        (candidate) => candidate.agentId === agentId && candidate.workflowIds.includes(workflowId),
+      );
+      const workflow = workflows.find((candidate) => candidate.id === workflowId);
+      if (
+        !scope ||
+        !workflow ||
+        workflow.effect === 'read_only' ||
+        request.actor.kind !== 'agent' ||
+        request.actor.id !== agentId ||
+        request.taskId === null ||
+        decision.approvalId !== request.id ||
+        request.operation.kind !== 'workflow_invocation' ||
+        request.operation.binding === undefined ||
+        request.operation.host !== host ||
+        request.operation.workflowId !== workflowId ||
+        request.operation.effect !== workflow.effect ||
+        scope.effect !== workflow.effect
+      )
+        throw new Error('Approved Agent Workflow scope denied');
+      const scopedStore = secrets ?? scope.secretStore;
+      const key = scopedStore.getSecret(agentId, 'n8n-api-key');
+      return new N8nWorkflowRuntime(
+        { baseUrl: host, apiKey: key, workflows: [workflow] },
+        (url, init) =>
+          fetch(url, {
+            ...init,
+            ...(signal === undefined
+              ? {}
+              : { signal: AbortSignal.any([signal, ...(init.signal ? [init.signal] : [])]) }),
+          }),
+      );
+    },
     agentRuntime: (agentId: string, workflowId: string, signal?: AbortSignal) => {
       const scope = agentScopes.find(
         (candidate) => candidate.agentId === agentId && candidate.workflowIds.includes(workflowId),

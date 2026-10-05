@@ -886,3 +886,13 @@
 - [計画](superpowers/plans/2026-10-06-task-workflow-approval-request.md): assigned Taskのcurrent owner/version/active Task Room/原本Agent提案へ承認要求を固定。binding canonical URI/コピー/SQLite互換を実装。Taskと5capabilityを先行確認しrequestOnceで保存。外部呼出し・credential lookup・Task状態変更なし。
 - RED: request service未実装、実CLI --room未対応。GREEN: native DI guardsと実CLI要求/再要求一致/人間判断/再open原本一致/古い参照拒否/manual apply拒否/不正version先行拒否。追加fixtureのoptional型エラーで初回check失敗、explicit fallback配列へ修正して全検査成功。
 - 全check271成功8skip0失敗279テスト140file53.14秒、型/lint/format261file/AST成功。実jev1430回答warning82/errors・degraded空。独立最終レビュー指摘なし、関連3成功。[検証](verification/2026-10-06-task-workflow-approval-request/check.txt)。Next: 同原本のTask承認待ち/再開、scope再照合・先行claim・外部呼出し一回をnative実CLIへ接続。
+
+### 2026-10-06 — Agent Workflow承認待ち・再開
+- Task-bound要求c4ca3a8をmainへ通常push。対象commitのpre-push全検査・実jev62.21秒で成功。[計画](superpowers/plans/2026-10-06-task-workflow-approval-resume.md)。
+- RED: write提案でcredential resolverへ進み要求待機にならないUT、実e2eはwrite scope未対応でdaemon拒否。e2e最初のdirect/socket組合せfixture誤りを直して製品REDを確認。GREEN: write/irreversible matching Agent scope、普通agentRuntimeのwrite拒否、Task-bound要求とartifactなしoperation待機、daemon専用resumeを実装。
+- resumeはoriginal running→waiting snapshot/Task/version/owner/immutable Message/Approval/input digest/host/effectを完全照合し、現在5capability/dependencyを確認。Agent専用key lookup後にも再照合しCAS running、安定claim先行で一回invoke/status verified Artifact/結果待機へ保存。結果reviewとoperation Approvalを分離。
+- DBなしguard/retarget/claim/duplicate UT成功。lookup中can_write失効のREDを確認しnative再照合へ追加。初回全checkはHTTP fixture cleanupのawait不足でlint失敗、awaitに修正。型検査binding narrowingも明示guardに修正。
+- 独立最終レビューImportant: invoke後status不明をTask failedのみで扱い不確定receiptが欠落。status reject RED→通信/timeout/停止はunconfirmed、確定terminalはstatus_observedへ修正。既存read_only実e2eの履歴件数期待値が2で失敗したため、3件とsuccess観測原本のassertへ更新。再レビューせず一度のfix pass。Reviewer sandbox HTTP開始EADDRINUSEは許可済み親の実e2eで補完。
+- 追加監査で別Task参照のApprovalを受理するREDを確認。期待原本再構築時にidentityへrequest全体を渡していたため、id/createdAtだけへ限定し完全照合を修正。変更後guard UT成功。
+- 実Claude Max（既存OAuth、APIキー不要）＋公式n8n2.41.6の自作loopback referenceで提案→human Approval→再起動→Agent専用execution:read key→一回invoke→verified success Artifact→human結果review→episodic Memory→再起動no replayが成功。承認前Workflow claimなし、credentialはRuntimeへ渡さず出力にも含めない。writeはhost宣言でreference自体は業務副作用なし。準備n8nの成功/停止も確認。自作containerだけを削除、private証拠はGit/jev送信外。
+- 最終全check274成功8skip0失敗282テスト143file54.57秒、型/lint/format265file/AST成功。実jev1450回答warning84/errors・degraded空。[検証](verification/2026-10-06-task-workflow-approval-resume/check.txt)。Next: 長いWorkflowが短いnative待機時間を超えても外部invokeを再実行せず、started receiptから読取だけで継続観測するTask経路。
