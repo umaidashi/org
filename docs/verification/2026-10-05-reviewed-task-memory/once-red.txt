@@ -1,0 +1,18 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-sqlite.test.ts:
+(pass) Memory projection preserves original evidence and atomically supersedes active same-scope records [14.19ms]
+91 |         confidence: 1,
+92 |         sourceRefs: [{ uri: 'org://tasks/t/reviews/review' }],
+93 |       },
+94 |       { id: 'memory', at: 'now' },
+95 |     );
+96 |     assert.deepEqual(one.createOnce(memory), memory);
+                              ^
+TypeError: one.createOnce is not a function. (In 'one.createOnce(memory)', 'one.createOnce' is undefined)
+      at <anonymous> (<REPO>/tests/memory-sqlite.test.ts:96:26)
+(fail) Memory createOnce retains immutable originals and explicit invalidation without reviving them [4.67ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [56.00ms]

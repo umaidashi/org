@@ -334,3 +334,11 @@ bun run start -- event subscribe github.pull_request.opened --subscriber-type ag
 公開RESTを認証なしGETで読み、GitHub repo ID/Event IDを保存IDへ変換します。PullRequestEvent/action openedはgithub.pull_request.opened、PushEventはgithub.pushになります。payloadはGitHub Event全体で、filterはidやrepoなどの原fieldを指定します。再取込は最初の原本を保持し、SubscriptionとdaemonでTaskを一度だけ作ります。
 
 固定API host・redirect拒否・ページ10秒/4MiB・最大300件で、Agentが外部操作をする機能ではありません。取込途中の保存失敗は再実行で原本を再利用します。[公式API](https://docs.github.com/en/rest/activity/events)は最新300件/30日、30秒〜6時間遅延です。自動poll・webhook・private repoの認証は後続です。
+
+### 承認済みTaskのMemory
+
+```sh
+org agent create reader --role Reader --runtime claude --memory-policy reviewed-tasks
+```
+
+--wake-up付きdaemonは、policyを明示した元ownerのapproved TaskReviewを前後履歴と照合し、Task scopeのepisodic Memoryへ一度だけ投影します。本文は当時のtitle/objectiveとレビュー原本のJSONで、confidence=1は記録が存在する確度です。結果内容の真実性や本人認証を保証する値ではありません。再起動でも明示invalidated/supersededを保持します。未指定/noneは自動投影せず、rejectは対象外です。一般LLM抽出・semantic dedup/conflict・夜間統合は後続です。

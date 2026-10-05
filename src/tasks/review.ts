@@ -1,4 +1,5 @@
-import type { Task } from './domain.js';
+import { changeTask, type Task } from './domain.js';
+import type { TaskHistory } from './port.js';
 export interface TaskReviewInput {
   readonly decision: 'approve' | 'reject';
   readonly actor: string;
@@ -56,4 +57,34 @@ export function reviewTaskResult(
   identity: { readonly id: string; readonly createdAt: string },
 ): Task {
   return writer.recordReview(planTaskReview(writer.get(taskId), input, identity));
+}
+export function verifiedTaskReview(
+  history: readonly TaskHistory[],
+  review: TaskReview,
+): { readonly before: Task; readonly after: Task } {
+  const before = history.find((entry) => entry.version === review.taskVersion)?.task;
+  const after = history.find((entry) => entry.version === review.taskVersion + 1)?.task;
+  if (!before || !after || before.id !== review.taskId || after.id !== review.taskId)
+    throw new Error('Task review evidence conflict');
+  const planned = planTaskReview(
+    before,
+    {
+      decision: review.decision,
+      actor: review.actor,
+      reason: review.reason,
+      expectedVersion: review.taskVersion,
+    },
+    { id: review.id, createdAt: review.createdAt },
+  );
+  const expected = changeTask(
+    before,
+    { status: review.decision === 'approve' ? 'completed' : 'failed' },
+    review.createdAt,
+  );
+  if (
+    JSON.stringify(planned.outputArtifacts) !== JSON.stringify(review.outputArtifacts) ||
+    JSON.stringify(expected) !== JSON.stringify(after)
+  )
+    throw new Error('Task review evidence conflict');
+  return { before, after };
 }

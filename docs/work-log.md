@@ -722,3 +722,14 @@
 - Final独立Reviewer Critical/Important/Minorなし、domain/service/CLI/実daemon/Room runtime計9件を独立成功。原本URIはcanonical percent encodingで不正/混在field拒否、get/reviewsの公開Readerで一致を検証。Message legacyはJSON形を維持し、ContextはsourceRefsをそのまま投影する。
 - 全216/216・型/lint/format/AST成功50.58秒、Docker実機5件別opt-in。実Jev1159判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-memory-task-review-source/check.txt)。Ruling: approved/rejectedどちらのreviewも事実の根拠であり、手入力Memory本文の意味を自動保証しない。source unionを明示検証し、Task/Review SQL所有者を跨がない。CLIのsource方式は排他、手動captureは既存local admin操作で本人認証ではない。Event/Workflow/Artifact参照と自動抽出は後続。
 - maina13fd1d通常push成功、pre-push全215テスト/実Jev/公開検査57.52秒。Next: Agentのopt-in Memory policyで、承認済みTaskReviewを保守的episodic Memoryへ原本を保持して一度だけ投影する。
+
+## 承認済みTaskの保守的Memory projection（進行中）
+
+- [計画](superpowers/plans/2026-10-05-reviewed-task-memory.md)。Agentの明示policyと既存wake-up tick/不変TaskReviewを使い、LLMを追加せず記録されたレビューの事実だけをepisodicへ投影する。原本に基づく決定的IDで再試行し、既存失効判断を覆さない。
+- 公開前pre-pushで既存partial-clone実Git fixtureが既定5秒timeout（5173ms）となりmain314376aのpushを拒否。全体が通ったとは扱わない。Git export自体のnative10秒timeoutより短いfixture上限を15秒へ明示し、native transport拒否/不足blob未取得のassertは維持して対象GREENを確認する。I/O fixtureの待機上限であり、通常の検証速度を遅らせるsleepは追加しない。全pushゲートを再実行する。
+- 最小UT未module RED→明示owner policy/過去title objective/review原本/none/reject/不一致/cancelのDB不要GREEN。既存A2Aのreview証拠照合をshared pure verifiedTaskReviewへ移し両callerから再利用、既存A2Aも成功。Memory createOnce未method RED→2Adapter同原本再利用/異内容conflict/明示invalidate維持GREEN。
+- 最初の実daemon fixtureは--wake-up必須runtime-configを欠いて起動に失敗したため、予期しないRuntime起動を拒否するfalse executableのconfigへ訂正。fixtureを20秒へ明示し、未接続時Memory未生成の具体的RED（5.55秒）→既存tick接続GREEN（関連6件2.50秒）を確認。無効化後の次tickでもstatusを戻さず、原TaskReviewを保持する。
+- main39c2d88通常pushの再実行成功、pre-push全216テスト/実Jev/公開検査58.93秒。前回Git fixture timeoutによる失敗は既述し、hookを省略せず再検証した。fixture単独3件319ms成功。新検証単位へ公開用失敗/修正証拠も保存する。
+- 全218/218・型/lint/format/AST成功53.18秒、Docker実機5件別opt-in。実Jev1174判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-reviewed-task-memory/check.txt)。Final独立Reviewer Critical/Important/Minorなし、関連UT/SQLite/Agent/A2A/実daemon計20件を独立成功。
+- 実公開GitHub→一Task→実Claude Max→Artifact→human review→一episodic Memoryを確認。明示invalidate後daemonを再起動しても同ID/invalidated/一原本を保持し、completed Task versionを変えない。APIキー/native tools/GitHub writeなし、生Event/Provider/DBはprivate tmpのみ。[成否marker](verification/2026-10-05-reviewed-task-memory/actual-github-max-memory.txt)。
+- Ruling: policyはAgent登録時のopt-in、未指定/noneは投影しない。元ownerはreview直前の履歴から決め、現在のTask title/ownerで過去の事実を書換えない。approve限定でrecord factをJSONへ忠実に投影し、confidence=1は記録存在の確度。semantic extractではない。全Task reviewの線形poll、計測で重ければcursorへ移行する。createOnceは同原本のみ再利用し、失効判断は尊重する。reject/一般LLM抽出/semantic dedup/conflict/nightly consolidationは後続。Next: 既存Sandbox producerを再利用しRuntime Task返信の制約付きtool実行を自動の一周へ接続する。

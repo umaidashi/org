@@ -1,0 +1,19 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-sqlite.test.ts:
+(pass) Memory projection preserves original evidence and atomically supersedes active same-scope records [11.64ms]
+(pass) Memory createOnce retains immutable originals and explicit invalidation without reviving them [5.95ms]
+
+tests/a2a-cli.test.ts:
+(pass) malformed A2A payload and options fail before database creation [251.63ms]
+(pass) A2A request and result retain correlation, Task and immutable Room evidence across daemon and reopened CLI [1251.22ms]
+
+tests/task-review-cli.test.ts:
+(pass) daemon CLI reviews the observed result once and preserves the decision across reopen [945.81ms]
+
+tests/reviewed-task-memory.test.ts:
+(pass) Reviewed Task Memory uses explicit owner policy and verified historical facts without rerunning work [1.05ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 4 files. [2.50s]

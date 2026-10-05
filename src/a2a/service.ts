@@ -1,5 +1,5 @@
-import { planTaskReview, type TaskReviewReader } from '../tasks/review.js';
-import { createTask, changeTask, type Task } from '../tasks/domain.js';
+import { verifiedTaskReview, type TaskReviewReader } from '../tasks/review.js';
+import { createTask, type Task } from '../tasks/domain.js';
 import type { IdempotentTaskWriter, TaskProvider } from '../tasks/port.js';
 import { requireCapability } from '../agents/domain.js';
 import { createA2AMessage, readA2AMessage, validateA2AReply } from './domain.js';
@@ -206,35 +206,8 @@ export async function pollDelegationReviews(
       validateDelegationTask(task, source);
       const history = tasks.history(task.id);
       for (const review of tasks.reviews(task.id)) {
-        const before = history.find((entry) => entry.version === review.taskVersion)?.task;
-        const after = history.find((entry) => entry.version === review.taskVersion + 1)?.task;
-        if (
-          !before ||
-          !after ||
-          before.id !== task.id ||
-          before.owner !== source.to ||
-          review.taskId !== task.id
-        )
-          throw new Error('Delegation review evidence conflict');
-        const planned = planTaskReview(
-          before,
-          {
-            decision: review.decision,
-            actor: review.actor,
-            reason: review.reason,
-            expectedVersion: review.taskVersion,
-          },
-          { id: review.id, createdAt: review.createdAt },
-        );
-        const expected = changeTask(
-          before,
-          { status: review.decision === 'approve' ? 'completed' : 'failed' },
-          review.createdAt,
-        );
-        if (
-          JSON.stringify(planned.outputArtifacts) !== JSON.stringify(review.outputArtifacts) ||
-          JSON.stringify(expected) !== JSON.stringify(after)
-        )
+        const { before, after } = verifiedTaskReview(history, review);
+        if (before.id !== task.id || before.owner !== source.to)
           throw new Error('Delegation review evidence conflict');
         const payload = {
           executionTaskId: task.id,

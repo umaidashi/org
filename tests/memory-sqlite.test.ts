@@ -76,3 +76,36 @@ test('Memory projection preserves original evidence and atomically supersedes ac
     rmSync(home, { recursive: true, force: true });
   }
 });
+
+test('Memory createOnce retains immutable originals and explicit invalidation without reviving them', () => {
+  const dir = mkdtempSync('/tmp/org-memory-once-');
+  const path = dir + '/org.db';
+  const one = new SqliteMemoryProvider(path),
+    two = new SqliteMemoryProvider(path);
+  try {
+    const memory = createMemory(
+      {
+        type: 'episodic',
+        scope: 'task:t',
+        content: 'reviewed',
+        confidence: 1,
+        sourceRefs: [{ uri: 'org://tasks/t/reviews/review' }],
+      },
+      { id: 'memory', at: 'now' },
+    );
+    assert.deepEqual(one.createOnce(memory), memory);
+    assert.deepEqual(two.createOnce(memory), memory);
+    assert.equal(one.list().length, 1);
+    const invalid = one.invalidate(memory.id, 'obsolete', 'later');
+    assert.deepEqual(two.createOnce(memory), invalid);
+    assert.throws(
+      () => one.createOnce({ ...memory, content: 'conflicting' }),
+      /idempotency conflict/,
+    );
+    assert.equal(two.get(memory.id).status, 'invalidated');
+  } finally {
+    one.close();
+    two.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

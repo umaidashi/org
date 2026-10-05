@@ -18,6 +18,7 @@ import type { DatabaseLease } from './lease.js';
 import { runExecutionTask } from '../tasks/execution.js';
 import { recoverInterruptedExecutionTasks } from '../tasks/service.js';
 import { SqliteMemoryProvider } from '../memory/sqlite.js';
+import { projectReviewedTaskMemories } from '../memory/reviews.js';
 import { replyToRoomMessage } from '../rooms/runtime.js';
 import { randomUUID } from 'node:crypto';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
@@ -242,6 +243,7 @@ function openOperations(
                 signal,
               );
               await pollDelegationReviews(roomRepository, agentRepository, taskProvider, signal);
+              projectReviewedTaskMemories(memoryProvider, agentRepository, taskProvider, signal);
             },
           }
         : {}),

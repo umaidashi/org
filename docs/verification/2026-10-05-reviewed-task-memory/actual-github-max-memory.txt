@@ -1,0 +1,3 @@
+PASS: explicit Agent policy -> verified human TaskReview -> one episodic Memory -> invalidate -> daemon restart preserves original and no revival
+PASS: actual public GitHub GET -> original Event -> filtered Subscription -> one Task -> real Claude Max -> result Artifact -> explicit human review
+PASS: no API credential, native tools or GitHub write; original Event ID selected exactly once

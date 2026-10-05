@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-review-cli.test.ts:
+220 |       }[];
+221 |     };
+222 |     const deadline = Date.now() + 5000;
+223 |     let projected;
+224 |     while (!(projected = listMemories().find((row) => row.id.startsWith('memory:task-review:')))) {
+225 |       if (Date.now() > deadline) throw new Error('Reviewed Memory projection not found');
+                                                 ^
+error: Reviewed Memory projection not found
+      at <anonymous> (<REPO>/tests/task-review-cli.test.ts:225:44)
+(fail) daemon CLI reviews the observed result once and preserves the decision across reopen [5529.30ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [5.55s]

@@ -10,6 +10,12 @@ export const capabilities = [
   'can_access_network',
 ] as const;
 export type Capability = (typeof capabilities)[number];
+export type MemoryPolicy = 'none' | 'reviewed-tasks';
+export function validateMemoryPolicy(value: unknown): MemoryPolicy {
+  if (value !== 'none' && value !== 'reviewed-tasks')
+    throw new Error('Invalid Agent memory policy');
+  return value;
+}
 export function validateCapabilities(value: unknown): readonly Capability[] {
   if (
     !Array.isArray(value) ||
@@ -38,6 +44,7 @@ export interface Agent {
   readonly createdAt: string;
   readonly reportsTo?: string;
   readonly capabilities?: readonly Capability[];
+  readonly memoryPolicy?: MemoryPolicy;
 }
 
 export interface AgentInput {
@@ -46,6 +53,7 @@ export interface AgentInput {
   readonly runtime: string;
   readonly reportsTo?: string;
   readonly capabilities?: readonly string[];
+  readonly memoryPolicy?: string;
 }
 
 export interface Identity {
@@ -59,11 +67,12 @@ export function createAgent(input: AgentInput, identity: Identity): Agent {
   }
   if (input.reportsTo !== undefined && (!input.reportsTo.trim() || input.reportsTo === identity.id))
     throw new Error('Agent reportsTo must name another Agent');
-  const { capabilities: grants, ...fields } = input;
+  const { capabilities: grants, memoryPolicy: policy, ...fields } = input;
   return {
     ...fields,
     ...identity,
     ...(grants === undefined ? {} : { capabilities: validateCapabilities(grants) }),
+    ...(policy === undefined ? {} : { memoryPolicy: validateMemoryPolicy(policy) }),
   };
 }
 

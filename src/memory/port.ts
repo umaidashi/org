@@ -1,6 +1,7 @@
 import type { Memory } from './domain.js';
 export interface MemoryProvider {
   create(memory: Memory): Memory;
+  createOnce(memory: Memory): Memory;
   get(id: string): Memory;
   list(scopes?: readonly string[]): readonly Memory[];
   search(query: string, scopes?: readonly string[]): readonly Memory[];

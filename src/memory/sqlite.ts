@@ -1,6 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
+import { isDeepStrictEqual } from 'node:util';
 import { decodeMemory, replaceMemory, memorySearchPhrase } from './domain.js';
 import type { Memory } from './domain.js';
 import type { MemoryProvider } from './port.js';
@@ -66,11 +67,23 @@ export class SqliteMemoryProvider implements MemoryProvider {
   create(memory: Memory): Memory {
     const original = decodeMemory(memory);
     if (memory.status !== 'active') throw new Error('New Memory must be active');
+    return this.atomic(() => this.insert(original));
+  }
+  private insert(original: Memory): Memory {
+    if (original.supersedes !== null) replaceMemory(this.get(original.supersedes), original);
+    this.db
+      .query('INSERT INTO memory_records(id,data,supersedes) VALUES (?,?,?)')
+      .run(original.id, JSON.stringify(original), original.supersedes);
+    return this.get(original.id);
+  }
+  createOnce(memory: Memory): Memory {
+    const original = decodeMemory(memory);
+    if (memory.status !== 'active') throw new Error('New Memory must be active');
     return this.atomic(() => {
-      if (original.supersedes !== null) replaceMemory(this.get(original.supersedes), original);
-      this.db
-        .query('INSERT INTO memory_records(id,data,supersedes) VALUES (?,?,?)')
-        .run(original.id, JSON.stringify(original), original.supersedes);
+      const row = this.db.query('SELECT data FROM memory_records WHERE id=?').get(original.id);
+      if (row === null) return this.insert(original);
+      if (!isDeepStrictEqual(rowMemory(row), original))
+        throw new Error('Memory idempotency conflict');
       return this.get(original.id);
     });
   }
