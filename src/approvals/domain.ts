@@ -6,12 +6,20 @@ export interface PermissionOperation {
   readonly expectedRevision: number;
   readonly capabilities: readonly Capability[];
 }
+export interface WorkflowOperation {
+  readonly kind: 'workflow_invocation';
+  readonly host: string;
+  readonly workflowId: string;
+  readonly inputDigest: string;
+  readonly requestId: string;
+  readonly effect: 'write' | 'irreversible';
+}
 export interface ApprovalRequestInput {
   readonly key: string;
   readonly actor: Participant;
   readonly taskId: string | null;
   readonly eventId: string | null;
-  readonly operation: PermissionOperation;
+  readonly operation: PermissionOperation | WorkflowOperation;
 }
 export interface ApprovalRequest extends ApprovalRequestInput {
   readonly id: string;
@@ -31,7 +39,7 @@ export interface Approval {
   readonly decision: ApprovalDecision | null;
 }
 export interface ApprovedPermission {
-  readonly request: ApprovalRequest;
+  readonly request: ApprovalRequest & { readonly operation: PermissionOperation };
   readonly decision: ApprovalDecision;
 }
 function text(value: string): void {
@@ -43,28 +51,69 @@ function actor(value: Participant): Participant {
   text(value.id);
   return { ...value };
 }
+export function createApprovalRequest<T extends ApprovalRequestInput>(
+  input: T,
+  identity: { readonly id: string; readonly createdAt: string },
+): ApprovalRequest & { readonly operation: T['operation'] };
 export function createApprovalRequest(
   input: ApprovalRequestInput,
   identity: { readonly id: string; readonly createdAt: string },
 ): ApprovalRequest {
-  for (const value of [input.key, identity.id, identity.createdAt, input.operation.agentId])
-    text(value);
+  for (const value of [input.key, identity.id, identity.createdAt]) text(value);
   for (const ref of [input.taskId, input.eventId]) if (ref !== null) text(ref);
-  if (input.operation.kind !== 'agent_capabilities') throw new Error('Invalid Approval operation');
-  if (
-    !Number.isSafeInteger(input.operation.expectedRevision) ||
-    input.operation.expectedRevision < 0
-  )
-    throw new Error('Invalid permission revision');
-  return {
-    ...input,
-    ...identity,
-    actor: actor(input.actor),
-    operation: {
+  let operation: PermissionOperation | WorkflowOperation;
+  if (input.operation.kind === 'agent_capabilities') {
+    text(input.operation.agentId);
+    if (
+      !Number.isSafeInteger(input.operation.expectedRevision) ||
+      input.operation.expectedRevision < 0
+    )
+      throw new Error('Invalid permission revision');
+    operation = {
       ...input.operation,
       capabilities: validateCapabilities(input.operation.capabilities),
-    },
-  };
+    };
+  } else if (input.operation.kind === 'workflow_invocation') {
+    const value = input.operation;
+    if (
+      Object.keys(value).some(
+        (key) =>
+          !['kind', 'host', 'workflowId', 'inputDigest', 'requestId', 'effect'].includes(key),
+      )
+    )
+      throw new Error('Invalid Workflow Approval operation');
+    for (const field of [value.host, value.workflowId, value.requestId]) text(field);
+    if (value.host.length > 2048 || value.workflowId.length > 128 || value.requestId.length > 128)
+      throw new Error('Workflow Approval field size limit');
+    if (typeof value.inputDigest !== 'string' || !/^[a-f0-9]{64}$/.test(value.inputDigest))
+      throw new Error('Invalid Workflow input digest');
+    if (value.effect !== 'write' && value.effect !== 'irreversible')
+      throw new Error('Invalid Workflow Approval effect');
+    let host: URL;
+    try {
+      host = new URL(value.host);
+    } catch {
+      throw new Error('Invalid Workflow Approval host');
+    }
+    if (
+      !['https:', 'http:'].includes(host.protocol) ||
+      host.username ||
+      host.password ||
+      host.search ||
+      host.hash ||
+      host.toString().replace(/\/$/, '') !== value.host
+    )
+      throw new Error('Invalid Workflow Approval host');
+    operation = {
+      kind: value.kind,
+      host: value.host,
+      workflowId: value.workflowId,
+      inputDigest: value.inputDigest,
+      requestId: value.requestId,
+      effect: value.effect,
+    };
+  } else throw new Error('Invalid Approval operation');
+  return { ...input, ...identity, actor: actor(input.actor), operation };
 }
 export function createApprovalDecision(
   request: ApprovalRequest,
@@ -75,7 +124,7 @@ export function createApprovalDecision(
   text(input.reason);
   text(createdAt);
   const approver = actor(input.actor);
-  if (approver.kind !== 'human') throw new Error('Permission change requires human approval');
+  if (approver.kind !== 'human') throw new Error('Operation requires human approval');
   if (input.decision !== 'approve' && input.decision !== 'reject')
     throw new Error('Invalid Approval decision');
   return { ...input, actor: approver, approvalId: request.id, createdAt };
@@ -88,5 +137,7 @@ export function requireApprovedPermission(approval: Approval): ApprovedPermissio
     throw new Error('Approval decision does not match request');
   createApprovalRequest(request, request);
   createApprovalDecision(request, decision, decision.createdAt);
-  return { request, decision };
+  if (request.operation.kind !== 'agent_capabilities')
+    throw new Error('Approval is not a permission operation');
+  return { request: { ...request, operation: request.operation }, decision };
 }

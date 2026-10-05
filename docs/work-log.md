@@ -815,3 +815,9 @@
 - 継続依頼を受領。全体要件の完了まで小さなe2eを積み重ねる方針を継続する。全検査244成功/7skip/0fail、251件121files、50.55秒。型/lint/format/AST成功、実Jev1285回答exit0。Final独立レビューはCritical/Important/Minorなし、関連27件を独立検証。実CLI fixtureではAgent固有キー・成功Artifact・人間review・MemoryとHTTP待機中停止のfailed/unconfirmed no replayを確認。
 - 実n8n準備の初回はactivation直後のWebhook404で失敗。成功とは扱わず自作containerを再作成し、準備helperでactivation反映を待ってsuccess/cancelの実API検証に成功。業務サービス呼出しなし、キー/生応答はprivate tmpだけに保存。現在、実Claude MaxのTask→Workflow一周を検証中。[検証記録](verification/2026-10-06-task-workflow-artifact/check.txt)。
 - 実Claude Max→Agent専用execution:readキーの公式ローカルn8n→照合済みsuccess Artifact→human Task review→episodic Memoryが成功。daemon再起動でTask version/Memory ID/claimとstarted receiptが維持されno replay。自作n8n containerを終了。READMEと全体要件を更新。read_onlyはhost契約宣言でnode副作用検出ではなく、長時間非同期再開・業務出力・操作Approval・Agent RPC認証は未完了。Next: 書込み/不可逆Workflowを許可する前提となる操作Approval境界を、小さな契約とREDから検討する。
+
+## 2026-10-06 Workflow操作Approval（進行中）
+
+- main0ee4681通常push成功、pre-pushのpush対象tree全検査/実Jev/公開検査63.09秒。Next計画を保存しfeat/workflow-operation-approvalへ移行。[計画](superpowers/plans/2026-10-06-workflow-operation-approval.md)。
+- Workflow操作のdomain要求は現状unsupportedでRED、CLI request-workflowも未対応のRED。既存Approvalへhost/Workflow ID/input digest/request ID/effectを固定するkindを追加。SQLite保存・人間判断・不変Audit、同key変更/二重判断/権限変更への流用拒否のGREEN。関連5件794ms、型/lint/format/AST成功。外部書込みexecutorはこの単位では接続しない。
+- 最終全検査と実Jev exit0。246 pass /  7 skip /  0 fail / Ran 253 tests across 123 files. [48.37s]。Jev {"subjects": 1292, "missing": 0, "unsure": 0, "reported": 77, "errors": [], "degraded": []}。Final独立レビュー指摘なし、関連10件9files837msを独立成功。[証拠](verification/2026-10-06-workflow-operation-approval/check.txt)。Ruling: failure-path warningはdomain拒否・SQLite衝突・実CLI apply拒否の具体的検証で判断し、全失敗経路の網羅保証はしない。Next: native invokeで承認内容完全一致と一回claimを強制する。

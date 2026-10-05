@@ -39,6 +39,10 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
       reason: { type: 'string' },
       task: { type: 'string' },
       event: { type: 'string' },
+      host: { type: 'string' },
+      'input-digest': { type: 'string' },
+      'request-id': { type: 'string' },
+      effect: { type: 'string' },
     },
   });
   const [noun, action, target, ...extra] = parsed.positionals;
@@ -52,13 +56,15 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
   const allowed =
     noun === 'audit'
       ? []
-      : action === 'request'
-        ? ['key', 'actor', 'capability', 'expected-revision', 'task', 'event']
-        : action === 'decide'
-          ? ['actor', 'decision', 'reason']
-          : action === 'apply'
-            ? ['actor']
-            : [];
+      : action === 'request-workflow'
+        ? ['key', 'actor', 'host', 'input-digest', 'request-id', 'effect', 'task', 'event']
+        : action === 'request'
+          ? ['key', 'actor', 'capability', 'expected-revision', 'task', 'event']
+          : action === 'decide'
+            ? ['actor', 'decision', 'reason']
+            : action === 'apply'
+              ? ['actor']
+              : [];
   for (const key of Object.keys(parsed.values))
     if (!['db', 'json', ...allowed].includes(key)) throw new Error(`Unexpected --${key}`);
   if (noun === 'audit') {
@@ -70,6 +76,27 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
     return { ...base, action };
   }
   const id = required(target, 'ID');
+  if (action === 'request-workflow') {
+    const effect = required(parsed.values.effect, '--effect');
+    if (effect !== 'write' && effect !== 'irreversible')
+      throw new Error('Invalid Workflow Approval effect');
+    const input: ApprovalRequestInput = {
+      key: required(parsed.values.key, '--key'),
+      actor: { kind: 'human', id: required(parsed.values.actor, '--actor') },
+      taskId: parsed.values.task ?? null,
+      eventId: parsed.values.event ?? null,
+      operation: {
+        kind: 'workflow_invocation',
+        workflowId: id,
+        host: required(parsed.values.host, '--host'),
+        inputDigest: required(parsed.values['input-digest'], '--input-digest'),
+        requestId: required(parsed.values['request-id'], '--request-id'),
+        effect,
+      },
+    };
+    createApprovalRequest(input, { id: 'validate', createdAt: 'validate' });
+    return { ...base, action: 'request', input };
+  }
   if (action === 'request') {
     const input: ApprovalRequestInput = {
       key: required(parsed.values.key, '--key'),
@@ -115,8 +142,10 @@ export function runApprovalCommand(command: ApprovalCommand, output: (line: stri
     let result: unknown;
     switch (command.action) {
       case 'request': {
-        agents = new SqliteAgentRepository(command.db);
-        agents.capabilitySnapshot(command.input.operation.agentId);
+        if (command.input.operation.kind === 'agent_capabilities') {
+          agents = new SqliteAgentRepository(command.db);
+          agents.capabilitySnapshot(command.input.operation.agentId);
+        }
         if (command.input.taskId !== null) {
           const tasks = new SqliteTaskProvider(command.db);
           try {

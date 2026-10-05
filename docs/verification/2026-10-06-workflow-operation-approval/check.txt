@@ -1,0 +1,9 @@
+bun run check exit 0: 246 pass
+ 7 skip
+ 0 fail
+Ran 253 tests across 123 files. [48.37s]
+Static type/lint/format/AST passed; 233 files examined by format.
+Actual Jev exit 0: {"subjects": 1292, "missing": 0, "unsure": 0, "reported": 77, "errors": [], "degraded": []}
+Independent reviewer: no Critical/Important/Minor findings; 10 tests / 9 files / 837 ms, 0 fail.
+Real CLI: exact request -> immutable human decision -> Audit; invalid digest fails before DB creation; capability apply rejects Workflow approval; second conflicting decision rejected.
+External native execution not connected in this slice.

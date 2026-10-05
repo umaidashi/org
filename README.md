@@ -420,3 +420,18 @@ Workflow設定にAgent別の許可と専用キー参照を追加します。
 成功した実行IDとWorkflowを照合してTask成果物を保存します。`task artifacts TASK_ID --json`でIDを取得し、`task artifact-content TASK_ID --artifact ARTIFACT_ID --json`で内容とintegrityを確認できます。人間のTask review後、設定済みMemory policyに従ってMemoryへ記録します。実Claude Maxとローカル公式n8nで一周と再起動後no replayを検証済みです。
 
 read_onlyは信頼済みhostが宣言する契約で、n8n各nodeの副作用を自動判定する機能ではありません。書込みWorkflowは未対応です。Workflow実行段階は30秒で制限し、停止時にはHTTPを中断します。不明な結果はclaimを保持して再送しません。長時間Workflowの非同期再開、業務出力、操作Approval、Agent RPC認証は未完了です。
+
+## Workflow操作の承認記録
+
+書込み・不可逆操作の承認対象を、host・Workflow・入力SHA-256・一回の実行request IDへ固定できます。
+
+```sh
+bun run start approval request-workflow WORKFLOW_ID --key operation-001 --actor founder --host https://n8n.example --input-digest INPUT_SHA256 --request-id INVOCATION_ID --effect write --json
+bun run start approval decide APPROVAL_ID --actor founder --decision approve --reason '対象と入力を確認した' --json
+bun run start approval get APPROVAL_ID --json
+bun run start audit list --json
+```
+
+`--effect`はwriteまたはirreversibleです。hostは資格情報・query・fragmentを含まない正規URL、入力digestは小文字64桁です。要求と判断は不変保存し、同keyの別操作や判断の変更を拒否します。入力本文・APIキーは保存しません。Workflow承認を`approval apply`へ渡してAgent権限を変更することもできません。
+
+この段階では承認の保存・表示・監査までです。承認済み書込みをnative Workflow実行へ接続する処理は未完了で、Agent TaskのWorkflow scopeはread_onlyだけを許可します。人間actorはローカル管理者の申告値です。

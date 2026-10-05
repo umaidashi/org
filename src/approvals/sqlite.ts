@@ -8,6 +8,8 @@ import type {
   ApprovalRequest,
   ApprovalDecision,
   ApprovalDecisionInput,
+  WorkflowOperation,
+  PermissionOperation,
 } from './domain.js';
 import type { ApprovalStore } from './port.js';
 import { validateCapabilities } from '../agents/domain.js';
@@ -35,20 +37,34 @@ function actor(value: unknown): Participant {
 function request(raw: unknown): ApprovalRequest {
   const row = object(JSON.parse(text(raw))),
     operation = object(row.operation);
-  if (operation.kind !== 'agent_capabilities' || typeof operation.expectedRevision !== 'number')
-    throw new Error('Invalid stored permission operation');
+  let parsed: WorkflowOperation | PermissionOperation;
+  if (operation.kind === 'agent_capabilities' && typeof operation.expectedRevision === 'number')
+    parsed = {
+      kind: operation.kind,
+      agentId: text(operation.agentId),
+      expectedRevision: operation.expectedRevision,
+      capabilities: validateCapabilities(operation.capabilities),
+    };
+  else if (
+    operation.kind === 'workflow_invocation' &&
+    (operation.effect === 'write' || operation.effect === 'irreversible')
+  )
+    parsed = {
+      kind: operation.kind,
+      host: text(operation.host),
+      workflowId: text(operation.workflowId),
+      inputDigest: text(operation.inputDigest),
+      requestId: text(operation.requestId),
+      effect: operation.effect,
+    };
+  else throw new Error('Invalid stored Approval operation');
   return createApprovalRequest(
     {
       key: text(row.key),
       actor: actor(row.actor),
       taskId: nullable(row.taskId),
       eventId: nullable(row.eventId),
-      operation: {
-        kind: operation.kind,
-        agentId: text(operation.agentId),
-        expectedRevision: operation.expectedRevision,
-        capabilities: validateCapabilities(operation.capabilities),
-      },
+      operation: parsed,
     },
     { id: text(row.id), createdAt: text(row.createdAt) },
   );
