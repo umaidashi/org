@@ -3,14 +3,14 @@ import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
 import { decodeSession, transitionSession } from './domain.js';
 import type { Session } from './domain.js';
-import type { SessionStore } from './port.js';
+import type { SessionStore, SessionRebuilder } from './port.js';
 function decodeRow(row: unknown): Session {
   if (typeof row !== 'object' || row === null || !('data' in row) || typeof row.data !== 'string')
     throw new Error('Invalid stored Session');
   const value: unknown = JSON.parse(row.data);
   return decodeSession(value);
 }
-export class SqliteSessionStore implements SessionStore {
+export class SqliteSessionStore implements SessionStore, SessionRebuilder {
   private readonly db: Database;
   constructor(path: string) {
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
@@ -48,7 +48,12 @@ export class SqliteSessionStore implements SessionStore {
   }
   create(input: Session): void {
     const session = decodeSession(input);
-    if (session.version !== 0 || session.status !== 'idle' || session.providerSessionId !== null)
+    if (
+      session.version !== 0 ||
+      session.status !== 'idle' ||
+      session.providerSessionId !== null ||
+      session.rebuiltFrom !== undefined
+    )
       throw new Error('Session creation requires initial state');
     this.atomic(() => {
       this.db
@@ -56,6 +61,38 @@ export class SqliteSessionStore implements SessionStore {
         .run(session.id, 0, JSON.stringify(session));
       this.append(session);
     });
+  }
+  rebuildSession(originalId: string, expectedVersion: number, input: Session): Session {
+    const next = decodeSession(input);
+    if (
+      !Number.isSafeInteger(expectedVersion) ||
+      expectedVersion < 0 ||
+      next.version !== 0 ||
+      next.status !== 'idle' ||
+      next.providerSessionId !== null ||
+      next.createdAt !== next.updatedAt ||
+      next.rebuiltFrom?.sessionId !== originalId ||
+      next.rebuiltFrom.version !== expectedVersion
+    )
+      throw new Error('Invalid Session reconstruction');
+    this.atomic(() => {
+      const original = this.get(originalId);
+      if (original.version !== expectedVersion) throw new Error('Stale Session version');
+      if (original.status !== 'failed')
+        throw new Error('Session reconstruction requires failed state');
+      if (original.agentId !== next.agentId || original.roomId !== next.roomId)
+        throw new Error('Session reconstruction identity mismatch');
+      const stopped = transitionSession(original, { type: 'stop', at: next.createdAt });
+      this.db
+        .query('UPDATE sessions SET version=?,data=? WHERE id=? AND version=?')
+        .run(stopped.version, JSON.stringify(stopped), original.id, expectedVersion);
+      this.append(stopped);
+      this.db
+        .query('INSERT INTO sessions(id,version,data) VALUES(?,?,?)')
+        .run(next.id, 0, JSON.stringify(next));
+      this.append(next);
+    });
+    return next;
   }
   get(id: string): Session {
     const row = this.db.query('SELECT data FROM sessions WHERE id=?').get(id);

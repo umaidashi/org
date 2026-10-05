@@ -1,0 +1,9 @@
+# 壊れたprovider Sessionの明示的再構築
+
+Notion Room仕様はprovider IDをRoom IDにせず、Room messages/Room summary/Agent memoryから新規Sessionを再構築することを求める。現在はfailed Sessionのprovider IDを再利用するため、壊れたproviderへ繰り返し送信する。明示session rebuild ID --expected-version VERSIONを追加する。
+
+failedだけを対象に、最新versionとAgent/active Room/参加者を確認。元Sessionをstoppedへ更新し、新しいKernel Sessionをprovider IDなしで作成する操作をSQLiteの一transactionにする。rebuiltFrom(sessionId/version)を不変履歴に残す。古いversion/非failed/新規保存failureを拒否し、rollbackで元failedを保つ。自動provider再送はしない。rebuild自体はproviderを起動しない。
+
+次の新規Room Messageのactivationで新Sessionを使用し、既存bounded Room履歴と有効なscope内Memory（semantic Room summary/Agent memoryも含む）からnative contextを構成する。元Message/Memory/Session履歴を変更しない。Taskのunknown external operationを再実行する機能ではない。
+
+RED pure/serviceと実CLI未対応→native transaction/rollback→壊れたprovider resumeを拒否する実Runtime fixture→rebuild後fresh turn/context/再open。全check・実Jev・branch最終レビュー。Room summary自動生成と一般自律retryは未完了。

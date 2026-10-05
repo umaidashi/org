@@ -1,0 +1,6 @@
+bun run check exit 0: 255 pass, 7 skip, 0 fail; 262 tests across 130 files, 51.88s.
+Type/lint/format/AST passed. Actual Jev exit 0: 1343 subjects, missing/unsure 0, warnings 77, errors/degraded [].
+Final independent reviewer: no Critical/Important/Minor findings; 15 tests across 8 files, 1.489s. Initial sandbox socket startup failed; authorized native socket rerun succeeded.
+RED missing reconstruction service and unsupported session rebuild CLI. GREEN DB-free authority-before-write DI, native SQLite failed/version CAS -> old stop/history + fresh/history atomic; collision rollback; immutable origin; archived Room/stale/nonfailed denied.
+Actual CLI/daemon Runtime fixture: established provider broken -> resume rejects -> failed -> explicit rebuild; rebuild makes no provider call. Next new Room Message activates fresh provider with Room history, semantic Room summary Memory and Agent Memory; excludes other Agent private Memory. Original messages/Memory preserved; native database reopen verifies provenance/history.
+No actual Max run claimed for this new reconstruction fixture. Usage text updated afterward; final pre-push gate repeats checks against committed tree. Automatic summary extraction/general retry remain unfinished.

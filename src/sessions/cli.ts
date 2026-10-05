@@ -4,6 +4,12 @@ import type { SessionStore } from './port.js';
 import type { LocalAgentRuntime } from '../runtime/manager.js';
 export type SessionCommand =
   | {
+      readonly action: 'rebuild';
+      readonly id: string;
+      readonly expectedVersion: number;
+      readonly json: boolean;
+    }
+  | {
       readonly action: 'start';
       readonly agentId: string;
       readonly roomId: string;
@@ -30,7 +36,8 @@ export type SessionCommand =
 export interface SessionContext {
   readonly reply?: (id: string, messageId: string, instruction: string) => Promise<Message>;
   readonly store: Pick<SessionStore, 'get' | 'list' | 'history'>;
-  readonly runtime: Pick<LocalAgentRuntime, 'start' | 'send' | 'resume' | 'stop'>;
+  readonly runtime: Pick<LocalAgentRuntime, 'start' | 'send' | 'resume' | 'stop'> &
+    Partial<Pick<LocalAgentRuntime, 'rebuild'>>;
 }
 function required(value: string | undefined, name: string): string {
   if (!value?.trim()) throw new Error(`Session ${name} required`);
@@ -48,11 +55,24 @@ export function parseSessionCommand(argv: string[]): SessionCommand {
       'room-message': { type: 'string' },
       instruction: { type: 'string' },
       json: { type: 'boolean' },
+      'expected-version': { type: 'string' },
     },
   });
   const [noun, action, id, ...extra] = parsed.positionals;
   if (noun !== 'session' || extra.length) throw new Error('Expected session command');
   const json = parsed.values.json ?? false;
+  if (action !== 'rebuild' && parsed.values['expected-version'] !== undefined)
+    throw new Error('Expected version requires session rebuild');
+  if (action === 'rebuild') {
+    if (Object.keys(parsed.values).some((key) => !['expected-version', 'json'].includes(key)))
+      throw new Error('Unexpected Session rebuild options');
+    const raw = required(parsed.values['expected-version'], 'expected version'),
+      expectedVersion = Number(raw);
+    if (!/^(0|[1-9][0-9]*)$/.test(raw) || !Number.isSafeInteger(expectedVersion))
+      throw new Error('Invalid Session expected version');
+    return { action, id: required(id, 'ID'), expectedVersion, json };
+  }
+
   if (action !== 'reply' && parsed.values['room-message'] !== undefined)
     throw new Error('Room Message requires session reply');
   if (action === 'reply') {
@@ -101,7 +121,7 @@ export function parseSessionCommand(argv: string[]): SessionCommand {
   if (action === 'list' && id === undefined) return { action, json };
   if (action === 'get' || action === 'history' || action === 'stop')
     return { action, id: required(id, 'ID'), json };
-  throw new Error('Expected session start/send/resume/stop/get/list/history');
+  throw new Error('Expected session start/send/resume/reply/rebuild/stop/get/list/history');
 }
 export async function runSessionCommand(
   command: SessionCommand,
@@ -109,6 +129,10 @@ export async function runSessionCommand(
 ): Promise<string> {
   let result: unknown;
   switch (command.action) {
+    case 'rebuild':
+      if (!context.runtime.rebuild) throw new Error('Session reconstruction unavailable');
+      result = context.runtime.rebuild(command.id, command.expectedVersion);
+      break;
     case 'reply':
       if (!context.reply) throw new Error('Room replies require daemon');
       result = await context.reply(command.id, command.messageId, command.instruction);

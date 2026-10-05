@@ -6,3 +6,7 @@ export interface SessionStore {
   save(session: Session, expectedVersion: number): void;
   history(id: string): readonly Session[];
 }
+
+export interface SessionRebuilder {
+  rebuildSession(originalId: string, expectedVersion: number, next: Session): Session;
+}

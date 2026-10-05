@@ -1,4 +1,5 @@
 export interface Session {
+  readonly rebuiltFrom?: { readonly sessionId: string; readonly version: number };
   readonly id: string;
   readonly agentId: string;
   readonly roomId: string;
@@ -40,6 +41,21 @@ export function decodeSession(value: unknown): Session {
     value.version < 0
   )
     throw new Error('Invalid Session');
+  const origin = value.rebuiltFrom;
+  let rebuiltFrom: Session['rebuiltFrom'];
+  if (origin !== undefined) {
+    if (
+      !record(origin) ||
+      !nonempty(origin.sessionId) ||
+      origin.sessionId === value.id ||
+      typeof origin.version !== 'number' ||
+      !Number.isSafeInteger(origin.version) ||
+      origin.version < 0 ||
+      Object.keys(origin).some((key) => !['sessionId', 'version'].includes(key))
+    )
+      throw new Error('Invalid Session reconstruction origin');
+    rebuiltFrom = { sessionId: origin.sessionId, version: origin.version };
+  }
   if ((value.status === 'failed') !== (value.error !== null))
     throw new Error('Invalid Session error state');
   return {
@@ -53,6 +69,7 @@ export function decodeSession(value: unknown): Session {
     version: value.version,
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
+    ...(rebuiltFrom === undefined ? {} : { rebuiltFrom }),
   };
 }
 export function createSession(

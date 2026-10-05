@@ -1,6 +1,7 @@
 import type { AgentRepository } from '../agents/port.js';
 import type { RoomRepository } from '../rooms/port.js';
-import type { SessionStore } from '../sessions/port.js';
+import { rebuildSessionForAgent } from '../sessions/reconstruction.js';
+import type { SessionStore, SessionRebuilder } from '../sessions/port.js';
 import type { Session } from '../sessions/domain.js';
 import {
   createSessionForAgent,
@@ -19,7 +20,8 @@ export class LocalAgentRuntime {
   private readonly active = new Map<string, ActiveTurn>();
   private closed = false;
   constructor(
-    private readonly store: Pick<SessionStore, 'create' | 'get' | 'list' | 'save'>,
+    private readonly store: Pick<SessionStore, 'create' | 'get' | 'list' | 'save'> &
+      Partial<SessionRebuilder>,
     private readonly agents: Pick<AgentRepository, 'list'>,
     private readonly rooms: Pick<RoomRepository, 'get'>,
     private readonly drivers: Readonly<Record<'codex' | 'claude', Driver>>,
@@ -44,6 +46,19 @@ export class LocalAgentRuntime {
       this.agents,
       this.rooms,
       { agentId, roomId },
+      { id: this.id(), at: this.now() },
+    );
+  }
+  rebuild(id: string, expectedVersion: number): Session {
+    if (this.closed) throw new Error('Runtime is closed');
+    if (this.active.has(id)) throw new Error('Session runtime turn is active');
+    const rebuildSession = this.store.rebuildSession?.bind(this.store);
+    if (!rebuildSession) throw new Error('Session reconstruction unavailable');
+    return rebuildSessionForAgent(
+      { get: (id) => this.store.get(id), rebuildSession },
+      this.agents,
+      this.rooms,
+      { id, expectedVersion },
       { id: this.id(), at: this.now() },
     );
   }

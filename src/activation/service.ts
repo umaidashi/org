@@ -34,7 +34,10 @@ export async function activateRoomMessage(
     if (candidates.some((s) => s.status === 'running'))
       throw new Error('Agent Room Session is running');
     const session =
-      candidates.find((s) => s.status === 'idle' || s.status === 'failed') ?? open(agentId, roomId);
+      candidates
+        .filter((s) => s.status === 'idle' || s.status === 'failed')
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id))[0] ??
+      open(agentId, roomId);
     if (
       session.agentId !== agentId ||
       session.roomId !== roomId ||

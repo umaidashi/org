@@ -4,7 +4,7 @@ import type { RuntimeTurnInput, RuntimeTurnResult } from '../runtime/port.js';
 import { createSession, transitionSession } from './domain.js';
 import type { Session } from './domain.js';
 import type { SessionStore } from './port.js';
-function references(
+export function sessionAgent(
   agents: Pick<AgentRepository, 'list'>,
   rooms: Pick<RoomRepository, 'get'>,
   agentId: string,
@@ -31,7 +31,7 @@ export function createSessionForAgent(
   input: { readonly agentId: string; readonly roomId: string },
   identity: { readonly id: string; readonly at: string },
 ): Session {
-  const agent = references(agents, rooms, input.agentId, input.roomId);
+  const agent = sessionAgent(agents, rooms, input.agentId, input.roomId);
   if (agent.runtime !== 'codex' && agent.runtime !== 'claude')
     throw new Error('Unsupported Session runtime');
   const session = createSession({ ...input, runtime: agent.runtime }, identity);
@@ -49,7 +49,7 @@ export async function sendSession(
 ): Promise<{ readonly session: Session; readonly text: string }> {
   if (!input.message.trim()) throw new Error('Session message required');
   const initial = store.get(input.id);
-  const agent = references(agents, rooms, initial.agentId, initial.roomId);
+  const agent = sessionAgent(agents, rooms, initial.agentId, initial.roomId);
   if (agent.runtime !== initial.runtime) throw new Error('Session runtime changed');
   const running = transitionSession(initial, { type: 'begin', at: now() });
   store.save(running, initial.version);

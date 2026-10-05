@@ -469,3 +469,16 @@ bun run start room targets ROOM_ID --message MESSAGE_ID --json
 `daemon --wake-up --runtime-config ./runtime.local.json`で条件に一致するMessageを自動起動します。条件はscalarの完全一致で、`1`と`"1"`、nullと欠落は区別します。複数一致はAgentごとに一回だけ起動し、明示mention/A2Aを優先します。Agentの通常返信から暗黙起動しません。
 
 ルールは1〜32件、各条件は1〜16個。参加者外・空条件・非scalar・過大文字列・reserved mentions/a2a・未知fieldを拒否します。ルールはrule_based Roomだけに保存でき、任意コードや正規表現を実行しません。ルールなしの旧rule_based Roomは、暗黙起動を拒否する既存動作を保ちます。
+
+## 壊れたSessionを再構築する
+
+provider Sessionが利用不能になった場合は、failed Sessionのversionを確認して明示的に作り直します。
+
+```sh
+bun run start session get SESSION_ID --json
+bun run start session rebuild SESSION_ID --expected-version VERSION --json
+```
+
+元Sessionの停止と、provider IDを持たない新しいKernel Sessionの保存を一transactionで行います。元のfailed履歴を保持し、新Sessionの`rebuiltFrom`に元ID/versionを記録します。古いversion・非failed・archive済みRoomは拒否し、保存失敗時は元の状態へrollbackします。
+
+rebuild自体はproviderを起動しません。次の新規Room Messageをactivateすると、最新SessionがRoom履歴と現在有効なscope内Memoryからcontextを作り直します。semantic Room Memoryをsummaryとして保持する場合も、このcontextに含まれます。元Message・Memoryは変更しません。Room summaryの自動生成と一般の自律retryは未完了です。Taskや結果不明の外部操作を自動で再実行する機能ではありません。
