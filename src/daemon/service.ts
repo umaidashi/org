@@ -4,6 +4,21 @@ import type { IdempotentTaskWriter } from '../tasks/port.js';
 import { planDeliveries } from './domain.js';
 import type { Delivery } from './domain.js';
 import type { DeliveryJournal } from './port.js';
+export async function pollDaemonStages(
+  stages: readonly (() => void | Promise<void>)[],
+  signal?: AbortSignal,
+): Promise<void> {
+  const errors: unknown[] = [];
+  for (const stage of stages) {
+    if (signal?.aborted) break;
+    try {
+      await stage();
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+  if (errors.length) throw new AggregateError(errors, 'Daemon polling failed');
+}
 export function releaseResources(resources: readonly { close(): void }[]): void {
   const errors: unknown[] = [];
   for (const resource of resources) {

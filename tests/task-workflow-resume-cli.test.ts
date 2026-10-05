@@ -16,7 +16,8 @@ async function proof(auto: boolean): Promise<void> {
     driver = home + '/driver.ts';
   let invokes = 0,
     reads = 0,
-    delayed = false;
+    delayed = false,
+    statusFailure = false;
   const server = Bun.serve({
     hostname: '127.0.0.1',
     port: 0,
@@ -28,6 +29,7 @@ async function proof(auto: boolean): Promise<void> {
       }
       assert.equal(request.headers.get('X-N8N-API-KEY'), 'agent-fixture-key');
       reads++;
+      if (statusFailure) return new Response('fixture failure', { status: 500 });
       return Response.json({
         id: new URL(request.url).pathname.split('/').at(-1),
         workflowId: 'flow',
@@ -369,6 +371,30 @@ async function proof(auto: boolean): Promise<void> {
       await Bun.sleep(120);
       assert.deepEqual(await entity(['task', 'get', second.id]), blocked);
       assert.deepEqual(await run(['task', 'history', second.id]), originalHistory);
+      statusFailure = true;
+      const independentEvent = await entity([
+        'event',
+        'publish',
+        'manual.independent',
+        '--source',
+        'human',
+      ]);
+      const independentDeadline = Date.now() + 5000;
+      let independent: Record<string, unknown> | undefined;
+      while (!independent || independent.status !== 'waiting_approval') {
+        assert.ok(Date.now() < independentDeadline, 'Observation failure starved independent Task');
+        await Bun.sleep(20);
+        const list = await run(['task', 'list']);
+        assert.ok(Array.isArray(list));
+        const candidates: readonly unknown[] = list;
+        independent = candidates.find(
+          (task): task is Record<string, unknown> =>
+            record(task) && task.externalRef === 'org:event:' + independentEvent.id,
+        );
+      }
+      assert.equal(invokes, 2);
+      assert.deepEqual(await entity(['task', 'get', second.id]), blocked);
+      statusFailure = false;
     }
     assert.equal(invokes, 2);
     delayed = false;

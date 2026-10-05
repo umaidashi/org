@@ -65,3 +65,36 @@ test('receipt failure after Task success retries the same identity through injec
   assert.equal(ids.length, 2);
   assert.equal(ids[0], ids[1]);
 });
+
+test('independent polling stages continue after failure and preserve errors', async () => {
+  const { pollDaemonStages } = await import('../src/daemon/service.js');
+  const calls: number[] = [];
+  await assert.rejects(
+    pollDaemonStages([
+      () => {
+        calls.push(1);
+        throw Error('observation failed');
+      },
+      () => {
+        calls.push(2);
+      },
+    ]),
+    (error: unknown) => {
+      assert.ok(error instanceof AggregateError);
+      assert.equal(error.errors.length, 1);
+      assert.ok(error.errors[0] instanceof Error);
+      assert.equal(error.errors[0].message, 'observation failed');
+      return true;
+    },
+  );
+  assert.deepEqual(calls, [1, 2]);
+  await pollDaemonStages(
+    [
+      () => {
+        calls.push(3);
+      },
+    ],
+    AbortSignal.abort(),
+  );
+  assert.deepEqual(calls, [1, 2]);
+});

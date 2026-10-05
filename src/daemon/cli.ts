@@ -50,7 +50,7 @@ import { join, resolve } from 'node:path';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
 import { SqliteEventBus } from '../events/sqlite.js';
 import { SqliteTaskProvider } from '../tasks/sqlite.js';
-import { dispatchEvents, releaseResources } from './service.js';
+import { dispatchEvents, releaseResources, pollDaemonStages } from './service.js';
 import { SqliteDeliveryJournal } from './sqlite.js';
 import { requestDaemon } from './client.js';
 import { runLocalDaemon } from './server.js';
@@ -532,55 +532,75 @@ function openOperations(
       wakeups: () => wakeupJournal.list(),
       ...(wakeUp || workflow !== undefined
         ? {
-            wakeUp: async (signal?: AbortSignal) => {
-              if (observeWorkflows)
-                await pollTaskWorkflowObservations(
-                  taskProvider,
-                  eventBus,
-                  (taskId, version) => observe(taskId, version, signal, true),
-                  signal,
-                );
-              if (workflow)
-                await pollWorkflowDeliveries(
-                  eventBus,
-                  journal,
-                  {
-                    ...workflow,
-                    workflows: new Set(
-                      workflow.workflows.filter((w) => w.effect === 'read_only').map((w) => w.id),
-                    ),
+            wakeUp: (signal?: AbortSignal) =>
+              pollDaemonStages(
+                [
+                  async () => {
+                    if (observeWorkflows)
+                      await pollTaskWorkflowObservations(
+                        taskProvider,
+                        eventBus,
+                        (taskId, version) => observe(taskId, version, signal, true),
+                        signal,
+                      );
                   },
-                  () => new Date().toISOString(),
-                  signal,
-                );
-              if (!wakeUp) return;
-              await pollRoomWakeups(
-                roomRepository,
-                sessionStore,
-                wakeupJournal,
-                activate,
-                () => new Date().toISOString(),
+                  async () => {
+                    if (workflow)
+                      await pollWorkflowDeliveries(
+                        eventBus,
+                        journal,
+                        {
+                          ...workflow,
+                          workflows: new Set(
+                            workflow.workflows
+                              .filter((w) => w.effect === 'read_only')
+                              .map((w) => w.id),
+                          ),
+                        },
+                        () => new Date().toISOString(),
+                        signal,
+                      );
+                    if (!wakeUp) return;
+                    await pollRoomWakeups(
+                      roomRepository,
+                      sessionStore,
+                      wakeupJournal,
+                      activate,
+                      () => new Date().toISOString(),
+                      signal,
+                    );
+                    await pollExecutionTasks(
+                      taskProvider,
+                      roomRepository,
+                      sessionStore,
+                      (agentId, roomId) => runtime.open(agentId, roomId),
+                      execute,
+                      () => ({ id: randomUUID(), createdAt: new Date().toISOString() }),
+                      signal,
+                    );
+                    await pollDelegationResults(
+                      roomRepository,
+                      agentRepository,
+                      taskProvider,
+                      () => ({ id: randomUUID(), createdAt: new Date().toISOString() }),
+                      signal,
+                    );
+                    await pollDelegationReviews(
+                      roomRepository,
+                      agentRepository,
+                      taskProvider,
+                      signal,
+                    );
+                    projectReviewedTaskMemories(
+                      memoryProvider,
+                      agentRepository,
+                      taskProvider,
+                      signal,
+                    );
+                  },
+                ],
                 signal,
-              );
-              await pollExecutionTasks(
-                taskProvider,
-                roomRepository,
-                sessionStore,
-                (agentId, roomId) => runtime.open(agentId, roomId),
-                execute,
-                () => ({ id: randomUUID(), createdAt: new Date().toISOString() }),
-                signal,
-              );
-              await pollDelegationResults(
-                roomRepository,
-                agentRepository,
-                taskProvider,
-                () => ({ id: randomUUID(), createdAt: new Date().toISOString() }),
-                signal,
-              );
-              await pollDelegationReviews(roomRepository, agentRepository, taskProvider, signal);
-              projectReviewedTaskMemories(memoryProvider, agentRepository, taskProvider, signal);
-            },
+              ),
           }
         : {}),
       command: (argv) =>
