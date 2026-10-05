@@ -621,3 +621,12 @@
 - Final独立Reviewer Critical/Important/Minorなし。独立UT/CLI12件・実Docker3件・静的検査成功。追加確認でrepo exportが取消signalを無視する経路を発見し、pre-abortでGitを実行するRED→native execFileへsignal伝播/型付きcancel GREEN。既存全callerは共通exportへ接続し、daemon停止時のコピー処理も中断対象にした。
 - 制限環境の全検査はUnix socket EPERMで失敗したため中断し、socketを許可した環境で再実行。実Docker回帰3件9.59秒成功。最新実Jev1089判定missing/unsure0、errors/degradedなし。独立レビュー後の取消修正は追加回帰で確認し、再レビューは実施しない。
 - 最終全200/200・型/lint/format/AST成功38.68秒。Docker実機5件は既定skipで別検証、今回CLI3件成功。[証拠](verification/2026-10-05-daemon-sandbox/check.txt)。Final Ruling: 一slot/queueなし、cancel応答はcancellingで完了はTask failedで確認、shutdownはcleanup異常を成功扱いしない。既知create/start間stopped container残留、資格情報注入/LLM tool/実行Auditは後続。Next: Task実行Auditを原子的に記録する。
+
+## Task実行Audit（進行中）
+
+- [計画](superpowers/plans/2026-10-05-task-execution-audit.md)。Task状態と原子的に保存済みの不変履歴を再利用し、実行開始/成果物保存/実行失敗をaudit listへ公開する。別tableや二重書込は不要。Runtime/Sandbox詳細tool inputは後続で、履歴projectionがそれを記録したとは扱わない。
+- main d80c364の通常push成功、pre-push全200テスト/実Jev/公開検査50.79秒。force-pushなし。
+- Audit pure未module RED→GREEN、CLI配線を一旦戻し既存Auditのみを返すRED→Task履歴公開GREENを確認。開始後owner変更のRED→開始時executorを保持する共通projection GREEN。成果物付与のrunning履歴を重複開始にせず、waiting_approval後の人間rejectを実行失敗と混同しない。
+- 全202/202・型/lint/format/AST成功38.38秒、Docker実機5件別途opt-in。実Jev1094判定missing/unsure0、errors/degradedなし。実Docker追加assertは既存tool名を誤記して失敗し、agent.capabilities.changeへ訂正して再検証。
+- 実Docker Task→Artifact→明示レビュー→Auditと既存capability履歴の共存1件1.287秒成功。Final独立Reviewer Critical/Importantなし、新規/既存UT/CLI4件と実Docker1件を独立成功。Minor1をdefer: 同ミリ秒version9開始/version10成功はID文字列sortで成功が先に見える。原本は不変でtask historyの数値version順で参照できる。表示のtie-orderは次のAudit拡張時に修正する。
+- Final Ruling: 保存済み原本projection、actorは開始ownerで本人認証ではない。task.executionは状態履歴であり詳細tool実行記録ではない。新規table/二重書込なし、全Task履歴の線形読取。詳細tool Audit/資格情報/外部操作は後続。Notion Runtime06を再取得し変更された要件がないことを照合。Next: AgentからSandboxへ制約付き実行指示を接続する。

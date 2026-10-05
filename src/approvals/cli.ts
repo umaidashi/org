@@ -10,6 +10,7 @@ import { SqliteTaskProvider } from '../tasks/sqlite.js';
 import { SqliteEventBus } from '../events/sqlite.js';
 import { validateCapabilities } from '../agents/domain.js';
 import { applyPermissionApproval } from './service.js';
+import { buildTaskExecutionAudit } from '../audit/tasks.js';
 import { buildAudit } from '../audit/domain.js';
 export type ApprovalCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'request'; readonly input: ApprovalRequestInput }
@@ -159,10 +160,20 @@ export function runApprovalCommand(command: ApprovalCommand, output: (line: stri
           new Date().toISOString(),
         );
         break;
-      case 'audit':
+      case 'audit': {
         agents = new SqliteAgentRepository(command.db);
-        result = buildAudit(store.list(), agents.capabilityHistory());
+        const tasks = new SqliteTaskProvider(command.db);
+        try {
+          result = buildAudit(
+            store.list(),
+            agents.capabilityHistory(),
+            tasks.list().flatMap((task) => buildTaskExecutionAudit(tasks.history(task.id))),
+          );
+        } finally {
+          tasks.close();
+        }
         break;
+      }
     }
     output(JSON.stringify(result, null, command.json ? undefined : 2));
   } finally {

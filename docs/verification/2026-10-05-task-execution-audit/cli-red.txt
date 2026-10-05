@@ -1,0 +1,55 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-audit-cli.test.ts:
+15 |     const running = tasks.update('t', {status:'running'}, '2', assigned.version);
+16 |     const ready = tasks.stageExecutionResult('t',{id:'out',uri:'org://artifacts/fixture',createdAt:'3'},running.version);
+17 |     const result = spawnSync(process.execPath, ['--no-env-file',fileURLToPath(new URL('../src/cli.ts',import.meta.url)), 'audit','list','--direct','--db',db,'--json'],{encoding:'utf8',timeout:5000});
+18 |     assert.equal(result.status,0,result.stderr);
+19 |     const entries: unknown = JSON.parse(result.stdout);
+20 |     assert.deepEqual(entries,[
+                ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
++ []
+- [
+-   {
+-     actor: {
+-       id: 'a',
+-       kind: 'agent'
+-     },
+-     approvalId: null,
+-     at: '2',
+-     eventId: null,
+-     id: 'task:t:2',
+-     inputRef: 'org://tasks/t/versions/1',
+-     outputRef: 'org://tasks/t/versions/2',
+-     result: 'started',
+-     taskId: 't',
+-     tool: 'task.execution'
+-   },
+-   {
+-     actor: {
+-       id: 'a',
+-       kind: 'agent'
+-     },
+-     approvalId: null,
+-     at: '3',
+-     eventId: null,
+-     id: 'task:t:4',
+-     inputRef: 'org://tasks/t/versions/3',
+-     outputRef: 'org://tasks/t/versions/4',
+-     result: 'succeeded',
+-     taskId: 't',
+-     tool: 'task.execution'
+-   }
+- ]
+
+      at innerFail (node:assert:36:32)
+      at deepStrictEqual (node:assert:134:14)
+      at <anonymous> (<REPO>/tests/task-audit-cli.test.ts:20:12)
+(fail) Audit CLI reopens atomically saved Task execution history and includes its result snapshot [54.19ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [79.00ms]

@@ -149,6 +149,14 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
         ]);
         assert.equal(reviewed.status, 0, reviewed.stderr);
         assert.equal(provider.get('task').status, 'completed');
+        const audit = run(['audit', 'list', '--json']);
+        assert.equal(audit.status, 0, audit.stderr);
+        const history = provider.history('task');
+        for (const entry of history.filter((x) => x.status === 'waiting_approval')) {
+          assert.ok(audit.stdout.includes(`org://tasks/task/versions/${entry.version}`));
+        }
+        assert.ok(audit.stdout.includes('succeeded'));
+        assert.ok(audit.stdout.includes('agent.capabilities.change'));
       } finally {
         provider.close();
       }

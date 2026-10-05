@@ -319,3 +319,5 @@ bun run start -- audit list --json
 ```
 
 権限変更の判断は人間操作に限定します。古いrevisionは適用を拒否し、同じApprovalの再適用は最初の記録を返します。権限と不変Auditを同じトランザクションで保存します。actorはローカル管理操作の申告値であり、本人認証は後続です。外部メール・deploy・支出等の操作はまだ接続していません。
+
+`audit list`はApprovalに加え、Taskの不変履歴から実行開始・成功・失敗を公開します。actorは開始時のowner、入出力は`task history`で読めるversion snapshot参照です。人間レビューの却下は実行失敗に変換しません。詳細tool引数・本人認証はこの履歴projectionの対象外です。

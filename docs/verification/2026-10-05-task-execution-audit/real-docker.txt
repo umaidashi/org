@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-cli.test.ts:
+(pass) real Sandbox CLI executes a Task, persists an artifact and requires explicit review [1261.90ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [1287.00ms]

@@ -10,14 +10,22 @@ export interface AuditEntry {
   readonly inputRef: string;
   readonly outputRef: string;
   readonly at: string;
-  readonly result: 'pending' | 'approved' | 'rejected' | 'applied';
-  readonly approvalId: string;
+  readonly result:
+    | 'pending'
+    | 'approved'
+    | 'rejected'
+    | 'applied'
+    | 'started'
+    | 'succeeded'
+    | 'failed';
+  readonly approvalId: string | null;
 }
 export function buildAudit(
   approvals: readonly Approval[],
   changes: readonly CapabilityChange[],
+  executions: readonly AuditEntry[] = [],
 ): readonly AuditEntry[] {
-  const records: AuditEntry[] = [];
+  const records: AuditEntry[] = [...executions];
   for (const { request, decision } of approvals) {
     const ref = `org://approvals/${encodeURIComponent(request.id)}`;
     const base = { taskId: request.taskId, eventId: request.eventId, approvalId: request.id };
@@ -61,9 +69,9 @@ export function buildAudit(
       ? -1
       : a.at > b.at
         ? 1
-        : a.approvalId < b.approvalId
+        : (a.approvalId ?? a.id) < (b.approvalId ?? b.id)
           ? -1
-          : a.approvalId > b.approvalId
+          : (a.approvalId ?? a.id) > (b.approvalId ?? b.id)
             ? 1
             : phase(a.result) - phase(b.result),
   );
