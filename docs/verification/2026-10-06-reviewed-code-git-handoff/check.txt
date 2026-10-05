@@ -1,0 +1,15 @@
+承認済みコードArtifactのlocal Git引渡し — 2026-10-06
+RED: helper exportなし1fail1error29ms。Native GREEN1pass0fail600ms。
+独立review Critical/Important/Minorなし、独立native Git1pass0fail655ms。
+Ponytail独立review: Lean already. Ship. 製品変更なし、共有test helper/既存runProcess/exportSandboxRepo再利用。
+全check335pass12skip0fail347tests174files72.87s、exit0。型/lint/format/AST/dry-run非空。
+初回実Claude code e2e5pass2skip1fail152.61s、専門Task failedでGit未到達。
+最小Max probe input訂正後正常、出力本文非表示。
+実コード再実行6pass2skip0fail147.35s、GENERATED_BUN_CHECK_OK/LOCAL_GIT_HANDOFF_OK。
+HTTP fixture Issue→実Max2Agent→実Docker→生成test/独立assert/隔離bun check→human review completed/Artifact binding/同blob→local Git branch/commit/file-only bare push→Memory/same Session/restart。
+main不変/差分2path/各blob原本一致/clean tree/local remote head一致。生成コードはhost実行なし。
+実jev初回/二回目HTTP503欠落exit1、三回目復旧exit0。
+実jev1752subjects113warnings/missing0/unsure0/errors[]/degraded[]。
+新helper失敗経路候補: path/base64先行拒否、process境界timeout/exit拒否とcaller finally cleanupを確認。個々のGitエラー強制注入は未追加。
+fixture test名候補は実Git diff/main/blob/remote headのassertで判断。旧proof候補は既存実Claude/Docker/Memory/Session回帰assertを保持。
+実GitHub Draft PR/業務repoへのpublish Approvalは未完了。Task結果承認を外部publish承認とは扱わない。
