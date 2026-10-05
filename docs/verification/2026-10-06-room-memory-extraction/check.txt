@@ -1,0 +1,9 @@
+RED: Memory extractor module missing; native CLI extract rejected --room.
+GREEN: DI UT verifies original participant Agent/caps/active Room/prior same-Room evidence/4types/bounds/all candidates before writes/fixed scope/stable retry. Native CLI verifies exact dedup from separate proposal, explicit supersedes, original preservation/reopen/invalidation.
+Runtime fixture native daemon e2e 1pass1.83s: source -> original Agent candidate Message -> typed Room Memory -> next Runtime scoped Context -> original preserved/duplicate extraction stable.
+Real Claude Max OAuth PASS same Room proposal/extract/next Context. Initial private script retained fixture runtime by mistake; corrected to Claude. Native tools disabled; no business writes; owned daemon stopped/private test DB removed.
+Independent final review Important1: duplicate candidates or cross-proposal dedup resurrected invalidated Memory. SQLite reopen RED active second ID -> GREEN all candidates remain original invalidated, one stored Memory. Conservative non-active exact reuse; explicit admin capture needed for deliberate re-adoption. No rereview.
+Final bun run check exit0:280pass8skip0fail288tests148files53.80s;tsgo/Oxlint/Oxfmt/AST nonempty.
+Actual jev exit0:1485subjects92warnings missing0 unsure0 errors[] degraded[]. No secrets/DB/Notion snapshots sent.
+Ruling: record/keys validate object and allowed-field shape; JSON extractor extracts declared typed candidates; extraction command validates and projects them. Naming warnings do not indicate a contradicted API guarantee. Failure guard paths checked at DB-free boundary, original parser and real CLI/SQLite; saved-storage failure recovery relies on existing createOnce contract and is not batch-atomic. Independent review Important fixed with RED/GREEN/full gates.
+Remaining: semantic dedup/conflict estimation, other scopes/sources, nightly consolidation and authentication; whole goal incomplete.

@@ -9,8 +9,12 @@ import { SqliteMemoryProvider } from './sqlite.js';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
 import { captureMemory } from './service.js';
 import { SqliteTaskProvider } from '../tasks/sqlite.js';
+import { SqliteAgentRepository } from '../agents/sqlite.js';
+import { extractRoomMemories } from './extraction.js';
+import { jsonMemoryExtractor } from './extractor.js';
 export type MemoryCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'capture'; readonly input: MemoryInput }
+  | { readonly action: 'extract'; readonly roomId: string; readonly messageId: string }
   | { readonly action: 'get'; readonly id: string }
   | {
       readonly action: 'list' | 'search';
@@ -79,31 +83,42 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
     json: parsed.values.json ?? false,
   };
   const allowed =
-    action === 'capture'
-      ? [
-          'db',
-          'json',
-          'type',
-          'scope',
-          'content',
-          'confidence',
-          'room',
-          'message',
-          'supersedes',
-          'valid-from',
-          'valid-until',
-          'tag',
-          'entity',
-          'importance',
-          'source-review',
-        ]
-      : action === 'list' || action === 'search'
-        ? ['db', 'json', 'scope', 'at', 'type', 'tag', 'entity']
-        : action === 'invalidate'
-          ? ['db', 'json', 'reason']
-          : ['db', 'json'];
+    action === 'extract'
+      ? ['db', 'json', 'room', 'message']
+      : action === 'capture'
+        ? [
+            'db',
+            'json',
+            'type',
+            'scope',
+            'content',
+            'confidence',
+            'room',
+            'message',
+            'supersedes',
+            'valid-from',
+            'valid-until',
+            'tag',
+            'entity',
+            'importance',
+            'source-review',
+          ]
+        : action === 'list' || action === 'search'
+          ? ['db', 'json', 'scope', 'at', 'type', 'tag', 'entity']
+          : action === 'invalidate'
+            ? ['db', 'json', 'reason']
+            : ['db', 'json'];
   for (const key of Object.keys(parsed.values))
     if (!allowed.includes(key)) throw new Error(`Unexpected --${key}`);
+  if (action === 'extract') {
+    if (id !== undefined) throw new Error('Unexpected extract argument');
+    return {
+      ...base,
+      action,
+      roomId: required(parsed.values.room, 'room'),
+      messageId: required(parsed.values.message, 'message'),
+    };
+  }
   if (action === 'capture') {
     if (id !== undefined) throw new Error('Unexpected capture argument');
     if (
@@ -171,13 +186,28 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
         : { scope: required(parsed.values.scope, 'scope') }),
     };
   }
-  throw new Error('Expected memory capture|get|list|search|invalidate');
+  throw new Error('Expected memory capture|extract|get|list|search|invalidate');
 }
 export function runMemoryCommand(command: MemoryCommand, output: (line: string) => void): void {
   const provider = new SqliteMemoryProvider(command.db);
   try {
     let result: unknown;
     switch (command.action) {
+      case 'extract': {
+        const rooms = new SqliteRoomRepository(command.db);
+        let agents: SqliteAgentRepository | undefined;
+        try {
+          agents = new SqliteAgentRepository(command.db);
+          result = extractRoomMemories(rooms, agents, provider, jsonMemoryExtractor, command);
+        } finally {
+          try {
+            agents?.close();
+          } finally {
+            rooms.close();
+          }
+        }
+        break;
+      }
       case 'capture': {
         let rooms: SqliteRoomRepository | undefined;
         let tasks: SqliteTaskProvider | undefined;

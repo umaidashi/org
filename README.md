@@ -559,3 +559,20 @@ bun run start task observe-workflow TASK_ID --expected-version VERSION --json
 ```
 
 観測再開はdaemon専用で、保存済みexecutionのstatusだけを読み、invokeしません。現在のTask/version/owner/capability/dependency、原本Messageとreceipt、host/Agent scopeを照合し、write/irreversibleは元のhuman Approvalも再確認します。成功を検証するとArtifactを保存して結果レビュー待ちへ戻り、まだ不明ならblockedを保持します。daemon再起動でも自動再送しません。自動poll・一般retry・Artifact保存失敗からの復旧は未完了です。
+
+
+## Room原本からMemoryを抽出する
+
+参加Agentの原本Messageを、次のJSON形式で保存します。既存Sessionの`reply --room-message`で候補生成を依頼できます。
+
+```json
+{"version":1,"tool":"memory","candidates":[{"type":"procedural","content":"変更前に最小テストを実行する","confidence":1,"sourceMessageIds":["SOURCE_MESSAGE_ID"]}]}
+```
+
+```sh
+bun run start memory extract --room ROOM_ID --message PROPOSAL_MESSAGE_ID --json
+```
+
+採用はlocal adminの明示操作です。active Room参加Agentのcan_read/can_write、同Roomの提案より前の原本を先行確認し、scopeは`room:ROOM_ID`へ固定します。最大10候補、候補本文16KiB、提案全体64KiB。既存4typeとconfidenceを検証し、根拠と提案Messageの両方をsourceRefsへ残します。
+
+完全一致type/contentはnon-activeも含めて再利用し、無効化・置換された内容を抽出から復活させません。候補の`supersedes`は同Room/typeのactive Memoryだけを明示置換します。全候補を検証後に個別保存するため、保存障害時に部分採用が残る場合があります。同proposalを再実行すると安定IDと原本で照合します。原本Messageは変更しません。confidenceはモデルの申告値で、事実の正しさや本人認証を保証しません。意味による重複・競合判定、夜間consolidation、他scopeへの自動採用は未完了です。
