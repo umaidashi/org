@@ -1,0 +1,5 @@
+RED native unlinked parent null:2pass2fail4.76s. GREEN Group/WorkItem x manual/automatic4pass0fail6.41s. Existing Task Room/parent support reused; no product change.
+ActualClaude Max codeproof6pass2skip0fail143.50s. Fixed HTTP fixture Linear Issue -> WorkItem Task Room -> actual Chief/Specialist -> parent-linked internalExecution -> nativeDocker returnedtests execution/independent assertions/isolated generated bun check (nonemptyAST/test subjects) -> humanreview -> Memory -> sameproviderSession/restart. WorkItem original/history one/reimport unchanged.
+Full331pass12skip0fail343tests170files83.04s; type/lint/format/AST/dry-run nonempty. ActualJev1713subjects110warnings missing/unsure0 errors/degradedempty.
+Independent finalreview noCritical/Important/Minor. Actual externalAPI credentials/businessIssue/repo/DraftPR not verified. HTTPfixtureLinear is not actualLinear service evidence. Explicit driver environment excludes fixture read credential.
+Old actualClaude arithmetic regression6pass2skip0fail80.04s, sameproviderSession/reviewMemory/restart preserved. All owned fixture resources cleaned by finally; no private debug file produced.

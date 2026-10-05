@@ -651,6 +651,8 @@ Notion文書をRoomの不変原本へ取り込む場合は `knowledge notion PAG
 
 `task import-linear ORG-1 --json` は既存Issueの初回snapshotをlocal WorkItemへ保存します。同じ内容の再取込は現在のlocal進捗を返し、外部本文変更はconflictを返します。内部作業は `task create TITLE --objective OBJECTIVE --kind execution_task --parent WORK_ITEM_ID` で分離できます。双方向同期は未実装です。
 
+WorkItemをCoordinator Roomへ渡すには、`room create TITLE --type task --task WORK_ITEM_ID --human HUMAN_ID --agent CHIEF_ID --agent SPECIALIST_ID --coordinator CHIEF_ID`を使います。委譲から作る内部ExecutionのparentIdはWorkItemを参照し、A2A出典と外部Issue URLを分けて保持します。内部の実装・reviewでWorkItemは自動変更しません。
+
 `task refresh-linear linear:issue:UUID --expected-version N --json` は指定versionのtitle/objectiveを外部の現在値へ明示置換します。ローカルで編集した本文も置換対象です。status・owner・labels・依存・Artifact・内部Executionは保持し、出典URL変更や読取中のversion競合を拒否します。同値は履歴を追加しません。外部への書込みはありません。
 
 実Claude二Agentのコード生成・生成Bunテスト・独立Docker検証・生成物の隔離 `bun run check`・review/Memory/restartは、`ORG_CLAUDE_CODE_TEST=1 bun test tests/coordinator-claude-real.test.ts` でopt-in実行します。DockerとClaude Maxログインが必要です。依存準備だけ公開package/lockでnetworkを使い、生成コード実行時はnetworkなし・host mountなしです。runtime-valid explicit-anyの拒否検証は `ORG_GENERATED_GATE_TEST=1`。業務IssueやDraft PRはこの専用fixtureとは別に検証します。
