@@ -1,3 +1,35 @@
+export const capabilities = [
+  'can_read',
+  'can_write',
+  'can_delegate',
+  'can_approve',
+  'can_spend',
+  'can_publish',
+  'can_contact_external',
+  'can_run_shell',
+  'can_access_network',
+] as const;
+export type Capability = (typeof capabilities)[number];
+export function validateCapabilities(value: unknown): readonly Capability[] {
+  if (
+    !Array.isArray(value) ||
+    Array.from(value).some(
+      (item: unknown) =>
+        typeof item !== 'string' || !capabilities.some((capability) => capability === item),
+    ) ||
+    new Set(value).size !== value.length
+  )
+    throw new Error('Invalid Agent capabilities');
+  return value.map((item: unknown) => {
+    const capability = capabilities.find((candidate) => candidate === item);
+    if (capability === undefined) throw new Error('Invalid Agent capability');
+    return capability;
+  });
+}
+export function requireCapability(agent: Agent, capability: Capability): void {
+  if (!agent.capabilities?.includes(capability))
+    throw new Error(`Agent capability required: ${capability}`);
+}
 export interface Agent {
   readonly id: string;
   readonly name: string;
@@ -5,6 +37,7 @@ export interface Agent {
   readonly runtime: string;
   readonly createdAt: string;
   readonly reportsTo?: string;
+  readonly capabilities?: readonly Capability[];
 }
 
 export interface AgentInput {
@@ -12,6 +45,7 @@ export interface AgentInput {
   readonly role: string;
   readonly runtime: string;
   readonly reportsTo?: string;
+  readonly capabilities?: readonly string[];
 }
 
 export interface Identity {
@@ -25,7 +59,12 @@ export function createAgent(input: AgentInput, identity: Identity): Agent {
   }
   if (input.reportsTo !== undefined && (!input.reportsTo.trim() || input.reportsTo === identity.id))
     throw new Error('Agent reportsTo must name another Agent');
-  return { ...input, ...identity };
+  const { capabilities: grants, ...fields } = input;
+  return {
+    ...fields,
+    ...identity,
+    ...(grants === undefined ? {} : { capabilities: validateCapabilities(grants) }),
+  };
 }
 
 export function changeReportingLine(

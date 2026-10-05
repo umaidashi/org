@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
-import type { AgentInput } from '../agents/domain.js';
+import { validateCapabilities, type AgentInput } from '../agents/domain.js';
 import { registerAgent, setReportingLine } from '../agents/service.js';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
 import { parseTaskCommand, runTaskCommand } from '../tasks/cli.js';
@@ -83,6 +83,7 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
       role: { type: 'string' },
       runtime: { type: 'string' },
       'reports-to': { type: 'string' },
+      capability: { type: 'string', multiple: true },
       to: { type: 'string' },
       clear: { type: 'boolean' },
       json: { type: 'boolean' },
@@ -97,7 +98,7 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
   const [command, action, name, ...extra] = parsed.positionals;
   if (command !== 'agent' || extra.length > 0) throw new UsageError('Expected agent command');
   const allowed: Record<string, readonly string[]> = {
-    create: ['role', 'runtime', 'reports-to'],
+    create: ['role', 'runtime', 'reports-to', 'capability'],
     list: [],
     report: ['to', 'clear'],
     'reporting-history': [],
@@ -134,6 +135,9 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
       db,
       input: {
         name: required(name, 'name'),
+        ...(parsed.values.capability !== undefined
+          ? { capabilities: validateCapabilities(parsed.values.capability) }
+          : {}),
         role: required(parsed.values.role, '--role'),
         runtime: required(parsed.values.runtime, '--runtime'),
         ...(parsed.values['reports-to'] !== undefined

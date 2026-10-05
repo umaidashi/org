@@ -1,8 +1,16 @@
+import { requireCapability } from '../agents/domain.js';
 import { createA2AMessage, readA2AMessage, validateA2AReply } from './domain.js';
 import type { A2AInput, A2AMessage } from './domain.js';
-import type { Identity } from '../rooms/domain.js';
+import type { Identity, Message } from '../rooms/domain.js';
 import type { RoomRepository } from '../rooms/port.js';
 import type { AgentRepository } from '../agents/port.js';
+export function authorizeA2AMessage(agents: Pick<AgentRepository, 'list'>, message: Message): void {
+  const envelope = readA2AMessage(message);
+  if (envelope.type !== 'delegate') return;
+  const sender = agents.list().find((agent) => agent.id === envelope.from);
+  if (!sender) throw new Error('A2A Agent not found');
+  requireCapability(sender, 'can_delegate');
+}
 export function sendA2AMessage(
   rooms: Pick<RoomRepository, 'get' | 'messages' | 'append'>,
   agents: Pick<AgentRepository, 'list'>,
@@ -20,6 +28,7 @@ export function sendA2AMessage(
       : rooms.messages(roomId).find((message) => message.id === input.replyTo);
   const planned = createA2AMessage(room, input, identity, reply);
   const envelope = readA2AMessage(planned);
+  authorizeA2AMessage(agents, planned);
   if (envelope.taskId !== null) tasks.get(envelope.taskId);
   const result = rooms.append(
     roomId,

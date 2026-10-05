@@ -1,0 +1,28 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-cli.test.ts:
+(pass) malformed A2A payload and options fail before database creation [141.46ms]
+242 |       }),
+243 |     ]);
+244 |     assert.ok(record(bypass) && typeof bypass.id === 'string');
+245 |     const activation = run(['room', 'activate', room.id, '--message', bypass.id]);
+246 |     assert.equal(activation.status, 1);
+247 |     assert.match(activation.stderr, /can_delegate/);
+                 ^
+AssertionError: The input did not match the regular expression /can_delegate/. Input:
+
+'Error: Runtime claude is not configured; use daemon --runtime-config\n'
+
+ generatedMessage: true,
+     actual: "Error: Runtime claude is not configured; use daemon --runtime-config\n",
+   expected: /can_delegate/,
+   operator: "match",
+       code: "ERR_ASSERTION"
+
+      at <REPO>/tests/a2a-cli.test.ts:247:12
+      at processTicksAndRejections (native:7:39)
+(fail) A2A request and result retain correlation, Task and immutable Room evidence across daemon and reopened CLI [782.43ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [945.00ms]

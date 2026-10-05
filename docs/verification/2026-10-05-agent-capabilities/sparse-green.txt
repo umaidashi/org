@@ -1,0 +1,15 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp [0.67ms]
+(pass) agent construction rejects each missing textual value [0.23ms]
+(pass) Agent capabilities reject unknown and duplicate grants and copy caller-owned values [0.56ms]
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [4.42ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.52ms]
+(pass) Agent capabilities persist across reopen and reject malformed direct adapter input [1.89ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 2 files. [29.00ms]

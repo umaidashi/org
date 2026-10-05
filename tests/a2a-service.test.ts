@@ -150,3 +150,36 @@ test('A2A reading rejects a reply whose correlation differs from its source', ()
     /A2A.*reference/,
   );
 });
+
+test('delegate requires an explicit sender capability before persisting Room evidence', () => {
+  let writes = 0;
+  const store = {
+    get: () => room,
+    messages: () => [],
+    append: (
+      _id: string,
+      data: Parameters<typeof createMessage>[1],
+      identity: Parameters<typeof createMessage>[2],
+    ) => {
+      writes++;
+      return createMessage(room, data, identity);
+    },
+  };
+  const delegate = { ...input, type: 'delegate' as const };
+  const tasks = { get: () => ({ id: 'task' }) };
+  assert.throws(
+    () => sendA2AMessage(store, agents, tasks, room.id, delegate, { id: 'deny', createdAt: 'now' }),
+    /can_delegate/,
+  );
+  assert.equal(writes, 0);
+  const allowed = {
+    list: () =>
+      agents.list().map((agent) => ({ ...agent, capabilities: ['can_delegate'] as const })),
+  };
+  assert.equal(
+    sendA2AMessage(store, allowed, tasks, room.id, delegate, { id: 'grant', createdAt: 'now' })
+      .type,
+    'delegate',
+  );
+  assert.equal(writes, 1);
+});

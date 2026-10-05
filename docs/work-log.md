@@ -517,3 +517,18 @@
 - 全173テスト・tsgo/Oxlint/Oxfmt/AST成功、35.75秒。独立Reviewer Critical/Important/Minorなし、UT3+CLI1も独立成功。
 - 実Claude MaxでもAPIキー/tokenを渡さず、Memoryにだけ置いたmarkerをEvent由来Taskの結果として取得。成果物/承認待ち/明示レビュー/再起動後の次Taskと旧成果物保持の全boolean成功。隔離markerへのe2e-humanレビューは業務成果の人間承認とは区別する。raw応答/ローカルpath/認証情報は公開しない。
 - 最新生成物の実Jev890判定、errors/degradedなし。catch候補はfailedへの明示保存・CAS維持・他Task継続という仕様とUT/CLIの失敗検証に照合し非阻害と判断。Next: typed A2A委譲をExecutionTask生成/実行へ接続し、Permission/Approval境界を進める。
+
+## main公開：自動ExecutionTask実行
+
+- 通常push成功、pre-push全173テスト・実Jev・公開検査38.54秒。main e0b7341。
+
+## Agent Capabilityとdelegate境界
+
+- executing-plansのinline実装と最終独立レビューを継続。[計画](superpowers/plans/2026-10-05-agent-capabilities.md)。Notion08再取得last edited 2026-10-04T01:51:58.336Z。
+- 既存Agentにoptional capabilities、既知9値/重複/型を検証し入力配列をコピー。SQLite nullable JSON列を移行し旧JSONの省略を維持。Adapter保存も検証。CLI --capability複数指定はDB作成前に検証。
+- delegate送信はsender can_delegate必須、保存前拒否。通常Room metadataでreserved envelopeを記録する迂回もdaemonの共通manual/auto activation直前に同じ検証を行い、Session準備前に拒否。ローカル管理者によるAgent設定であり認証は提供しない。
+- domain不正grantとdelegate保存前拒否のUTをRED→GREEN。実daemon CLIで明示grant/拒否/再open/metadata迂回拒否、旧schema/不正Adapter入力を確認。実行側検証を外したREDでは未設定Runtimeへ到達していたことを確認、復元後GREEN。strict型検査のoptional spreadをdestructureで訂正。
+- Ruling: 他のcan_*は既知値として保存するが、この変更で未実装の境界の権限保証は主張しない。省略時delegate拒否、作成後のgrant変更APIは未提供。costは既存delegateに明示設定が必要なこと。Permission/Approval全般は未完了。
+- 独立Reviewer Important: 疎配列capabilitiesがsome/mapのhole skipで保存されJSON [null]となり、以後Agent一覧を壊す。domain/実SQLite2件REDを確認し、共通validatorでArray.fromによりholeをundefinedとして検証、6件GREEN。Critical/Minorなし。独立UT11+CLI2成功。再レビューせず修正後全ゲートを実行する。
+- Final: Ruling: 他can_*未対応とlocal管理者のsender指定は今回の明記された制約。reserved metadataの直接記録は許容しdelegate実行側で拒否する。costは記録だけでは送信許可を保証しないこと。Agent本人認証/重要操作Approvalを後続で実装する。
+- Final: fixed 疎配列の永続化破損 — domain/SQLiteの保存前拒否2件RED→GREEN、修正後全176/176・型/lint/format/AST成功、33.63秒。実Jev902判定・missing/unsure0・errors/degradedなし。新規candidateは保存前validation/CLI拒否/legacy回帰と独立レビューに照合し非阻害。次はこのgrantでtyped delegateを冪等ExecutionTask生成へ接続する。

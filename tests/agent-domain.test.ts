@@ -28,3 +28,21 @@ test('agent construction rejects each missing textual value', () => {
     }
   }
 });
+
+test('Agent capabilities reject unknown and duplicate grants and copy caller-owned values', () => {
+  const identity = { id: 'chief', createdAt: 'before' };
+  const base = { name: 'chief', role: 'Chief', runtime: 'codex' };
+  assert.throws(() => createAgent({ ...base, capabilities: ['unknown'] }, identity), /capabilit/i);
+  assert.throws(
+    () => createAgent({ ...base, capabilities: ['can_delegate', 'can_delegate'] }, identity),
+    /capabilit/i,
+  );
+  assert.throws(
+    () => createAgent({ ...base, capabilities: new Array<string>(1) }, identity),
+    /capabilit/i,
+  );
+  const grants = ['can_delegate'];
+  const agent = createAgent({ ...base, capabilities: grants }, identity);
+  grants.length = 0;
+  assert.deepEqual(agent.capabilities, ['can_delegate']);
+});

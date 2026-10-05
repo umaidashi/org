@@ -8,8 +8,8 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで173テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
-| Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAt・optional reportsToを実装。legacy schema/root JSON互換・循環/不存在拒否・同時変更時再検証・不変履歴/rollback・実CLIを検証。capabilities/permissions/memoryPolicyは未完了 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで176テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAt・optional reportsToを実装。legacy schema/root JSON互換・循環/不存在拒否・同時変更時再検証・不変履歴/rollback・実CLIを検証。optional capabilitiesの既知値/重複/型/コピーとSQLite legacy互換・CLI明示指定を実装。delegateの送信/activation前can_delegateを検証。permissions/memoryPolicyと他Capability境界は未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | reportsToによるChief→専門Agentの関係と変更履歴を保存。自動委譲は未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | version付きRoom Message・CLI send/get/listを実装。宛先/Task/返信/correlationを検証。実daemon request→resultと再openを確認。自動委譲・wake-upは後続 |
 | Room | Direct/Group/Agent/Task、同じAgentの複数Room、参加者・archive | Local SQLiteとCLIを実装。種類別参加者構成・Agent/Task参照・archiveを検証。Human認証は未完了 |
@@ -31,7 +31,7 @@
 | Sandbox | local process/Docker、checkout/mount、資格情報の限定注入、destroy | 未完了 |
 | Artifact | 回収・永続参照・Taskとの関連付け | Runtime結果Messageをorg URIのArtifactへTaskと原子関連付け。実fixture/Codexで検証。ファイル等の回収は未完了 |
 | Workflow | n8n invoke/status/cancel、Task/Agentから分離 | 未完了 |
-| Permission | read/write/delegate/approve/spend/publish/contact/shell/networkを実行境界で制約 | 未完了 |
+| Permission | read/write/delegate/approve/spend/publish/contact/shell/networkを実行境界で制約 | delegateは送信前とdaemon activation前にcan_delegate必須。旧Agentは既定拒否、reserved metadata迂回も拒否。その他境界/Agent認証/権限変更Approvalは未完了 |
 | Approval | 送信・deploy・削除・契約・支出・権限変更で待機し承認後に実行 | 未完了 |
 | Audit | actor/task/event/tool/input-output/timestamp/result/approvalの参照 | Task結果レビューのactor/task/version/outputArtifacts/timestamp/decisionを不変記録。重要操作全般のAuditは未完了 |
 | 実行安全性 | idempotency/retry/timeout/concurrency/cancel/secret redaction | Event→Task作成の冪等性/同時実行/receipt復旧を実DB/CLIで検証。一般の外部副作用・retry/timeout/cancel/secret redactionは未完了 |

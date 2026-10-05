@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp [0.78ms]
+(pass) agent construction rejects each missing textual value [0.66ms]
+30 | });
+31 | 
+32 | test('Agent capabilities reject unknown and duplicate grants and copy caller-owned values', () => {
+33 |   const identity = { id: 'chief', createdAt: 'before' };
+34 |   const base = { name: 'chief', role: 'Chief', runtime: 'codex' };
+35 |   assert.throws(() => createAgent({ ...base, capabilities: ['unknown'] }, identity), /capabilit/i);
+              ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/agent-domain.test.ts:35:10)
+(fail) Agent capabilities reject unknown and duplicate grants and copy caller-owned values [1.02ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [38.00ms]

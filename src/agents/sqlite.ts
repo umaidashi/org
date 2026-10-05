@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
-import { changeReportingLine } from './domain.js';
+import { changeReportingLine, createAgent, validateCapabilities } from './domain.js';
 import type { Agent } from './domain.js';
 import type { AgentRepository, AgentReportingWriter, ReportingHistory } from './port.js';
 
@@ -33,6 +33,8 @@ export class SqliteAgentRepository implements AgentRepository, AgentReportingWri
         const columns = this.db.query<{ name: string }, []>('PRAGMA table_info(agents)').all();
         if (!columns.some((column) => column.name === 'reports_to'))
           this.db.exec('ALTER TABLE agents ADD COLUMN reports_to TEXT');
+        if (!columns.some((column) => column.name === 'capabilities'))
+          this.db.exec('ALTER TABLE agents ADD COLUMN capabilities TEXT');
         this.db.exec(`CREATE TABLE IF NOT EXISTS agent_reporting_history (
           sequence INTEGER PRIMARY KEY AUTOINCREMENT, agent_id TEXT NOT NULL,
           previous_manager TEXT, manager TEXT, at TEXT NOT NULL
@@ -50,14 +52,15 @@ export class SqliteAgentRepository implements AgentRepository, AgentReportingWri
   }
 
   insert(agent: Agent): void {
+    agent = createAgent(agent, agent);
     try {
       this.transaction(() => {
         if (agent.reportsTo !== undefined)
           changeReportingLine([...this.list(), agent], agent.id, agent.reportsTo);
         this.db
           .prepare<Record<string, unknown>, (string | number | null)[]>(
-            `INSERT INTO agents (id, name, role, runtime, created_at, reports_to)
-        VALUES (?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO agents (id, name, role, runtime, created_at, reports_to, capabilities)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
             agent.id,
@@ -66,6 +69,7 @@ export class SqliteAgentRepository implements AgentRepository, AgentReportingWri
             agent.runtime,
             agent.createdAt,
             agent.reportsTo ?? null,
+            agent.capabilities === undefined ? null : JSON.stringify(agent.capabilities),
           );
         if (agent.reportsTo !== undefined)
           this.appendReporting(agent.id, null, agent.reportsTo, agent.createdAt);
@@ -81,7 +85,7 @@ export class SqliteAgentRepository implements AgentRepository, AgentReportingWri
   list(): readonly Agent[] {
     const rows = this.db
       .prepare<Record<string, unknown>, (string | number | null)[]>(
-        `SELECT id, name, role, runtime, created_at AS createdAt, reports_to AS reportsTo
+        `SELECT id, name, role, runtime, created_at AS createdAt, reports_to AS reportsTo, capabilities
       FROM agents ORDER BY name`,
       )
       .all();
@@ -92,6 +96,9 @@ export class SqliteAgentRepository implements AgentRepository, AgentReportingWri
       runtime: String(row.runtime),
       createdAt: String(row.createdAt),
       ...(row.reportsTo === null ? {} : { reportsTo: text(row.reportsTo) }),
+      ...(row.capabilities === null
+        ? {}
+        : { capabilities: validateCapabilities(JSON.parse(text(row.capabilities))) }),
     }));
   }
   private transaction<T>(work: () => T): T {

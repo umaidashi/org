@@ -76,3 +76,46 @@ test('an invalid agent does not reach the real repository and duplicate identity
     repository.close();
   }
 });
+
+test('Agent capabilities persist across reopen and reject malformed direct adapter input', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'org-capability-'));
+  const path = join(directory, 'org.db');
+  let repository = new SqliteAgentRepository(path);
+  try {
+    const input = {
+      name: 'chief',
+      role: 'Chief',
+      runtime: 'codex',
+      capabilities: ['can_delegate'],
+    };
+    const agent = registerAgent(repository, input, { id: 'chief', createdAt: 'before' });
+    input.capabilities.length = 0;
+    assert.deepEqual(repository.list(), [agent]);
+    assert.throws(
+      () =>
+        repository.insert({
+          ...agent,
+          id: 'bad',
+          name: 'bad',
+          capabilities: ['can_delegate', 'can_delegate'],
+        }),
+      /capabilit/i,
+    );
+    assert.throws(
+      () =>
+        repository.insert({
+          ...agent,
+          id: 'sparse',
+          name: 'sparse',
+          capabilities: new Array<'can_delegate'>(1),
+        }),
+      /capabilit/i,
+    );
+    repository.close();
+    repository = new SqliteAgentRepository(path);
+    assert.deepEqual(repository.list(), [agent]);
+  } finally {
+    repository.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

@@ -1,0 +1,24 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-service.test.ts:
+(pass) A2A service verifies Agent and Task references before writing through the injected Room port [1.59ms]
+(pass) A2A reading leaves ordinary Room messages alone and rejects a malformed reserved envelope [0.04ms]
+(pass) A2A reading validates referenced Tasks instead of trusting arbitrary reserved metadata [0.19ms]
+(pass) A2A reading rejects a reply whose correlation differs from its source [0.15ms]
+159 |       writes++; return createMessage(room, data, identity);
+160 |     },
+161 |   };
+162 |   const delegate = { ...input, type: 'delegate' as const };
+163 |   const tasks = { get: () => ({ id: 'task' }) };
+164 |   assert.throws(() => sendA2AMessage(store, agents, tasks, room.id, delegate, { id: 'deny', createdAt: 'now' }), /can_delegate/);
+               ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (<REPO>/tests/a2a-service.test.ts:164:10)
+(fail) delegate requires an explicit sender capability before persisting Room evidence [0.46ms]
+
+ 4 pass
+ 1 fail
+Ran 5 tests across 1 file. [25.00ms]

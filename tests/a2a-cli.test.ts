@@ -11,6 +11,29 @@ test('malformed A2A payload and options fail before database creation', () => {
   const home = mkdtempSync('/tmp/org-a2a-invalid-');
   const db = home + '/absent/org.db';
   try {
+    for (const grants of [['unknown'], ['can_delegate', 'can_delegate']]) {
+      const result = spawnSync(
+        process.execPath,
+        [
+          '--no-env-file',
+          cli,
+          '--direct',
+          '--db',
+          db,
+          'agent',
+          'create',
+          'chief',
+          '--role',
+          'Chief',
+          '--runtime',
+          'codex',
+          ...grants.flatMap((grant) => ['--capability', grant]),
+        ],
+        { encoding: 'utf8', timeout: 5000 },
+      );
+      assert.equal(result.status, 2, result.stderr);
+      assert.equal(existsSync(home + '/absent'), false);
+    }
     for (const args of [
       ['send', 'r', '--from', 'a', '--to', 'b', '--type', 'request', '--payload', '1e999'],
       ['send', 'r', '--from', 'a', '--to', 'b', '--type', 'unknown', '--payload', '{}'],
@@ -80,7 +103,19 @@ test('A2A request and result retain correlation, Task and immutable Room evidenc
       });
     });
     for (const name of ['chief', 'cto', 'outsider'])
-      assert.equal(run(['agent', 'create', name, '--role', name, '--runtime', 'claude']).status, 0);
+      assert.equal(
+        run([
+          'agent',
+          'create',
+          name,
+          '--role',
+          name,
+          '--runtime',
+          'claude',
+          ...(name === 'cto' ? ['--capability', 'can_delegate'] : []),
+        ]).status,
+        0,
+      );
     const agents = json(['agent', 'list']);
     assert.ok(Array.isArray(agents));
     const id = (name: string) => {
@@ -179,12 +214,70 @@ test('A2A request and result retain correlation, Task and immutable Room evidenc
       1,
     );
     assert.deepEqual(json(['a2a', 'list', room.id]), [request, result]);
+    const denied = run([
+      'a2a',
+      'send',
+      room.id,
+      '--from',
+      chief,
+      '--to',
+      cto,
+      '--type',
+      'delegate',
+      '--payload',
+      '{}',
+    ]);
+    assert.equal(denied.status, 1);
+    assert.match(denied.stderr, /can_delegate/);
+    const delegate = json([
+      'a2a',
+      'send',
+      room.id,
+      '--from',
+      cto,
+      '--to',
+      chief,
+      '--type',
+      'delegate',
+      '--payload',
+      '{}',
+    ]);
+    assert.deepEqual(json(['--direct', 'agent', 'list']), agents);
+    const bypass = json([
+      'room',
+      'send',
+      room.id,
+      '--agent',
+      chief,
+      '--content',
+      'reserved delegate',
+      '--metadata',
+      JSON.stringify({
+        a2a: {
+          version: 1,
+          from: chief,
+          to: cto,
+          type: 'delegate',
+          taskId: null,
+          correlationId: 'bypass',
+          payload: {},
+        },
+      }),
+    ]);
+    assert.ok(record(bypass) && typeof bypass.id === 'string');
+    const activation = run(['room', 'activate', room.id, '--message', bypass.id]);
+    assert.equal(activation.status, 1);
+    assert.match(activation.stderr, /can_delegate/);
+    assert.deepEqual(json(['session', 'list']), []);
     const original = json(['room', 'messages', room.id]);
     assert.ok(Array.isArray(original));
-    assert.equal(original.length, 2);
+    assert.equal(original.length, 4);
     assert.equal(run(['room', 'archive', room.id]).status, 0);
     assert.equal(run(send).status, 1);
-    assert.deepEqual(json(['--direct', 'a2a', 'list', room.id]), [request, result]);
+    const reopened = json(['--direct', 'a2a', 'list', room.id]);
+    assert.ok(Array.isArray(reopened));
+    assert.deepEqual(reopened.slice(0, 3), [request, result, delegate]);
+    assert.equal(reopened.length, 4);
     assert.deepEqual(json(['--direct', 'room', 'messages', room.id]), original);
   } finally {
     spawnSync(process.execPath, ['--no-env-file', cli, 'daemon', 'stop', '--socket', socket], {
