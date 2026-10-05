@@ -1,0 +1,1 @@
+{"coordinatorOnly":true,"firstMarker":true,"replyLink":true,"idempotentReply":true,"noRepeatTurn":true,"secondMarker":true,"sameOrgSession":true,"sameProviderSession":true,"status":"idle"}

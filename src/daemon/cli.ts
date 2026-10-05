@@ -1,3 +1,5 @@
+import { activateRoomMessage } from '../activation/service.js';
+import { listA2AMessages } from '../a2a/service.js';
 import { acquireDatabaseLease } from './lease.js';
 import type { DatabaseLease } from './lease.js';
 import { runExecutionTask } from '../tasks/execution.js';
@@ -125,6 +127,27 @@ function openOperations(
         executeApplication(argv, db, true, {
           store: sessionStore,
           runtime,
+          activateRoom: (roomId, messageId) => {
+            const source = roomRepository.messages(roomId).find((m) => m.id === messageId);
+            if (source && 'a2a' in source.metadata)
+              listA2AMessages(roomRepository, roomId, taskProvider);
+            return activateRoomMessage(
+              roomRepository,
+              sessionStore,
+              (agentId, roomId) => runtime.open(agentId, roomId),
+              (sessionId, messageId) =>
+                replyToRoomMessage(
+                  roomRepository,
+                  sessionStore,
+                  runtime,
+                  { sessionId, messageId, instruction: '' },
+                  { id: randomUUID(), at: new Date().toISOString() },
+                  memoryProvider,
+                ),
+              roomId,
+              messageId,
+            );
+          },
           runTask: (taskId, sessionId, messageId) =>
             runExecutionTask(
               taskProvider,

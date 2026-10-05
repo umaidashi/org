@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { runLocalDaemon } from '../src/daemon/server.js';
 import { requestApplication, requestDaemon } from '../src/daemon/client.js';
-test('daemon command preserves long Session replies even with options before the noun', async () => {
+test('daemon command preserves long Runtime replies even with options before the noun', async () => {
   const dir = mkdtempSync('/tmp/org-long-command-');
   const socket = join(dir, 'org.sock');
   const daemon = runLocalDaemon(socket, 60000, () => ({
@@ -19,6 +19,7 @@ test('daemon command preserves long Session replies even with options before the
   const began = Date.now();
   try {
     const results = await Promise.allSettled([
+      requestApplication(socket, ['--json', 'room', 'activate', 'r', '--message', 'm']),
       requestApplication(socket, ['session', 'get', 's']),
       requestApplication(socket, ['--json', 'session', 'get', 's']),
       requestApplication(socket, [

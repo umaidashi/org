@@ -8,13 +8,13 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで158テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで161テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAt・optional reportsToを実装。legacy schema/root JSON互換・循環/不存在拒否・同時変更時再検証・不変履歴/rollback・実CLIを検証。capabilities/permissions/memoryPolicyは未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | reportsToによるChief→専門Agentの関係と変更履歴を保存。自動委譲は未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | version付きRoom Message・CLI send/get/listを実装。宛先/Task/返信/correlationを検証。実daemon request→resultと再openを確認。自動委譲・wake-upは後続 |
 | Room | Direct/Group/Agent/Task、同じAgentの複数Room、参加者・archive | Local SQLiteとCLIを実装。種類別参加者構成・Agent/Task参照・archiveを検証。Human認証は未完了 |
 | Message | Roomごとの永続履歴、replyTo・sender・metadata | 追記専用SQLite履歴とCLI。別プロセス読み直し・同Room返信・sender参加・metadata・archive後拒否・原本UPDATE/DELETE/REPLACE拒否・INSERT失敗後の復旧を検証 |
-| Activation | coordinator既定、直接mention、mention_only/all/rule_based | optional coordinatorId、参加Agent mention検証、coordinator/mention_only/all/typed A2A宛先のpure選択とCLI targetsを実装。通常Agent返信の連鎖/自己起動を抑止。実daemonと旧JSON再openを確認。Runtimeへのwake-up結線・rule_based定義/評価は未完了 |
+| Activation | coordinator既定、直接mention、mention_only/all/rule_based | optional coordinatorId、参加Agent mention検証、coordinator/mention_only/all/typed A2A宛先のpure選択とCLI targetsを実装。通常Agent返信の連鎖/自己起動を抑止。実daemonと旧JSON再openを確認。daemon専用manual activateでSession準備/再利用→Runtime/context返信、返信重複抑止・failureを実subprocessで検証。実Claude Maxでもcoordinatorだけ/Session継続/返信再利用を確認。自動wake-up・rule_based定義/評価は未完了 |
 | Session | Room/Identityとの分離、start/send/resume/stop、履歴から再構築 | 独立Session ID/provider ID・pure状態遷移・version競合拒否・SQLite状態/不変履歴の原子保存を実装。rollback/REPLACE拒否/別プロセス読込を検証。serviceによるRuntime turn結線とstop先保存/late応答保護、restart recovery関数を実装。両Adapter+SQLite+実Bun fixtureで開始/再開/停止を検証。CLI/daemon起動配線・起動時recovery・設定済みdriver・停止時drainを実装。実Codexの開始/再開/停止を確認。実Claude MaxもAPIキーなしで開始/同provider IDで再開/Task結果/停止を検証。履歴から再構築は未完了 |
 | Memory | semantic/episodic/procedural/relational、scope、根拠参照、confidence | 4type/scope/confidence/Message根拠検証とSQLite追記記録を実装。CLI capture/get/list/invalidateを別プロセスで検証。期間等は後続 |
 | Memory更新 | extraction、dedup、conflict、supersede/invalidate、原履歴不変 | 同scope/typeのactiveを原記録不変のままsupersede、理由付きinvalidateを追記しstatusを投影。全UNIQUEキーのREPLACE/UPDATE/DELETE拒否と再openを検証。自動extraction/dedup/conflictは未完了 |

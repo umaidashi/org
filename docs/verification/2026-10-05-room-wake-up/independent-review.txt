@@ -1,0 +1,1 @@
+Critical: none. Important: none. Minor: none. Independent activation-service: 2 pass. Real fixture CLI: 1 pass. 11-second daemon transport: 1 pass. Parent full regression: 161 pass.

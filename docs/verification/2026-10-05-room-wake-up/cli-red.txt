@@ -1,0 +1,47 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-wake-up-cli.test.ts:
+11 |   writeFileSync(driver, `#!${process.execPath}\nimport { appendFileSync } from 'node:fs'; const input = JSON.parse(await Bun.stdin.text()); const context = JSON.parse(input.instruction); if (!context.messages.some(m=>m.content===input.message)) throw new Error('Missing source context'); appendFileSync(${JSON.stringify(count)}, 'turn\\n'); if(input.message==='fail') process.exit(1); console.log(JSON.stringify({type:'thread.started',thread_id:'provider'})); console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'Answer:'+input.message}})); console.log(JSON.stringify({type:'turn.completed',usage:{}}));\n`, { mode: 0o700 });
+12 |   writeFileSync(config, JSON.stringify({ codex: { executable: driver, cwd: home, env: [], timeoutMs: 5000, maxOutputBytes: 4096 } }));
+13 |   const run = (args: string[]) => spawnSync(process.execPath, ['--no-env-file', cli, '--db', db, ...(args.includes('--direct') ? [] : ['--socket', socket]), ...args], { encoding: 'utf8', timeout: 10000 });
+14 |   const daemon = spawn(process.execPath, ['--no-env-file', cli, '--db', db, 'daemon', '--socket', socket, '--runtime-config', config]);
+15 |   const exited = new Promise((resolve) => daemon.once('exit', resolve)); let error = ''; daemon.stderr.on('data', (value: Buffer) => { error += value.toString(); });
+16 |   const json = (args: string[]): unknown => { const result = run([...args, '--json']); assert.equal(result.status, 0, result.stderr); return JSON.parse(result.stdout); };
+                                                                                                   ^
+AssertionError: Error: Unexpected --message for room activate
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets [OPTIONS]
+       org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org a2a send|get|list [OPTIONS]
+       org memory capture|get|list|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS]
+       org daemon status|dispatch|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+ generatedMessage: false,
+     actual: 2,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at json (<REPO>/tests/room-wake-up-cli.test.ts:16:95)
+      at <REPO>/tests/room-wake-up-cli.test.ts:17:118
+      at processTicksAndRejections (native:7:39)
+(fail) Room activation runs only the coordinator or explicit Agent, reuses provider Session and persists replies without duplicate turns [430.59ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [453.00ms]

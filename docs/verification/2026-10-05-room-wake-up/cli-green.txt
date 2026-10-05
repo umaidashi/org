@@ -1,0 +1,16 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-long-command.test.ts:
+{"state":"ready","socket":"/tmp/org-long-command-Ob76Yz/org.sock"}
+(pass) daemon command preserves long Runtime replies even with options before the noun [11007.01ms]
+
+tests/room-wake-up-cli.test.ts:
+(pass) Room activation runs only the coordinator or explicit Agent, reuses provider Session and persists replies without duplicate turns [2727.72ms]
+
+tests/activation-service.test.ts:
+(pass) Room wake-up opens only the selected Session, reuses it and returns existing replies without another turn [0.17ms]
+(pass) Room wake-up rejects busy or mismatched Sessions and propagates runtime failure without a reply [0.74ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 3 files. [13.77s]

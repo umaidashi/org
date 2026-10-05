@@ -14,7 +14,7 @@ import { metadataValue, SqliteRoomRepository } from './sqlite.js';
 export type RoomCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'create'; readonly input: RoomInput }
   | { readonly action: 'list' }
-  | { readonly action: 'targets'; readonly id: string; readonly messageId: string }
+  | { readonly action: 'targets' | 'activate'; readonly id: string; readonly messageId: string }
   | { readonly action: 'get' | 'archive' | 'messages'; readonly id: string }
   | { readonly action: 'send'; readonly id: string; readonly input: MessageInput }
 );
@@ -71,12 +71,12 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
       ? ['db', 'json', 'type', 'activation-policy', 'human', 'agent', 'task', 'coordinator']
       : action === 'send'
         ? ['db', 'json', 'human', 'agent', 'content', 'reply-to', 'metadata', 'mention']
-        : action === 'targets'
+        : action === 'targets' || action === 'activate'
           ? ['db', 'json', 'message']
           : ['db', 'json'];
   for (const key of Object.keys(parsed.values))
     if (!allowed.includes(key)) throw new Error(`Unexpected --${key} for room ${action}`);
-  if (action === 'targets')
+  if (action === 'targets' || action === 'activate')
     return {
       ...base,
       action,
@@ -137,7 +137,7 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
       },
     };
   }
-  throw new Error('Expected room create|list|get|archive|send|messages|targets');
+  throw new Error('Expected room create|list|get|archive|send|messages|targets|activate');
 }
 export function runRoomCommand(
   command: RoomCommand,
@@ -160,6 +160,8 @@ export function runRoomCommand(
         }
         break;
       }
+      case 'activate':
+        throw new Error('Room activation requires daemon');
       case 'targets': {
         const room = rooms.get(command.id);
         const message = rooms.messages(command.id).find((m) => m.id === command.messageId);

@@ -26,7 +26,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org agent reporting-history ID [--json]
        org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
        org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
-       org [--db PATH] room create|list|get|archive|send|messages|targets [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
        org [--db PATH] event publish|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
        org a2a send|get|list [OPTIONS]
        org memory capture|get|list|invalidate [OPTIONS]
@@ -156,6 +156,7 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
 }
 
 export interface ApplicationContext extends SessionContext {
+  readonly activateRoom?: (roomId: string, messageId: string) => Promise<unknown>;
   readonly runTask?: (id: string, sessionId: string, messageId: string) => Promise<unknown>;
 }
 
@@ -199,6 +200,17 @@ async function runApplication(
     return;
   }
   if (command.kind === 'room') {
+    if (command.command.action === 'activate') {
+      if (!sessions?.activateRoom) throw new Error('Room activation requires daemon');
+      output(
+        JSON.stringify(
+          await sessions.activateRoom(command.command.id, command.command.messageId),
+          null,
+          command.command.json ? undefined : 2,
+        ),
+      );
+      return;
+    }
     runRoomCommand({ ...command.command, db }, output);
     return;
   }

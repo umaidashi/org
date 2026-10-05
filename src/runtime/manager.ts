@@ -34,11 +34,18 @@ export class LocalAgentRuntime {
   }): Promise<Reply> {
     if (this.closed) throw new Error('Runtime is closed');
     if (!input.message.trim()) throw new Error('Session message required');
-    const session = createSessionForAgent(this.store, this.agents, this.rooms, input, {
-      id: this.id(),
-      at: this.now(),
-    });
+    const session = this.open(input.agentId, input.roomId);
     return this.send(session.id, input.message, input.instruction);
+  }
+  open(agentId: string, roomId: string): Session {
+    if (this.closed) throw new Error('Runtime is closed');
+    return createSessionForAgent(
+      this.store,
+      this.agents,
+      this.rooms,
+      { agentId, roomId },
+      { id: this.id(), at: this.now() },
+    );
   }
   async send(id: string, message: string, instruction = ''): Promise<Reply> {
     if (this.closed) throw new Error('Runtime is closed');

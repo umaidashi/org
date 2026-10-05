@@ -91,7 +91,7 @@ bun run start room send ROOM_ID --human founder --content 'CTOに質問' --menti
 bun run start room targets ROOM_ID --message MESSAGE_ID --json
 ```
 
-`targets`は起動対象Agent IDを選びます。Runtimeの起動は後続です。通常の人間発言はcoordinatorだけ、明示mentionやA2A宛先はそのAgentを選びます。複数Agent Roomではcoordinatorを指定し、単一Agentの既存RoomではそのAgentを使います。mention_onlyは明示宛先のみ、allは人間発言で全参加Agentを選びます。普通のAgent返信で再発火せず、sender自身も選びません。
+`targets`は起動対象Agent IDを選びます。`room activate ROOM_ID --message MESSAGE_ID`はdaemonの設定済みRuntimeでそのAgentを起動し、履歴・Memoryを含むcontextから返信を保存します。Sessionを再利用し、保存済み返信があれば新しいturnを実行しません。実Claude Maxでもcoordinatorだけの起動、同じSessionでの継続、返信の再利用を確認済みです。自動pollingによるwake-upは後続です。通常の人間発言はcoordinatorだけ、明示mentionやA2A宛先はそのAgentを選びます。複数Agent Roomではcoordinatorを指定し、単一Agentの既存RoomではそのAgentを使います。mention_onlyは明示宛先のみ、allは人間発言で全参加Agentを選びます。普通のAgent返信で再発火せず、sender自身も選びません。
 
 mentionは参加Agentだけを指定でき、`--mention`は複数回使えます。archive後は選択できません。rule_basedは明示宛先の選択に対応し、独自ルールの定義・評価は未実装です。
 

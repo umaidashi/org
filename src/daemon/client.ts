@@ -31,6 +31,7 @@ export async function requestApplication(socket: string, argv: string[]): Promis
     method: 'POST',
     signal:
       command.kind === 'session' ||
+      (command.kind === 'room' && command.command.action === 'activate') ||
       (command.kind === 'task' && command.command.action.kind === 'run')
         ? null
         : AbortSignal.timeout(5000),

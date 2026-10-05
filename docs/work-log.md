@@ -479,3 +479,13 @@
 - room create --coordinator / send --mention / targets --messageを実daemon RED（未実装option）→GREEN。archive/誤Room/非参加mention拒否、旧Room/新Room再openを確認。対象Room回帰含む6テスト成功。型検査でtest entity helperの戻り型のidだけ推論される問題を検出、検証済みRecord+idの戻り契約を明記して訂正する。
 - 全158テスト・型/lint/format/AST成功。[全検査](verification/2026-10-05-room-activation/check.txt)。実Jev797対象・missing/unsure0・errors/degradedなし。[実レビュー](verification/2026-10-05-room-activation/semantic.txt)。独立レビュー待ち。
 - Final: 独立Reviewer Critical/Important/Minorなし。domain2UT・実daemon CLI1e2eも独立成功（通常sandboxのsocket EPERM後、権限付き実行で成功）。補助failure-path候補は既存検証範囲/未到達のOS error等を含むため、非阻害と判断。Next: 選択結果からSessionを準備し既存Room context返信へ結線するmanual activation e2e、続いてdurable自動wake-upを進める。
+
+## Room選択からSession返信へ
+
+- [計画](superpowers/plans/2026-10-05-room-wake-up.md)。LocalAgentRuntime.openは既存createSessionForAgentのidle保存を再利用し、startもopen→sendへ統一。余分な初回空turnを発行しない。
+- activateRoomMessageへRoom/Sessionの必要操作とopen/reply callbacksをDI。選択したAgentだけ、同Room idle/failed Sessionを再利用。running拒否、stoppedは再利用しない。保存済みsource/Agent返信は再利用し、返却Session/Messageの整合を検証する。DB不要2UT RED→GREEN。
+- room activate --messageをdaemon専用にし、既存Room履歴/scopedMemory contextと返信保存へ配線。typed A2Aの参照は実行前に既存Readerで検証。実subprocess e2eでcoordinator/mention/A2A・provider Session継続・再実行の重複なし・driver failureをRED→GREEN。
+- 11秒Unix socket応答をRoom activateに追加しclient5秒timeoutのREDを確認。Runtimeのtimeout/cancel境界に委ねてGREEN、既存Session/Taskrunも保持。計4対象テスト成功。
+- 全161テスト・静的ゲート成功。実Jev816対象・missing/unsure0・errors/degradedなし。補助failure-path候補は対象UT/CLI検証と独立レビューに照合し非阻害と判断。独立Reviewer Critical/Important/Minorなし、2UT/fixtureCLI/11秒transportの4テスト独立成功。
+- provider完了後・返信保存前のcrashはturnを再実行し得る。manual段階でexactly-once・自動retryを主張しない。次は同操作をdurable自動wake-upと復旧へ結ぶ。
+- 実Claude MaxでもAPIキー/tokenを渡さず隔離marker Roomのcoordinatorだけ起動→繰返し返信再利用/no turn→同org/provider Session継続→idleを検証し全boolean成功。[実Max成否](verification/2026-10-05-room-wake-up/real-claude-max.txt)。初回はJSON.stringifyのproperty順比較で返信一致だけfalseになり、deep equalityへ訂正して再実行成功。raw応答/認証値は公開しない。

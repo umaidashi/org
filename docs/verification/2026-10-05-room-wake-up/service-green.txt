@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/activation-service.test.ts:
+(pass) Room wake-up opens only the selected Session, reuses it and returns existing replies without another turn [1.09ms]
+(pass) Room wake-up rejects busy or mismatched Sessions and propagates runtime failure without a reply [0.71ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [22.00ms]
