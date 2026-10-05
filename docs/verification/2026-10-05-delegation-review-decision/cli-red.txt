@@ -1,0 +1,18 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-autonomy-cli.test.ts:
+92 |     return v;
+93 |   };
+94 |   const wait = async (check: () => boolean) => {
+95 |     const end = Date.now() + 5000;
+96 |     while (!check()) {
+97 |       if (Date.now() > end) throw new Error('Timed out');
+                                           ^
+error: Timed out
+      at <anonymous> (<REPO>/tests/task-autonomy-cli.test.ts:97:39)
+      at async <anonymous> (<REPO>/tests/task-autonomy-cli.test.ts:358:11)
+(fail) Event subscription wakes assigned ExecutionTask with scoped Memory and stages one Artifact for explicit review without replay [8764.80ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [8.80s]

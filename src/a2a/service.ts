@@ -1,4 +1,5 @@
-import { createTask, type Task } from '../tasks/domain.js';
+import { planTaskReview, type TaskReviewReader } from '../tasks/review.js';
+import { createTask, changeTask, type Task } from '../tasks/domain.js';
 import type { IdempotentTaskWriter, TaskProvider } from '../tasks/port.js';
 import { requireCapability } from '../agents/domain.js';
 import { createA2AMessage, readA2AMessage, validateA2AReply } from './domain.js';
@@ -124,13 +125,7 @@ export async function pollDelegationResults(
       if (signal?.aborted) return;
       const task = knownTasks.get(`a2a:${source.id}`);
       if (!task || !['waiting_approval', 'completed', 'failed'].includes(task.status)) continue;
-      if (
-        task.kind !== 'execution_task' ||
-        task.owner !== source.to ||
-        task.parentId !== source.taskId ||
-        task.externalRef !== `org://rooms/${room.id}/messages/${source.id}`
-      )
-        throw new Error('Delegation Task reference conflict');
+      validateDelegationTask(task, source);
       const existing = envelopes.filter(
         (message) =>
           message.replyTo === source.id &&
@@ -191,4 +186,92 @@ export async function pollDelegationResults(
       );
     }
   }
+}
+
+export async function pollDelegationReviews(
+  rooms: Pick<RoomRepository, 'list' | 'get' | 'messages' | 'append'>,
+  agents: Pick<AgentRepository, 'list'>,
+  tasks: Pick<TaskProvider, 'list' | 'history'> & TaskReviewReader & { get(id: string): unknown },
+  signal?: AbortSignal,
+): Promise<void> {
+  if (signal?.aborted) return;
+  const known = new Map(tasks.list({ kind: 'execution_task' }).map((task) => [task.id, task]));
+  for (const room of rooms.list()) {
+    if (room.archivedAt !== null) continue;
+    const messages = listA2AMessages(rooms, room.id, tasks);
+    for (const source of messages.filter((message) => message.type === 'delegate')) {
+      if (signal?.aborted) return;
+      const task = known.get(`a2a:${source.id}`);
+      if (!task) continue;
+      validateDelegationTask(task, source);
+      const history = tasks.history(task.id);
+      for (const review of tasks.reviews(task.id)) {
+        const before = history.find((entry) => entry.version === review.taskVersion)?.task;
+        const after = history.find((entry) => entry.version === review.taskVersion + 1)?.task;
+        if (
+          !before ||
+          !after ||
+          before.id !== task.id ||
+          before.owner !== source.to ||
+          review.taskId !== task.id
+        )
+          throw new Error('Delegation review evidence conflict');
+        const planned = planTaskReview(
+          before,
+          {
+            decision: review.decision,
+            actor: review.actor,
+            reason: review.reason,
+            expectedVersion: review.taskVersion,
+          },
+          { id: review.id, createdAt: review.createdAt },
+        );
+        const expected = changeTask(
+          before,
+          { status: review.decision === 'approve' ? 'completed' : 'failed' },
+          review.createdAt,
+        );
+        if (
+          JSON.stringify(planned.outputArtifacts) !== JSON.stringify(review.outputArtifacts) ||
+          JSON.stringify(expected) !== JSON.stringify(after)
+        )
+          throw new Error('Delegation review evidence conflict');
+        const payload = {
+          executionTaskId: task.id,
+          reviewRef: `org://tasks/${encodeURIComponent(task.id)}/reviews/${encodeURIComponent(review.id)}`,
+          review: { ...review, outputArtifacts: [...review.outputArtifacts] },
+          taskRef: `org://tasks/${encodeURIComponent(task.id)}/versions/${after.version}`,
+        };
+        const id = `a2a-review:${review.id}`;
+        const prior = messages.find((message) => message.id === id);
+        if (prior) {
+          if (
+            prior.type !== 'decision' ||
+            prior.replyTo !== source.id ||
+            JSON.stringify(prior.payload) !== JSON.stringify(payload)
+          )
+            throw new Error('Delegation review notification conflict');
+          continue;
+        }
+        sendA2AMessage(
+          rooms,
+          agents,
+          tasks,
+          room.id,
+          { from: source.to, to: source.from, type: 'decision', replyTo: source.id, payload },
+          { id, createdAt: review.createdAt },
+        );
+      }
+    }
+  }
+}
+
+function validateDelegationTask(task: Task, source: A2AMessage): void {
+  if (
+    task.kind !== 'execution_task' ||
+    task.owner !== source.to ||
+    task.parentId !== source.taskId ||
+    task.externalRef !== `org://rooms/${source.roomId}/messages/${source.id}`
+  )
+    throw new Error('Delegation Task reference conflict');
 }

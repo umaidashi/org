@@ -1,0 +1,3 @@
+PASS: real Claude Max delegate -> Task result -> human approval -> verified typed decision -> Coordinator resumes same Session
+PASS: recorded human actor/correlation/Task snapshot preserved; notification does not rerun or approve Task
+PASS: reopened immutable actual Task result Artifact contains verified RESULT=42

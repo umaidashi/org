@@ -15,6 +15,9 @@ export interface TaskReview {
   readonly reason: string;
   readonly createdAt: string;
 }
+export interface TaskReviewReader {
+  reviews(id: string): readonly TaskReview[];
+}
 export interface TaskReviewWriter {
   get(id: string): Task;
   recordReview(review: TaskReview): Task;

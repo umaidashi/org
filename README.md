@@ -280,7 +280,7 @@ org agent list --json
 
 Agentのdelegate権限は作成時に`--capability can_delegate`で明示します。省略したAgentはtyped A2Aのdelegateを送信・自動起動できません。通常のRoom metadata経由でも起動前に検証します。既知の他のcan_*値は保存できますが、対応する実行境界の権限制約は後続です。ローカル管理者のCLI操作をAgent本人として認証する機能ではありません。作成後の権限変更APIはまだありません。
 
-`--wake-up`付きdaemonでtyped A2Aの`delegate`を送ると、宛先AgentにExecutionTaskを一度だけ割り当てます。JSON payloadをTask指示に含め、`--task`参照は親Taskとして保持します。元Roomの通常返信turnは発行せず、Task RoomでMemoryを含めて実行し、成果物を承認待ちへ保存します。`room activate`による手動delegateはTask割当まで行います。結果はTask/Artifactで参照できます。--wake-up workerが委譲元へtyped result（成果物なし失敗はblocker）を返し、既存activationでCoordinatorへ通知します。返送失敗でTask結果を失わず、次tick/再起動では返送だけを再試行します。
+`--wake-up`付きdaemonでtyped A2Aの`delegate`を送ると、宛先AgentにExecutionTaskを一度だけ割り当てます。JSON payloadをTask指示に含め、`--task`参照は親Taskとして保持します。元Roomの通常返信turnは発行せず、Task RoomでMemoryを含めて実行し、成果物を承認待ちへ保存します。`room activate`による手動delegateはTask割当まで行います。結果はTask/Artifactで参照できます。--wake-up workerが委譲元へtyped result（成果物なし失敗はblocker）を返し、既存activationでCoordinatorへ通知します。返送失敗でTask結果を失わず、次tick/再起動では返送だけを再試行します。人間がtask reviewした後は、レビュー原本と前後Task履歴を照合したtyped decisionを委譲元へ返します。owner Agentは記録済みの人間判断を報告し、承認を代行しません。
 
 固定間隔のEventは`schedule create`で登録します。`--start-at`はミリ秒付きUTC ISO、`--every-ms`は正の整数です。既存のEvent Subscriptionで宛先Agentを指定し、`--wake-up`付きdaemonがTaskを実行します。
 

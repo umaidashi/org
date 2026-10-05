@@ -642,3 +642,12 @@
 - Final独立Reviewer Critical/Important/Minorなし。proposal/既存cancel-drain UT4件、実Docker e2e1件も独立成功。
 - 修正した隔離treeのbun run check全体も成功。実生成TypeScriptはlint/AST対象に含め、全204テストと型/lint/format/AST/review:planを確認。実Jev1105判定missing/unsure0、errors/degradedなし。Notion snapshot/秘密は送信しない。[証拠](verification/2026-10-05-sandbox-message-proposal/generated-check.txt)。
 - Final Ruling: tools無効LLMから厳密JSON proposal、owner/Task/Roomを境界検証し、実行policyはCLIのみ。原本参照を成果物manifestに保持。明示CLIの一周であり自動tool loopは未完了。credential injection/本人認証/外部操作も後続。今回defer Minorなし（Task Audit同時刻tie-orderの既存Minorは継続）。Next: 人間のTaskレビューを委譲元Coordinatorへtyped decisionで返す。
+
+## 委譲Taskの人間レビュー返送（進行中）
+
+- [計画](superpowers/plans/2026-10-05-delegation-review-decision.md)。既存TaskReviewとhistoryから証拠を確認し、owner Agentが委譲元へtyped decisionとして報告する。人間の承認をAgentへ置換せず、Task結果の既存返送/correlation/activationを再利用する。
+- main adc9955の通常push成功、pre-push全204テスト/実Jev/公開検査49.47秒。
+- 未export UT RED→GREEN。最初のUT fixtureがgroup Roomのhumanを欠いて失敗し、実Room契約に訂正。通知write失敗→原レビュー保持/送信のみretry→同receipt再利用、approve/reject、異成果物拒否、archived延期、abort no readsをDB不要UTで検証。
+- 実CLI RED（review後decision待ちtimeout）→daemon wake-upへ接続GREEN。既存結果返送と併存し、decision correlation/declared human actor/Coordinator返信/再起動duplicateなし/Task version不変を確認、既存A2A含む9件3.90秒。Task参照照合を共通関数へまとめ両poll callerへ適用。
+- 最新全205/205・型/lint/format/AST成功40.69秒。実Jev1111判定missing/unsure0、errors/degradedなし。実Claude Maxの委譲→Task RESULT=42 Artifact→人間review→typed decision→Coordinator同Session再開を確認し、再openした原本ArtifactもRESULT=42と照合。生出力はprivate tmpのみ。
+- Final独立Reviewer Critical/Important/Minorなし、関連domain/service/TaskReview SQLite16件を独立成功。Final Ruling: 原本reviewを報告するdecisionでありAgentが承認しない。決定的IDのreceiptで通知のみretry、Task/Artifact再実行なし。原本と成果物の証拠が違えばfail closed。本人認証/外部Approvalと自律tool loopは後続。既存Audit同時刻sortのMinorは次に解消する。

@@ -11,6 +11,7 @@ import {
   authorizeA2AMessage,
   delegateA2ATask,
   pollDelegationResults,
+  pollDelegationReviews,
 } from '../a2a/service.js';
 import { acquireDatabaseLease } from './lease.js';
 import type { DatabaseLease } from './lease.js';
@@ -240,6 +241,7 @@ function openOperations(
                 () => ({ id: randomUUID(), createdAt: new Date().toISOString() }),
                 signal,
               );
+              await pollDelegationReviews(roomRepository, agentRepository, taskProvider, signal);
             },
           }
         : {}),
