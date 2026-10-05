@@ -1,4 +1,9 @@
 import {
+  parseWorkflowCommand,
+  runWorkflowCommand,
+  type WorkflowCommand,
+} from '../workflows/cli.js';
+import {
   parseApprovalCommand,
   runApprovalCommand,
   type ApprovalCommand,
@@ -45,6 +50,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
        org sandbox artifact URI
        org sandbox cancel TASK_ID
+       org workflow run|status|cancel|list|history [OPTIONS]
        org schedule create|list|get|enable|disable [OPTIONS]
        org a2a send|get|list [OPTIONS]
        org memory capture|get|list|search|invalidate [OPTIONS]
@@ -65,6 +71,7 @@ function required(value: string | undefined, name: string): string {
 }
 
 export type ApplicationCommand =
+  | { readonly kind: 'workflow'; readonly command: WorkflowCommand }
   | { readonly kind: 'approval'; readonly command: ApprovalCommand }
   | {
       readonly kind: 'capabilities' | 'capability-history';
@@ -95,6 +102,8 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
   });
   if (probe.positionals[0] === 'approval' || probe.positionals[0] === 'audit')
     return { kind: 'approval', command: parseApprovalCommand(argv) };
+  if (probe.positionals[0] === 'workflow')
+    return { kind: 'workflow', command: parseWorkflowCommand(argv) };
   if (probe.positionals[0] === 'sandbox')
     return { kind: 'sandbox', command: parseSandboxCommand(argv) };
   if (probe.positionals[0] === 'schedule')
@@ -213,6 +222,10 @@ async function runApplication(
   output: (line: string) => void,
   sessions?: ApplicationContext,
 ): Promise<void> {
+  if (command.kind === 'workflow') {
+    await runWorkflowCommand({ ...command.command, db }, output);
+    return;
+  }
   if (command.kind === 'approval') {
     runApprovalCommand({ ...command.command, db }, output);
     return;

@@ -361,7 +361,7 @@ ORG_DOCKER_TEST=1 bun --no-env-file test tests/runtime-sandbox-cli.test.ts
 
 ## n8n WorkflowRuntimeの参照
 
-WorkflowRuntimeはAgentRuntimeと独立し、n8nのproduction Webhookでinvoke、公開Execution APIでstatus/cancelします。host allowlist外のWorkflowや不一致の実行IDを拒否し、invokeを自動再試行しません。CLIと永続receiptへの接続は次の実装段階です。
+WorkflowRuntimeはAgentRuntimeと独立し、n8nのproduction Webhookでinvoke、公開Execution APIでstatus/cancelします。host allowlist外のWorkflowや不一致の実行IDを拒否し、invokeを自動再試行しません。CLIは不変Eventのreceiptを保存し、同じkeyの二重invokeを拒否します。
 
 [成功用参照Workflow](docs/reference/workflows/org-kernel-check.json)と[停止用参照Workflow](docs/reference/workflows/org-kernel-wait.json)はローカル検証用です。WebhookがexecutionIdを返し、後者は60秒待機するためstopを確認できます。公式n8n2.41.6で検証しています。
 
@@ -370,3 +370,22 @@ ORG_N8N_TEST_CONFIG=/private/path/config.json bun --no-env-file test tests/workf
 ```
 
 実機test設定はbaseUrl、apiKey、workflows（id/path配列）を持つprivateな一時JSONです。リポジトリには保存しません。通常の全testではこの実機testをskipします。
+
+
+## Workflow CLIとreceipt
+
+`workflow.local.json`はhostと許可Workflowを指定します。キー値は設定へ書かず、`apiKeyEnv`が指定する環境変数をhost側で読みます。daemonを使う場合は起動時にその変数を渡します。
+
+```json
+{"baseUrl":"https://n8n.example","apiKeyEnv":"N8N_API_KEY","workflows":[{"id":"WORKFLOW_ID","path":"org-kernel-check"}]}
+```
+
+```sh
+bun run start workflow run WORKFLOW_ID --key check-001 --input '{"issue":123}' --config ./workflow.local.json --json
+bun run start workflow status REQUEST_ID --config ./workflow.local.json --json
+bun run start workflow cancel REQUEST_ID --config ./workflow.local.json --json
+bun run start workflow list --json
+bun run start workflow history REQUEST_ID --json
+```
+
+runの戻り値`payload.requestId`をstatus/cancel/historyへ渡します。claimは外部呼出しより先に保存し、通信失敗でも同じkeyを自動再送しません。不明な結果はunconfirmed Eventとして残ります。原入力はhashだけを記録し、観測は追記します。status/cancelは保存済みreceiptと同host/Workflowを照合します。これは手動local admin操作で、Task/Agentの自動Workflow委譲は後続です。

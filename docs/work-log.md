@@ -755,3 +755,22 @@
 - Final独立Reviewer Important1: native JSON.parse例外が不正応答本文を含む。架空secret markerが例外へ漏れるREDを確認し、二caller共通のJSON境界で固定エラーへ変換するGREEN。一回のfix passとして全check/実Jevを再実行し、再レビューは行わない。Critical/Minorなし。
 - 修正後全226/226・型/lint/format/AST成功47.32秒。実機opt-in7件は通常skip、実n8nは別実行1件455ms成功。実Jev1211判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-n8n-workflow-runtime/check.txt)。Important1解消、再レビューなし。
 - Ruling: invokeはhostが許可したWebhookへ一度POSTし、返った実行IDを公開APIで確認して要求Workflowへ一致させる。cancelも許可Workflowの実行を確認してからstopする。APIキーは公開API headerだけ、Webhookへ転送しない。HTTPエラー/不正JSONに生本文を含めない。response内の業務outputは取得せずincludeData=false。今回はPort/Adapter/参照実機まで、CLI・永続receipt・Task/Agent委譲は次の小e2eで接続する。新依存/Designer/独自queueなし。
+
+## Workflow CLIの永続receipt（進行中）
+
+- Port/実機確認後、同[計画](superpowers/plans/2026-10-05-n8n-workflow-runtime.md)の次の小e2eへ進む。既存EventBusを不変receiptとして再利用し、未知の外部結果を自動で再送しない。host configに秘密値を保存せず、本文はhashだけを記録する。手動local admin操作から接続する。
+- maincfbbf5a通常push成功、pre-push全226テスト/実Jev/公開検査61.86秒。
+- 未receipt service RED→原Event claimを外部invoke前に保存し同IDのpublish失敗で二度呼ばないGREEN。外部失敗はunconfirmedを追記し、本文/生Errorを原Eventへ保存しない。DB不要UT2件22ms。
+- CLI REDの最初はsandbox制約でHTTP listenが拒否されたため、許可済みローカルHTTP実行へ切り替え本来の未workflow command REDを確認。未知CLI→run/status/cancel/list/historyを配線したGREEN。別process再open/同key二重invoke拒否/本文・キー非出力を実CLIで確認。API呼出しは10秒ごとのbounded timeout、daemon Workflow待機は40秒。
+- URL constructorも不正host文字列を例外へ含めるRED→固定エラーへ変換するGREEN。既存host validationは維持。server.stopのPromiseをawaitするようlintで訂正し静的検査成功。
+- 実daemon CLI→公式ローカルn8n success/stop→不変receipt→daemon停止後direct再open/同key重複拒否を確認。業務service呼出しなし、資格情報/設定生値はprivate tmpのみ。
+- 最初の全checkは既存CLI6件が5秒/20秒timeoutとなり224 pass/7 skip/6 fail、173.20秒。全体成功とは扱わない。検証用n8n container単体でCPU130.53%/331.9MiBを観測したため、その自作使い捨てcontainerだけを終了し、検査timeout/hookを緩めず全checkを再実行する。他のuser processは操作しない。
+- container終了後も再検査は既存CLI3件timeout、227 pass/7 skip/3 fail、135.21秒。負荷だけを原因と断定しない。CLI --helpの5回計測でsource 180/90/69/96/86ms、bundle 67/49/39/75/52ms。共通の最新Bun bundleを実CLI e2eで使用し、配布物の動作と起動コスト削減を検証する。各テストtimeout/hookは維持。最初の計測はhelpのexit codeを2と誤認して失敗したため、実装の0へ訂正して再計測した。
+- Workflow receiptのFinal独立ReviewerはCritical/Important/Minorなし。関連UT7件とCLI e2eを独立成功。全体checkの成功とは区別する。
+- bundle共有化の機械置換で関数内constまでimportへ変換して型検査が失敗したため、importを各moduleのトップレベルへ集約して訂正。静的検査成功後の全検査は228 pass/7 skip/2 fail、136.25秒。A2A/Agent reportingの既存5秒timeoutで、全成功とは扱わない。CPU一覧で他アプリの高負荷が継続するが、それらは操作しない。失敗2件を同じbundle・同じtimeoutで個別再実行して切り分ける。
+- 同じbundle・同じtimeoutで既存失敗2fileを単独再実行し3/3成功、3.21秒（A2A1.61秒、reporting1.19秒）。全体の失敗を消した扱いにはせず、全checkと成功後の実Jevを順に再実行する。
+- 次の全checkでもA2A全体が5.04秒timeout。複数CLI各5秒/起動5秒のscenario全体も既定5秒だったため、長いA2A/reporting二scenarioだけ全体上限を15秒へ明示する。各子process/起動/状態待ちの上限は維持し、待機追加やhook bypassはしない。先の上限維持方針から変更する理由は、個別成功と各操作の上限に対して合計budgetが不足する実測。実時間も記録して速度退行を隠さない。
+- budget訂正前の最後の全checkは229 pass/7 skip/1 fail、108.42秒。訂正後の全checkを改めて実行し、成功確認後だけ実Jevへ進む。
+- 訂正後全230/230・型/lint/format/AST成功80.75秒、外部実機opt-in7件は通常skip（n8nは別実行成功）。実Jev1242判定で正常終了、詳細は[検証記録](verification/2026-10-05-workflow-cli-receipts/check.txt)とsemantic summary。実daemon→n8nの安全な成否markerを同directoryへ保存した。
+- Ruling: 不変Eventを外部invoke前にclaimし同key再送を拒否する。結果不明はunconfirmedのまま自動retryしない。host/Workflow/実行IDを観測とcancel前に照合し、inputはhashのみ、API keyはenvからnative API headerだけ。CLI e2eは最新の配布用Bun bundleを共有し、長い2scenarioの全体budgetだけ明示、各子process制限は維持。Agent外部scope/Task委譲は後続。Next: 明示host configのdaemonでEvent購読からWorkflowを一度だけ起動し、restart時の配送回復を小e2eで確認する。
+- 実Jev missing/unsure0、errors/degradedなし、warning73。Workflow CLI/service/n8nとその追加テストにwarningなし。既存候補は全失敗枝の網羅保証を意味せず、具体的失敗UTと独立レビューで判断する。

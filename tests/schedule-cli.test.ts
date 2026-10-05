@@ -1,9 +1,8 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 test('Schedule CLI publishes a due Event once across worker restarts and preserves enable state', () => {
   const home = mkdtempSync('/tmp/org-schedule-cli-'),
     db = home + '/org.db';

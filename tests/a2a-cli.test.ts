@@ -1,9 +1,8 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -287,4 +286,4 @@ test('A2A request and result retain correlation, Task and immutable Room evidenc
     await exited;
     rmSync(home, { recursive: true, force: true });
   }
-});
+}, 15000);

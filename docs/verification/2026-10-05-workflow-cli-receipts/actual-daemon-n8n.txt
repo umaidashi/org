@@ -1,0 +1,2 @@
+PASS: actual CLI via daemon -> native n8n success/cancel -> immutable receipts -> direct reopen; repeated key denied without invocation
+PASS: input body/API credential absent from returned events; local-only n8n reference workflows

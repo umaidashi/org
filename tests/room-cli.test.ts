@@ -1,14 +1,13 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { test } from 'bun:test';
 
 test('malformed Room creation is rejected before creating a database or directory', () => {
   const home = mkdtempSync(join(tmpdir(), 'org-room-invalid-'));
-  const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
   const db = join(home, 'uncreated', 'org.db');
   try {
     for (const args of [
@@ -47,7 +46,6 @@ test('malformed Room creation is rejected before creating a database or director
 
 test('multiple rooms with the same Agent keep separate persistent replies and archived histories', () => {
   const home = mkdtempSync(join(tmpdir(), 'org-room-e2e-'));
-  const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
   const run = (args: string[]) =>
     spawnSync(
       process.execPath,

@@ -1,12 +1,11 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { SqliteSessionStore } from '../src/sessions/sqlite.js';
 import { transitionSession } from '../src/sessions/domain.js';
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }

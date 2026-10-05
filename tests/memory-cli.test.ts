@@ -1,10 +1,9 @@
+import { cli } from './cli-path.js';
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 test('Memory CLI captures evidence, supersedes without altering history, and persists invalidation', () => {
   const home = mkdtempSync('/tmp/org-memory-cli-');
   const db = join(home, 'org.db');

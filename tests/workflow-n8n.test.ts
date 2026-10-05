@@ -126,3 +126,14 @@ test('malformed successful HTTP JSON never exposes response text in an exception
       !error.message.includes(marker),
   );
 });
+
+test('invalid Workflow host URL never exposes config text in its exception', () => {
+  assert.throws(
+    () =>
+      new N8nWorkflowRuntime(
+        { baseUrl: 'PRIVATE_HOST_CREDENTIAL', apiKey: 'fixture-key', workflows: [] },
+        async () => Response.json({}),
+      ),
+    (error) => error instanceof Error && error.message === 'Invalid Workflow host URL',
+  );
+});

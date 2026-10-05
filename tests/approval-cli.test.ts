@@ -1,11 +1,10 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { SqliteAgentRepository } from '../src/agents/sqlite.js';
 import { createAgent } from '../src/agents/domain.js';
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 test('CLI applies a human-approved permission once and exposes its immutable Audit', () => {
   const home = mkdtempSync('/tmp/org-approval-cli-'),
     db = home + '/org.db';

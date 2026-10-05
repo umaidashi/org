@@ -31,7 +31,12 @@ export class N8nWorkflowRuntime implements WorkflowRuntime {
     private readonly config: N8nConfig,
     private readonly request: (url: string, init: RequestInit) => Promise<Response>,
   ) {
-    const url = new URL(config.baseUrl);
+    let url: URL;
+    try {
+      url = new URL(config.baseUrl);
+    } catch {
+      throw new Error('Invalid Workflow host URL');
+    }
     if (
       (url.protocol !== 'https:' &&
         !(

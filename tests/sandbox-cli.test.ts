@@ -1,15 +1,14 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { SqliteTaskProvider } from '../src/tasks/sqlite.js';
 import { SqliteAgentRepository } from '../src/agents/sqlite.js';
 import { createTask } from '../src/tasks/domain.js';
 import { SqliteRoomRepository } from '../src/rooms/sqlite.js';
 import { createRoom } from '../src/rooms/domain.js';
 import { createAgent } from '../src/agents/domain.js';
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
   'real Sandbox CLI executes a Task, persists an artifact and requires explicit review',
   () => {

@@ -1,13 +1,12 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { SqliteAgentRepository } from '../src/agents/sqlite.js';
 import { SqliteTaskProvider } from '../src/tasks/sqlite.js';
 import { createAgent } from '../src/agents/domain.js';
 import { createTask } from '../src/tasks/domain.js';
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
   'daemon Sandbox waits beyond five seconds, cancels and drains before DB close',
   async () => {

@@ -1,10 +1,10 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, test } from 'bun:test';
-import { fileURLToPath } from 'node:url';
 
 interface AgentOutput {
   id: string;
@@ -14,7 +14,6 @@ interface AgentOutput {
   created_at: string;
 }
 
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 let home: string;
 let db: string;
 

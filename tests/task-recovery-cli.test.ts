@@ -1,11 +1,10 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { SqliteTaskProvider } from '../src/tasks/sqlite.js';
 import { createTask } from '../src/tasks/domain.js';
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 test('daemon startup records interrupted executions without changing work items or review results', async () => {
   const home = mkdtempSync('/tmp/org-task-recovery-');
   const db = home + '/org.db';

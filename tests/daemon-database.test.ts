@@ -1,9 +1,8 @@
+import { cli } from './cli-path.js';
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 test('Another daemon on a different socket cannot recover or own the active database', async () => {
   const home = mkdtempSync('/tmp/org-db-owner-');
   const db = home + '/org.db';

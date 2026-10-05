@@ -1,3 +1,4 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
@@ -14,10 +15,8 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { test } from 'bun:test';
 import { runLocalDaemon } from '../src/daemon/server.js';
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
 test('SIGINT releases the daemon while preserving replacement socket and lock entries', async () => {
   const home = mkdtempSync('/tmp/org-server-replaced-');
   const socket = join(home, 'org.sock');

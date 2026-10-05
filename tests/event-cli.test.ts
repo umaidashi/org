@@ -1,14 +1,13 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { test } from 'bun:test';
 
 test('events persist without recipients and subscriptions match independently across CLI processes', () => {
   const home = mkdtempSync(join(tmpdir(), 'org-event-e2e-'));
-  const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
   const db = join(home, 'org.db');
   const run = (args: string[]) =>
     spawnSync(process.execPath, ['--no-env-file', cli, '--direct', '--db', db, ...args], {
@@ -100,7 +99,6 @@ test('events persist without recipients and subscriptions match independently ac
 });
 test('malformed event inputs return usage error before creating a database', () => {
   const home = mkdtempSync(join(tmpdir(), 'org-event-invalid-'));
-  const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
   const db = join(home, 'uncreated', 'org.db');
   try {
     for (const args of [

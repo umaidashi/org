@@ -36,7 +36,10 @@ export async function requestApplication(socket: string, argv: string[]): Promis
       (command.kind === 'task' && command.command.action.kind === 'run')
         ? null
         : AbortSignal.timeout(
-            command.kind === 'event' && command.command.action === 'import-github' ? 40000 : 5000,
+            command.kind === 'workflow' ||
+              (command.kind === 'event' && command.command.action === 'import-github')
+              ? 40000
+              : 5000,
           ),
     headers: { 'Content-Type': 'application/json', Connection: 'close' },
     body: JSON.stringify({ argv }),

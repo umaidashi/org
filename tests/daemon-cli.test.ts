@@ -1,13 +1,12 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { test } from 'bun:test';
 test('daemon once creates assigned ExecutionTask and restart does not duplicate or reassign it', () => {
   const home = mkdtempSync(join(tmpdir(), 'org-daemon-e2e-'));
-  const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
   const run = (args: string[]) =>
     spawnSync(
       process.execPath,
@@ -103,7 +102,6 @@ test('daemon once creates assigned ExecutionTask and restart does not duplicate 
 });
 test('two concurrent CLI workers create only one Task and two original history snapshots', async () => {
   const home = mkdtempSync(join(tmpdir(), 'org-daemon-concurrent-'));
-  const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
   const prefix = ['--no-env-file', cli, '--db', join(home, 'org.db')];
   const run = (args: string[]) =>
     spawnSync(

@@ -1,15 +1,14 @@
+import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { test } from 'bun:test';
 
 test('GitHub CLI imports immutable originals into daemon Subscription Tasks and survives long HTTP responses', async () => {
   const dir = mkdtempSync('/tmp/org-github-cli-');
   const db = join(dir, 'org.db');
   const socket = join(dir, 'org.sock');
-  const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
   const preload = join(dir, 'fetch.ts');
   writeFileSync(
     preload,
