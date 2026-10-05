@@ -449,3 +449,9 @@ bun run start workflow run WORKFLOW_ID --key operation-001 --input '{}' --config
 request-approvalはrunと同じ引数から入力digestと一回の実行IDを生成します。host・Workflow・入力・key・effect・要求actorが違えばrunを拒否します。承認済みでもclaim後の再実行は拒否し、通信失敗はunconfirmedとして残します。原入力・キーはreceiptへ保存せず、承認IDと実行IDで追跡します。Approval要求自体が外部Workflowを起動することはありません。
 
 write/irreversible Workflowは自動Event配送でdeferredとなり、Agentのread_only scopeには登録できません。Agent Taskの承認待ち・再開、長時間Workflow、actor認証は後続です。
+
+## Workflowの実行Audit
+
+`audit list --json`は不変Workflow receiptから、呼出しactor、Task/Event、Approval、入力hash参照、実行ID参照と観測結果を表示します。人間承認の要求・判断と実行を同じApproval IDで追跡でき、同時刻でも要求→判断→claim→開始→観測の順で表示します。
+
+通信中断などの結果不明は`unconfirmed`で、成功/失敗とは断定しません。status/cancelのnative観測者は`{"kind":"system","id":"host:workflow"}`です。Agent Taskの呼出しはAgent、承認済み手動実行は要求したhuman actorを記録します。host識別子は本人認証を意味しません。actor情報を持たない過去receiptには人物を補完せず、`workflow history`で原本を確認します。raw入力や資格情報はAuditへ出しません。

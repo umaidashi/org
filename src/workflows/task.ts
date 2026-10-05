@@ -74,6 +74,10 @@ export async function produceTaskWorkflowArtifact(
       inputDigest: createHash('sha256').update(JSON.stringify(proposal.input)).digest('hex'),
       context: {
         actorId: owner.id,
+        actorKind: 'agent',
+        eventId: running.externalRef?.startsWith('org:event:')
+          ? running.externalRef.slice('org:event:'.length)
+          : null,
         taskId: running.id,
         proposalRef,
         approvalId: null,

@@ -58,6 +58,7 @@ export async function invokeApprovedWorkflow(
       inputDigest: digest,
       context: {
         actorId: input.actor.id,
+        actorKind: 'human',
         taskId: null,
         proposalRef: null,
         approvalId: request.id,

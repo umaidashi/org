@@ -114,6 +114,19 @@ test('native CLI invokes write Workflow only after exact human approval and neve
       0,
     );
     assert.equal(invokes, 1);
+    const audit = await json(['audit', 'list']);
+    assert.ok(Array.isArray(audit));
+    assert.deepEqual(
+      audit.map((v: unknown) => {
+        assert.ok(record(v));
+        return v.result;
+      }),
+      ['pending', 'approved', 'pending', 'started'],
+    );
+    const invoked: unknown = audit.at(-1);
+    assert.ok(record(invoked));
+    assert.equal(invoked.approvalId, request.id);
+    assert.equal(invoked.tool, 'workflow.invoke');
   } finally {
     await server.stop(true);
     rmSync(home, { recursive: true, force: true });

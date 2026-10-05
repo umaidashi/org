@@ -11,6 +11,8 @@ export async function invokeWorkflow(
     readonly inputDigest: string;
     readonly context?: {
       readonly actorId: string;
+      readonly actorKind?: 'human' | 'agent' | 'system';
+      readonly eventId?: string | null;
       readonly taskId: string | null;
       readonly proposalRef: string | null;
       readonly approvalId: string | null;
@@ -24,15 +26,13 @@ export async function invokeWorkflow(
     workflowId: input.workflowId,
     host: input.host,
     inputDigest: input.inputDigest,
-    ...(input.context === undefined
-      ? {}
-      : {
-          actorId: input.context.actorId,
-          taskId: input.context.taskId,
-          proposalRef: input.context.proposalRef,
-          approvalId: input.context.approvalId,
-          effect: input.context.effect,
-        }),
+    actorId: input.context?.actorId ?? 'host:workflow',
+    actorKind: input.context?.actorKind ?? (input.context?.taskId ? 'agent' : 'system'),
+    taskId: input.context?.taskId ?? null,
+    eventId: input.context?.eventId ?? null,
+    proposalRef: input.context?.proposalRef ?? null,
+    approvalId: input.context?.approvalId ?? null,
+    effect: input.context?.effect ?? 'read_only',
   };
   // The immutable claim precedes the external effect; a duplicate publish must stop invocation.
   bus.publish(
@@ -111,6 +111,8 @@ export async function observeWorkflow(
           workflowId: execution.workflowId,
           executionId: execution.id,
           status,
+          actorKind: 'system',
+          actorId: 'host:workflow',
         },
       },
       identity,

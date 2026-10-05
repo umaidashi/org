@@ -829,3 +829,10 @@
 - 初回fixtureはWebhookに加えてn8n Adapterが照合に使う公開GETを実装しておらず失敗。公開APIだけキーを検査するfixtureへ訂正し、型のeffect union推論も訂正。関連6件成功1095ms、型/lint/format/AST成功。host契約にeffectを追加し、write WorkflowはAgent read_only scopeと自動Event購読へ流入させない。
 - Event配送テストの初回assertは既存optional workflowRequestIdをnullと誤認して失敗。undefinedの既存契約へ訂正。全248成功/7skip/0fail、255件125files51.36秒、型/lint/format/AST成功。実Jev1302対象missing/unsure0、errors/degradedなし、warning77。Final独立レビュー指摘なし、関連7件を独立成功。[証拠](verification/2026-10-06-approved-workflow-invocation/check.txt)。
 - 公式固定n8nのローカル参照Workflowをwrite契約として宣言し、未承認/pending/入力変更を拒否→完全一致human approveで一度invoke→status success→duplicate拒否を実CLI/API成功。業務サービス書込みなし、自作container停止。Ruling: failure-path候補はscope/actor/input/host/ID不一致・duplicate・unknown failureと実daemon拒否を検証し、一般認証/副作用検出の保証とはしない。Next: 既存Workflow receiptを詳細Auditへ投影し、操作承認と開始/不明結果をCLIで追跡可能にする。
+
+## 2026-10-06 Workflow実行Audit（進行中）
+
+- maindb48da0通常push成功、pre-push全検査/実Jev/公開検査57.18秒。feat/workflow-execution-auditで[計画](superpowers/plans/2026-10-06-workflow-execution-audit.md)を開始。
+- Workflow receipt projection未module RED、実CLI auditの実行記録欠落RED→新規不変receiptにnative actor kind/id、Task/Event/Approval参照を明示し既存Auditへ投影するGREEN。関連5件863ms、型/lint/format/AST成功。過去actorなしreceiptは人物を補完せず投影対象外とし、実行結果不明はfailedと断定せずunconfirmed。
+- 同時刻のApproval decision/Workflow claim因果順テストでREDを確認し、request→decision→claim→started→観測の順へphaseを訂正。Task履歴の元順序は保持する。生input/API keyは追加保存しない。
+- 最終全249成功/7skip/0fail、256件126files47.12秒、型/lint/format/AST成功。実Jev1313対象missing/unsure0、errors/degradedなし、warning78。Final独立レビュー指摘なし、関連4files6件を独立成功。独立HTTP fixtureはsandbox listen制約を許可実行で再確認。[証拠](verification/2026-10-06-workflow-execution-audit/check.txt)。Ruling: catch failure/context候補はraw error非漏洩・unknown outcome保持・context不一致拒否・同時刻順を具体的UT/CLIで確認する。system actorはhost callerの記録で本人認証ではない。Next: Notion Room仕様を照合し、未実装rule_based activationを小さなnative条件と実Room/daemon e2eへ接続する。

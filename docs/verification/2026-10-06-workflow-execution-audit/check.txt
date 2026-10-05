@@ -1,0 +1,6 @@
+bun run check exit 0: 249 pass, 7 skip, 0 fail; 256 tests across 126 files, 47.12s.
+Type/lint/format/AST passed. Actual Jev exit 0: 1313 subjects, missing/unsure 0, warnings 78, errors/degraded [].
+Final independent review: no Critical/Important/Minor findings; 6 tests across 4 files succeeded. Sandbox listen restriction rerun with local permission; successful actual HTTP/CLI fixture.
+Pure projection verifies actor/context binding, legacy actor omission, status success observer, unconfirmed outcome, equal-time Approval -> claim -> started ordering.
+Actual CLI human Approval -> native Workflow fixture -> audit list includes linked claim/start. Existing status/cancel native fixtures run in full suite; legacy receipts remain visible through workflow history.
+Native system identity denotes host code, not authenticated user identity. Raw input/key not persisted or emitted.

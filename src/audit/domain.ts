@@ -1,9 +1,11 @@
 import type { Approval } from '../approvals/domain.js';
 import type { CapabilityChange } from '../agents/permissions.js';
 import type { Participant } from '../rooms/domain.js';
+export type AuditActor = Participant | { readonly kind: 'system'; readonly id: string };
 export interface AuditEntry {
+  readonly causalId?: string;
   readonly id: string;
-  readonly actor: Participant;
+  readonly actor: AuditActor;
   readonly taskId: string | null;
   readonly eventId: string | null;
   readonly tool: string;
@@ -17,7 +19,10 @@ export interface AuditEntry {
     | 'applied'
     | 'started'
     | 'succeeded'
-    | 'failed';
+    | 'failed'
+    | 'unconfirmed'
+    | 'observed'
+    | 'canceled';
   readonly approvalId: string | null;
 }
 export function buildAudit(
@@ -75,16 +80,24 @@ export function buildAudit(
       ? -1
       : a.at > b.at
         ? 1
-        : (a.approvalId ?? a.taskId ?? a.id) < (b.approvalId ?? b.taskId ?? b.id)
+        : (a.approvalId ?? a.causalId ?? a.taskId ?? a.id) <
+            (b.approvalId ?? b.causalId ?? b.taskId ?? b.id)
           ? -1
-          : (a.approvalId ?? a.taskId ?? a.id) > (b.approvalId ?? b.taskId ?? b.id)
+          : (a.approvalId ?? a.causalId ?? a.taskId ?? a.id) >
+              (b.approvalId ?? b.causalId ?? b.taskId ?? b.id)
             ? 1
-            : a.approvalId === null && b.approvalId === null
+            : a.approvalId === null &&
+                b.approvalId === null &&
+                a.causalId === undefined &&
+                b.causalId === undefined
               ? 0
-              : phase(a.result) - phase(b.result),
+              : phase(a) - phase(b),
   );
 }
 
-function phase(result: AuditEntry['result']): number {
-  return result === 'pending' ? 0 : result === 'applied' ? 2 : 1;
+function phase(entry: AuditEntry): number {
+  if (entry.result === 'pending') return entry.tool === 'workflow.invoke' ? 2 : 0;
+  if (entry.result === 'approved' || entry.result === 'rejected') return 1;
+  if (entry.result === 'applied') return 2;
+  return entry.result === 'started' ? 3 : 4;
 }
