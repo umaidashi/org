@@ -388,7 +388,7 @@ bun run start workflow list --json
 bun run start workflow history REQUEST_ID --json
 ```
 
-runの戻り値`payload.requestId`をstatus/cancel/historyへ渡します。claimは外部呼出しより先に保存し、通信失敗でも同じkeyを自動再送しません。不明な結果はunconfirmed Eventとして残ります。原入力はhashだけを記録し、観測は追記します。status/cancelは保存済みreceiptと同host/Workflowを照合します。これは手動local admin操作で、Task/Agentの自動Workflow委譲は後続です。
+runの戻り値`payload.requestId`をstatus/cancel/historyへ渡します。claimは外部呼出しより先に保存し、通信失敗でも同じkeyを自動再送しません。不明な結果はunconfirmed Eventとして残ります。原入力はhashだけを記録し、観測は追記します。status/cancelは保存済みreceiptと同host/Workflowを照合します。これは手動local admin操作です。Taskからの委譲は以下のAgent scopeで制限します。
 
 ## Event購読からWorkflowを起動する
 
@@ -399,10 +399,24 @@ bun run start daemon --workflow-config ./workflow.local.json
 
 host設定のAPIキー環境変数はdaemon起動時に渡します。Agent Runtime設定や`--wake-up`は不要です。入力は元EventのID/type/source/payload/createdAtで、保存するWorkflow receiptは本文のhashだけです。Deliveryの`workflowRequestId`は不変requestを指し、`taskId`はnullです。先にclaimした配送を再起動時に再送せず、started receiptから配送記録だけを回復します。結果不明やhost不一致はdeferredのままです。Workflow自身のreceipt Eventはこの自動購読から除外します。
 
-設定なしで既にdeferredとなった配送を、自動で復活させることはありません。必要なら判断のうえ新しい購読またはEventを作ります。Task/AgentのWorkflow委譲と外部権限scopeは後続です。
+設定なしで既にdeferredとなった配送を、自動で復活させることはありません。必要なら判断のうえ新しい購読またはEventを作ります。TaskからのWorkflow委譲は別途Agent scopeを設定します。
 
 ## SecretStore
 
 WorkflowのAPIキーは`SecretStore` Port経由でhost側だけが解決します。初期Environment Adapterは、hostが指定したactor/secret参照/env名のgrantだけを読み、未知actor・未知参照はenv読取前に拒否します。欠損・過大値・lookup失敗のエラーは固定文言で、秘密や元の例外を出力しません。秘密値を表示するCLIはありません。
 
-現在のWorkflow configは`host:workflow`の`n8n-api-key`参照を解決します。これは信頼済みhost内部の識別子で、Agent認証ではありません。Agent別Workflow scope、最新Task owner/capability照合、重要操作のApproval、Sandboxへの限定credential注入は後続です。Environment参照自体は暗号化保管機能を提供しません。
+現在のWorkflow configは`host:workflow`の`n8n-api-key`参照を解決します。これは信頼済みhost内部の識別子で、Agent認証ではありません。Agent別Workflow scopeと最新Task owner/capability照合を実装しています。重要操作のApproval、Sandboxへの限定credential注入は後続です。Environment参照自体は暗号化保管機能を提供しません。
+
+## Taskから読み取りWorkflowへ委譲する
+
+Workflow設定にAgent別の許可と専用キー参照を追加します。
+
+```json
+{"baseUrl":"https://n8n.example","apiKeyEnv":"N8N_HOST_KEY","workflows":[{"id":"WORKFLOW_ID","path":"org-kernel-check"}],"agentScopes":[{"agentId":"AGENT_ID","workflowIds":["WORKFLOW_ID"],"apiKeyEnv":"N8N_AGENT_KEY","effect":"read_only"}]}
+```
+
+`--wake-up --runtime-config ./runtime.local.json --workflow-config ./workflow.local.json`でdaemonを起動します。Agentにはcan_read、can_delegate、can_access_network、can_contact_externalが必要です。Runtimeは許可IDを含む指示に対して`{"version":1,"tool":"workflow","workflowId":"WORKFLOW_ID","input":{}}`を返します。hostは最新Task owner/version、Room、capabilityを照合し、Agent固有キーで一度だけ呼び出します。キーはRuntimeへ渡しません。Sandboxとの同時設定は曖昧なため拒否します。
+
+成功した実行IDとWorkflowを照合してTask成果物を保存します。`task artifacts TASK_ID --json`でIDを取得し、`task artifact-content TASK_ID --artifact ARTIFACT_ID --json`で内容とintegrityを確認できます。人間のTask review後、設定済みMemory policyに従ってMemoryへ記録します。実Claude Maxとローカル公式n8nで一周と再起動後no replayを検証済みです。
+
+read_onlyは信頼済みhostが宣言する契約で、n8n各nodeの副作用を自動判定する機能ではありません。書込みWorkflowは未対応です。Workflow実行段階は30秒で制限し、停止時にはHTTPを中断します。不明な結果はclaimを保持して再送しません。長時間Workflowの非同期再開、業務出力、操作Approval、Agent RPC認証は未完了です。

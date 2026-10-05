@@ -1,0 +1,8 @@
+bun run check: exit 0
+244 pass, 7 skip, 0 fail; 251 tests across 121 files, 50.55s.
+Typecheck, lint, format and AST checks passed; AST examined 230 files.
+Actual jev-lint: exit 0; 1285 answers recorded. missing/unsure 0, errors/degraded [], warnings 76. New Workflow task failure-path warning reviewed against scoped rejection, retargeting, duplicate claim and native shutdown tests; no universal failure-coverage claim.
+Independent final reviewer: no Critical, Important or Minor findings; independently verified 27 related tests including native CLI/daemon fixture.
+CLI fixture: Runtime proposal -> Actor-scoped Workflow -> success artifact -> human review -> Memory; shutdown while HTTP pending -> failed Task/unconfirmed receipt without replay.
+Real n8n setup first failed with HTTP 404 immediately after activation. Disposable environment recreated; setup allowed activation settling before invoking. Real success and waiting/cancel checks then passed. This preparation failure is not treated as application success.
+Real Claude Max Task verification: exit 0. Actual Max -> scoped local n8n -> verified success artifact -> human review -> episodic Memory. Distinct Actor API key grants execution:read only. Restart preserves Task version, Memory identity and two immutable claim/start receipts without replay. Disposable n8n stopped afterward.

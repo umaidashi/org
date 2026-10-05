@@ -1,0 +1,8 @@
+# Agent scopeから一Workflow成果物へ
+
+Notion Security/Runtimeに照合し、SecretStoreとWorkflowRuntimeをnative hostだけで接続する。今回は明示host scopeのread-only Workflow一提案を扱う。`read_only`は信頼済みhost管理者が確認したWorkflow契約の宣言であり、n8nの全nodeを検査して副作用不存在を証明する機能ではない。書込/不可逆Workflowは許可せず、後続の操作Approvalを実装してから扱う。実検証はローカル参照Workflowで、外部業務へ送信しない。
+
+1. bounded host configにAgent別workflowIds/apiKeyEnv/effect=read_onlyを追加。未知Agent scope/Workflowは秘密lookup前に拒否し、native AdapterへAgent固有のキーだけを解決する。既定はscopeなし。masterキーをAgent promptへ渡さない。
+2. ExecutionTaskの最新running version/owner、Agentのread/delegate/network/contact capability、active Task Room/返信senderを照合し、strict JSON proposalを検証する。runtime解決後も状態を再確認して先行claim→一invoke→verified success→既存hash Artifactへ保存する。未知結果/未完了はTask成功とせず、receiptを保持して自動再送しない。
+3. 明示Workflow configとwake-upのdaemonへproducerを接続し、許可IDだけをinstructionへ入れる。Sandboxとの同時scopeは黙って優先せず明示的に拒否する。長時間WorkflowのTask非同期resume、業務output取得、多段loop/操作Approvalは後続。
+4. DI RED/GREEN→実CLI/daemon HTTP fixture→実Max/local n8nの小e2e→全check/実Jev/独立Final reviewer一回→通常main push。作業ログとrequirementsへ実装範囲・未完了を明記。

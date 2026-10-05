@@ -1,3 +1,4 @@
+import { readSandboxArtifact } from '../sandbox/artifact.js';
 import { randomUUID } from 'node:crypto';
 import { reviewTaskResult } from './review.js';
 import type { TaskReviewInput } from './review.js';
@@ -17,6 +18,7 @@ type TaskAction =
   | { kind: 'create'; input: TaskInput }
   | { kind: 'get' | 'history' | 'comments' | 'artifacts' | 'reviews'; id: string }
   | { kind: 'comment'; id: string; body: string; actor: string }
+  | { kind: 'artifact-content'; id: string; artifact: string }
   | { kind: 'artifact'; id: string; artifact: string; uri: string; direction: 'input' | 'output' }
   | { kind: 'list'; filter: TaskFilter }
   | { kind: 'assign'; id: string; owner: string }
@@ -87,6 +89,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     history: [],
     comments: [],
     artifacts: [],
+    'artifact-content': ['artifact'],
     comment: ['body', 'actor'],
     artifact: ['artifact', 'uri', 'direction'],
     assign: ['owner'],
@@ -181,6 +184,15 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     action === 'reviews'
   )
     return { ...common, action: { kind: action, id: taskId } };
+  if (action === 'artifact-content')
+    return {
+      ...common,
+      action: {
+        kind: 'artifact-content',
+        id: taskId,
+        artifact: required(values.artifact, '--artifact'),
+      },
+    };
   if (action === 'comment')
     return {
       ...common,
@@ -235,10 +247,10 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   if (Object.keys(clearedPatch).length === 0) throw new Error('Task update requires a patch');
   return { ...common, action: { kind: 'update', id: taskId, patch: clearedPatch } };
 }
-export function runTaskCommand(
+export async function runTaskCommand(
   command: TaskCommand,
   output: (line: string) => void = console.log,
-): void {
+): Promise<void> {
   const provider = new SqliteTaskProvider(command.db);
   try {
     const action = command.action;
@@ -273,6 +285,17 @@ export function runTaskCommand(
       case 'comments':
         result = provider.comments(action.id);
         break;
+      case 'artifact-content': {
+        const artifact = provider
+          .artifacts(action.id)
+          .find((candidate) => candidate.id === action.artifact);
+        if (!artifact) throw new Error('Task artifact not found');
+        result = {
+          ...artifact,
+          content: await readSandboxArtifact(command.db + '.artifacts', artifact.uri),
+        };
+        break;
+      }
       case 'artifacts':
         result = provider.artifacts(action.id);
         break;

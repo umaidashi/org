@@ -1,3 +1,4 @@
+import { produceTaskWorkflowArtifact } from '../workflows/task.js';
 import { configuredWorkflowRuntime } from '../workflows/cli.js';
 import { pollWorkflowDeliveries } from '../workflows/delivery.js';
 import { validateSandboxPolicy, type SandboxPolicy } from '../sandbox/domain.js';
@@ -181,7 +182,9 @@ function openOperations(
     const wakeupJournal = new SqliteWakeupJournal(db);
     wakeups = wakeupJournal;
     const sandboxJobs = new SandboxJobs();
+    const workflowController = new AbortController();
     const shutdown = async () => {
+      workflowController.abort();
       const results = await Promise.allSettled([runtime.shutdown(), sandboxJobs.shutdown()]);
       const errors: unknown[] = [];
       for (const result of results)
@@ -232,6 +235,11 @@ function openOperations(
             (a) =>
               a.id === taskProvider.get(taskId).owner && a.capabilities?.includes('can_run_shell'),
           );
+      const workflowScope = workflow?.agentScopes.find(
+        (scope) => scope.agentId === taskProvider.get(taskId).owner && scope.workflowIds.length > 0,
+      );
+      if (shellTask && workflowScope)
+        throw new Error('Task has ambiguous Sandbox and Workflow scopes');
       return runExecutionTask(
         taskProvider,
         sessionStore,
@@ -253,54 +261,76 @@ function openOperations(
           taskId,
           sessionId,
           messageId,
-          ...(shellTask && sandboxPolicy
+          ...(workflowScope
             ? {
                 instruction:
-                  'Return only JSON: {"version":1,"tool":"sandbox","code":"TypeScript code"}. Code runs in isolated Bun with no network. Produce the Task result for human review. Host policy: ' +
-                  JSON.stringify({
-                    writable: sandboxPolicy.writable,
-                    files: sandboxPolicy.files,
-                    timeoutMs: sandboxPolicy.timeoutMs,
-                    maxOutputBytes: sandboxPolicy.maxOutputBytes,
-                    repoProvided: sandboxPolicy.repo !== undefined,
-                  }),
+                  'Return only JSON: {"version":1,"tool":"workflow","workflowId":"allowed ID","input":{}}. Use one short read-only Workflow from this host allowlist: ' +
+                  JSON.stringify(workflowScope.workflowIds) +
+                  '. Credentials remain on the host. The native result is saved for human review.',
               }
-            : {}),
+            : shellTask && sandboxPolicy
+              ? {
+                  instruction:
+                    'Return only JSON: {"version":1,"tool":"sandbox","code":"TypeScript code"}. Code runs in isolated Bun with no network. Produce the Task result for human review. Host policy: ' +
+                    JSON.stringify({
+                      writable: sandboxPolicy.writable,
+                      files: sandboxPolicy.files,
+                      timeoutMs: sandboxPolicy.timeoutMs,
+                      maxOutputBytes: sandboxPolicy.maxOutputBytes,
+                      repoProvided: sandboxPolicy.repo !== undefined,
+                    }),
+                }
+              : {}),
         },
         () => new Date().toISOString(),
-        shellTask && sandboxPolicy !== undefined
-          ? async (running, message) => {
-              let artifact: Awaited<ReturnType<typeof produceTaskSandboxArtifact>> | undefined;
-              await sandboxJobs.run(running.id, async (signal) => {
-                artifact = await produceTaskSandboxArtifact(
-                  taskProvider,
-                  agentRepository,
-                  roomRepository,
-                  running,
-                  message,
-                  sandboxPolicy,
-                  (input) =>
-                    runDockerSandbox(
-                      runProcess,
-                      {
-                        executable: 'docker',
-                        env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
-                        cwd: process.cwd(),
-                        uid: process.getuid?.() ?? 0,
-                        gid: process.getgid?.() ?? 0,
-                      },
-                      input,
-                      signal,
-                    ),
-                  (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
-                  () => new Date().toISOString(),
-                  randomUUID,
-                );
-              });
-              if (!artifact) throw new Error('Sandbox artifact missing');
-              return artifact;
-            }
-          : undefined,
+        workflowScope && workflow !== undefined
+          ? async (running, message) =>
+              produceTaskWorkflowArtifact(
+                taskProvider,
+                agentRepository,
+                roomRepository,
+                eventBus,
+                running,
+                message,
+                workflow,
+                (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
+                () => new Date().toISOString(),
+                () => randomUUID(),
+                workflowController.signal,
+              )
+          : shellTask && sandboxPolicy !== undefined
+            ? async (running, message) => {
+                let artifact: Awaited<ReturnType<typeof produceTaskSandboxArtifact>> | undefined;
+                await sandboxJobs.run(running.id, async (signal) => {
+                  artifact = await produceTaskSandboxArtifact(
+                    taskProvider,
+                    agentRepository,
+                    roomRepository,
+                    running,
+                    message,
+                    sandboxPolicy,
+                    (input) =>
+                      runDockerSandbox(
+                        runProcess,
+                        {
+                          executable: 'docker',
+                          env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
+                          cwd: process.cwd(),
+                          uid: process.getuid?.() ?? 0,
+                          gid: process.getgid?.() ?? 0,
+                        },
+                        input,
+                        signal,
+                      ),
+                    (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
+                    () => new Date().toISOString(),
+                    randomUUID,
+                  );
+                });
+                if (!artifact) throw new Error('Sandbox artifact missing');
+                return artifact;
+              }
+            : undefined,
       );
     };
     return {

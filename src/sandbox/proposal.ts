@@ -1,3 +1,4 @@
+import { requireTaskOwnerMessage } from '../tasks/proposal.js';
 import type { Task } from '../tasks/domain.js';
 import type { Room, Message } from '../rooms/domain.js';
 import { validateSandboxCode } from './domain.js';
@@ -7,21 +8,7 @@ export function parseSandboxProposal(
   message: Message,
   runningVersion?: number,
 ): string {
-  if (
-    task.kind !== 'execution_task' ||
-    (runningVersion === undefined
-      ? task.status !== 'assigned'
-      : task.status !== 'running' || task.version !== runningVersion) ||
-    task.owner === null ||
-    room.type !== 'task' ||
-    room.taskId !== task.id ||
-    room.archivedAt !== null ||
-    message.roomId !== room.id ||
-    message.sender.kind !== 'agent' ||
-    message.sender.id !== task.owner ||
-    !room.participants.some((p) => p.kind === 'agent' && p.id === task.owner)
-  )
-    throw new Error('Sandbox proposal requires owner Agent in active Task Room');
+  requireTaskOwnerMessage(task, room, message, runningVersion);
   const value: unknown = JSON.parse(message.content);
   if (
     !value ||

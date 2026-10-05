@@ -799,3 +799,19 @@
 - SecretStore未module RED→明示grantのみのenv lookup/unknown actorやreferenceはlookup前に拒否/呼出側grant mutation非影響/重複grant拒否/例外・欠損値・過大値非漏洩のGREEN。Workflow configはSecretStoreをDIしhost参照一件だけ解決する最初の実callerへ接続。3件成功87ms。lintの非null assertionはassert.okへ訂正する。
 - 最終全238/238・型/lint/format/AST成功80.36秒。外部実機opt-in7件は通常skip、既存Workflowの実CLI/daemon fixtureは全検査で成功。実Jev1263判定missing/unsure0、errors/degradedなし、warning76。[証拠](verification/2026-10-05-scoped-secret-store/check.txt)。Final独立Reviewer Critical/Important/Minorなし、関連UT/実CLI/daemon計10件1.92秒を独立成功。初回listen制約は許可実行へ切替して再確認、秘密参照/変更なし。
 - Ruling: env参照はhostの明示grantのみ、未知actor/referenceは読取前に拒否する。native Workflowがhost:workflow/n8n-api-keyを解決し、資格情報をAgent promptや公開receiptへ出さない。actor識別は信頼済みhost callerの契約でありAgent認証ではない。env参照の初期Adapterで、暗号化保管/Keychain/Vault/credential injectionを完了した扱いにしない。Next: Agent別Workflow scopeと限定credential grantをnative hostで照合し、最新Task owner/version/capability/Roomの境界を満たす一Workflow委譲を小e2eへ接続する。
+- main2fe19ea通常push成功、pre-push全検査/実Jev/公開検査97.65秒。
+
+## Agent scopeからWorkflow成果物へ（進行中）
+
+- [計画](superpowers/plans/2026-10-05-task-workflow-artifact.md)を保存しbranch feat/task-workflow-artifact。明示hostが安全性を確認したread-only WorkflowだけをAgent別scopeで許可し、最新Task/Agent/Room境界と先行claimを接続する。write/不可逆Workflowは操作Approval実装まで許可しない。Agent credentialをLLMへ渡さず、実検証はlocal参照のみ。
+- Agent scope未受理RED→read-only/Actor別Workflow allowlist/限定env参照のGREEN。write契約・重複Actor・未知Workflow・host reserved Actorはcredential lookup前に拒否する。Actor scopeのcredentialはnative APIだけで、Role instructionには許可IDだけを渡す。
+- Task producer未module RED→最新running version/owner/capability/active Task Roomを共通pure guardで再照合し、runtime解決後の変更も拒否するGREEN。Sandboxと二callerでTask Room境界を共有した。Task一件をrequest identityにし、先行claimと同Task二重invoke拒否を維持する。
+- Task artifact-contentの初回fixtureはTaskProvider.createへInputを渡してParent cycleとなり、正しいpure createTask原本へ訂正して本来の未command REDを確認。紐づくhash blobだけをnative integrity readerで返し、別Taskのartifactは拒否するGREEN。
+- 実CLI一周fixtureはAgent createに非対応--jsonを付けusage errorとなり、create後listからID取得する既存契約へ訂正。nullable child output/JSON unknownの型・lint境界も訂正して静的検査成功。
+- 実CLI→daemon→Runtime fixture（キーenvなし）→Agent固有APIキーのnative Workflow→verified success/hash Artifact→human review→一Memory成功3.88秒。HTTP待機中のshutdownでnative fetchをabortし、Task failed/Workflow unconfirmedを保存、再送なし。秘密・raw inputはWorkflow receipt/成果物へ保存しない。
+
+## 2026-10-06 Task Workflow実機検証
+
+- 継続依頼を受領。全体要件の完了まで小さなe2eを積み重ねる方針を継続する。全検査244成功/7skip/0fail、251件121files、50.55秒。型/lint/format/AST成功、実Jev1285回答exit0。Final独立レビューはCritical/Important/Minorなし、関連27件を独立検証。実CLI fixtureではAgent固有キー・成功Artifact・人間review・MemoryとHTTP待機中停止のfailed/unconfirmed no replayを確認。
+- 実n8n準備の初回はactivation直後のWebhook404で失敗。成功とは扱わず自作containerを再作成し、準備helperでactivation反映を待ってsuccess/cancelの実API検証に成功。業務サービス呼出しなし、キー/生応答はprivate tmpだけに保存。現在、実Claude MaxのTask→Workflow一周を検証中。[検証記録](verification/2026-10-06-task-workflow-artifact/check.txt)。
+- 実Claude Max→Agent専用execution:readキーの公式ローカルn8n→照合済みsuccess Artifact→human Task review→episodic Memoryが成功。daemon再起動でTask version/Memory ID/claimとstarted receiptが維持されno replay。自作n8n containerを終了。READMEと全体要件を更新。read_onlyはhost契約宣言でnode副作用検出ではなく、長時間非同期再開・業務出力・操作Approval・Agent RPC認証は未完了。Next: 書込み/不可逆Workflowを許可する前提となる操作Approval境界を、小さな契約とREDから検討する。

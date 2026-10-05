@@ -55,6 +55,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org a2a send|get|list [OPTIONS]
        org memory capture|get|list|search|invalidate [OPTIONS]
        org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org task artifact-content ID --artifact ARTIFACT_ID [--json]
        org [--db PATH] daemon --once [--json]
        org [--db PATH] daemon deliveries [--json]
        org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH]
@@ -273,7 +274,7 @@ async function runApplication(
       );
       return;
     }
-    runTaskCommand({ ...command.command, db }, output);
+    await runTaskCommand({ ...command.command, db }, output);
     return;
   }
   if (command.kind === 'room') {

@@ -84,7 +84,9 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
   }
   if (
     !record(value) ||
-    Object.keys(value).some((key) => !['baseUrl', 'apiKeyEnv', 'workflows'].includes(key)) ||
+    Object.keys(value).some(
+      (key) => !['baseUrl', 'apiKeyEnv', 'workflows', 'agentScopes'].includes(key),
+    ) ||
     typeof value.baseUrl !== 'string' ||
     typeof value.apiKeyEnv !== 'string' ||
     !/^[A-Za-z_][A-Za-z0-9_]*$/.test(value.apiKeyEnv) ||
@@ -101,6 +103,39 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
       throw new Error('Invalid Workflow allowlist');
     return { id: workflow.id, path: workflow.path };
   });
+  const rawScopes: unknown = value.agentScopes ?? [];
+  if (!Array.isArray(rawScopes)) throw new Error('Invalid Agent Workflow scopes');
+  const agentIds = new Set<string>();
+  const agentScopes = rawScopes.map((scope: unknown) => {
+    if (
+      !record(scope) ||
+      Object.keys(scope).some(
+        (key) => !['agentId', 'workflowIds', 'apiKeyEnv', 'effect'].includes(key),
+      ) ||
+      typeof scope.agentId !== 'string' ||
+      !scope.agentId.trim() ||
+      scope.agentId.length > 128 ||
+      scope.agentId === 'host:workflow' ||
+      typeof scope.apiKeyEnv !== 'string' ||
+      !/^[A-Za-z_][A-Za-z0-9_]*$/.test(scope.apiKeyEnv) ||
+      scope.effect !== 'read_only' ||
+      !Array.isArray(scope.workflowIds) ||
+      scope.workflowIds.some(
+        (id: unknown) =>
+          typeof id !== 'string' || !workflows.some((workflow) => workflow.id === id),
+      )
+    )
+      throw new Error('Invalid Agent Workflow scope');
+    if (agentIds.has(scope.agentId)) throw new Error('Duplicate Agent Workflow scope');
+    agentIds.add(scope.agentId);
+    const workflowIds = scope.workflowIds.map((id: unknown) => {
+      if (typeof id !== 'string') throw new Error('Invalid scoped Workflow ID');
+      return id;
+    });
+    if (new Set(workflowIds).size !== workflowIds.length)
+      throw new Error('Duplicate scoped Workflow ID');
+    return { agentId: scope.agentId, apiKeyEnv: scope.apiKeyEnv, workflowIds };
+  });
   const store =
     secrets ??
     new EnvironmentSecretStore([
@@ -112,7 +147,36 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
     (url, init) => fetch(url, init),
   );
   const host = new URL(value.baseUrl).toString().replace(/\/$/, '');
-  return { runtime, host, workflows };
+  return {
+    runtime,
+    host,
+    workflows: workflows.map((workflow) => ({ ...workflow })),
+    agentScopes: agentScopes.map((scope) => ({
+      agentId: scope.agentId,
+      workflowIds: [...scope.workflowIds],
+    })),
+    agentRuntime: (agentId: string, workflowId: string, signal?: AbortSignal) => {
+      const scope = agentScopes.find(
+        (candidate) => candidate.agentId === agentId && candidate.workflowIds.includes(workflowId),
+      );
+      const workflow = workflows.find((candidate) => candidate.id === workflowId);
+      if (!scope || !workflow) throw new Error('Agent Workflow scope denied');
+      const scopedStore =
+        secrets ??
+        new EnvironmentSecretStore([
+          { actorId: agentId, reference: 'n8n-api-key', environmentVariable: scope.apiKeyEnv },
+        ]);
+      const apiKey = scopedStore.getSecret(agentId, 'n8n-api-key');
+      return new N8nWorkflowRuntime({ baseUrl: host, apiKey, workflows: [workflow] }, (url, init) =>
+        fetch(url, {
+          ...init,
+          ...(signal === undefined
+            ? {}
+            : { signal: AbortSignal.any([signal, ...(init.signal ? [init.signal] : [])]) }),
+        }),
+      );
+    },
+  };
 }
 export async function runWorkflowCommand(
   command: WorkflowCommand,

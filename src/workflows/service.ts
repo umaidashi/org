@@ -9,6 +9,13 @@ export async function invokeWorkflow(
     readonly host: string;
     readonly input: JsonObject;
     readonly inputDigest: string;
+    readonly context?: {
+      readonly actorId: string;
+      readonly taskId: string;
+      readonly proposalRef: string;
+      readonly approvalId: null;
+      readonly effect: 'read_only';
+    };
   },
   identity: Identity,
   now: () => string,
@@ -17,6 +24,15 @@ export async function invokeWorkflow(
     workflowId: input.workflowId,
     host: input.host,
     inputDigest: input.inputDigest,
+    ...(input.context === undefined
+      ? {}
+      : {
+          actorId: input.context.actorId,
+          taskId: input.context.taskId,
+          proposalRef: input.context.proposalRef,
+          approvalId: input.context.approvalId,
+          effect: input.context.effect,
+        }),
   };
   // The immutable claim precedes the external effect; a duplicate publish must stop invocation.
   bus.publish(
