@@ -1,0 +1,3 @@
+PASS: explicit Agent policy -> verified human TaskReview -> one episodic Memory -> invalidate -> daemon restart preserves original and no revival
+PASS: actual public GitHub GET -> one Task -> real Claude Max strict proposal -> native Docker self-check/file -> human review -> Memory
+PASS: no API credential, LLM native tools or GitHub write; Docker isolated without network; original Event selected once

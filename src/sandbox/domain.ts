@@ -14,7 +14,8 @@ export type SandboxPolicy = Omit<SandboxInput, 'code'>;
 
 export function validateSandboxInput(input: SandboxInput): SandboxInput {
   validateSandboxCode(input.code);
-  return { ...validateSandboxPolicy(input), code: input.code };
+  const { code, ...policy } = input;
+  return { ...validateSandboxPolicy(policy), code };
 }
 
 export function validateSandboxCode(code: unknown): string {
@@ -23,19 +24,26 @@ export function validateSandboxCode(code: unknown): string {
   return code;
 }
 
-export function validateSandboxPolicy(input: SandboxPolicy): SandboxPolicy {
+export function validateSandboxPolicy(input: unknown): SandboxPolicy {
+  if (
+    !input ||
+    typeof input !== 'object' ||
+    Array.isArray(input) ||
+    Object.keys(input).some(
+      (key) => !['writable', 'files', 'timeoutMs', 'maxOutputBytes', 'repo'].includes(key),
+    ) ||
+    !('writable' in input) ||
+    !('files' in input) ||
+    !('timeoutMs' in input) ||
+    !('maxOutputBytes' in input)
+  )
+    throw new Error('Invalid Sandbox host policy');
   if (typeof input.writable !== 'boolean') throw new Error('Invalid Sandbox writable flag');
   for (const [value, maximum] of [
     [input.timeoutMs, 3600000],
     [input.maxOutputBytes, 1048576],
-  ])
-    if (
-      !Number.isSafeInteger(value) ||
-      value === undefined ||
-      maximum === undefined ||
-      value < 1 ||
-      value > maximum
-    )
+  ] as const)
+    if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1 || value > maximum)
       throw new Error('Invalid Sandbox resource limit');
   if (
     !Array.isArray(input.files) ||
@@ -54,18 +62,42 @@ export function validateSandboxPolicy(input: SandboxPolicy): SandboxPolicy {
       throw new Error('Invalid Sandbox artifact path');
   }
   if (
+    'repo' in input &&
     input.repo !== undefined &&
     (typeof input.repo !== 'string' || !input.repo.trim() || input.repo.includes('\0'))
   )
     throw new Error('Invalid Sandbox repo path');
-  return { ...input, files: Array.from(input.files, (file: string) => file) };
+  if (typeof input.timeoutMs !== 'number' || typeof input.maxOutputBytes !== 'number')
+    throw new Error('Invalid Sandbox resource limit');
+  const repo = 'repo' in input ? input.repo : undefined;
+  if (repo !== undefined && typeof repo !== 'string') throw new Error('Invalid Sandbox repo path');
+  return {
+    writable: input.writable,
+    files: Array.from(input.files, (file: unknown) => {
+      if (typeof file !== 'string') throw new Error('Invalid Sandbox artifact path');
+      return file;
+    }),
+    timeoutMs: input.timeoutMs,
+    maxOutputBytes: input.maxOutputBytes,
+    ...(repo === undefined ? {} : { repo }),
+  };
 }
 
-export function authorizeSandboxTask(task: Task, agent: Agent, input: SandboxInput): void {
+export function authorizeSandboxTask(
+  task: Task,
+  agent: Agent,
+  input: SandboxInput,
+  runningVersion?: number,
+): void {
   validateSandboxInput(input);
   if (task.kind !== 'execution_task') throw new Error('Sandbox requires an ExecutionTask');
   if (task.owner !== agent.id) throw new Error('Sandbox Task owner does not match Agent');
-  if (task.status !== 'assigned') throw new Error('Sandbox Task must be assigned');
+  if (
+    runningVersion === undefined
+      ? task.status !== 'assigned'
+      : task.status !== 'running' || task.version !== runningVersion
+  )
+    throw new Error('Sandbox Task requires assigned state or matching running version');
   requireCapability(agent, 'can_run_shell');
   if (input.repo !== undefined) requireCapability(agent, 'can_read');
   if (input.writable) requireCapability(agent, 'can_write');

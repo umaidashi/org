@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-domain.test.ts:
+(pass) Sandbox accepts bounded TypeScript and relative artifacts but rejects path and resource escapes [0.64ms]
+(pass) Sandbox capability checks the assigned Task owner before any execution [1.34ms]
+50 |   );
+51 |   assert.throws(() => authorizeSandboxTask(task, { ...agent, id: 'other' }, input), /owner/);
+52 | });
+53 | test('Sandbox host policy rejects unknown code and privilege fields at the JSON boundary', () => {
+54 |   const policy = { writable: false, files: [], timeoutMs: 1000, maxOutputBytes: 4096 };
+55 |   for (const extra of [{ code: 'unsafe' }, { env: { SECRET: 'not-a-secret' } }, { network: true }]) assert.throws(() => validateSandboxPolicy({ ...policy, ...extra }));
+                                                                                                                ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/sandbox-domain.test.ts:55:108)
+(fail) Sandbox host policy rejects unknown code and privilege fields at the JSON boundary
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [27.00ms]

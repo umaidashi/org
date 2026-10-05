@@ -200,3 +200,88 @@ test('ExecutionTask rejects reused Room replies before running and records failu
   );
   assert.equal(task.status, 'blocked');
 });
+
+test('ExecutionTask stages the injected artifact only after production and records producer failure', async () => {
+  const initial = changeTask(
+    createTask(
+      { title: 'build', objective: 'Run checks', kind: 'execution_task' },
+      { id: 't', createdAt: 'now' },
+    ),
+    { owner: 'a' },
+    'now',
+  );
+  let task = initial;
+  const room = createRoom(
+    { title: 'task', type: 'task', taskId: 't', participants: [{ kind: 'agent', id: 'a' }] },
+    { id: 'r', createdAt: 'now' },
+  );
+  const source = createMessage(
+    room,
+    { sender: { kind: 'agent', id: 'a' }, content: 'build' },
+    { id: 'source', createdAt: 'now' },
+  );
+  const reply = createMessage(
+    room,
+    { sender: { kind: 'agent', id: 'a' }, content: 'proposal', replyTo: 'source' },
+    { id: 'reply', createdAt: 'later' },
+    source,
+  );
+  const session = createSession(
+    { roomId: 'r', agentId: 'a', runtime: 'codex' },
+    { id: 's', at: 'now' },
+  );
+  let produced = false;
+  let staged = 0;
+  const artifact = { id: 'sandbox', uri: 'org://artifacts/proof', createdAt: 'later' };
+  const provider = {
+    get: () => task,
+    update: (
+      _id: string,
+      patch: Parameters<typeof changeTask>[1],
+      at: string,
+      expected?: number,
+    ) => {
+      assert.equal(expected, task.version);
+      task = changeTask(task, patch, at);
+      return task;
+    },
+    stageExecutionResult: (_id: string, output: typeof artifact, expected: number) => {
+      assert.equal(expected, task.version);
+      assert.equal(produced, true);
+      assert.deepEqual(output, artifact);
+      staged++;
+      task = changeTask(task, { status: 'waiting_approval' }, 'later');
+      return task;
+    },
+  };
+  const run = (
+    produce: (running: typeof task, message: typeof reply) => Promise<typeof artifact>,
+  ) =>
+    runExecutionTask(
+      provider,
+      { get: () => session },
+      { get: () => room, messages: () => [source] },
+      async () => reply,
+      { taskId: 't', sessionId: 's', messageId: 'source' },
+      () => 'later',
+      produce,
+    );
+  await run(async (running, message) => {
+    assert.equal(running.status, 'running');
+    assert.equal(running.version, task.version);
+    assert.equal(message, reply);
+    produced = true;
+    return artifact;
+  });
+  assert.equal(task.status, 'waiting_approval');
+  assert.equal(staged, 1);
+  task = initial;
+  await assert.rejects(
+    run(async () => {
+      throw new Error('native tool failed');
+    }),
+    /native tool failed/,
+  );
+  assert.equal(task.status, 'failed');
+  assert.equal(staged, 1);
+});

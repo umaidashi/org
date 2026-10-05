@@ -24,3 +24,26 @@ test('automatic wake-up is opt-in and requires a configured continuous daemon', 
   );
   assert.equal(parseDaemonCommand(['daemon', 'wakeups']).socketClient, true);
 });
+test('daemon Sandbox host policy is explicit and requires continuous configured Runtime', () => {
+  const result = parseDaemonCommand([
+    'daemon',
+    '--runtime-config',
+    '/tmp/runtime.json',
+    '--sandbox-config',
+    '/tmp/sandbox.json',
+  ]);
+  assert.equal(result.sandboxConfig, '/tmp/sandbox.json');
+  for (const args of [
+    ['daemon', '--sandbox-config', '/tmp/policy.json'],
+    ['daemon', '--runtime-config', '/tmp/runtime.json', '--sandbox-config', ''],
+    [
+      'daemon',
+      '--once',
+      '--runtime-config',
+      '/tmp/runtime.json',
+      '--sandbox-config',
+      '/tmp/policy.json',
+    ],
+  ])
+    assert.throws(() => parseDaemonCommand(args));
+});

@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
-import { validateSandboxInput, authorizeSandboxTask } from '../src/sandbox/domain.js';
+import {
+  validateSandboxInput,
+  validateSandboxPolicy,
+  authorizeSandboxTask,
+} from '../src/sandbox/domain.js';
 import { createAgent } from '../src/agents/domain.js';
 import { createTask, changeTask } from '../src/tasks/domain.js';
 test('Sandbox accepts bounded TypeScript and relative artifacts but rejects path and resource escapes', () => {
@@ -49,4 +53,9 @@ test('Sandbox capability checks the assigned Task owner before any execution', (
     /ExecutionTask/,
   );
   assert.throws(() => authorizeSandboxTask(task, { ...agent, id: 'other' }, input), /owner/);
+});
+test('Sandbox host policy rejects unknown code and privilege fields at the JSON boundary', () => {
+  const policy = { writable: false, files: [], timeoutMs: 1000, maxOutputBytes: 4096 };
+  for (const extra of [{ code: 'unsafe' }, { env: { SECRET: 'not-a-secret' } }, { network: true }])
+    assert.throws(() => validateSandboxPolicy({ ...policy, ...extra }));
 });

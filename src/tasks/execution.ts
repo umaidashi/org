@@ -8,8 +8,14 @@ export async function runExecutionTask(
   sessions: Pick<SessionStore, 'get'>,
   rooms: Pick<RoomRepository, 'get' | 'messages'>,
   reply: (sessionId: string, messageId: string, instruction: string) => Promise<Message>,
-  input: { readonly taskId: string; readonly sessionId: string; readonly messageId: string },
+  input: {
+    readonly taskId: string;
+    readonly sessionId: string;
+    readonly messageId: string;
+    readonly instruction?: string;
+  },
   now: () => string,
+  produceArtifact?: (running: Task, reply: Message) => Promise<TaskArtifact>,
 ): Promise<{ readonly task: Task; readonly reply: Message }> {
   const original = provider.get(input.taskId);
   if (
@@ -34,13 +40,13 @@ export async function runExecutionTask(
     throw new Error('Task input already has a Session reply; use a new Message');
   if (!messages.some((m) => m.id === input.messageId && m.roomId === room.id))
     throw new Error('Task input Message not found');
-  const execution = await executeAssignedTask(provider, original, now, async () => {
+  const execution = await executeAssignedTask(provider, original, now, async (running) => {
     const result = await reply(
       session.id,
       input.messageId,
       JSON.stringify({
         task: { id: original.id, title: original.title, objective: original.objective },
-        instruction: 'Produce the Task result for human review.',
+        instruction: input.instruction ?? 'Produce the Task result for human review.',
       }),
     );
     if (
@@ -52,11 +58,13 @@ export async function runExecutionTask(
       throw new Error('Task runtime result does not match execution');
     return {
       result,
-      artifact: {
-        id: result.id,
-        uri: `org://rooms/${encodeURIComponent(room.id)}/messages/${encodeURIComponent(result.id)}`,
-        createdAt: now(),
-      },
+      artifact: produceArtifact
+        ? await produceArtifact(running, result)
+        : {
+            id: result.id,
+            uri: `org://rooms/${encodeURIComponent(room.id)}/messages/${encodeURIComponent(result.id)}`,
+            createdAt: now(),
+          },
     };
   });
   return { task: execution.task, reply: execution.result };
@@ -66,7 +74,7 @@ export async function executeAssignedTask<T>(
   provider: Pick<TaskProvider, 'update'> & ExecutionResultWriter,
   original: Task,
   now: () => string,
-  produce: () => Promise<{ readonly result: T; readonly artifact: TaskArtifact }>,
+  produce: (running: Task) => Promise<{ readonly result: T; readonly artifact: TaskArtifact }>,
 ): Promise<{ readonly task: Task; readonly result: T }> {
   if (
     original.kind !== 'execution_task' ||
@@ -76,7 +84,7 @@ export async function executeAssignedTask<T>(
     throw new Error('Task execution requires assigned ExecutionTask');
   const running = provider.update(original.id, { status: 'running' }, now(), original.version);
   try {
-    const { result, artifact } = await produce();
+    const { result, artifact } = await produce(running);
     const task = provider.stageExecutionResult(original.id, artifact, running.version);
     return { task, result };
   } catch (error) {

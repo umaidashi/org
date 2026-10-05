@@ -303,7 +303,7 @@ bun run start -- --direct sandbox artifact org://artifacts/HASH
 ORG_DOCKER_TEST=1 bun --no-env-file test tests/sandbox-docker-real.test.ts tests/sandbox-cli.test.ts
 ```
 
-repoはHEADのregular fileだけをコピーし、未commit変更・未追跡ファイル・Git履歴・`.env`等の資格情報ファイルを持ち込みません。元repoをマウントしません。stdoutまたはstdoutと選択ファイルのbase64を含むJSONを、privateな`DB_PATH.artifacts`へ内容hashで保存します。保存blobは1MiB以内、選択ファイルは16件以内です。Taskは`waiting_approval`へ進み、既存`task review`で明示承認します。daemon経由でも実行でき、`sandbox cancel TASK_ID`で取消できます。実行は一slotで、停止時は取消・cleanup・Task failed保存を待ってDBを閉じます。直接実行のSIGINT/SIGTERMも同じ取消を行います。Task Roomのowner Agentが生成した厳密JSON Messageは`--proposal MESSAGE_ID`で明示選択して実行できます。自動tool loop・credential注入は後続です。親SIGKILL後の実行中containerは内部deadlineで有限終了します。作成完了からstart前の異常死は停止containerを残し得ます。
+repoはHEADのregular fileだけをコピーし、未commit変更・未追跡ファイル・Git履歴・`.env`等の資格情報ファイルを持ち込みません。元repoをマウントしません。stdoutまたはstdoutと選択ファイルのbase64を含むJSONを、privateな`DB_PATH.artifacts`へ内容hashで保存します。保存blobは1MiB以内、選択ファイルは16件以内です。Taskは`waiting_approval`へ進み、既存`task review`で明示承認します。daemon経由でも実行でき、`sandbox cancel TASK_ID`で取消できます。実行は一slotで、停止時は取消・cleanup・Task failed保存を待ってDBを閉じます。直接実行のSIGINT/SIGTERMも同じ取消を行います。Task Roomのowner Agentが生成した厳密JSON Messageは`--proposal MESSAGE_ID`で明示選択して実行できます。明示host policyによるRuntime返信→一回のSandbox実行は下記で有効化できます。多段tool loop・credential注入は後続です。親SIGKILL後の実行中containerは内部deadlineで有限終了します。作成完了からstart前の異常死は停止containerを残し得ます。
 
 
 登録後のcapability変更はApprovalを経由します。`agent capabilities`でrevisionを確認し、`approval request`へ変更後のcapability全体を指定します。`--capability`は繰返し指定でき、指定なしは全撤回の申請です。申請だけでは権限は変わりません。
@@ -342,3 +342,18 @@ org agent create reader --role Reader --runtime claude --memory-policy reviewed-
 ```
 
 --wake-up付きdaemonは、policyを明示した元ownerのapproved TaskReviewを前後履歴と照合し、Task scopeのepisodic Memoryへ一度だけ投影します。本文は当時のtitle/objectiveとレビュー原本のJSONで、confidence=1は記録が存在する確度です。結果内容の真実性や本人認証を保証する値ではありません。再起動でも明示invalidated/supersededを保持します。未指定/noneは自動投影せず、rejectは対象外です。一般LLM抽出・semantic dedup/conflict・夜間統合は後続です。
+
+
+## Runtime提案の自動Sandbox実行
+
+`daemon --runtime-config runtime.local.json --sandbox-config sandbox.local.json --wake-up`で、`can_run_shell`を持つTask ownerの返信をstrict Sandbox JSONとして実行します。shell権限のないAgentは通常のMessage成果物を返します。既定は無効です。
+
+```json
+{"writable": true, "files": ["result.txt"], "timeoutMs": 30000, "maxOutputBytes": 65536}
+```
+
+host policyのJSONに上記を保存します。任意の`repo`はhostが読み取るGit repositoryです。repoには`can_read`、書込には`can_write`が必要です。未知fieldを拒否し、Agentはcodeだけを提案します。実行直前に最新Task版・owner・権限・Roomを照合し、成功したstdout/選択ファイルを原Message参照付きArtifactへ保存します。失敗はfailed、人間の明示reviewまでcompletedへ進みません。`sandbox cancel TASK_ID`とdaemon stopは既存の取消・cleanupを使います。
+
+```sh
+ORG_DOCKER_TEST=1 bun --no-env-file test tests/runtime-sandbox-cli.test.ts
+```

@@ -1,10 +1,17 @@
 import type { Task } from '../tasks/domain.js';
 import type { Room, Message } from '../rooms/domain.js';
 import { validateSandboxCode } from './domain.js';
-export function parseSandboxProposal(task: Task, room: Room, message: Message): string {
+export function parseSandboxProposal(
+  task: Task,
+  room: Room,
+  message: Message,
+  runningVersion?: number,
+): string {
   if (
     task.kind !== 'execution_task' ||
-    task.status !== 'assigned' ||
+    (runningVersion === undefined
+      ? task.status !== 'assigned'
+      : task.status !== 'running' || task.version !== runningVersion) ||
     task.owner === null ||
     room.type !== 'task' ||
     room.taskId !== task.id ||

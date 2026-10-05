@@ -1,0 +1,30 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-execution.test.ts:
+(pass) ExecutionTask persists running before the runtime and stages its result for human review [2.47ms]
+(pass) ExecutionTask rejects reused Room replies before running and records failure without overwriting concurrent decisions [0.64ms]
+218 |       task = changeTask(task, patch, at);
+219 |       return task;
+220 |     },
+221 |     stageExecutionResult: (_id: string, output: typeof artifact, expected: number) => {
+222 |       assert.equal(expected, task.version);
+223 |       assert.equal(produced, true);
+                   ^
+AssertionError: Expected values to be strictly equal:
+
+false !== true
+
+ generatedMessage: true,
+     actual: false,
+   expected: true,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at stageExecutionResult (/Users/umaidashi/Documents/git/org/tests/task-execution.test.ts:223:14)
+      at executeAssignedTask (/Users/umaidashi/Documents/git/org/src/tasks/execution.ts:80:27)
+      at processTicksAndRejections (native:7:39)
+(fail) ExecutionTask stages the injected artifact only after production and records producer failure [0.73ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [28.00ms]

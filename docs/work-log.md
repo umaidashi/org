@@ -733,3 +733,14 @@
 - 全218/218・型/lint/format/AST成功53.18秒、Docker実機5件別opt-in。実Jev1174判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-reviewed-task-memory/check.txt)。Final独立Reviewer Critical/Important/Minorなし、関連UT/SQLite/Agent/A2A/実daemon計20件を独立成功。
 - 実公開GitHub→一Task→実Claude Max→Artifact→human review→一episodic Memoryを確認。明示invalidate後daemonを再起動しても同ID/invalidated/一原本を保持し、completed Task versionを変えない。APIキー/native tools/GitHub writeなし、生Event/Provider/DBはprivate tmpのみ。[成否marker](verification/2026-10-05-reviewed-task-memory/actual-github-max-memory.txt)。
 - Ruling: policyはAgent登録時のopt-in、未指定/noneは投影しない。元ownerはreview直前の履歴から決め、現在のTask title/ownerで過去の事実を書換えない。approve限定でrecord factをJSONへ忠実に投影し、confidence=1は記録存在の確度。semantic extractではない。全Task reviewの線形poll、計測で重ければcursorへ移行する。createOnceは同原本のみ再利用し、失効判断は尊重する。reject/一般LLM抽出/semantic dedup/conflict/nightly consolidationは後続。Next: 既存Sandbox producerを再利用しRuntime Task返信の制約付きtool実行を自動の一周へ接続する。
+
+## Runtime返信からSandbox成果物へ（進行中）
+
+- 継続依頼に従い[計画](superpowers/plans/2026-10-05-runtime-sandbox-artifact.md)を保存。Task実行/Sandbox/daemonの全callerを確認。最初にDI producerの失敗・成功とrunning snapshotの境界を検証し、既存Message成果物を維持する。main dc76762まで通常push済み、現在clean。
+- Task producer未実行RED→running snapshot/検証済み返信をDIし、生成後だけstage・失敗failedのGREEN。Sandbox producer未export RED→共有stdout/file保存処理を抽出し、最新版/owner/capability/Roomを実行前に照合するGREEN。
+- 未--sandbox-config REDとhost policy未知field受理RED→continuous runtime限定flag/unknown JSON境界検証GREEN。最初のpolicyテストはimport漏れで例外を誤検出したため訂正し、本来のmissing exception REDを再確認。型検査のoptional capability/unknown resource境界、lintの不要escapeを訂正し静的検査成功。
+- 実Docker fixtureのoutputArtifactsをobjectと誤認しassert失敗。既存string ID契約とtask artifacts公開CLIへ訂正し実e2e成功2.63秒。Event→Runtime strict proposal→Docker CHECK_OK/result.txt→human review→一Memory→再起動でTask版/Memory不変を確認。
+- 実公開GitHub→実Claude Max strict proposal→隔離Docker自己check/選択file→human review→Memory→invalidate→再起動no revival成功。LLM native tools/APIキー/GitHub writeなし、生結果はprivate tmp。生成codeは別一時treeで同checkと実Jevを実行する。
+- Final独立Reviewer Critical/Important/Minorなし。関連UT13件44msを独立成功。取消/shutdownは既存SandboxJobsを再利用し、assigned-only CLIを維持。多段tool loop/資格情報注入は未完了。
+- 最終全222/222・型/lint/format/AST成功51.04秒。Docker opt-in6件は通常skip、新実Docker1件は別実行成功。実Jev1195判定missing/unsure0、errors/degradedなし。生成code追加treeも全222/222成功54.17秒、実Jev1197判定missing/unsure0、errors/degradedなし。[検証記録](verification/2026-10-05-runtime-sandbox-artifact/check.txt)。モデルのfailure-path warningは全失敗枝の網羅保証ではなく、既存・新境界の具体的失敗UTと独立レビューを合わせて判定。完全な枝網羅を主張しない。
+- Ruling: host policyが有効なshell AgentのExecutionTaskだけ一提案を実行する。code以外のproposal fieldは拒否、最新capability/Task版/owner/Roomでfail closed。Task返信原本を保存してから生成物をstageし、人間review前のcompletedや自動retryは行わない。一般のAgent/既定設定はMessage成果物、multi-step tool loop/credential injectionは後続。Next: 外部Workflow契約を確認し、既存Task/権限境界で小さくinvoke/status/cancelを接続する。

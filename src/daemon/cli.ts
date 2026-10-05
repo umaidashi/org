@@ -1,3 +1,8 @@
+import { validateSandboxPolicy, type SandboxPolicy } from '../sandbox/domain.js';
+import { produceTaskSandboxArtifact } from '../sandbox/service.js';
+import { runDockerSandbox } from '../sandbox/docker.js';
+import { saveSandboxArtifact } from '../sandbox/artifact.js';
+import { runProcess } from '../runtime/process.js';
 import { SandboxJobs } from '../sandbox/jobs.js';
 import { runSandboxCommand } from '../sandbox/cli.js';
 import { SqliteScheduleRepository } from '../schedules/sqlite.js';
@@ -46,6 +51,7 @@ export interface DaemonCommand {
   readonly socketClient: boolean;
   readonly interval: number;
   readonly runtimeConfig?: string;
+  readonly sandboxConfig?: string;
   readonly wakeUp: boolean;
 }
 export function parseDaemonCommand(argv: string[]): DaemonCommand {
@@ -60,6 +66,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       socket: { type: 'string' },
       'poll-interval': { type: 'string' },
       'runtime-config': { type: 'string' },
+      'sandbox-config': { type: 'string' },
       'wake-up': { type: 'boolean' },
     },
   });
@@ -90,7 +97,18 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
     (action !== undefined || parsed.values.once || parsed.values['runtime-config'] === undefined)
   )
     throw new Error('--wake-up requires continuous mode and --runtime-config');
+  if (
+    parsed.values['sandbox-config'] !== undefined &&
+    (action !== undefined ||
+      parsed.values.once ||
+      parsed.values['runtime-config'] === undefined ||
+      !parsed.values['sandbox-config'].trim())
+  )
+    throw new Error('--sandbox-config requires continuous mode and --runtime-config');
   const base = {
+    ...(parsed.values['sandbox-config'] === undefined
+      ? {}
+      : { sandboxConfig: resolve(parsed.values['sandbox-config']) }),
     wakeUp: parsed.values['wake-up'] ?? false,
     db,
     json: parsed.values.json ?? false,
@@ -113,6 +131,7 @@ function openOperations(
   db: string,
   drivers: ReturnType<typeof configuredDrivers>,
   wakeUp: boolean,
+  sandboxPolicy?: SandboxPolicy,
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -191,8 +210,16 @@ function openOperations(
         messageId,
       );
     };
-    const execute = (taskId: string, sessionId: string, messageId: string) =>
-      runExecutionTask(
+    const execute = (taskId: string, sessionId: string, messageId: string) => {
+      const shellTask =
+        sandboxPolicy !== undefined &&
+        agentRepository
+          .list()
+          .some(
+            (a) =>
+              a.id === taskProvider.get(taskId).owner && a.capabilities?.includes('can_run_shell'),
+          );
+      return runExecutionTask(
         taskProvider,
         sessionStore,
         roomRepository,
@@ -201,13 +228,68 @@ function openOperations(
             roomRepository,
             sessionStore,
             runtime,
-            { sessionId: id, messageId: source, instruction },
+            {
+              sessionId: id,
+              messageId: source,
+              instruction,
+            },
             { id: randomUUID(), at: new Date().toISOString() },
             memoryProvider,
           ),
-        { taskId, sessionId, messageId },
+        {
+          taskId,
+          sessionId,
+          messageId,
+          ...(shellTask && sandboxPolicy
+            ? {
+                instruction:
+                  'Return only JSON: {"version":1,"tool":"sandbox","code":"TypeScript code"}. Code runs in isolated Bun with no network. Produce the Task result for human review. Host policy: ' +
+                  JSON.stringify({
+                    writable: sandboxPolicy.writable,
+                    files: sandboxPolicy.files,
+                    timeoutMs: sandboxPolicy.timeoutMs,
+                    maxOutputBytes: sandboxPolicy.maxOutputBytes,
+                    repoProvided: sandboxPolicy.repo !== undefined,
+                  }),
+              }
+            : {}),
+        },
         () => new Date().toISOString(),
+        shellTask && sandboxPolicy !== undefined
+          ? async (running, message) => {
+              let artifact: Awaited<ReturnType<typeof produceTaskSandboxArtifact>> | undefined;
+              await sandboxJobs.run(running.id, async (signal) => {
+                artifact = await produceTaskSandboxArtifact(
+                  taskProvider,
+                  agentRepository,
+                  roomRepository,
+                  running,
+                  message,
+                  sandboxPolicy,
+                  (input) =>
+                    runDockerSandbox(
+                      runProcess,
+                      {
+                        executable: 'docker',
+                        env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
+                        cwd: process.cwd(),
+                        uid: process.getuid?.() ?? 0,
+                        gid: process.getgid?.() ?? 0,
+                      },
+                      input,
+                      signal,
+                    ),
+                  (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
+                  () => new Date().toISOString(),
+                  randomUUID,
+                );
+              });
+              if (!artifact) throw new Error('Sandbox artifact missing');
+              return artifact;
+            }
+          : undefined,
       );
+    };
     return {
       dispatch: () => {
         pollSchedules(scheduleRepository, eventBus, () => Date.now());
@@ -309,11 +391,23 @@ function openOperations(
 export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
   if (command.action === 'run') {
     const drivers = configuredDrivers(command.runtimeConfig);
+    let sandboxPolicy: SandboxPolicy | undefined;
+    if (command.sandboxConfig !== undefined) {
+      const file = Bun.file(command.sandboxConfig);
+      if (file.size > 65536) throw new Error('Sandbox config too large');
+      let value: unknown;
+      try {
+        value = JSON.parse(await file.text());
+      } catch {
+        throw new Error('Cannot read Sandbox config JSON');
+      }
+      sandboxPolicy = validateSandboxPolicy(value);
+    }
     let lease: DatabaseLease | undefined;
     try {
       await runLocalDaemon(command.socket, command.interval, () => {
         lease = acquireDatabaseLease(command.db);
-        return openOperations(lease.databasePath, drivers, command.wakeUp);
+        return openOperations(lease.databasePath, drivers, command.wakeUp, sandboxPolicy);
       });
     } finally {
       lease?.close();
