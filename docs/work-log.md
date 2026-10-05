@@ -933,3 +933,12 @@
 - RED: poll module未実装、実daemon receipt一覧はUnexpected --scope。GREEN: max32・重複/空/過大/NUL/whitespace/continuous限定のRoom allowlist、Runtime不要のdaily UTC/coalesce/latest key/時計巻戻り/archived skip/障害伝播、native PK範囲latest読取とscope receipt一覧、手動nightly key拒否を実装。既存atomic Room再認可callbackを維持。
 - 関連4UT72ms成功。実daemon1件1.51秒: 許可active Roomだけ一整理、非許可/archived保持、同日追加がactiveのまま、再起動後元receipt/原本一Message/no replay。時刻のOS変更/24h待機はせず純粋clock DIで翌UTC日を検証。
 - 全check290成功8skip0fail、298tests156files58.33秒、型/lint/format/AST非空。実jev1544対象missing/unsure0、errors/degraded空、warning97。独立最終review Critical/Importantなし、2UT38ms。Minor保留: native latest PK範囲・降順・malformed receiptの複数日/別prefix SQLitefixture不足。Ruling: allowlist/day/error分岐は具体的UT/e2eを照合、モデル未校正failure-path候補をblockにせずfixture不足を記録。[証拠](verification/2026-10-06-nightly-memory-consolidation/check.txt)。Next: TUI監視のRoom title/必須fieldとAgentの実Session状態を公開read Portへ接続し、小さい実PTYを積み重ねる。全体ゴール未完了。
+
+### 2026-10-06 — TUI Session監視
+- 夜間Memory整理774b20cをmainへ通常push成功、pre-push全検査/実jev/公開検査68.29秒。[設計・計画](superpowers/plans/2026-10-06-tui-session-summary.md)で継続する。
+- Ruling: 複数RoomのSessionを単一Agent状態へ推測せず、running/idle/failed/stopped件数を表示する。各公開listは独立読取で原子的snapshotを保証しない。前回Minorの必須field検証とRoom title欠落を今回の対象にする。全体ゴール未完了。
+- RED3fail: Session一覧未読取、Room title欠落、不正field受理。GREEN7件159msで別Agent/複数Roomの状態件数・秘密field除外・11件目validation・Session失敗伝播を確認。
+- 初回全checkはfixtureのcode推論numberでtsgo失敗、CommandResult戻り値型を明示して訂正。固定コード全check292成功8skip0fail、300tests156files56.37秒、型/lint/format/ASTとdry-run非空成功。
+- 実PTY: native Runtime一turn後のidle Session件数、日本語Room title、r更新/q終了、cursor/alternate-screen復元を確認。初回private fixtureはagent_message欠落でIncomplete Codex turn、fixture訂正後成功。自作daemon停止済み。live running遷移のPTYはまだ未検証、複数状態はDBなしUT。[証拠](verification/2026-10-06-tui-session-summary/check.txt)。
+- 独立最終review Important1: 実UUIDと長い日本語名で80列表示時にSession状態が見切れる。80列fixtureでRED1failを確認し、状態件数を行先頭へ移して全4状態を優先表示する。Minorなし、再reviewせず一修正pass。実jev初回1552対象missing/unsure0、errors/degraded空、warning97。renderの見出し/代表行claimは具体的assertを確認し、既存TTY失敗経路候補は過去実PTY証拠と今回nonTTY/read failureで照合。
+- Important修正後7UT25ms、全check293成功8skip0fail301tests156files57.17秒、実jev1553対象missing/unsure0/errors/degraded空/warning97。修正後実PTYも80列で4状態件数が見え、q復元/自作daemon停止成功。一般状態streaming/本人認証/Task操作は未完了。Next: Coordinatorの原本返信を厳密なA2A委譲proposalとして採用し、専門Agent実行へつなぐ最小e2eを設計する。

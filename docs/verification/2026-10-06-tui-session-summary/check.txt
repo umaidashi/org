@@ -1,0 +1,8 @@
+RED: 3fail3pass43ms; missing Session list command, Room title omitted, malformed records accepted.
+GREEN: 7pass0fail159ms DB-free monitor + real nonTTY CLI.
+Initial full check stopped at tsgo: fixture response code inferred number, corrected explicit CommandResult return type.
+Final full check exit0:292pass8skip0fail300tests156files56.37s; type/Oxlint/Oxfmt/AST nonempty; Jev dry-run nonempty.
+Real PTY with owned native daemon and completed Runtime fixture turn: Japanese 設計室 title and running=0 idle=1 failed=0 rendered, r refresh/q exit, cursor/alternate-screen restoration sequences observed. Runtime fixture initially omitted agent_message and failed Incomplete Codex turn; corrected fixture, not product regression. Owned daemon stopped. No credentials/provider IDs/error/body displayed. Multiple state counts tested DB-free; live running transition not yet exercised in PTY.
+Independent final review Important1: 80-column clipping hides counts after long identity. Added actual UUID/long Japanese name regression RED1fail -> status prefix GREEN7pass25ms. No Minor/no rereview. Fixed real PTY displays all four counts before UUID; q restoration observed, owned daemon stopped.
+Final actual Jev exit0:1553subjects97warnings;missing/unsure0;errors/degraded empty. Public code only.
+Post-fix fullcheck exit0:293pass8skip0fail301tests156files57.17s;static/AST/dry-run nonempty.
