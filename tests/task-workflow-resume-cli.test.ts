@@ -7,7 +7,7 @@ function record(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
 }
 
-test('native daemon write proposal waits, survives restart and resumes once with exact human approval and Agent credential', async () => {
+test('native daemon approves one invocation then resumes delayed Workflow observation across restart without reinvoking', async () => {
   const home = mkdtempSync('/tmp/org-approved-task-'),
     db = home + '/org.db',
     socket = home + '/org.sock',
@@ -15,7 +15,8 @@ test('native daemon write proposal waits, survives restart and resumes once with
     runtime = home + '/runtime.json',
     driver = home + '/driver.ts';
   let invokes = 0,
-    reads = 0;
+    reads = 0,
+    delayed = false;
   const server = Bun.serve({
     hostname: '127.0.0.1',
     port: 0,
@@ -23,11 +24,15 @@ test('native daemon write proposal waits, survives restart and resumes once with
       if (new URL(request.url).pathname === '/webhook/check') {
         assert.equal(request.headers.get('X-N8N-API-KEY'), null);
         invokes++;
-        return Response.json({ executionId: '14' });
+        return Response.json({ executionId: String(13 + invokes) });
       }
       assert.equal(request.headers.get('X-N8N-API-KEY'), 'agent-fixture-key');
       reads++;
-      return Response.json({ id: '14', workflowId: 'flow', status: 'success' });
+      return Response.json({
+        id: new URL(request.url).pathname.split('/').at(-1),
+        workflowId: 'flow',
+        status: delayed ? 'waiting' : 'success',
+      });
     },
   });
   const env = {
@@ -157,6 +162,7 @@ test('native daemon write proposal waits, survives restart and resumes once with
       JSON.stringify({
         baseUrl: `http://127.0.0.1:${server.port}`,
         apiKeyEnv: 'ORG_HOST_KEY',
+        taskWaitTimeoutMs: 200,
         workflows: [{ id: 'flow', path: 'check', effect: 'write' }],
         agentScopes: [
           { agentId: owner, workflowIds: ['flow'], apiKeyEnv: 'ORG_AGENT_KEY', effect: 'write' },
@@ -299,6 +305,103 @@ test('native daemon write proposal waits, survives restart and resumes once with
           e.result === 'started',
       ),
     );
+    delayed = true;
+    const secondEvent = await entity(['event', 'publish', 'manual.delayed', '--source', 'human']);
+    let second: Record<string, unknown> | undefined;
+    const nextDeadline = Date.now() + 5000;
+    while (!second || second.status !== 'waiting_approval') {
+      assert.ok(Date.now() < nextDeadline, 'Delayed Task not waiting');
+      await Bun.sleep(20);
+      const list = await run(['task', 'list']);
+      assert.ok(Array.isArray(list));
+      const candidates: readonly unknown[] = list;
+      second = candidates.find(
+        (task): task is Record<string, unknown> =>
+          record(task) && task.externalRef === 'org:event:' + secondEvent.id,
+      );
+    }
+    assert.ok(typeof second.id === 'string' && typeof second.version === 'number');
+    const secondApprovals = await run(['approval', 'list']);
+    assert.ok(Array.isArray(secondApprovals));
+    const approvalCandidates: readonly unknown[] = secondApprovals;
+    const secondApproval = approvalCandidates.find(
+      (a) => record(a) && record(a.request) && a.request.taskId === second.id,
+    );
+    assert.ok(
+      record(secondApproval) &&
+        record(secondApproval.request) &&
+        typeof secondApproval.request.id === 'string',
+    );
+    await run([
+      'approval',
+      'decide',
+      secondApproval.request.id,
+      '--actor',
+      'founder',
+      '--decision',
+      'approve',
+      '--reason',
+      'Check delayed local fixture',
+    ]);
+    assert.equal(
+      (
+        await raw([
+          'task',
+          'resume-workflow',
+          second.id,
+          '--approval',
+          secondApproval.request.id,
+          '--expected-version',
+          String(second.version),
+        ])
+      ).code,
+      1,
+    );
+    const blocked = await entity(['task', 'get', second.id]);
+    assert.equal(blocked.status, 'blocked');
+    assert.equal(invokes, 2);
+    await stop();
+    await start();
+    assert.deepEqual(await entity(['task', 'get', second.id]), blocked);
+    assert.equal(invokes, 2);
+    delayed = false;
+    const observed = await entity([
+      'task',
+      'observe-workflow',
+      second.id,
+      '--expected-version',
+      String(blocked.version),
+    ]);
+    assert.equal(observed.status, 'waiting_approval');
+    assert.ok(Array.isArray(observed.outputArtifacts) && observed.outputArtifacts.length === 1);
+    assert.equal(invokes, 2);
+    assert.equal(
+      (
+        await raw([
+          'task',
+          'observe-workflow',
+          second.id,
+          '--expected-version',
+          String(blocked.version),
+        ])
+      ).code,
+      1,
+    );
+    assert.equal(invokes, 2);
+    await run([
+      'task',
+      'review',
+      second.id,
+      '--decision',
+      'approve',
+      '--actor',
+      'founder',
+      '--reason',
+      'Verified delayed execution',
+      '--expected-version',
+      String(observed.version),
+    ]);
+    assert.equal((await entity(['task', 'get', second.id])).status, 'completed');
     await stop();
   } finally {
     if (daemon && daemon.exitCode === null) {

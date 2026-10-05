@@ -1,3 +1,4 @@
+export class TaskResultPendingError extends Error {}
 import type { TaskProvider, ExecutionResultWriter } from './port.js';
 import type { TaskArtifact, Task } from './domain.js';
 import type { SessionStore } from '../sessions/port.js';
@@ -94,7 +95,12 @@ export async function executeAssignedTask<T>(
     return { task, result };
   } catch (error) {
     try {
-      provider.update(original.id, { status: 'failed' }, now(), running.version);
+      provider.update(
+        original.id,
+        { status: error instanceof TaskResultPendingError ? 'blocked' : 'failed' },
+        now(),
+        running.version,
+      );
     } catch (failure) {
       throw new AggregateError(
         [error, failure],

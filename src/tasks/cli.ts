@@ -14,6 +14,7 @@ import { SqliteTaskProvider } from './sqlite.js';
 
 type TaskAction =
   | { kind: 'review'; id: string; input: TaskReviewInput }
+  | { kind: 'observe-workflow'; id: string; expectedVersion: number }
   | { kind: 'resume-workflow'; id: string; approvalId: string; expectedVersion: number }
   | { kind: 'run'; id: string; sessionId: string; messageId: string }
   | { kind: 'create'; input: TaskInput }
@@ -86,6 +87,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     reviews: [],
     run: ['session', 'room-message'],
     'resume-workflow': ['approval', 'expected-version'],
+    'observe-workflow': ['expected-version'],
     create: ['objective', 'kind', 'priority', 'parent', 'dependency', 'label'],
     list: ['kind', 'status', 'owner'],
     get: [],
@@ -169,6 +171,15 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       },
     };
   }
+  if (action === 'observe-workflow')
+    return {
+      ...common,
+      action: {
+        kind: action,
+        id: taskId,
+        expectedVersion: priority(required(values['expected-version'], '--expected-version')),
+      },
+    };
   if (action === 'resume-workflow')
     return {
       ...common,
@@ -278,6 +289,7 @@ export async function runTaskCommand(
       case 'reviews':
         result = provider.reviews(action.id);
         break;
+      case 'observe-workflow':
       case 'resume-workflow':
         throw new Error('Workflow resume requires daemon');
       case 'run':

@@ -150,12 +150,27 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
     !record(value) ||
     Object.keys(value).some(
       (key) =>
-        !['baseUrl', 'apiKeyEnv', 'apiKeyKeychain', 'workflows', 'agentScopes'].includes(key),
+        ![
+          'baseUrl',
+          'apiKeyEnv',
+          'apiKeyKeychain',
+          'workflows',
+          'agentScopes',
+          'taskWaitTimeoutMs',
+        ].includes(key),
     ) ||
     typeof value.baseUrl !== 'string' ||
     !Array.isArray(value.workflows)
   )
     throw new Error('Invalid Workflow host config');
+  const taskWaitTimeoutMs = value.taskWaitTimeoutMs ?? 30000;
+  if (
+    typeof taskWaitTimeoutMs !== 'number' ||
+    !Number.isSafeInteger(taskWaitTimeoutMs) ||
+    taskWaitTimeoutMs < 50 ||
+    taskWaitTimeoutMs > 30000
+  )
+    throw new Error('Invalid Workflow Task wait timeout');
   const workflows = value.workflows.map(
     (
       workflow: unknown,
@@ -221,6 +236,7 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
   return {
     runtime,
     host,
+    taskWaitTimeoutMs,
     workflows: workflows.map((workflow) => ({ ...workflow })),
     agentScopes: agentScopes.map((scope) => ({
       agentId: scope.agentId,

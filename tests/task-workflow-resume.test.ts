@@ -191,7 +191,7 @@ test('resume rechecks native Approval and latest Task before resolving credentia
   current = waiting;
   statusFailure = true;
   await assert.rejects(run);
-  assert.equal(current.status, 'failed');
+  assert.equal(current.status, 'blocked');
   assert.ok([...events.values()].some((event) => event.type === 'workflow.unconfirmed'));
   assert.ok(!JSON.stringify([...events.values()]).includes('PRIVATE_STATUS_ERROR'));
   assert.ok(
@@ -218,6 +218,6 @@ test('resume rechecks native Approval and latest Task before resolving credentia
   cancelDuringStatus = true;
   controller = new AbortController();
   await assert.rejects(run);
-  assert.equal(current.status, 'failed');
+  assert.equal(current.status, 'blocked');
   assert.ok([...events.values()].some((event) => event.type === 'workflow.unconfirmed'));
 });

@@ -33,7 +33,8 @@ export async function requestApplication(socket: string, argv: string[]): Promis
       command.kind === 'session' ||
       (command.kind === 'sandbox' && command.command.action === 'run') ||
       (command.kind === 'room' && command.command.action === 'activate') ||
-      (command.kind === 'task' && ['run', 'resume-workflow'].includes(command.command.action.kind))
+      (command.kind === 'task' &&
+        ['run', 'resume-workflow', 'observe-workflow'].includes(command.command.action.kind))
         ? null
         : AbortSignal.timeout(
             command.kind === 'workflow' ||

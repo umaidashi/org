@@ -1,3 +1,4 @@
+import { observeTaskWorkflow } from '../workflows/task-observe.js';
 import { SqliteApprovalStore } from '../approvals/sqlite.js';
 import { requestTaskWorkflowApproval } from '../workflows/task-approval.js';
 import { resumeTaskWorkflow } from '../workflows/task-resume.js';
@@ -428,6 +429,22 @@ function openOperations(
           runtime,
           activateRoom: activate,
           runTask: execute,
+          observeTaskWorkflow: (taskId, expectedVersion) => {
+            if (!workflow) throw new Error('Workflow host config missing');
+            return observeTaskWorkflow(
+              taskProvider,
+              agentRepository,
+              roomRepository,
+              approvalStore,
+              eventBus,
+              workflow,
+              { taskId, expectedVersion },
+              (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
+              () => new Date().toISOString(),
+              randomUUID,
+              workflowController.signal,
+            );
+          },
           resumeTaskWorkflow: (taskId, approvalId, expectedVersion) => {
             if (!workflow) throw new Error('Workflow host config missing');
             return resumeTaskWorkflow(

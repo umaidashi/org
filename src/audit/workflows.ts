@@ -44,6 +44,7 @@ export function buildWorkflowAudit(events: readonly Event[]): readonly AuditEntr
         'actorKind',
         'taskId',
         'eventId',
+        'proposalRef',
         'approvalId',
         'effect',
       ])

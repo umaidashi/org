@@ -57,6 +57,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org a2a send|get|list [OPTIONS]
        org memory capture|get|list|search|invalidate [OPTIONS]
        org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org task observe-workflow ID --expected-version N
        org task resume-workflow ID --approval ID --expected-version N
        org task artifact-content ID --artifact ARTIFACT_ID [--json]
        org [--db PATH] daemon --once [--json]
@@ -217,6 +218,7 @@ export interface ApplicationContext extends SessionContext {
   readonly runSandbox?: (command: SandboxCommand) => Promise<string>;
   readonly cancelSandbox?: (taskId: string) => void;
   readonly activateRoom?: (roomId: string, messageId: string) => Promise<unknown>;
+  readonly observeTaskWorkflow?: (id: string, expectedVersion: number) => Promise<unknown>;
   readonly resumeTaskWorkflow?: (
     id: string,
     approvalId: string,
@@ -270,6 +272,18 @@ async function runApplication(
     return;
   }
   if (command.kind === 'task') {
+    if (command.command.action.kind === 'observe-workflow') {
+      if (!sessions?.observeTaskWorkflow) throw new Error('Workflow observation requires daemon');
+      const { id, expectedVersion } = command.command.action;
+      output(
+        JSON.stringify(
+          await sessions.observeTaskWorkflow(id, expectedVersion),
+          null,
+          command.command.json ? undefined : 2,
+        ),
+      );
+      return;
+    }
     if (command.command.action.kind === 'resume-workflow') {
       if (!sessions?.resumeTaskWorkflow) throw new Error('Workflow resume requires daemon');
       const { id, approvalId, expectedVersion } = command.command.action;

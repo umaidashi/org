@@ -1,0 +1,9 @@
+RED: status transport/cancel after verified start previously failed Task; host taskWaitTimeoutMs unsupported.
+GREEN: delayed native Workflow -> blocked -> daemon restart -> explicit status-only observe -> verified Artifact -> result review; invoke count remains two across two distinct Tasks.
+RED: uncertain execution ID substitution accepted; phase/execution matching added.
+Independent review Important1: proposalRef substitution accepted. RED Missing expected rejection; GREEN 3 tests/3files37ms, both started/unconfirmed rejected before credential lookup. No rereview.
+Initial check lint unsafe fixture array failed; unknown narrowing fixed. Subsequent process exit137 was incomplete. Authorized final check exit0:275pass8skip0fail283tests144files52.32s; tsgo/Oxlint/Oxfmt/AST fixtures nonempty.
+Actual Jev exit0:1462subjects89warnings missing0 unsure0 errors[] degraded[]. No credentials/DB/Notion snapshots sent.
+Ruling: observation performs guarded CAS/status/result staging, consistent with command behavior; immutable chain/scope/capability/Room/version/lookup-race/duplicate guards exercised in DI UT; delayed write Approval branch exercised by actual CLI. Generic Artifact/storage recovery not claimed. Shared collection transport/cancel/terminal-failure paths exercised by resume UT. Warnings remain advisory, not proof of whole-goal completion.
+Whole goal remains incomplete: general Memory extraction/consolidation, business adapters/full business e2e, authentication/isolation and other requirement rows.
+Real Claude Max OAuth + official local n8n2.41.6 60-second reference PASS: write proposal -> human Approval -> one invoke -> blocked -> restart -> status-only observation -> verified Artifact -> human result review -> episodic Memory -> restart no replay. Distinct Actor execution:read key remains outside Runtime/output. Proof list/history and duplicate key-label mistakes fixed in private script; not product failures. Owned container removed.

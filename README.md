@@ -134,7 +134,7 @@ bun run start daemon deliveries --json
 
 単発workerが現在有効な購読を既存Eventにも照合し、Agent購読ごとに割当済みExecutionTaskを1件作ります。Taskの成果物や状態は通常のTask CLIで操作できます。配信記録の`delivered`はTask作成・割当の成功であり、Agent実行の完了ではありません。
 
-同じEvent/Subscriptionの再処理ではTaskと履歴を増やしません。Task保存後に配信記録が失敗しても次回実行で復旧し、進行中Taskを再割当しません。Workflow購読は理由付き`deferred`として表示します。Event由来TaskのRuntime起動は後続の実装です。
+同じEvent/Subscriptionの再処理ではTaskと履歴を増やしません。Task保存後に配信記録が失敗しても次回実行で復旧し、進行中Taskを再割当しません。Workflow購読は理由付き`deferred`として表示します。Event由来TaskのRuntime起動は設定済みdaemonの`--wake-up`で有効にします。
 
 ## 常駐daemon
 
@@ -156,7 +156,7 @@ TCP listenerは開かず、Unix socketを0600で作成します。同socketの2�
 
 SIGKILL等で残ったsocket/lockは自動削除しません。稼働中プロセスがないことを確認してから手動で整理してください。
 
-Agent/Task/Room/A2A/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。同じPOSIX process groupの子孫を終了させます。daemon自身のSIGKILL時も監督pipeの切断で同groupを停止します。別groupへ離脱する子孫の隔離は後続です。固定間隔schedulerとDocker Sandboxのdaemon/直接実行CLIを実装しています。Task実行のretry、Workflow・TUIは未実装です。
+Agent/Task/Room/A2A/Event/Memory CLIはdaemon clientとして動作し、`--direct`で管理用の直接操作も可能です。SessionのRuntime process管理とtimeout/cancelは実装済みです。同じPOSIX process groupの子孫を終了させます。daemon自身のSIGKILL時も監督pipeの切断で同groupを停止します。別groupへ離脱する子孫の隔離は後続です。固定間隔schedulerとDocker Sandboxのdaemon/直接実行CLIを実装しています。Task実行の自動retryは未実装です。WorkflowとTUIの実装範囲は後述します。
 
 ## 検証とレビュー
 
@@ -405,7 +405,7 @@ host設定のAPIキー環境変数はdaemon起動時に渡します。Agent Runt
 
 WorkflowのAPIキーは`SecretStore` Port経由でhost側だけが解決します。初期Environment Adapterは、hostが指定したactor/secret参照/env名のgrantだけを読み、未知actor・未知参照はenv読取前に拒否します。欠損・過大値・lookup失敗のエラーは固定文言で、秘密や元の例外を出力しません。秘密値を表示するCLIはありません。
 
-現在のWorkflow configは`host:workflow`の`n8n-api-key`参照を解決します。これは信頼済みhost内部の識別子で、Agent認証ではありません。Agent別Workflow scopeと最新Task owner/capability照合を実装しています。重要操作のApproval、Sandboxへの限定credential注入は後続です。Environment参照自体は暗号化保管機能を提供しません。
+現在のWorkflow configは`host:workflow`の`n8n-api-key`参照を解決します。これは信頼済みhost内部の識別子で、Agent認証ではありません。Agent別Workflow scopeと最新Task owner/capability照合を実装しています。Workflow操作Approvalは後述の経路で実装しています。Sandboxへの限定credential注入は後続です。Environment参照自体は暗号化保管機能を提供しません。
 
 ## Taskから読み取りWorkflowへ委譲する
 
@@ -419,7 +419,7 @@ Workflow設定にAgent別の許可と専用キー参照を追加します。
 
 成功した実行IDとWorkflowを照合してTask成果物を保存します。`task artifacts TASK_ID --json`でIDを取得し、`task artifact-content TASK_ID --artifact ARTIFACT_ID --json`で内容とintegrityを確認できます。人間のTask review後、設定済みMemory policyに従ってMemoryへ記録します。実Claude Maxとローカル公式n8nで一周と再起動後no replayを検証済みです。
 
-read_onlyは信頼済みhostが宣言する契約で、n8n各nodeの副作用を自動判定する機能ではありません。Agent Taskからの書込みWorkflowは未対応です。手動CLIには下記の操作Approval経路があります。Workflow実行段階は30秒で制限し、停止時にはHTTPを中断します。不明な結果はclaimを保持して再送しません。長時間Workflowの非同期再開、業務出力、操作Approval、Agent RPC認証は未完了です。
+read_onlyは信頼済みhostが宣言する契約で、n8n各nodeの副作用を自動判定する機能ではありません。Agent Taskからの書込みWorkflowは、後述の操作Approval待機・再開を使用します。Workflowの観測窓は既定30秒で、停止時にはHTTPを中断します。不明な結果はclaimを保持して再送しません。検証済みstarted後の継続観測は後述のobserve-workflowを使用します。業務出力とAgent RPC認証は未完了です。
 
 ## Workflow操作の承認記録
 
@@ -434,7 +434,7 @@ bun run start audit list --json
 
 `--effect`はwriteまたはirreversibleです。hostは資格情報・query・fragmentを含まない正規URL、入力digestは小文字64桁です。要求と判断は不変保存し、同keyの別操作や判断の変更を拒否します。入力本文・APIキーは保存しません。Workflow承認を`approval apply`へ渡してAgent権限を変更することもできません。
 
-手動CLIのnative Workflow実行は以下の承認照合へ接続しています。Agent TaskのWorkflow scopeはread_onlyだけを許可します。人間actorはローカル管理者の申告値です。
+手動CLIのnative Workflow実行は以下の承認照合へ接続しています。Agent Taskのwrite/irreversible scopeは後述のTask-bound Approvalで制約します。人間actorはローカル管理者の申告値です。
 
 ## 承認済みWorkflowを実行する
 
@@ -448,7 +448,7 @@ bun run start workflow run WORKFLOW_ID --key operation-001 --input '{}' --config
 
 request-approvalはrunと同じ引数から入力digestと一回の実行IDを生成します。host・Workflow・入力・key・effect・要求actorが違えばrunを拒否します。承認済みでもclaim後の再実行は拒否し、通信失敗はunconfirmedとして残します。原入力・キーはreceiptへ保存せず、承認IDと実行IDで追跡します。Approval要求自体が外部Workflowを起動することはありません。
 
-write/irreversible Workflowは自動Event配送でdeferredとなり、Agentのread_only scopeには登録できません。Agent Taskの承認待ち・再開、長時間Workflow、actor認証は後続です。
+write/irreversible Workflowは自動Event配送でdeferredとなり、Agentのread_only scopeには登録できません。Agent Taskの承認待ち・再開と長時間Workflowの明示観測は後述します。actor認証は後続です。
 
 ## Workflowの実行Audit
 
@@ -531,7 +531,7 @@ bun run start approval request-task-workflow TASK_ID --room ROOM_ID --message ME
 bun run start approval decide APPROVAL_ID --actor founder --decision approve --reason '原本提案を確認' --json
 ```
 
-assigned ExecutionTaskの最新version、owner Agent、active Task Roomの原本提案Messageを確認し、Task/version/Message参照とhost/Workflow/input hash/request ID/effectを不変Approvalへ固定します。read/delegate/network/contact/writeのcapabilityが必要です。要求は冪等で、同Taskの異なる提案は競合します。この段階では外部操作やcredential lookupを行わず、Task状態も変更しません。手動Workflow runへの流用はできません。host/Agent allowlistと待機・再開executorは未接続です。
+assigned ExecutionTaskの最新version、owner Agent、active Task Roomの原本提案Messageを確認し、Task/version/Message参照とhost/Workflow/input hash/request ID/effectを不変Approvalへ固定します。read/delegate/network/contact/writeのcapabilityが必要です。要求は冪等で、同Taskの異なる提案は競合します。この段階では外部操作やcredential lookupを行わず、Task状態も変更しません。手動Workflow runへの流用はできません。daemonのhost/Agent allowlistと待機・再開executorへ接続しています（後述）。
 
 ## Agent Workflowの承認待ちと再開
 
@@ -546,4 +546,16 @@ bun run start task resume-workflow TASK_ID --approval APPROVAL_ID --expected-ver
 
 再開はdaemon専用です。承認原本のTask/version/owner/Message/input hashと、現在のTask snapshot・capability・dependency・host/Agent scopeを再照合し、Agent専用キーを解決後にも再確認します。先行claimの後に一度だけ実行し、verified successのArtifactを結果レビュー待ちへ保存します。pending/rejected/不一致・古いversion・重複再開は呼出しません。operation待機とApprovalは再起動後も保持されます。通信失敗・timeout・停止の不確定結果はreceiptへ記録し、自動再実行しません。
 
-操作Approvalと実行結果レビューは別の判断です。write effectは信頼済みhost宣言で、Workflow nodeの副作用を検査しません。一般の長時間Workflow継続観測、本人認証、完全process隔離は未完了です。Approval保存とTask待機更新は別所有者のため原子的ではなく、Task更新が失敗すると要求だけが残る場合があります。
+操作Approvalと実行結果レビューは別の判断です。write effectは信頼済みhost宣言で、Workflow nodeの副作用を検査しません。本人認証、完全process隔離は未完了です。Approval保存とTask待機更新は別所有者のため原子的ではなく、Task更新が失敗すると要求だけが残る場合があります。
+
+
+## 長いWorkflowの継続観測
+
+Workflow host設定の`taskWaitTimeoutMs`は50〜30000ms（既定30000ms）です。検証済みstarted receiptがあり、その後のstatusが通信失敗・timeout等で不確定になるとTaskは`blocked`へ移ります。invoke自体が不明でstartedがない場合や、確定した実行失敗は`failed`です。
+
+```sh
+bun run start task get TASK_ID --json
+bun run start task observe-workflow TASK_ID --expected-version VERSION --json
+```
+
+観測再開はdaemon専用で、保存済みexecutionのstatusだけを読み、invokeしません。現在のTask/version/owner/capability/dependency、原本Messageとreceipt、host/Agent scopeを照合し、write/irreversibleは元のhuman Approvalも再確認します。成功を検証するとArtifactを保存して結果レビュー待ちへ戻り、まだ不明ならblockedを保持します。daemon再起動でも自動再送しません。自動poll・一般retry・Artifact保存失敗からの復旧は未完了です。

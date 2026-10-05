@@ -896,3 +896,12 @@
 - 追加監査で別Task参照のApprovalを受理するREDを確認。期待原本再構築時にidentityへrequest全体を渡していたため、id/createdAtだけへ限定し完全照合を修正。変更後guard UT成功。
 - 実Claude Max（既存OAuth、APIキー不要）＋公式n8n2.41.6の自作loopback referenceで提案→human Approval→再起動→Agent専用execution:read key→一回invoke→verified success Artifact→human結果review→episodic Memory→再起動no replayが成功。承認前Workflow claimなし、credentialはRuntimeへ渡さず出力にも含めない。writeはhost宣言でreference自体は業務副作用なし。準備n8nの成功/停止も確認。自作containerだけを削除、private証拠はGit/jev送信外。
 - 最終全check274成功8skip0失敗282テスト143file54.57秒、型/lint/format265file/AST成功。実jev1450回答warning84/errors・degraded空。[検証](verification/2026-10-06-task-workflow-approval-resume/check.txt)。Next: 長いWorkflowが短いnative待機時間を超えても外部invokeを再実行せず、started receiptから読取だけで継続観測するTask経路。
+
+
+### 2026-10-06 — 長時間Workflowの継続観測
+- 継続依頼に従いApproval待機/再開056411eをmainへ通常push済み、pre-push全検査・実jev63.69秒成功。[計画](superpowers/plans/2026-10-06-workflow-task-observation.md)で次の最小e2eを実装。
+- RED: timeout後Task状態はfailed、実daemonのtaskWaitTimeoutMs設定は未対応。GREEN: 検証済みstarted後の不確定観測を専用エラーでblockedにし、daemon専用observe-workflowから元executionのstatusのみを読む。元Task/Message/claim/started/unconfirmed/Approval/scope/capability/dependencyをlookup前後に照合しCAS後観測、再invokeなし。invoke不明と確定失敗はfailedを維持。
+- 追加RED: uncertain receiptのexecutionId差替えを受理。phase/execution一致を先行検証してGREEN。独立最終レビューImportant1: started/unconfirmedのproposalRefがclaimと一致しない。再現REDを確認し共有Auditのcontext照合へproposalRefを追加、両receipt差替えでcredential lookupゼロを検証。関連UT3件37ms成功。再レビューなし。
+- 初回全checkはfixtureのJSON any lintで失敗しunknown narrowingへ修正。次の実行は途中終了137で全成功と扱わず、許可済みローカル環境で全checkを再実行して275pass/8skip/0fail、283tests/144files52.32秒成功。型/lint/format/AST非空成功。実jev1462回答、missing/unsure0、errors/degraded空、warning89。実daemon e2eは遅いWorkflow→blocked→再起動→観測→結果レビューでinvoke件数維持。
+- 実Claude Max OAuth＋公式n8n2.41.6の60秒referenceで、操作approve→一回invoke→blocked→daemon再起動→status-only観測→verified Artifact→human結果review→episodic Memory→再起動no replay成功。実proofの初回はworkflow list（claim一覧）からstartedを探すassert失敗、history読取へ訂正。次回は同fixtureのAPI key label重複で準備assert失敗、private labelを一意化して成功。製品不具合とは扱わない。Agent専用execution:readキーはRuntimeへ渡さず、出力にも含めない。自作container削除済み。private0700/0600証拠はGit外。[証拠](verification/2026-10-06-workflow-task-observation/check.txt)。
+- Ruling: Jevの名前/失敗経路候補は、観測のguard/CAS/結果保存の契約とDBなしUT・実daemonのwrite Approval分岐・共有collectionの通信/停止/確定失敗を確認。Artifact保存失敗の回復を完了とはしない。READMEの以前のWorkflow/TUI未実装記述を現状へ訂正。Next: Memory仕様を再取得して一般候補抽出/原本拘束/重複・競合の最小経路を設計する。全体ゴール未完了。

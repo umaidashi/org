@@ -1,4 +1,5 @@
-import { createEvent } from '../events/domain.js';
+import { TaskResultPendingError } from '../tasks/execution.js';
+import { createEvent, type Event } from '../events/domain.js';
 import { createHash } from 'node:crypto';
 import { requireCapability } from '../agents/domain.js';
 import type { AgentRepository } from '../agents/port.js';
@@ -21,6 +22,7 @@ export async function produceTaskWorkflowArtifact(
   message: Message,
   configured: {
     readonly host: string;
+    readonly taskWaitTimeoutMs?: number;
     readonly workflows?: readonly {
       readonly id: string;
       readonly effect: 'read_only' | 'write' | 'irreversible';
@@ -44,8 +46,11 @@ export async function produceTaskWorkflowArtifact(
   id: () => string,
   cancellation?: AbortSignal,
 ): Promise<TaskArtifact | null> {
+  const timeoutMs = configured.taskWaitTimeoutMs ?? 30000;
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 50 || timeoutMs > 30000)
+    throw new Error('Invalid Workflow Task wait timeout');
   const signal = AbortSignal.any([
-    AbortSignal.timeout(30000),
+    AbortSignal.timeout(timeoutMs),
     ...(cancellation ? [cancellation] : []),
   ]);
   let writeEffect = false;
@@ -112,15 +117,41 @@ export async function produceTaskWorkflowArtifact(
     { id: requestId, createdAt: now() },
     now,
   );
+  return collectTaskWorkflowArtifact(bus, runtime, started, running, authorize, save, now, id);
+}
+
+export async function collectTaskWorkflowArtifact(
+  bus: Pick<EventBus, 'publish'>,
+  runtime: Pick<WorkflowRuntime, 'status'>,
+  started: Event,
+  running: Task,
+  authorize: () => void,
+  save: (bytes: Uint8Array) => Promise<string>,
+  now: () => string,
+  id: () => string,
+  priorUnconfirmed = false,
+): Promise<TaskArtifact> {
+  const requestId = started.payload.requestId,
+    workflowId = started.payload.workflowId,
+    host = started.payload.host,
+    proposalRef = started.payload.proposalRef;
+  if (
+    typeof requestId !== 'string' ||
+    typeof workflowId !== 'string' ||
+    typeof host !== 'string' ||
+    typeof proposalRef !== 'string'
+  )
+    throw new Error('Invalid Task Workflow started receipt');
   const executionId = started.payload.executionId;
   if (typeof executionId !== 'string') throw new Error('Workflow execution receipt invalid');
   let terminalObserved = false;
-  let finalWorkflowId = proposal.workflowId;
+  let finalWorkflowId = workflowId;
   let finalStatus = 'success';
   try {
+    authorize();
     let execution = await runtime.status(executionId);
     for (;;) {
-      if (execution.id !== executionId || execution.workflowId !== proposal.workflowId)
+      if (execution.id !== executionId || execution.workflowId !== workflowId)
         throw new Error('Workflow execution does not match Task proposal');
       if (['success', 'error', 'crashed', 'canceled'].includes(execution.status)) {
         bus.publish(
@@ -130,7 +161,7 @@ export async function produceTaskWorkflowArtifact(
               source: 'workflow:n8n',
               payload: {
                 requestId,
-                host: configured.host,
+                host: host,
                 workflowId: execution.workflowId,
                 executionId,
                 status: execution.status,
@@ -156,7 +187,7 @@ export async function produceTaskWorkflowArtifact(
       execution = await runtime.status(executionId);
     }
   } catch (error) {
-    if (!terminalObserved) {
+    if (!terminalObserved && !priorUnconfirmed) {
       try {
         bus.publish(
           createEvent(
@@ -175,6 +206,8 @@ export async function produceTaskWorkflowArtifact(
         );
       }
     }
+    if (!terminalObserved)
+      throw new TaskResultPendingError('Workflow execution result remains pending');
     throw error;
   }
   authorize();

@@ -45,7 +45,7 @@ export async function main(argv: string[]): Promise<number> {
     if (
       (command.kind === 'session' ||
         (command.kind === 'task' &&
-          ['run', 'resume-workflow'].includes(command.command.action.kind))) &&
+          ['run', 'resume-workflow', 'observe-workflow'].includes(command.command.action.kind))) &&
       transport.direct
     )
       throw new Error('Runtime commands require daemon');

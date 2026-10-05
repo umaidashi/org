@@ -1,3 +1,4 @@
+import { TaskResultPendingError } from '../tasks/execution.js';
 import { isDeepStrictEqual } from 'node:util';
 import { changeTask, type Task } from '../tasks/domain.js';
 import type { TaskProvider, ExecutionResultWriter } from '../tasks/port.js';
@@ -18,6 +19,7 @@ export async function resumeTaskWorkflow(
   bus: Pick<EventBus, 'publish'>,
   configured: {
     readonly host: string;
+    readonly taskWaitTimeoutMs?: number;
     readonly workflows: readonly {
       readonly id: string;
       readonly effect: 'read_only' | 'write' | 'irreversible';
@@ -144,7 +146,12 @@ export async function resumeTaskWorkflow(
     return tasks.stageExecutionResult(running.id, artifact, running.version);
   } catch (error) {
     try {
-      tasks.update(running.id, { status: 'failed' }, now(), running.version);
+      tasks.update(
+        running.id,
+        { status: error instanceof TaskResultPendingError ? 'blocked' : 'failed' },
+        now(),
+        running.version,
+      );
     } catch (failure) {
       throw new AggregateError(
         [error, failure],
