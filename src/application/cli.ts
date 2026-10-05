@@ -1,3 +1,4 @@
+import { parseKnowledgeCommand, runKnowledgeCommand } from '../knowledge/cli.js';
 import {
   parseWorkflowCommand,
   runWorkflowCommand,
@@ -54,6 +55,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org sandbox cancel TASK_ID
        org workflow run|status|cancel|list|history [OPTIONS]
        org schedule create|list|get|enable|disable [OPTIONS]
+       org knowledge notion PAGE_ID [--json]
        org a2a send|adopt|get|list [OPTIONS]
        org memory capture|extract|consolidate|consolidations|get|list|search|invalidate [OPTIONS]
        org session start|send|resume|reply|stop|get|list|history [OPTIONS]
@@ -76,6 +78,7 @@ function required(value: string | undefined, name: string): string {
 }
 
 export type ApplicationCommand =
+  | { readonly kind: 'knowledge'; readonly command: ReturnType<typeof parseKnowledgeCommand> }
   | { readonly kind: 'workflow'; readonly command: WorkflowCommand }
   | { readonly kind: 'approval'; readonly command: ApprovalCommand }
   | {
@@ -107,6 +110,8 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
   });
   if (['approval', 'audit', 'logs'].includes(probe.positionals[0] ?? ''))
     return { kind: 'approval', command: parseApprovalCommand(argv) };
+  if (probe.positionals[0] === 'knowledge')
+    return { kind: 'knowledge', command: parseKnowledgeCommand(argv) };
   if (probe.positionals[0] === 'workflow')
     return { kind: 'workflow', command: parseWorkflowCommand(argv) };
   if (probe.positionals[0] === 'sandbox')
@@ -252,6 +257,10 @@ async function runApplication(
   }
   if (command.kind === 'schedule') {
     runScheduleCommand({ ...command.command, db }, output);
+    return;
+  }
+  if (command.kind === 'knowledge') {
+    await runKnowledgeCommand(command.command, output);
     return;
   }
   if (command.kind === 'a2a') {

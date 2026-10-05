@@ -971,3 +971,14 @@
 - Ruling: reviewer MinorのRESULT_42部分一致は、不正なNOT_RESULT_42でも自動approveを許すためImportantへ格上げ。追加RED1failを確認しtrim後の完全一致へ修正。三つのDBなしregression GREEN。Minor保留: fixture shutdownのexit待機にはhard-kill期限がない。再reviewせず一修正passで全suite/実機/実jevを再実行中。
 - 修正後追跡opt-in実機テスト4成功0fail52.76秒。全check304成功9skip0fail313tests159files62.69秒、型/lint/format/AST/dry-run非空成功。実jev1603対象missing/unsure0/errors/degraded空/warning98。独立reviewの一fixpass完了、再reviewなし。[証拠](verification/2026-10-06-real-coordinator-specialist-loop/check.txt)。
 - Next: Notion root/MVPと要件照合を再確認し、必須の未完了と将来Adapter候補を区別して次の業務経路を選ぶ。実機一周が通っただけで全体完成とはしない。
+
+### 2026-10-06 — Notion knowledge read
+- Notion root/MVPを再取得。MVP GoalとPhase6のLinear TaskProvider/GitHub events/Notion knowledge/docsを照合。NATS/Redisは必要時のみで追加しない。目標ツールはpaused表示だがユーザーの継続指示に従い作業継続、ツールからresumeできないため重複goalを作らない。
+- NOTION_API_KEY/NOTION_TOKEN/LINEAR_API_KEY未設定を値非表示で確認、実API検証用キー設定を非同期で依頼。アプリNotion仕様fetchは利用可能だがKernel直接API認証とは別。[設計・計画](superpowers/plans/2026-10-06-notion-knowledge-read.md)。
+- Ruling: 公式2026-03-11 native Markdown GETを使い独自block renderer/新SDKを足さない。明示local admin読取と既存SecretStore/HTTP上限を再利用し、原本取込は次の小e2e。version/title/意味的完全性やAgent RPC認証は保証しない。
+- 実Claude二Agent6e0eb38はmainへ通常push成功、対象commit全検査/実jev/公開検査73.23秒。
+- RED: knowledge module未実装、実CLI Expected agent command。GREEN:3DBなしUT36msでfixed host GET/canonical UUID/scoped SecretStore/API version/timeout/identity/gap/secret/JSON/上限を確認。初回staticのno-unsafe-finallyを、cancel失敗もcredential非漏洩の定型エラーへ置換し成功。
+- client timeoutは既存11秒並行e2eへknowledgeを追加し、旧5秒条件でRED1fail11.06秒を確認。40秒条件へ修正、追加sleep testは作らず既存待機を再利用してGREEN中。Notion成功HTTPは明示test-only preload fixture、実API成功とは扱わない。無key実CLIはcredential unavailableのみ、秘密情報/DB作成なし。
+- GREEN6件11.40秒: malformed/noKey実CLIはDB前拒否、test-only HTTP fixtureのdirect/実daemon成功213ms、既存11秒並行e2eでknowledge40秒client成功。静的ゲート293→294files非空成功。自作daemon/DB削除済み。実Notion key未設定のためREST成功は未検証、全check/実jev中。
+- 全check309成功9skip0fail318tests161files60.91秒、型/lint/format/AST/dry-run非空成功。実jev1626対象missing/unsure0/errors/degraded空/warning100。新規候補はUUID validateの正規化（検証後canonical IDを返す意図）とCLI失敗経路（実プロセスのURL/余分引数/未知option/無keyで確認）で、保証との不一致なし。独立最終review中。
+- 独立最終review Critical/Importantなし。Minor保留: hashの独立既知SHA256値と空Markdown成功fixture。Reviewerのdaemonはsandbox listen EPERMで未検証、親の許可済み実daemon e2e成功を根拠とし製品障害とはしない。HTTP fixtureと実Notion REST未検証を区別。[証拠](verification/2026-10-06-notion-knowledge-read/check.txt)。Next: 既存Room原本保存を再利用し、Notion読取文書をContextへ接続する。

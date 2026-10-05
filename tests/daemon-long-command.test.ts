@@ -21,6 +21,7 @@ test('daemon command preserves long Runtime replies even with options before the
     const results = await Promise.allSettled([
       requestApplication(socket, ['--json', 'room', 'activate', 'r', '--message', 'm']),
       requestApplication(socket, ['session', 'get', 's']),
+      requestApplication(socket, ['knowledge', 'notion', '3ee8a4020cb681d18daacc1e0016d596']),
       requestApplication(socket, ['--json', 'session', 'get', 's']),
       requestApplication(socket, [
         '--json',

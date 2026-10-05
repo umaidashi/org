@@ -628,3 +628,14 @@ ORG_CLAUDE_DELEGATION_TEST=1 bun --no-env-file test tests/coordinator-claude-rea
 ```
 
 ログイン済みClaude CLIをPATHから使い、native toolsを無効にしたCoordinatorと直属専門Agentで、自動委譲→算術成果物→人間レビュー→根拠付きMemory→同Coordinator Session再開→再起動後の重複なしを確認します。一時DB/daemonは終了時に削除します。通常の全検査はこの実機テストをskipします。Issueからコード実装・Draft PRまでの実務e2eは未完了です。
+
+## Notion knowledgeの明示読取
+
+```sh
+bun --env-file=.env src/cli.ts --direct knowledge notion PAGE_ID --json
+# daemon経由の場合はdaemon起動時にNOTION_API_KEYを設定する
+bun --env-file=.env src/cli.ts daemon
+bun run start knowledge notion PAGE_ID --json
+```
+
+`NOTION_API_KEY`には対象ページのread権限を持つIntegration tokenを使います。値はGit・ログ・Runtimeへ渡しません。Notionのnative Markdown APIから一ページをGETし、canonical UUID・content hashを返します。切詰め/取得不能blockを含む応答は拒否し、10秒通信timeout・256KiB応答上限・redirect拒否を適用します。ページや添付URLへの書込・自動retryは行いません。native Markdownの対応範囲を超える意味的完全性、編集version snapshot、Room取込は後続です。アプリのNotion接続とは別認証です。
