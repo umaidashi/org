@@ -674,3 +674,12 @@
 - 全208/208・型/lint/format/AST成功41.73秒、Docker実機5件は別opt-in。実Jev1121判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-memory-namespaced-scope/check.txt)。Final独立Reviewer Critical/Important/Minorなし、最小UT/実CLI3件を独立成功3.46秒。
 - Final Ruling: 既知prefix/非空suffix/空白拒否を維持し、ID内colonを許可。Contextは完全一致であり別Taskへ範囲を広げない。新parser/schemaなし。Next: Git partial cloneの不足blobがSandbox repo export中にhost通信を起こさないことを実Gitで検証する。
 - main53d5c2c通常push成功、pre-push全207テスト/実Jev/公開検査49.14秒。
+
+## Sandbox repo exportの暗黙fetch拒否（進行中）
+
+- [計画](superpowers/plans/2026-10-05-sandbox-git-no-fetch.md)。全callerは共通export関数へ接続済み。実ローカルfile transport partial cloneで不足blobを確認し、exportが拒否せずhost側fetchで成功するREDを確認。外部通信/実認証情報を使わないfixture。
+- 共通native Git環境へGIT_NO_LAZY_FETCH=1と空GIT_ALLOW_PROTOCOLを追加する2行修正。既存repo protocol.file.allow=alwaysがあっても不足blobを取得せず拒否するGREEN3件293ms。取消/完全repo exportも成功。
+- [Git公式仕様](https://git-scm.com/docs/git)を照合。禁止を外す対照実験ではfetch成功、独立Reviewerは両変数それぞれの拒否と不足blob未取得を実Gitで確認。Final Critical/Important/Minorなし。
+- 全209/209・型/lint/format/AST成功40.75秒、Docker実機5件別opt-in。実Docker CLI tracked workspace→Artifact→人間review成功1件1.59秒。実Jev1124判定missing/unsure0、errors/degradedなし。[証拠](verification/2026-10-05-sandbox-git-no-fetch/check.txt)。
+- Ruling: Sandbox準備で不足Git objectを補完しない。事前に利用者が完全cloneを用意する。hostの通信/認証helperを暗黙起動せず、既存失敗伝播と取消を維持する。新transport/credential abstractionなし。
+- main423d120通常push成功、pre-push全208テスト/実Jev/公開検査48.57秒。Next: 公開GitHub Eventの明示read-only取込を既存Event/Subscriptionへ接続し、小さな実サービスe2eを積み重ねる。

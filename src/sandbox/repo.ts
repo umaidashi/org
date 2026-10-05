@@ -19,6 +19,8 @@ export async function exportSandboxRepo(
           HOME: process.env.HOME ?? '',
           GIT_CONFIG_NOSYSTEM: '1',
           GIT_CONFIG_GLOBAL: '/dev/null',
+          GIT_NO_LAZY_FETCH: '1',
+          GIT_ALLOW_PROTOCOL: '',
         },
       });
       return result.stdout;

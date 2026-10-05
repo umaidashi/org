@@ -1,0 +1,21 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-repo.test.ts:
+(pass) Sandbox exports committed regular files, excluding environment and untracked data [84.12ms]
+(pass) Sandbox repo export cancels before starting Git [0.45ms]
+AssertionError: Missing expected rejection.
+ generatedMessage: false,
+     actual: undefined,
+   expected: undefined,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at innerFail (node:assert:36:27)
+      at expectsError (node:assert:425:14)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+(fail) Sandbox repo export refuses missing partial-clone blobs without fetching them [254.93ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [379.00ms]

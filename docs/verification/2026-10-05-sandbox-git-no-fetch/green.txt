@@ -1,0 +1,10 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-repo.test.ts:
+(pass) Sandbox exports committed regular files, excluding environment and untracked data [80.83ms]
+(pass) Sandbox repo export cancels before starting Git [0.68ms]
+(pass) Sandbox repo export refuses missing partial-clone blobs without fetching them [189.01ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 1 file. [293.00ms]
