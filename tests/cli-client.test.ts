@@ -106,6 +106,11 @@ test('normal CLI uses daemon for Agent Task Room and Event without opening clien
       '{"task":"investigate"}',
     ]);
     assert.deepEqual(json(['event', 'get', String(event.id)]), event);
+    const audit = run(['audit', 'list', '--json']);
+    const logs = run(['logs', '--json']);
+    assert.equal(logs.status, 0, logs.stderr);
+    assert.equal(audit.status, 0, audit.stderr);
+    assert.deepEqual(JSON.parse(logs.stdout), JSON.parse(audit.stdout));
     const malformed = run(['room', 'create', 'x', '--type', 'direct']);
     assert.equal(malformed.status, 2);
     assert.equal(existsSync(other), false);

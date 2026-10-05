@@ -10,13 +10,13 @@ import { SqliteTaskProvider } from '../tasks/sqlite.js';
 import { SqliteEventBus } from '../events/sqlite.js';
 import { validateCapabilities } from '../agents/domain.js';
 import { applyPermissionApproval } from './service.js';
-import { buildWorkflowAudit } from '../audit/workflows.js';
-import { buildTaskExecutionAudit } from '../audit/tasks.js';
-import { buildAudit } from '../audit/domain.js';
+import { collectAudit } from '../audit/service.js';
+import { selectAuditLogs, type LogFilter } from '../audit/logs.js';
 export type ApprovalCommand = { readonly db: string; readonly json: boolean } & (
   | { readonly action: 'request'; readonly input: ApprovalRequestInput }
   | { readonly action: 'get'; readonly id: string }
   | { readonly action: 'list' | 'audit' }
+  | { readonly action: 'logs'; readonly filter: LogFilter }
   | { readonly action: 'decide'; readonly id: string; readonly input: ApprovalDecisionInput }
   | { readonly action: 'apply'; readonly id: string; readonly actor: string }
 );
@@ -44,10 +44,11 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
       'input-digest': { type: 'string' },
       'request-id': { type: 'string' },
       effect: { type: 'string' },
+      limit: { type: 'string' },
     },
   });
   const [noun, action, target, ...extra] = parsed.positionals;
-  if (extra.length || !['approval', 'audit'].includes(noun ?? ''))
+  if (extra.length || !['approval', 'audit', 'logs'].includes(noun ?? ''))
     throw new Error('Expected approval or audit command');
   const db = required(
       parsed.values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db'),
@@ -55,19 +56,37 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
     ),
     base = { db, json: parsed.values.json ?? false };
   const allowed =
-    noun === 'audit'
-      ? []
-      : action === 'request-workflow'
-        ? ['key', 'actor', 'host', 'input-digest', 'request-id', 'effect', 'task', 'event']
-        : action === 'request'
-          ? ['key', 'actor', 'capability', 'expected-revision', 'task', 'event']
-          : action === 'decide'
-            ? ['actor', 'decision', 'reason']
-            : action === 'apply'
-              ? ['actor']
-              : [];
+    noun === 'logs'
+      ? ['task', 'event', 'limit']
+      : noun === 'audit'
+        ? []
+        : action === 'request-workflow'
+          ? ['key', 'actor', 'host', 'input-digest', 'request-id', 'effect', 'task', 'event']
+          : action === 'request'
+            ? ['key', 'actor', 'capability', 'expected-revision', 'task', 'event']
+            : action === 'decide'
+              ? ['actor', 'decision', 'reason']
+              : action === 'apply'
+                ? ['actor']
+                : [];
   for (const key of Object.keys(parsed.values))
     if (!['db', 'json', ...allowed].includes(key)) throw new Error(`Unexpected --${key}`);
+  if (noun === 'logs') {
+    if (action !== undefined) throw new Error('Unexpected logs argument');
+    const value = parsed.values.limit ?? '100';
+    if (!/^[1-9][0-9]*$/.test(value)) throw new Error('Invalid --limit');
+    const filter: LogFilter = {
+      limit: Number(value),
+      ...(parsed.values.task === undefined
+        ? {}
+        : { taskId: required(parsed.values.task, '--task') }),
+      ...(parsed.values.event === undefined
+        ? {}
+        : { eventId: required(parsed.values.event, '--event') }),
+    };
+    selectAuditLogs([], filter);
+    return { ...base, action: 'logs', filter };
+  }
   if (noun === 'audit') {
     if (action !== 'list' || target !== undefined) throw new Error('Expected audit list');
     return { ...base, action: 'audit' };
@@ -190,16 +209,15 @@ export function runApprovalCommand(command: ApprovalCommand, output: (line: stri
           new Date().toISOString(),
         );
         break;
+      case 'logs':
       case 'audit': {
         agents = new SqliteAgentRepository(command.db);
         const tasks = new SqliteTaskProvider(command.db);
         try {
           const events = new SqliteEventBus(command.db);
           try {
-            result = buildAudit(store.list(), agents.capabilityHistory(), [
-              ...tasks.list().flatMap((task) => buildTaskExecutionAudit(tasks.history(task.id))),
-              ...buildWorkflowAudit(events.list()),
-            ]);
+            const records = collectAudit(store, agents, tasks, events);
+            result = command.action === 'logs' ? selectAuditLogs(records, command.filter) : records;
           } finally {
             events.close();
           }

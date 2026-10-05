@@ -856,3 +856,10 @@
 - Keychain Adapter未module REDとWorkflow apiKeyKeychain未対応REDを確認。未知actor/referenceはOS lookup前拒否、grant copy、値/output/timeout上限、秘密env非継承、固定エラーのGREEN。Workflow host/AgentはapiKeyEnvとapiKeyKeychainのどちらか一つを選択し、全credential metadataをlookup前検証する。既存invalid-envエラー文言のデグレと型推論を訂正し、関連5件33ms/型/lint/format/AST成功。
 - private一時Keychainだけにrandom fixtureキーを作成し、native解決/別Actorキー/未知・欠損拒否/保存ファイルにplain値なしを確認。実CLI/Workflow HTTPはAPIキーenvなしでhost/Actor専用キーを使用し、Webhook/receiptへ値を出さず成功。自作Keychain削除と既存user search listの一致を確認。既存itemは変更しない。再現用opt-in実機テストを追加した。
 - 最終全検査exit0: 257 pass /  8 skip /  0 fail / Ran 265 tests across 133 files. [49.05s]。型/lint/format/AST成功。実Jev {"subjects": 1356, "missing": 0, "unsure": 0, "reported": 77, "errors": [], "degraded": []}。再現用private Keychain実機テスト1成功314ms、自作Keychain削除/既存search list一致。Final独立レビュー指摘なし、関連4件3files34ms成功。[証拠](verification/2026-10-06-keychain-secret-store/check.txt)。Ruling: grant先行拒否/未知scope/値と例外非漏洩/metadata排他/実OS交換を具体的検証し、Keychain交換をAgent本人認証やphysical隔離の保証とはしない。Next: 残るCLI logs/TUIの監視経路を、既存不変Auditとdaemon公開Portの読取から小さく構成する。
+
+### 2026-10-06 — logsの小さな監視経路
+- 継続依頼に従いKeychain対応c0e7e68をmainへ通常push。pre-push対象commitの全検査・実意味レビューが62.05秒で成功、origin/main一致。
+- [計画](superpowers/plans/2026-10-06-audit-logs.md): 不変Auditを読むlogsを追加し、filterと件数制限をDBなしで検証。全体ゴールとTUIは未完了。
+- RED: 新規UTはmodule未実装、実CLIはlogs未対応exit2。GREEN: 新規UT/実CLI/既存Approval CLI3成功845ms。Audit収集を公開Port注入serviceへ共有し、絞り込み後の末尾件数・入力先行拒否を実装。
+- daemon経由logs/Audit一致・クライアントDB非作成を実CLI3成功992msで確認。全check259成功8skip0失敗267テスト135file47.86秒、tsgo/lint/format251file/AST fixture成功。実jev1365回答warning77/errors・degraded空で完了。[検証](verification/2026-10-06-audit-logs/check.txt)。
+- 独立最終レビューCritical/Importantなし。Minor保留: filter UTに同一Taskかつ異なるEventのfixtureがなく、Event条件除去を検出しない。Reviewerのdaemon実行はsandbox EPERM、上記の許可済み実daemon検証で補完。継続follow/TUIは未完了。Next: daemon公開読取を使うTUI監視の小さなe2e。

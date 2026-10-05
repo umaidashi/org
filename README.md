@@ -496,3 +496,13 @@ AdapterはmacOSの`security find-generic-password`で指定path/service/account�
 専用の一時Keychainと実CLI/HTTPによる再現テストは`ORG_KEYCHAIN_TEST=1 bun --no-env-file test tests/keychain-real.test.ts`です。自作itemだけを作成・削除し、既存itemを変更しません。通常全検査ではこの実機テストはskipします。
 
 grantは信頼済みhost内部の許可です。Keychainへの交換はAgent RPC認証やAgentプロセスの完全なfilesystem/credential隔離を意味しません。Vault、Sandboxへの限定credential注入は未完了です。
+
+## Auditログを監視する
+
+```sh
+bun run start logs --json
+bun run start logs --task TASK_ID --limit 20 --json
+bun run start logs --event EVENT_ID --json
+```
+
+`logs`は`audit list`と同じ不変記録を時系列で読みます。Task/Event指定は完全一致のAND条件です。絞り込み後の最新100件を表示し、`--limit`は1〜1000件を指定できます。通常はdaemonへ接続し、DBを直接読む管理操作には`--direct`を指定します。本文・秘密情報を追加表示する機能ではなく、継続followやTUIは未完了です。

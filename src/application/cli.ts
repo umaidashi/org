@@ -41,6 +41,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org agent report ID --to MANAGER_ID|--clear [--json]
        org approval request|get|list|decide|apply [OPTIONS]
        org audit list [--json]
+       org logs [--task ID] [--event ID] [--limit N] [--json]
        org agent capabilities|capability-history ID [--json]
        org agent reporting-history ID [--json]
        org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
@@ -101,7 +102,7 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
     strict: false,
     options: { db: { type: 'string' } },
   });
-  if (probe.positionals[0] === 'approval' || probe.positionals[0] === 'audit')
+  if (['approval', 'audit', 'logs'].includes(probe.positionals[0] ?? ''))
     return { kind: 'approval', command: parseApprovalCommand(argv) };
   if (probe.positionals[0] === 'workflow')
     return { kind: 'workflow', command: parseWorkflowCommand(argv) };

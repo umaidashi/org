@@ -1,0 +1,6 @@
+RED: audit-logs UT missing module; real CLI logs rejected with exit2 before implementation.
+GREEN: new UT + real CLI + original approval CLI 3pass0fail845ms.
+Real daemon CLI: cli-client 3pass0fail992ms; logs matches Audit and no client-selected DB is created.
+bun run check: exit0; tsgo/Oxlint/Oxfmt/AST fixtures successful; Oxfmt251files; 259pass8skip0fail267tests135files47.86s; jev dry-run nonempty.
+Actual jev: exit0; 1365 answers; warnings77; errors/degraded empty. No credentials/DB/Notion snapshots sent.
+Independent review: Critical0 Important0 Minor1 (Event mismatch fixture missing in filter UT; deferred). New UT/CLI passed; reviewer daemon tests sandbox EPERM, complemented by authorized native daemon tests above.
