@@ -7,7 +7,7 @@ function record(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
 }
 
-test('native daemon approves one invocation then resumes delayed Workflow observation across restart without reinvoking', async () => {
+async function proof(auto: boolean): Promise<void> {
   const home = mkdtempSync('/tmp/org-approved-task-'),
     db = home + '/org.db',
     socket = home + '/org.sock',
@@ -92,6 +92,7 @@ test('native daemon approves one invocation then resumes delayed Workflow observ
         runtime,
         '--workflow-config',
         config,
+        ...(auto ? ['--observe-workflows'] : []),
         '--wake-up',
         '--poll-interval',
         '20',
@@ -363,15 +364,29 @@ test('native daemon approves one invocation then resumes delayed Workflow observ
     await stop();
     await start();
     assert.deepEqual(await entity(['task', 'get', second.id]), blocked);
+    if (auto) {
+      const originalHistory = await run(['task', 'history', second.id]);
+      await Bun.sleep(120);
+      assert.deepEqual(await entity(['task', 'get', second.id]), blocked);
+      assert.deepEqual(await run(['task', 'history', second.id]), originalHistory);
+    }
     assert.equal(invokes, 2);
     delayed = false;
-    const observed = await entity([
-      'task',
-      'observe-workflow',
-      second.id,
-      '--expected-version',
-      String(blocked.version),
-    ]);
+    let observed = auto
+      ? await entity(['task', 'get', second.id])
+      : await entity([
+          'task',
+          'observe-workflow',
+          second.id,
+          '--expected-version',
+          String(blocked.version),
+        ]);
+    const observedDeadline = Date.now() + 5000;
+    while (auto && observed.status !== 'waiting_approval') {
+      assert.ok(Date.now() < observedDeadline, 'Workflow not automatically observed');
+      await Bun.sleep(20);
+      observed = await entity(['task', 'get', second.id]);
+    }
     assert.equal(observed.status, 'waiting_approval');
     assert.ok(Array.isArray(observed.outputArtifacts) && observed.outputArtifacts.length === 1);
     assert.equal(invokes, 2);
@@ -411,4 +426,9 @@ test('native daemon approves one invocation then resumes delayed Workflow observ
     await server.stop(true);
     rmSync(home, { recursive: true, force: true });
   }
-}, 15000);
+}
+test.each([false, true])(
+  'native daemon approves once then observes delayed Workflow auto=%s across restart without reinvoking',
+  proof,
+  15000,
+);

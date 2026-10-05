@@ -45,7 +45,11 @@ export async function observeTaskWorkflow(
       signal?: AbortSignal,
     ): Pick<WorkflowRuntime, 'status'> | Promise<Pick<WorkflowRuntime, 'status'>>;
   },
-  input: { readonly taskId: string; readonly expectedVersion: number },
+  input: {
+    readonly taskId: string;
+    readonly expectedVersion: number;
+    readonly readyOnly?: boolean;
+  },
   save: (bytes: Uint8Array) => Promise<string>,
   now: () => string,
   id: () => string,
@@ -208,6 +212,19 @@ export async function observeTaskWorkflow(
           signal,
         );
   const verified = authorize();
+  if (input.readyOnly) {
+    const execution = await runtime.status(verified.started.payload.executionId as string);
+    authorize();
+    if (signal.aborted) throw new Error('Workflow observation stopped');
+    if (
+      execution.id !== verified.started.payload.executionId ||
+      execution.workflowId !== verified.workflow.id
+    )
+      throw new Error('Workflow execution does not match Task proposal');
+    if (['new', 'running', 'waiting'].includes(execution.status)) return verified.blocked;
+    if (!['success', 'error', 'crashed', 'canceled'].includes(execution.status))
+      throw new Error('Workflow outcome unknown');
+  }
   const running = tasks.update(
     verified.blocked.id,
     { status: 'running' },
@@ -269,4 +286,44 @@ export async function observeTaskWorkflow(
     }
     throw error;
   }
+}
+
+export async function pollTaskWorkflowObservations(
+  tasks: Pick<TaskProvider, 'list' | 'get'>,
+  bus: Pick<EventBus, 'list'>,
+  observe: (id: string, version: number) => Promise<Task>,
+  signal?: AbortSignal,
+): Promise<void> {
+  if (signal?.aborted) return;
+  // ponytail: scan the local journal; use an indexed receipt query when history size matters.
+  const pending = new Set(
+    bus
+      .list()
+      .filter(
+        (e) =>
+          e.type === 'workflow.unconfirmed' &&
+          e.source === 'workflow:n8n' &&
+          e.payload.phase === 'observation',
+      )
+      .map((e) => e.payload.taskId),
+  );
+  const errors: unknown[] = [];
+  for (const candidate of tasks.list({ kind: 'execution_task', status: 'blocked' })) {
+    if (signal?.aborted) return;
+    if (
+      candidate.kind !== 'execution_task' ||
+      candidate.status !== 'blocked' ||
+      !pending.has(candidate.id)
+    )
+      continue;
+    const task = tasks.get(candidate.id);
+    if (task.id !== candidate.id || task.kind !== 'execution_task' || task.status !== 'blocked')
+      continue;
+    try {
+      await observe(task.id, task.version);
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+  if (errors.length) throw new AggregateError(errors, 'Workflow observation polling failed');
 }

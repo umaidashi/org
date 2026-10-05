@@ -2,7 +2,7 @@ import { validateRoomAllowlist } from '../rooms/domain.js';
 import { extractRoomReplyMemories } from '../memory/extraction.js';
 import { jsonMemoryExtractor } from '../memory/extractor.js';
 import { adoptCoordinatorReply } from '../a2a/proposal.js';
-import { observeTaskWorkflow } from '../workflows/task-observe.js';
+import { observeTaskWorkflow, pollTaskWorkflowObservations } from '../workflows/task-observe.js';
 import { SqliteApprovalStore } from '../approvals/sqlite.js';
 import { requestTaskWorkflowApproval } from '../workflows/task-approval.js';
 import { resumeTaskWorkflow } from '../workflows/task-resume.js';
@@ -70,6 +70,7 @@ export interface DaemonCommand {
   readonly consolidationRooms?: readonly string[];
   readonly delegationRooms?: readonly string[];
   readonly extractionRooms?: readonly string[];
+  readonly observeWorkflows?: boolean;
 }
 export function parseDaemonCommand(argv: string[]): DaemonCommand {
   const parsed = parseArgs({
@@ -86,12 +87,18 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       'sandbox-config': { type: 'string' },
       'workflow-config': { type: 'string' },
       'wake-up': { type: 'boolean' },
+      'observe-workflows': { type: 'boolean' },
       'delegation-room': { type: 'string', multiple: true },
       'memory-extraction-room': { type: 'string', multiple: true },
       'memory-consolidation-room': { type: 'string', multiple: true },
     },
   });
   const [noun, action, ...extra] = parsed.positionals;
+  if (
+    parsed.values['observe-workflows'] &&
+    (action !== undefined || parsed.values.once || parsed.values['workflow-config'] === undefined)
+  )
+    throw new Error('--observe-workflows requires configured continuous mode');
   const delegationRooms = parsed.values['delegation-room'];
   const extractionRooms = parsed.values['memory-extraction-room'];
   for (const [flag, ids] of [
@@ -164,6 +171,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       ? {}
       : { workflowConfig: resolve(parsed.values['workflow-config']) }),
     wakeUp: parsed.values['wake-up'] ?? false,
+    observeWorkflows: parsed.values['observe-workflows'] ?? false,
     db,
     json: parsed.values.json ?? false,
     socket,
@@ -190,6 +198,7 @@ function openOperations(
   consolidationRooms: readonly string[] = [],
   delegationRooms: readonly string[] = [],
   extractionRooms: readonly string[] = [],
+  observeWorkflows = false,
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -477,6 +486,27 @@ function openOperations(
             : undefined,
       );
     };
+    const observe = (
+      taskId: string,
+      expectedVersion: number,
+      signal = workflowController.signal,
+      readyOnly = false,
+    ) => {
+      if (!workflow) throw new Error('Workflow host config missing');
+      return observeTaskWorkflow(
+        taskProvider,
+        agentRepository,
+        roomRepository,
+        approvalStore,
+        eventBus,
+        workflow,
+        { taskId, expectedVersion, readyOnly },
+        (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
+        () => new Date().toISOString(),
+        randomUUID,
+        signal,
+      );
+    };
     return {
       dispatch: () => {
         pollSchedules(scheduleRepository, eventBus, () => Date.now());
@@ -503,6 +533,13 @@ function openOperations(
       ...(wakeUp || workflow !== undefined
         ? {
             wakeUp: async (signal?: AbortSignal) => {
+              if (observeWorkflows)
+                await pollTaskWorkflowObservations(
+                  taskProvider,
+                  eventBus,
+                  (taskId, version) => observe(taskId, version, signal, true),
+                  signal,
+                );
               if (workflow)
                 await pollWorkflowDeliveries(
                   eventBus,
@@ -553,20 +590,7 @@ function openOperations(
           activateRoom: activate,
           runTask: execute,
           observeTaskWorkflow: (taskId, expectedVersion) => {
-            if (!workflow) throw new Error('Workflow host config missing');
-            return observeTaskWorkflow(
-              taskProvider,
-              agentRepository,
-              roomRepository,
-              approvalStore,
-              eventBus,
-              workflow,
-              { taskId, expectedVersion },
-              (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
-              () => new Date().toISOString(),
-              randomUUID,
-              workflowController.signal,
-            );
+            return observe(taskId, expectedVersion);
           },
           resumeTaskWorkflow: (taskId, approvalId, expectedVersion) => {
             if (!workflow) throw new Error('Workflow host config missing');
@@ -679,6 +703,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
           command.consolidationRooms,
           command.delegationRooms,
           command.extractionRooms,
+          command.observeWorkflows,
         );
       });
     } finally {

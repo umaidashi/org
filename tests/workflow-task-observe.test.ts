@@ -7,6 +7,7 @@ import { createRoom, createMessage } from '../src/rooms/domain.js';
 import { createEvent, type Event } from '../src/events/domain.js';
 import type { TaskHistory } from '../src/tasks/port.js';
 import { observeTaskWorkflow } from '../src/workflows/task-observe.js';
+import type { WorkflowStatus } from '../src/workflows/port.js';
 
 test('pending Workflow observation validates execution chain before key lookup and uses status only after latest Task CAS', async () => {
   const task = changeTask(
@@ -87,7 +88,10 @@ test('pending Workflow observation validates execution chain before key lookup a
   let resolutions = 0,
     reads = 0,
     retarget = false;
-  const run = () =>
+  let executionStatus: WorkflowStatus = 'success';
+  let returnedId = '14',
+    statusRetarget = false;
+  const run = (readyOnly = false) =>
     observeTaskWorkflow(
       {
         get: () => current,
@@ -135,10 +139,14 @@ test('pending Workflow observation validates execution chain before key lookup a
           if (retarget) current = changeTask(blocked, { title: 'changed' }, '4');
           return {
             status: async (executionId) => {
-              assert.equal(current.status, 'running');
+              assert.ok(
+                current.status === 'running' || (readyOnly && current.status === 'blocked'),
+              );
               assert.equal(executionId, '14');
               reads++;
-              return { id: '14', workflowId: 'flow', status: 'success' as const };
+              if (statusRetarget)
+                current = changeTask(blocked, { title: 'changed during status' }, '4');
+              return { id: returnedId, workflowId: 'flow', status: executionStatus };
             },
           };
         },
@@ -146,7 +154,7 @@ test('pending Workflow observation validates execution chain before key lookup a
           throw new Error('Unexpected write factory');
         },
       },
-      { taskId: 't', expectedVersion: blocked.version },
+      { taskId: 't', expectedVersion: blocked.version, readyOnly },
       async () => 'org://artifacts/proof',
       () => '4',
       () => 'artifact',
@@ -185,6 +193,24 @@ test('pending Workflow observation validates execution chain before key lookup a
   assert.equal(reads, 0);
   retarget = false;
   current = blocked;
+  executionStatus = 'waiting';
+  assert.deepEqual(await run(true), blocked);
+  assert.equal(history.length, 2);
+  assert.equal(events.size, 3);
+  assert.equal(reads, 1);
+  statusRetarget = true;
+  await assert.rejects(() => run(true));
+  current = blocked;
+  statusRetarget = false;
+  returnedId = 'foreign';
+  await assert.rejects(() => run(true), /match/);
+  returnedId = '14';
+  executionStatus = 'unknown';
+  await assert.rejects(() => run(true), /unknown/);
+  assert.deepEqual(current, blocked);
+  assert.equal(history.length, 2);
+  reads = 0;
+  executionStatus = 'success';
   const result = await run();
   assert.equal(result.status, 'waiting_approval');
   assert.equal(result.outputArtifacts.length, 1);

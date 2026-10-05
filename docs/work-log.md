@@ -1031,3 +1031,8 @@
 - Memory自動抽出5930efdはmainへ通常push成功82.14秒。refresh REDは未export1fail39ms、最小service GREEN1UT24ms、native direct/daemon HTTP fixture込み2成功0fail1.02秒。fixtureのid narrowing/Task nullable型を修正して静的検査を再実行する。外部へのmutationはなし。
 - 全check325成功12skip0fail337tests169files67.64秒、型/lint/format/AST/dry-run非空。実jev1699対象warning110/missing・unsure0/errors・degraded空。validator失敗候補はnative無効ID入力と既存reader guardを照合。[証拠](verification/2026-10-06-linear-work-item-refresh/check.txt)。独立最終review中。
 - 独立最終review Critical/Importantなし。Minor保留: READMEにterminal WorkItem不変の明記なし（既存domainは拒否、guardは保持）。Ruling: 実Linear認証はkey未設定で未検証、外部write/自動同期/terminal再開はこの明示refreshの対象外として未完了を維持。review sandboxのdaemon readiness timeoutはparent実CLI2成功と区別し、全check/jevはparent実行結果を証拠にする。再reviewなし。
+
+### 2026-10-06 — 起動済みWorkflowのstatus-only polling
+- Notion Securityを再取得し実行境界/承認/Auditを照合。[設計・計画](superpowers/plans/2026-10-06-workflow-status-poll.md)。Ruling: 明示daemon opt-in、既存blocked/観測不確定receiptだけ。未起動Approvalは除外、新invoke/Runtime turnなし。pendingは一回読取で履歴を増やさず、terminalは既存observerの再認可/CAS/Artifactへ。全履歴scanの上限は既存local journalと同じ、一般retry/業務Workflowは未完了。
+- Linear refresh b474a60はmain通常push成功85.04秒。Workflow polling RED: pending readyOnly未対応でUT5秒timeout/daemon flag不明2fail、selector未export1fail31ms。既存observerにstatus-only先行読取を追加、pendingはTask/history/Event不変、manual待機は維持。selector/cancel/error/flag含むDBなし9成功41ms。native manual/auto両modeを再実行する。
+- native manual/auto両mode2成功0fail6.28秒、pending across restartのTask/history不変とsuccess後Artifact、一回invoke維持を確認。Ruling: 一件の資格情報/権限異常で別Taskの観測を止めないよう個別継続・最後にAggregateErrorへ。後続Task未観測のRED1fail31msを確認して修正、既存単一例外fixtureも集約された原因を検査する形へ訂正する。readyOnly読取中変更/foreign execution/unknownの拒否もUT成功。

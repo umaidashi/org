@@ -89,3 +89,18 @@ test('Memory extraction Room opt-in rejects duplicate or malformed IDs and requi
   ])
     assert.throws(() => parseDaemonCommand(args));
 });
+
+test('Workflow status observation opt-in requires configured continuous mode', () => {
+  assert.equal(
+    parseDaemonCommand(['daemon', '--workflow-config', '/tmp/workflow.json', '--observe-workflows'])
+      .observeWorkflows,
+    true,
+  );
+  assert.equal(parseDaemonCommand(['daemon']).observeWorkflows, false);
+  for (const args of [
+    ['daemon', '--observe-workflows'],
+    ['daemon', '--once', '--observe-workflows'],
+    ['daemon', 'status', '--workflow-config', '/tmp/workflow.json', '--observe-workflows'],
+  ])
+    assert.throws(() => parseDaemonCommand(args));
+});

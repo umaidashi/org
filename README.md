@@ -572,7 +572,7 @@ bun run start task get TASK_ID --json
 bun run start task observe-workflow TASK_ID --expected-version VERSION --json
 ```
 
-観測再開はdaemon専用で、保存済みexecutionのstatusだけを読み、invokeしません。現在のTask/version/owner/capability/dependency、原本Messageとreceipt、host/Agent scopeを照合し、write/irreversibleは元のhuman Approvalも再確認します。成功を検証するとArtifactを保存して結果レビュー待ちへ戻り、まだ不明ならblockedを保持します。daemon再起動でも自動再送しません。自動poll・一般retry・Artifact保存失敗からの復旧は未完了です。
+観測再開はdaemon専用で、保存済みexecutionのstatusだけを読み、invokeしません。現在のTask/version/owner/capability/dependency、原本Messageとreceipt、host/Agent scopeを照合し、write/irreversibleは元のhuman Approvalも再確認します。成功を検証するとArtifactを保存して結果レビュー待ちへ戻り、まだ不明ならblockedを保持します。daemon再起動でも自動再送しません。`daemon --workflow-config PATH --observe-workflows`を明示すると、起動済み・観測不確定のblocked Executionだけをstatus-onlyで自動観測します。pendingはTask/historyを増やさず、完了後は同じ再認可とArtifact保存を通します。未起動Approval待ちは対象外です。一件の観測エラーでも他Taskを観測し、最後にpoll失敗を報告します。一般retry・Artifact保存失敗からの復旧は未完了です。
 
 
 ## Room原本からMemoryを抽出する
