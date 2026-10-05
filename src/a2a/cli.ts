@@ -4,6 +4,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { isA2AType, isJsonValue } from './domain.js';
 import type { A2AInput } from './domain.js';
+import { adoptDelegationProposal } from './proposal.js';
 import { listA2AMessages, sendA2AMessage } from './service.js';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
@@ -14,6 +15,7 @@ export type A2ACommand = {
   readonly roomId: string;
 } & (
   | { readonly action: 'send'; readonly input: A2AInput }
+  | { readonly action: 'adopt'; readonly messageId: string }
   | { readonly action: 'list' }
   | { readonly action: 'get'; readonly id: string }
 );
@@ -29,6 +31,7 @@ export function parseA2ACommand(argv: string[]): A2ACommand {
     options: {
       db: { type: 'string' },
       json: { type: 'boolean' },
+      message: { type: 'string' },
       from: { type: 'string' },
       to: { type: 'string' },
       type: { type: 'string' },
@@ -48,13 +51,17 @@ export function parseA2ACommand(argv: string[]): A2ACommand {
   const allowed =
     action === 'send'
       ? ['db', 'json', 'from', 'to', 'type', 'payload', 'task', 'correlation', 'reply-to']
-      : ['db', 'json'];
+      : action === 'adopt'
+        ? ['db', 'json', 'message']
+        : ['db', 'json'];
   for (const key of Object.keys(parsed.values))
     if (!allowed.includes(key)) throw new Error(`Unexpected --${key}`);
   if (action === 'get') return { ...base, action, id: required(id, 'Message ID') };
   if (id !== undefined) throw new Error('Unexpected A2A argument');
+  if (action === 'adopt')
+    return { ...base, action, messageId: required(parsed.values.message, 'Message ID') };
   if (action === 'list') return { ...base, action };
-  if (action !== 'send') throw new Error('Expected a2a send|get|list');
+  if (action !== 'send') throw new Error('Expected a2a send|adopt|get|list');
   const type = parsed.values.type;
   if (!isA2AType(type)) throw new Error('Invalid A2A type');
   const payload: unknown = JSON.parse(required(parsed.values.payload, 'payload'));
@@ -86,7 +93,13 @@ export function runA2ACommand(command: A2ACommand, output: (line: string) => voi
   try {
     tasks = new SqliteTaskProvider(command.db);
     let result: unknown;
-    if (command.action === 'send') {
+    if (command.action === 'adopt') {
+      agents = new SqliteAgentRepository(command.db);
+      result = adoptDelegationProposal(rooms, agents, tasks, {
+        roomId: command.roomId,
+        messageId: command.messageId,
+      });
+    } else if (command.action === 'send') {
       agents = new SqliteAgentRepository(command.db);
       result = sendA2AMessage(rooms, agents, tasks, command.roomId, command.input, {
         id: randomUUID(),

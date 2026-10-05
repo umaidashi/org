@@ -507,6 +507,14 @@ bun run start logs --event EVENT_ID --json
 
 `logs`は`audit list`と同じ不変記録を時系列で読みます。Task/Event指定は完全一致のAND条件です。絞り込み後の最新100件を表示し、`--limit`は1〜1000件を指定できます。通常はdaemonへ接続し、DBを直接読む管理操作には`--direct`を指定します。本文・秘密情報を追加表示する機能ではなく、継続followやTUIは未完了です。
 
+## Coordinatorの委譲proposal採用
+
+```sh
+bun run start a2a adopt ROOM_ID --message COORDINATOR_MESSAGE_ID --json
+```
+
+Coordinatorの原本Messageにある厳密JSON `{"version":1,"tool":"a2a","type":"delegate","to":"SPECIALIST_ID","payload":{"objective":"調査内容"}}`を、local adminが明示採用します。送信者・Room・Task・相関IDはhostが固定し、直属の参加専門AgentとCoordinatorのread/write/delegate権限を確認します。原本参照を持つtyped delegateを一度だけ保存し、同じ原本の再採用は同じ結果を返します。`--wake-up` daemonが既存の委譲Task実行・結果通知・人間レビューへ接続します。自動proposal採用・本人認証・一般tool loopは未完了です。
+
 ## daemonの監視TUI
 
 ```sh

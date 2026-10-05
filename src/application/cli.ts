@@ -54,7 +54,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org sandbox cancel TASK_ID
        org workflow run|status|cancel|list|history [OPTIONS]
        org schedule create|list|get|enable|disable [OPTIONS]
-       org a2a send|get|list [OPTIONS]
+       org a2a send|adopt|get|list [OPTIONS]
        org memory capture|extract|consolidate|consolidations|get|list|search|invalidate [OPTIONS]
        org session start|send|resume|reply|stop|get|list|history [OPTIONS]
        org task observe-workflow ID --expected-version N

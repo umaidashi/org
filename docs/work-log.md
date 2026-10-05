@@ -942,3 +942,12 @@
 - 実PTY: native Runtime一turn後のidle Session件数、日本語Room title、r更新/q終了、cursor/alternate-screen復元を確認。初回private fixtureはagent_message欠落でIncomplete Codex turn、fixture訂正後成功。自作daemon停止済み。live running遷移のPTYはまだ未検証、複数状態はDBなしUT。[証拠](verification/2026-10-06-tui-session-summary/check.txt)。
 - 独立最終review Important1: 実UUIDと長い日本語名で80列表示時にSession状態が見切れる。80列fixtureでRED1failを確認し、状態件数を行先頭へ移して全4状態を優先表示する。Minorなし、再reviewせず一修正pass。実jev初回1552対象missing/unsure0、errors/degraded空、warning97。renderの見出し/代表行claimは具体的assertを確認し、既存TTY失敗経路候補は過去実PTY証拠と今回nonTTY/read failureで照合。
 - Important修正後7UT25ms、全check293成功8skip0fail301tests156files57.17秒、実jev1553対象missing/unsure0/errors/degraded空/warning97。修正後実PTYも80列で4状態件数が見え、q復元/自作daemon停止成功。一般状態streaming/本人認証/Task操作は未完了。Next: Coordinatorの原本返信を厳密なA2A委譲proposalとして採用し、専門Agent実行へつなぐ最小e2eを設計する。
+
+### 2026-10-06 — Coordinator原本から専門Agentへの委譲
+- Notion Agent/組織/A2Aを再取得しCoordinator方式・必要な専門Agentだけ起動・typed delegateを照合。[設計・計画](superpowers/plans/2026-10-06-coordinator-delegation-proposal.md)。
+- Ruling: 最初はlocal adminの明示採用に限定し、from/Room/Task/correlationを原本から固定、直属専門Agentだけ許可する。既存wake-up/ExecutionTask/結果reviewへ接続し、自動tool loop/本人認証は完成扱いしない。既存capability/reporting変更raceは先行検査の制約を保持し、分散認可保証は後続。
+- TUI abcfae4をmainへ通常push成功、commit対象pre-push全検査/実jev/公開検査71.09秒。新規proposal parser/service module未実装と実CLI --message未対応のREDを確認。
+- GREEN: strict JSON/64KiB/Coordinator原本/直属宛先/3capability/原本URI/安定ID/全Message一致のreplayと競合回復を実装、DBなし4UT27ms。native daemon実CLIはAgent create --json非対応というfixture誤りを訂正して、5件1.49秒でCoordinator原本→typed adoption→専門Agent ExecutionTask→human review decision→再起動no duplicate成功。
+- 初回staticはunknown objectのRecord代入でtsgo失敗、record type guardへ訂正。初回全checkはCLI entityの戻り値型がidのみ推論されたためtsgo失敗、Record<string,unknown>&{id:string}を明示。全ゲート再実行中。実Claude Max Coordinator＋専門Agentfixtureも検証中、成功は未記載。
+- 固定コード全check298成功8skip0fail306tests158files58.80秒、型/lint/format/AST/dry-run非空成功。実jev1579対象missing/unsure0/errors/degraded空/warning97。実Claude Max OAuth Coordinatorの原本生成→専門Agentfixture実行→human review decision→再起動no duplicate成功。全専門Agent実LLM実行とは扱わない。native tools無効、業務外部書込みなし、自作daemon/private DB削除済み。[証拠](verification/2026-10-06-coordinator-delegation-proposal/check.txt)。独立最終review中。
+- 独立最終review Critical/Important/Minorなし。Reviewer環境では4UT成功、CLIはsandboxのlisten EPERM（初回は5秒timeout）で未検証。製品REDとはせず、許可済み実daemon e2e/全suite成功を根拠にする。Ruling: jevの新規proposal指摘なし。Next: 明示Room opt-inで、人間へのCoordinator返信だけをboundedに自動adoptするdaemon経路を設計し、手動採用から一段進める。一般tool loop/外部業務一周は未完了。

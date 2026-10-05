@@ -1,0 +1,8 @@
+RED: proposal module missing; actual CLI --message unsupported exit2.
+GREEN:4 DB-free UT27ms; strict parser/host binding/caps/direct reportsTo/source immutable/stable replay/full evidence comparison/storage error/concurrent exact insert.
+Native daemon CLI e2e + UT5pass0fail1.49s: human input->Coordinator proposal->typed adoption->specialist ExecutionTask waiting_approval->human review decision->restart original/replay/no duplicate. Initial fixture mistakenly supplied --json to Agent create; corrected to existing API.
+Actual Claude Max OAuth Coordinator generated original strict proposal; specialist Runtime fixture execution/human review/restart no duplicate PASS. Tools/MCP/slash disabled by existing safe driver; no API key required; no business external writes. Owned daemon/private DB removed. Specialist was fixture, not live LLM.
+Initial static tsgo object-to-Record rejected; added record guard. Initial fullcheck entity return type inferred only id; fixed explicit Record&id. No full success claimed for those runs.
+Actual Jev exit0:1579subjects97warnings;missing/unsure0;errors/degraded empty. Only public code/rules, no Notion snapshot/private proof/DB/credential.
+Full check exit0:298pass8skip0fail306tests158files58.80s;tsgo/Oxlint/Oxfmt/AST nonempty;Jev dry-run nonempty.
+Independent final review: no Critical/Important/Minor. Reviewer sandbox run4UTpass; CLI socket EPERM under sandbox, not product RED. Authorized implementer native CLI/full suite evidence above passed. No rereview.
