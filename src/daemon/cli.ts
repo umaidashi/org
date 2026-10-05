@@ -353,7 +353,12 @@ function openOperations(
                 await pollWorkflowDeliveries(
                   eventBus,
                   journal,
-                  { ...workflow, workflows: new Set(workflow.workflows.map((w) => w.id)) },
+                  {
+                    ...workflow,
+                    workflows: new Set(
+                      workflow.workflows.filter((w) => w.effect === 'read_only').map((w) => w.id),
+                    ),
+                  },
                   () => new Date().toISOString(),
                   signal,
                 );

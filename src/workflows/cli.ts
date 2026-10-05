@@ -1,3 +1,6 @@
+import { createApprovalRequest } from '../approvals/domain.js';
+import { SqliteApprovalStore } from '../approvals/sqlite.js';
+import { invokeApprovedWorkflow } from './approved.js';
 import { EnvironmentSecretStore } from '../secrets/environment.js';
 import type { SecretStore } from '../secrets/port.js';
 import { parseArgs } from 'node:util';
@@ -11,7 +14,9 @@ import { N8nWorkflowRuntime } from './n8n.js';
 import { invokeWorkflow, observeWorkflow } from './service.js';
 export type WorkflowCommand = { readonly db: string; readonly json: boolean } & (
   | {
-      readonly action: 'run';
+      readonly action: 'run' | 'request-approval';
+      readonly actor: string | null;
+      readonly approvalId: string | null;
       readonly target: string;
       readonly key: string;
       readonly input: JsonObject;
@@ -32,6 +37,8 @@ export function parseWorkflowCommand(argv: string[]): WorkflowCommand {
       config: { type: 'string' },
       key: { type: 'string' },
       input: { type: 'string' },
+      approval: { type: 'string' },
+      actor: { type: 'string' },
     },
   });
   const [noun, action, target, ...extra] = parsed.positionals;
@@ -42,6 +49,8 @@ export function parseWorkflowCommand(argv: string[]): WorkflowCommand {
   const base = { db, json: parsed.values.json ?? false };
   if (action === 'list' || action === 'history') {
     if (
+      parsed.values.approval !== undefined ||
+      parsed.values.actor !== undefined ||
       parsed.values.config !== undefined ||
       parsed.values.key !== undefined ||
       parsed.values.input !== undefined ||
@@ -54,11 +63,20 @@ export function parseWorkflowCommand(argv: string[]): WorkflowCommand {
     throw new Error('Workflow target and --config required');
   const config = resolve(parsed.values.config);
   if (action === 'status' || action === 'cancel') {
-    if (parsed.values.key !== undefined || parsed.values.input !== undefined)
+    if (
+      parsed.values.key !== undefined ||
+      parsed.values.input !== undefined ||
+      parsed.values.approval !== undefined ||
+      parsed.values.actor !== undefined
+    )
       throw new Error('Unexpected Workflow observation options');
     return { ...base, action, target, config };
   }
-  if (action !== 'run' || !parsed.values.key?.trim() || parsed.values.key.length > 128)
+  if (
+    !['run', 'request-approval'].includes(action ?? '') ||
+    !parsed.values.key?.trim() ||
+    parsed.values.key.length > 128
+  )
     throw new Error('Workflow run requires --key (1–128 characters)');
   const raw = parsed.values.input ?? '{}';
   if (Buffer.byteLength(raw) > 1048576) throw new Error('Workflow input size limit');
@@ -68,7 +86,16 @@ export function parseWorkflowCommand(argv: string[]): WorkflowCommand {
   } catch {
     throw new Error('Workflow --input requires JSON object');
   }
-  return { ...base, action, target, config, key: parsed.values.key, input };
+  if (action !== 'run' && action !== 'request-approval') throw new Error('Invalid Workflow action');
+  const actor = parsed.values.actor ?? null,
+    approvalId = parsed.values.approval ?? null;
+  if ((actor !== null && !actor.trim()) || (approvalId !== null && !approvalId.trim()))
+    throw new Error('Invalid Workflow Approval options');
+  if (action === 'request-approval' && (actor === null || approvalId !== null))
+    throw new Error('Workflow request-approval requires --actor and no --approval');
+  if (action === 'run' && (actor === null) !== (approvalId === null))
+    throw new Error('Workflow approval requires both --actor and --approval');
+  return { ...base, action, target, config, key: parsed.values.key, input, actor, approvalId };
 }
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -93,16 +120,23 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
     !Array.isArray(value.workflows)
   )
     throw new Error('Invalid Workflow host config');
-  const workflows = value.workflows.map((workflow: unknown) => {
-    if (
-      !record(workflow) ||
-      Object.keys(workflow).some((key) => !['id', 'path'].includes(key)) ||
-      typeof workflow.id !== 'string' ||
-      typeof workflow.path !== 'string'
-    )
-      throw new Error('Invalid Workflow allowlist');
-    return { id: workflow.id, path: workflow.path };
-  });
+  const workflows = value.workflows.map(
+    (
+      workflow: unknown,
+    ): { id: string; path: string; effect: 'read_only' | 'write' | 'irreversible' } => {
+      if (
+        !record(workflow) ||
+        Object.keys(workflow).some((key) => !['id', 'path', 'effect'].includes(key)) ||
+        typeof workflow.id !== 'string' ||
+        typeof workflow.path !== 'string'
+      )
+        throw new Error('Invalid Workflow allowlist');
+      const effect: unknown = workflow.effect ?? 'read_only';
+      if (effect !== 'read_only' && effect !== 'write' && effect !== 'irreversible')
+        throw new Error('Invalid Workflow effect');
+      return { id: workflow.id, path: workflow.path, effect };
+    },
+  );
   const rawScopes: unknown = value.agentScopes ?? [];
   if (!Array.isArray(rawScopes)) throw new Error('Invalid Agent Workflow scopes');
   const agentIds = new Set<string>();
@@ -122,7 +156,8 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
       !Array.isArray(scope.workflowIds) ||
       scope.workflowIds.some(
         (id: unknown) =>
-          typeof id !== 'string' || !workflows.some((workflow) => workflow.id === id),
+          typeof id !== 'string' ||
+          !workflows.some((workflow) => workflow.id === id && workflow.effect === 'read_only'),
       )
     )
       throw new Error('Invalid Agent Workflow scope');
@@ -160,7 +195,8 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
         (candidate) => candidate.agentId === agentId && candidate.workflowIds.includes(workflowId),
       );
       const workflow = workflows.find((candidate) => candidate.id === workflowId);
-      if (!scope || !workflow) throw new Error('Agent Workflow scope denied');
+      if (!scope || !workflow || workflow.effect !== 'read_only')
+        throw new Error('Agent Workflow scope denied');
       const scopedStore =
         secrets ??
         new EnvironmentSecretStore([
@@ -184,7 +220,10 @@ export async function runWorkflowCommand(
 ): Promise<void> {
   const configured =
     'config' in command ? await configuredWorkflowRuntime(command.config) : undefined;
-  if (command.action === 'run' && !configured?.workflows.some((w) => w.id === command.target))
+  if (
+    (command.action === 'run' || command.action === 'request-approval') &&
+    !configured?.workflows.some((w) => w.id === command.target)
+  )
     throw new Error('Workflow is not allowed');
   const bus = new SqliteEventBus(command.db);
   try {
@@ -202,24 +241,83 @@ export async function runWorkflowCommand(
         );
     } else {
       if (!configured) throw new Error('Workflow host config missing');
-      if (command.action === 'run') {
+      if (command.action === 'run' || command.action === 'request-approval') {
         const id =
           'workflow:request:' +
           createHash('sha256')
             .update(JSON.stringify([configured.host, command.target, command.key]))
             .digest('hex');
-        result = await invokeWorkflow(
-          bus,
-          configured.runtime,
-          {
-            workflowId: command.target,
-            host: configured.host,
-            input: command.input,
-            inputDigest: createHash('sha256').update(JSON.stringify(command.input)).digest('hex'),
-          },
-          { id, createdAt: new Date().toISOString() },
-          () => new Date().toISOString(),
-        );
+        const workflow = configured.workflows.find((w) => w.id === command.target);
+        if (!workflow) throw new Error('Workflow is not allowed');
+        const at = () => new Date().toISOString();
+        if (command.action === 'request-approval') {
+          if (workflow.effect === 'read_only' || command.actor === null)
+            throw new Error('Workflow operation Approval requires write effect and actor');
+          const store = new SqliteApprovalStore(command.db);
+          try {
+            result = store.requestOnce(
+              createApprovalRequest(
+                {
+                  key: id,
+                  actor: { kind: 'human', id: command.actor },
+                  taskId: null,
+                  eventId: null,
+                  operation: {
+                    kind: 'workflow_invocation',
+                    host: configured.host,
+                    workflowId: workflow.id,
+                    inputDigest: createHash('sha256')
+                      .update(JSON.stringify(command.input))
+                      .digest('hex'),
+                    requestId: id,
+                    effect: workflow.effect,
+                  },
+                },
+                { id: randomUUID(), createdAt: at() },
+              ),
+            );
+          } finally {
+            store.close();
+          }
+        } else if (workflow.effect !== 'read_only') {
+          if (command.approvalId === null || command.actor === null)
+            throw new Error('Workflow write operation requires human Approval');
+          const store = new SqliteApprovalStore(command.db);
+          try {
+            result = await invokeApprovedWorkflow(
+              store,
+              bus,
+              configured.runtime,
+              {
+                workflowId: workflow.id,
+                host: configured.host,
+                input: command.input,
+                effect: workflow.effect,
+                approvalId: command.approvalId,
+                actor: { kind: 'human', id: command.actor },
+              },
+              { id, createdAt: at() },
+              at,
+            );
+          } finally {
+            store.close();
+          }
+        } else {
+          if (command.approvalId !== null || command.actor !== null)
+            throw new Error('Unexpected Approval for read_only Workflow');
+          result = await invokeWorkflow(
+            bus,
+            configured.runtime,
+            {
+              workflowId: command.target,
+              host: configured.host,
+              input: command.input,
+              inputDigest: createHash('sha256').update(JSON.stringify(command.input)).digest('hex'),
+            },
+            { id, createdAt: at() },
+            at,
+          );
+        }
       } else
         result = await observeWorkflow(
           bus,

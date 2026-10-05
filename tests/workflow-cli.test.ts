@@ -231,6 +231,32 @@ test('daemon Workflow subscription invokes once and preserves delivery after res
     await run(['daemon', 'stop', '--socket', socket, '--json']);
     await exited;
     assert.equal(invokes, 1);
+    writeFileSync(
+      config,
+      JSON.stringify({
+        baseUrl: `http://127.0.0.1:${server.port}`,
+        apiKeyEnv: 'ORG_WORKFLOW_KEY',
+        workflows: [{ id: 'build', path: 'check', effect: 'write' }],
+      }),
+    );
+    await run(['--direct', 'event', 'publish', 'manual.write', '--source', 'manual', '--json']);
+    await launch();
+    let blocked: unknown;
+    const blockedDeadline = Date.now() + 5000;
+    do {
+      blocked = await run(['daemon', 'deliveries', '--socket', socket, '--json']);
+      if (Array.isArray(blocked) && blocked.length === 2) break;
+      await Bun.sleep(20);
+    } while (Date.now() < blockedDeadline);
+    assert.ok(Array.isArray(blocked) && blocked.length === 2);
+    assert.ok(
+      blocked.some(
+        (v: unknown) => record(v) && v.status === 'deferred' && v.workflowRequestId === undefined,
+      ),
+    );
+    await run(['daemon', 'stop', '--socket', socket, '--json']);
+    await exited;
+    assert.equal(invokes, 1);
   } finally {
     daemon?.kill('SIGTERM');
     await exited;

@@ -1,0 +1,8 @@
+bun run check exit 0: 248 pass, 7 skip, 0 fail; 255 tests across 125 files, 51.36s.
+Type/lint/format/AST passed. Actual Jev exit 0: 1302 subjects, missing/unsure 0, warnings 77, errors/degraded [].
+Final independent reviewer: no Critical/Important/Minor findings; 7 related tests succeeded, diff check passed.
+Native CLI fixture: missing/pending/mismatched Approval rejected before invoke; exact human Approval invokes once; duplicate denied; no credential/input output in receipts.
+Actual daemon: host write Workflow subscription deferred without invoke. Agent read_only scope cannot reference host write Workflow before credential lookup.
+Official n8n 2.41.6 local reference under declared write contract: missing/pending/mismatched Approval denied; exact human Approval invokes once; status verifies success; duplicate denied; receipt retains Approval link.
+Disposable loopback container stopped. Reference nodes do not call business services. Host effect contract is not automatic node-side-effect inspection. Native CLI actor is locally declared; no RPC identity authentication claimed.
+Known limits: Agent write Approval wait/resume, long Workflow persistence/resume, business outputs, general irreversible tools and detailed execution Audit projection remain incomplete.

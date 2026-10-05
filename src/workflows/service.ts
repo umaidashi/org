@@ -11,10 +11,10 @@ export async function invokeWorkflow(
     readonly inputDigest: string;
     readonly context?: {
       readonly actorId: string;
-      readonly taskId: string;
-      readonly proposalRef: string;
-      readonly approvalId: null;
-      readonly effect: 'read_only';
+      readonly taskId: string | null;
+      readonly proposalRef: string | null;
+      readonly approvalId: string | null;
+      readonly effect: 'read_only' | 'write' | 'irreversible';
     };
   },
   identity: Identity,

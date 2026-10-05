@@ -419,7 +419,7 @@ Workflow設定にAgent別の許可と専用キー参照を追加します。
 
 成功した実行IDとWorkflowを照合してTask成果物を保存します。`task artifacts TASK_ID --json`でIDを取得し、`task artifact-content TASK_ID --artifact ARTIFACT_ID --json`で内容とintegrityを確認できます。人間のTask review後、設定済みMemory policyに従ってMemoryへ記録します。実Claude Maxとローカル公式n8nで一周と再起動後no replayを検証済みです。
 
-read_onlyは信頼済みhostが宣言する契約で、n8n各nodeの副作用を自動判定する機能ではありません。書込みWorkflowは未対応です。Workflow実行段階は30秒で制限し、停止時にはHTTPを中断します。不明な結果はclaimを保持して再送しません。長時間Workflowの非同期再開、業務出力、操作Approval、Agent RPC認証は未完了です。
+read_onlyは信頼済みhostが宣言する契約で、n8n各nodeの副作用を自動判定する機能ではありません。Agent Taskからの書込みWorkflowは未対応です。手動CLIには下記の操作Approval経路があります。Workflow実行段階は30秒で制限し、停止時にはHTTPを中断します。不明な結果はclaimを保持して再送しません。長時間Workflowの非同期再開、業務出力、操作Approval、Agent RPC認証は未完了です。
 
 ## Workflow操作の承認記録
 
@@ -434,4 +434,18 @@ bun run start audit list --json
 
 `--effect`はwriteまたはirreversibleです。hostは資格情報・query・fragmentを含まない正規URL、入力digestは小文字64桁です。要求と判断は不変保存し、同keyの別操作や判断の変更を拒否します。入力本文・APIキーは保存しません。Workflow承認を`approval apply`へ渡してAgent権限を変更することもできません。
 
-この段階では承認の保存・表示・監査までです。承認済み書込みをnative Workflow実行へ接続する処理は未完了で、Agent TaskのWorkflow scopeはread_onlyだけを許可します。人間actorはローカル管理者の申告値です。
+手動CLIのnative Workflow実行は以下の承認照合へ接続しています。Agent TaskのWorkflow scopeはread_onlyだけを許可します。人間actorはローカル管理者の申告値です。
+
+## 承認済みWorkflowを実行する
+
+host設定のWorkflowへ`"effect":"write"`または`"effect":"irreversible"`を指定すると、run前に人間の操作Approvalが必須になります。effect省略は既存のread_only契約です。宣言はhost管理者の責任で、node副作用を自動検査するものではありません。
+
+```sh
+bun run start workflow request-approval WORKFLOW_ID --key operation-001 --input '{}' --config ./workflow.local.json --actor founder --json
+bun run start approval decide APPROVAL_ID --actor founder --decision approve --reason '対象と入力を確認した' --json
+bun run start workflow run WORKFLOW_ID --key operation-001 --input '{}' --config ./workflow.local.json --approval APPROVAL_ID --actor founder --json
+```
+
+request-approvalはrunと同じ引数から入力digestと一回の実行IDを生成します。host・Workflow・入力・key・effect・要求actorが違えばrunを拒否します。承認済みでもclaim後の再実行は拒否し、通信失敗はunconfirmedとして残します。原入力・キーはreceiptへ保存せず、承認IDと実行IDで追跡します。Approval要求自体が外部Workflowを起動することはありません。
+
+write/irreversible Workflowは自動Event配送でdeferredとなり、Agentのread_only scopeには登録できません。Agent Taskの承認待ち・再開、長時間Workflow、actor認証は後続です。

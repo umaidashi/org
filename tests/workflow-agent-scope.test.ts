@@ -80,6 +80,24 @@ test('Agent scope rejects write contracts, duplicate actors and unknown Workflow
         /Workflow scope/,
       );
     }
+    writeFileSync(
+      path,
+      JSON.stringify({
+        baseUrl: 'http://127.0.0.1:1',
+        apiKeyEnv: 'ORG_HOST_KEY',
+        workflows: [{ id: 'flow', path: 'check', effect: 'write' }],
+        agentScopes: [scope],
+      }),
+    );
+    await assert.rejects(
+      configuredWorkflowRuntime(path, {
+        getSecret: () => {
+          reads++;
+          return 'fixture-key';
+        },
+      }),
+      /Workflow scope/,
+    );
     assert.equal(reads, 0);
   } finally {
     rmSync(home, { recursive: true, force: true });

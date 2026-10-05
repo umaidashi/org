@@ -821,3 +821,11 @@
 - main0ee4681通常push成功、pre-pushのpush対象tree全検査/実Jev/公開検査63.09秒。Next計画を保存しfeat/workflow-operation-approvalへ移行。[計画](superpowers/plans/2026-10-06-workflow-operation-approval.md)。
 - Workflow操作のdomain要求は現状unsupportedでRED、CLI request-workflowも未対応のRED。既存Approvalへhost/Workflow ID/input digest/request ID/effectを固定するkindを追加。SQLite保存・人間判断・不変Audit、同key変更/二重判断/権限変更への流用拒否のGREEN。関連5件794ms、型/lint/format/AST成功。外部書込みexecutorはこの単位では接続しない。
 - 最終全検査と実Jev exit0。246 pass /  7 skip /  0 fail / Ran 253 tests across 123 files. [48.37s]。Jev {"subjects": 1292, "missing": 0, "unsure": 0, "reported": 77, "errors": [], "degraded": []}。Final独立レビュー指摘なし、関連10件9files837msを独立成功。[証拠](verification/2026-10-06-workflow-operation-approval/check.txt)。Ruling: failure-path warningはdomain拒否・SQLite衝突・実CLI apply拒否の具体的検証で判断し、全失敗経路の網羅保証はしない。Next: native invokeで承認内容完全一致と一回claimを強制する。
+
+## 2026-10-06 承認済みWorkflowのnative実行（進行中）
+
+- main9acba49通常push成功、pre-push全検査/実Jev/公開検査59.50秒。[計画](superpowers/plans/2026-10-06-approved-workflow-invocation.md)に従いfeat/approved-workflow-invocationへ移行。
+- native承認サービス未module RED、request-approval CLI未対応REDを確認。domainで再検証済み人間approveと要求host/Workflow/input digest/実行ID/effect/actorの完全一致をinvoke前に強制。claim後のunknown failureも承認参照を保つ。CLIから同じ引数で要求を作成し、--approval/--actorで実行する。
+- 初回fixtureはWebhookに加えてn8n Adapterが照合に使う公開GETを実装しておらず失敗。公開APIだけキーを検査するfixtureへ訂正し、型のeffect union推論も訂正。関連6件成功1095ms、型/lint/format/AST成功。host契約にeffectを追加し、write WorkflowはAgent read_only scopeと自動Event購読へ流入させない。
+- Event配送テストの初回assertは既存optional workflowRequestIdをnullと誤認して失敗。undefinedの既存契約へ訂正。全248成功/7skip/0fail、255件125files51.36秒、型/lint/format/AST成功。実Jev1302対象missing/unsure0、errors/degradedなし、warning77。Final独立レビュー指摘なし、関連7件を独立成功。[証拠](verification/2026-10-06-approved-workflow-invocation/check.txt)。
+- 公式固定n8nのローカル参照Workflowをwrite契約として宣言し、未承認/pending/入力変更を拒否→完全一致human approveで一度invoke→status success→duplicate拒否を実CLI/API成功。業務サービス書込みなし、自作container停止。Ruling: failure-path候補はscope/actor/input/host/ID不一致・duplicate・unknown failureと実daemon拒否を検証し、一般認証/副作用検出の保証とはしない。Next: 既存Workflow receiptを詳細Auditへ投影し、操作承認と開始/不明結果をCLIで追跡可能にする。
