@@ -3,7 +3,13 @@ import {
   refreshLinearWorkItem,
   linearWorkItemIssueId,
 } from '../linear/import.js';
-import { readLinearIssue, validateLinearIssueId } from '../linear/read.js';
+import {
+  readLinearIssue,
+  validateLinearIssueId,
+  listLinearIssues,
+  validateLinearIssueListInput,
+} from '../linear/read.js';
+import type { LinearIssueListInput } from '../linear/read.js';
 import { EnvironmentSecretStore } from '../secrets/environment.js';
 import { readSandboxArtifact } from '../sandbox/artifact.js';
 import { randomUUID } from 'node:crypto';
@@ -20,6 +26,7 @@ import { assignTask } from './service.js';
 import { SqliteTaskProvider } from './sqlite.js';
 
 type TaskAction =
+  | { kind: 'linear-list'; input: LinearIssueListInput }
   | { kind: 'linear-get'; id: string }
   | { kind: 'import-linear'; id: string }
   | { kind: 'refresh-linear'; id: string; expectedVersion: number }
@@ -81,6 +88,9 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       decision: { type: 'string' },
       reason: { type: 'string' },
       'expected-version': { type: 'string' },
+      team: { type: 'string' },
+      limit: { type: 'string' },
+      after: { type: 'string' },
       artifact: { type: 'string' },
       uri: { type: 'string' },
       direction: { type: 'string' },
@@ -93,6 +103,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const [command, action, id, ...extra] = positionals;
   if (command !== 'task' || extra.length > 0) throw new Error('Unexpected task argument');
   const allowed: Record<string, readonly string[]> = {
+    'linear-list': ['team', 'limit', 'after'],
     'linear-get': [],
     'import-linear': [],
     'refresh-linear': ['expected-version'],
@@ -133,6 +144,16 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const db = values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('The database path must not be empty');
   const common = { db, json: values.json ?? false };
+  if (action === 'linear-list') {
+    if (id !== undefined) throw new Error('Unexpected Linear list argument');
+    const input = {
+      team: required(values.team, '--team'),
+      limit: values.limit === undefined ? 20 : priority(values.limit),
+      ...(values.after === undefined ? {} : { after: values.after }),
+    };
+    validateLinearIssueListInput(input);
+    return { ...common, action: { kind: 'linear-list', input } };
+  }
   if (action === 'linear-get' || action === 'import-linear')
     return {
       ...common,
@@ -304,11 +325,14 @@ export async function runTaskCommand(
   command: TaskCommand,
   output: (line: string) => void = console.log,
 ): Promise<void> {
-  if (command.action.kind === 'linear-get') {
+  if (command.action.kind === 'linear-get' || command.action.kind === 'linear-list') {
     const secrets = new EnvironmentSecretStore([
       { actorId: 'linear:host', reference: 'linear:read', environmentVariable: 'LINEAR_API_KEY' },
     ]);
-    const result = await readLinearIssue(fetch, secrets, command.action.id);
+    const result =
+      command.action.kind === 'linear-list'
+        ? await listLinearIssues(fetch, secrets, command.action.input)
+        : await readLinearIssue(fetch, secrets, command.action.id);
     output(JSON.stringify(result, null, command.json ? undefined : 2));
     return;
   }

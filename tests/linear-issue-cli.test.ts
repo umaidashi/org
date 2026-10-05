@@ -19,7 +19,7 @@ test('Linear CLI read preserves existing issue without creating database and rej
   writeFileSync(response, JSON.stringify({ data: { issue } }));
   writeFileSync(
     preload,
-    `import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';const original=globalThis.fetch;globalThis.fetch=async(input,init)=>{if(String(input)==='https://api.linear.app/graphql'){assert.equal(init.method,'POST');assert.equal(new Headers(init.headers).get('Authorization'),'fixture-linear-key');assert.ok(['ORG-1',${JSON.stringify(issue.id)}].includes(JSON.parse(init.body).variables.id));return new Response(readFileSync(${JSON.stringify(response)},'utf8'),{headers:{'Content-Type':'application/json'}});}return original(input,init);};`,
+    `import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';const original=globalThis.fetch;globalThis.fetch=async(input,init)=>{if(String(input)==='https://api.linear.app/graphql'){assert.equal(init.method,'POST');assert.equal(new Headers(init.headers).get('Authorization'),'fixture-linear-key');const body=JSON.parse(init.body);if(body.query.startsWith('query KernelIssues(')){assert.deepEqual(body.variables,{team:'ORG',first:1,after:null});return Response.json({data:{issues:{nodes:[JSON.parse(readFileSync(${JSON.stringify(response)},'utf8')).data.issue],pageInfo:{hasNextPage:false,endCursor:'cursor'}}}});}assert.ok(['ORG-1',${JSON.stringify(issue.id)}].includes(body.variables.id));return new Response(readFileSync(${JSON.stringify(response)},'utf8'),{headers:{'Content-Type':'application/json'}});}return original(input,init);};`,
   );
   const env = { ...process.env, LINEAR_API_KEY: 'fixture-linear-key' };
   const run = (args: string[], key = 'fixture-linear-key') =>
@@ -35,6 +35,10 @@ test('Linear CLI read preserves existing issue without creating database and rej
       ['task', 'linear-get', 'https://evil.test'],
       ['task', 'linear-get', 'ORG-1', 'extra'],
       ['task', 'linear-get', 'ORG-1', '--owner', 'a'],
+      ['task', 'linear-list'],
+      ['task', 'linear-list', '--team', 'org'],
+      ['task', 'linear-list', '--team', 'ORG', '--limit', '51'],
+      ['task', 'linear-list', '--team', 'ORG', '--after', ''],
       ['task', 'refresh-linear', 'ORG-1', '--expected-version', '0'],
       ['task', 'refresh-linear', 'linear:issue:' + issue.id],
       ['task', 'refresh-linear', 'linear:issue:' + issue.id, '--expected-version', '-1'],
@@ -48,6 +52,29 @@ test('Linear CLI read preserves existing issue without creating database and rej
     assert.deepEqual(JSON.parse(direct.stdout), { provider: 'linear', ...issue });
     assert.doesNotMatch(direct.stdout, /fixture-linear-key/);
     assert.equal(existsSync(db), false);
+    const directList = run([
+      '--direct',
+      'task',
+      'linear-list',
+      '--team',
+      'ORG',
+      '--limit',
+      '1',
+      '--json',
+    ]);
+    assert.equal(directList.status, 0, directList.stderr);
+    assert.deepEqual(JSON.parse(directList.stdout), {
+      provider: 'linear',
+      nodes: [{ provider: 'linear', ...issue }],
+      pageInfo: { hasNextPage: false, endCursor: 'cursor' },
+    });
+    assert.equal(existsSync(db), false);
+    const missingList = run(
+      ['--direct', 'task', 'linear-list', '--team', 'ORG', '--limit', '1'],
+      '',
+    );
+    assert.equal(missingList.status, 1);
+    assert.doesNotMatch(missingList.stderr, /fixture-linear-key/);
     daemon = spawn(
       process.execPath,
       ['--no-env-file', '--preload', preload, cli, '--db', db, 'daemon', '--socket', socket],
@@ -66,6 +93,19 @@ test('Linear CLI read preserves existing issue without creating database and rej
     const remote = run(['--socket', socket, 'task', 'linear-get', 'ORG-1', '--json']);
     assert.equal(remote.status, 0, remote.stderr);
     assert.deepEqual(JSON.parse(remote.stdout), JSON.parse(direct.stdout));
+    const remoteList = run([
+      '--socket',
+      socket,
+      'task',
+      'linear-list',
+      '--team',
+      'ORG',
+      '--limit',
+      '1',
+      '--json',
+    ]);
+    assert.equal(remoteList.status, 0, remoteList.stderr);
+    assert.deepEqual(JSON.parse(remoteList.stdout), JSON.parse(directList.stdout));
     const imported = run(['--socket', socket, 'task', 'import-linear', 'ORG-1', '--json']);
     assert.equal(imported.status, 0, imported.stderr);
     const work: unknown = JSON.parse(imported.stdout);

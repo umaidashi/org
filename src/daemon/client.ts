@@ -40,7 +40,7 @@ export async function requestApplication(socket: string, argv: string[]): Promis
             command.kind === 'workflow' ||
               command.kind === 'knowledge' ||
               (command.kind === 'task' &&
-                ['linear-get', 'import-linear', 'refresh-linear'].includes(
+                ['linear-get', 'linear-list', 'import-linear', 'refresh-linear'].includes(
                   command.command.action.kind,
                 )) ||
               (command.kind === 'event' && command.command.action === 'import-github')

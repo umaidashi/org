@@ -1045,3 +1045,9 @@
 - 実Claudeコードproof6成功2skip0fail143.50秒（実経路143.45秒）、GENERATED_BUN_CHECK_OK。HTTP fixture Issue→WorkItem Task Room→Chief/専門Agent→parent付き内部Execution→取得生成test/独立Dockerassert/隔離生成物bun check→review→Memory→same providerSession→restart成功。WorkItem/history1件/reimport不変を確認。全check331成功12skip0fail343tests170files83.04秒、型/lint/format/AST/dry-run非空。独立最終review Critical/Important/Minorなし。Ruling: 実Linear認証/業務Issue/変更先repo/Draft PRは未完了、実Claude/Docker/check/jevはparentの実行結果で判断しreviewer再実行なし。既存算術実機経路の回帰確認中。
 - 要件表の古い未完了記述を現コード/実検証へ照合し訂正: Event daemon配送、Artifact回収、Workflow Agent Approval再開、実コードfixture、Linear read/import/明示refresh。外部write/自動同期/実業務一周と認証の未完了は保持。候補技術の追加や未指定の外部操作は実装完了に含めない。
 - 既存実Claude算術回帰6成功2skip0fail80.04秒、same providerSession/review/Memory/restart保持。全実検証終了、fixture cleanup済み、private debug生成なし。実jev1713対象warning110/missing・unsure0/errors・degraded空。新たなhelperやProduct層は追加せず、既存経路を結線して実物確認した。
+
+### 2026-10-06 — Linear既存Issueの限定一覧
+- WorkItem e2e488ba16はmain通常push成功91.38秒。現在repoの既存open Issueは0件（read-only gh確認）、NOTION_API_KEY/LINEAR_API_KEYは値非表示で未設定再確認。既存test:unit86成功0fail123msで高速UTを再利用する。
+- [設計・計画](superpowers/plans/2026-10-06-linear-issue-list.md)。公式pagination/filtering/SDK schemaを参照。Ruling: Team必須/上限50/明示cursorの一ページだけ、全件取得/新SDK/DB/外部writeなし。実API keyなしのためHTTP fixtureのみ。TaskProvider全機能、実業務一周は未完了。
+- RED: list service exportなし1fail39ms、実CLI --team未対応exit2（DB作成前）。既存request/DTO parserを共有し、read旧2UT/refresh/list4成功37ms。新fixture init.body文字列narrowing不足をlintが検出して修正。公式schemaのTeamFilter.key:StringComparatorも確認。native direct/daemon一覧と既存get/import/refreshのHTTP fixtureを実行する。新partial/oversize/Team/重複/next cursor/終端を先行検証し、automatic paginationは行わない。
+- native HTTP fixture direct/daemon一覧＋既存get/import/refresh4成功0fail1.30秒。DBなし読取/不正引数/キー不足の非漏洩を確認。list固有の第二page serialization、重複ID/別Team/同cursor拒否と終端を追加し旧reader込み3UT成功36ms。全check/実jev実行中。
