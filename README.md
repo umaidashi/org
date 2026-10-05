@@ -515,3 +515,11 @@ bun run start --socket /absolute/path/org.sock tui
 ```
 
 実端末からAgent/Room/Task/Eventの一覧を1秒間隔で読みます。`r`で更新、`q`またはCtrl-Cで終了します。日本語の端末幅とresizeを扱い、終了・接続失敗時にraw modeと画面を復元します。各一覧は最大10行を取得し、画面高さを4種類に配分して代表行を表示します（5行未満では全見出しを表示できません）。表示はID/name/title/role/type/statusのみです。終了は進行中読取のtimeout（最大約5秒）まで待つ場合があります。daemon接続専用で`--direct`には対応しません。会話入力やTask操作はまだTUIに接続していません。
+
+## Roomで対話する
+
+```sh
+bun run start tui --room ROOM_ID --human founder
+```
+
+active Roomに参加するhuman IDを指定して、日本語の一行入力をRoom Messageとして保存します。直近20件を表示し、`/refresh`または空行で再読込、`/quit`・Ctrl-C・EOFで終了します。失敗した送信を自動再試行しません。表示本文は各2048文字で制御文字を除去します。Human IDはローカルの宣言的identityで、本人認証ではありません。Agentの自動返信にはdaemonの既存opt-in wake-up設定が必要です。自動refresh/streamingやTask操作は未完了です。

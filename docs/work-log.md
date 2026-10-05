@@ -872,3 +872,11 @@
 - 独立レビューImportant: 多数Agent/RoomでTask/Eventが画面外になる。再現UTの失敗を確認後、全4見出しと代表行へ高さを配分しGREEN5件163ms。再レビューせず一度のfix passで全検査。
 - Minor保留: object型の応答で必須id等が欠けても空行で表示する。監視応答の必須field検証は追加改善項目。終了時は進行中readのtimeoutまで最大約5秒待つ点、5行未満で全見出しが入らない点をREADMEへ明記。
 - fix後の実PTYでも11Agent/10Room/1Task/1Eventの全見出し・代表行を確認、自作daemon停止。全check264成功8skip0失敗272テスト137file54.96秒、型/lint/format255file/AST成功。実jev1386回答warning79/errors・degraded空。[検証](verification/2026-10-06-tui-monitor/check.txt)。Next: TUIから指定Roomへの明示human入力と原本Message保存を小さく検証。
+
+### 2026-10-06 — TUI Room対話
+- 監視TUI 1a621e9をmainへ通常push。対象commitのpre-push全検査・実jev64.86秒で成功。
+- [計画](superpowers/plans/2026-10-06-tui-room-chat.md): 指定active Room参加humanによる明示一行入力を公開room sendへ一回保存。宣言的identityを本人認証とは扱わない。Runtime起動は既存opt-in daemonの責任。
+- RED: chat module未実装。GREEN: strict mode parse/参加者とactive Room/unknown shape/20件bounded表示/control除去/64KiB上限/literal送信/no retryを最小UT3件37msで検証。
+- 実PTY日本語「日本語で相談 --socket literal」を入力、別公開CLIで原本Messageが完全一致1件と確認。/refresh再読込・/quit終了後canonical/echo復元。最初の別CLI読取はsandbox socket制約で失敗、許可済みローカル実行で成功（application不具合と扱わない）。
+- 独立レビューImportant: readline close後のbuffer済み次行を書込む。注入Port/AsyncIterable loopへ切出し、停止中の2行送信REDを確認後、loop先頭とawait後の停止guardで1回書込・refresh/promptなしGREEN。再レビューせず一度のfix pass、Critical/Minorなし。
+- 全check268成功8skip0失敗276テスト138file51.11秒、型/lint/format258file/AST成功。実jev1418回答warning80/errors・degraded空。修正後実PTYでも原本1件を再表示/quit、自作daemon停止。[検証](verification/2026-10-06-tui-room-chat/check.txt)。Next: Agent提案に対するWorkflow操作ApprovalをTask/version/Messageに拘束する小さなnative serviceから承認待ち・再開へ接続。

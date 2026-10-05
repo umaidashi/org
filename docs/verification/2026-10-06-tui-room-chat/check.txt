@@ -1,0 +1,8 @@
+RED: chat module missing. Independent Important reproduced: buffered two lines caused2 sends after stop during first send.
+GREEN: strict mode/Room participation/literal/no retry/bounded history/controls/input bytes/stop guard;5tests2files162ms.
+Real PTY: Japanese literal line including --socket saved once; separate native CLI read exactly1 matching immutable Message. /refresh read and /quit/Ctrl-C restored canonical/echo. After fix, reopen original and /quit, Message still1. Owned daemon stopped.
+Initial separate CLI read failed due sandbox socket restriction; authorized native rerun successful.
+bun run check exit0: tsgo/Oxlint/Oxfmt258files/AST fixtures;268pass8skip0fail276tests138files51.11s; nonempty jev dry-run.
+Actual jev exit0:1418answers80warnings/errors/degraded empty.
+Final independent review Critical0 Important1 fixed by RED/GREEN and full suite; Minor0. No rereview.
+Human identity declaration only; no automatic streaming or Task operation UI; existing daemon opt-in controls Runtime activation.

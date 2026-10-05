@@ -41,7 +41,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org agent report ID --to MANAGER_ID|--clear [--json]
        org approval request|get|list|decide|apply [OPTIONS]
        org audit list [--json]
-       org tui [--socket PATH]
+       org tui [--socket PATH] [--room ID --human ID]
        org logs [--task ID] [--event ID] [--limit N] [--json]
        org agent capabilities|capability-history ID [--json]
        org agent reporting-history ID [--json]
