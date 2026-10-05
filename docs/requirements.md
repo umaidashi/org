@@ -8,10 +8,10 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで177テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで178テストをローカル検証。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAt・optional reportsToを実装。legacy schema/root JSON互換・循環/不存在拒否・同時変更時再検証・不変履歴/rollback・実CLIを検証。optional capabilitiesの既知値/重複/型/コピーとSQLite legacy互換・CLI明示指定を実装。delegateの送信/activation前can_delegateを検証。permissions/memoryPolicyと他Capability境界は未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | reportsToによるChief→専門Agentの関係と変更履歴を保存。can_delegate付きtyped A2A delegateを宛先ownerのExecutionTaskへ冪等生成し、opt-in daemonで自動実行。自律的な委譲指示の生成は未完了 |
-| A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | version付きRoom Message・CLI send/get/listを実装。宛先/Task/返信/correlationを検証。実daemon request→resultと再openを確認。can_delegate付きdelegate→parent/source参照の冪等ExecutionTask→自動実行を実daemonと実Claude Maxで検証。typed result返信と自律委譲指示は後続 |
+| A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | version付きRoom Message・CLI send/get/listを実装。宛先/Task/返信/correlationを検証。実daemon request→resultと再openを確認。can_delegate付きdelegate→parent/source参照の冪等ExecutionTask→自動実行を実daemonと実Claude Maxで検証。Task結果のtyped result/blocker返送とCoordinator通知・snapshot参照検証/返送失敗再試行/再起動重複なしを実daemon/実Maxで確認。自律委譲指示/後続review decision通知は後続 |
 | Room | Direct/Group/Agent/Task、同じAgentの複数Room、参加者・archive | Local SQLiteとCLIを実装。種類別参加者構成・Agent/Task参照・archiveを検証。Human認証は未完了 |
 | Message | Roomごとの永続履歴、replyTo・sender・metadata | 追記専用SQLite履歴とCLI。別プロセス読み直し・同Room返信・sender参加・metadata・archive後拒否・原本UPDATE/DELETE/REPLACE拒否・INSERT失敗後の復旧を検証 |
 | Activation | coordinator既定、直接mention、mention_only/all/rule_based | optional coordinatorId、参加Agent mention検証、coordinator/mention_only/all/typed A2A宛先のpure選択とCLI targetsを実装。通常Agent返信の連鎖/自己起動を抑止。実daemonと旧JSON再openを確認。daemon専用manual activateでSession準備/再利用→Runtime/context返信、返信重複抑止・failureを実subprocessで検証。実Claude Maxでもcoordinatorだけ/Session継続/返信再利用を確認。opt-in daemon pollingでRoom自動wake-up・不変intent/結果・busy延期・中断復旧/no replay・cancel/drainを実processで検証し、実Claude Maxの自動投稿→返信/Session継続も確認。rule_based定義/評価は未完了 |

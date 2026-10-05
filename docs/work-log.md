@@ -545,3 +545,16 @@
 - 全177/177テスト・静的ゲート成功、34.98秒。実Jev906判定missing/unsure0・errors/degradedなし。生成物のfailure-path候補を参照/権限/保存失敗/実CLIのRED-GREENと照合し非阻害。
 - 実Claude MaxでもAPIキー/tokenなしでCoordinatorから専門Agentへのtyped delegate→scoped Memoryだけのmarker→成果物/承認待ち→隔離markerの明示レビュー→再起動後の次delegateを検証。宛先owner/source参照/余分なRoom返信なし/旧成果物保持を含む全boolean成功。raw応答/ローカルpath/資格情報は公開しない。
 - Final: 独立Reviewer Critical/Important/Minorなし。service6+実CLI1計7件も独立成功。Final Ruling: payload専用schema/typed result返送/Agent本人認証は明記された後続範囲、costは現在のTask/Artifact参照とローカル管理者設定に限られること。Next: 委譲元Roomへtyped resultを保存し、結果返送の復旧/重複防止を検証する。
+
+## main公開：typed delegate Task実行
+
+- main51bb239へ通常push成功。全177テスト/実Jev/公開検査pre-push40.19秒。force-pushなし。
+
+## 委譲成果のtyped返送
+
+- [計画](superpowers/plans/2026-10-05-a2a-task-results.md)。既存Task結果/不変Room原本で返送の重複抑止、追加queue/tableなし。必要Port/identity/signalをDI。owner/parent/source整合と過去Task historyのstatus/version/成果物を照合し、偽装返送を拒否。
+- waiting_approval/completed結果をtyped result、成果物なしfailedをblockerで元delegateへのreplyTo/correlation/Task参照を保って保存。payloadは内部TaskとArtifact参照のみ、provider raw errorなし。Task保存と返送を分け、返送障害はTaskをfailedへ戻さず次tickで再試行。
+- UT RED（未export）、CLI RED（返送待ちtimeout）→GREEN。fixtureが返信元参照を渡さず失敗していたため実Adapterと同じ参照を渡して訂正、対象8件成功を実出力で確認。DB障害伝播/偽装結果拒否/failed blocker/返送再試行/停止/再実行なしをUT、実daemonで成果物参照/Coordinator通知/再起動を検証。fixtureの不要quote escapeをOxlintで検出し削除。
+- Ruling: archived原Roomへの返送は延期しTask成果を保持。通知はレビュー可能な結果であり自動承認しない。初回status/versionを不変通知、後続レビューdecision通知は別変更。costは最新レビュー状態をTask側で参照すること。
+- 全178/178・全静的ゲート成功、35.16秒。実Jev911判定missing/unsure0・errors/degradedなし。実Claude Maxの委譲/scoped Memory/成果物/typed result/Coordinator marker応答/明示レビュー/再起動no replayの全boolean成功。[実成否](verification/2026-10-05-a2a-task-results/real-claude-max.txt)。raw応答/認証情報は公開しない。
+- Final: 独立Reviewer Critical/Important/Minorなし。service7+実CLI1計8件も独立成功。Final Ruling: archived返送延期/後続review decision通知/Agent本人認証は今回の明記された制約。Exactly-onceの外部副作用保証は主張せず、返送保存後の再実行抑止を実Room原本で検証。costは後続通知と外部副作用保証が残ること。Next: Schedulerの定期Eventと再起動整合性、続いてSandbox/Permission/Approvalを進める。

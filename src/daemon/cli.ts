@@ -2,7 +2,12 @@ import { pollExecutionTasks } from '../tasks/autonomy.js';
 import { SqliteWakeupJournal } from '../activation/sqlite.js';
 import { pollRoomWakeups, recoverWakeups } from '../activation/poll.js';
 import { activateRoomMessage } from '../activation/service.js';
-import { listA2AMessages, authorizeA2AMessage, delegateA2ATask } from '../a2a/service.js';
+import {
+  listA2AMessages,
+  authorizeA2AMessage,
+  delegateA2ATask,
+  pollDelegationResults,
+} from '../a2a/service.js';
 import { acquireDatabaseLease } from './lease.js';
 import type { DatabaseLease } from './lease.js';
 import { runExecutionTask } from '../tasks/execution.js';
@@ -204,6 +209,13 @@ function openOperations(
                 sessionStore,
                 (agentId, roomId) => runtime.open(agentId, roomId),
                 execute,
+                () => ({ id: randomUUID(), createdAt: new Date().toISOString() }),
+                signal,
+              );
+              await pollDelegationResults(
+                roomRepository,
+                agentRepository,
+                taskProvider,
                 () => ({ id: randomUUID(), createdAt: new Date().toISOString() }),
                 signal,
               );

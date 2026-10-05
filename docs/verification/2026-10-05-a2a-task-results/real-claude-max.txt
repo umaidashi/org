@@ -1,0 +1,1 @@
+{"delegationTaskLinked":true,"recipientOwner":true,"typedResults":true,"coordinatorAcknowledged":true,"resultArtifactReference":true,"scopedMemoryMarker":true,"waitingApproval":true,"oneArtifact":true,"replyLink":true,"claudeSession":true,"reviewCompleted":true,"reviewRecorded":true,"noReplayAfterRestart":true,"preservedArtifact":true}

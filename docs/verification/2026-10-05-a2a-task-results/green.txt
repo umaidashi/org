@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-service.test.ts:
+(pass) A2A service verifies Agent and Task references before writing through the injected Room port [0.99ms]
+(pass) A2A reading leaves ordinary Room messages alone and rejects a malformed reserved envelope [0.14ms]
+(pass) A2A reading validates referenced Tasks instead of trusting arbitrary reserved metadata [0.11ms]
+(pass) A2A reading rejects a reply whose correlation differs from its source [0.13ms]
+(pass) delegate requires an explicit sender capability before persisting Room evidence [0.18ms]
+(pass) typed delegation creates an assigned target Task from immutable source without reassigning an advanced Task [0.41ms]
+(pass) delegation result polling returns staged artifacts once and retries only the Room write after failure [1.43ms]
+
+tests/task-autonomy-cli.test.ts:
+(pass) Event subscription wakes assigned ExecutionTask with scoped Memory and stages one Artifact for explicit review without replay [3792.71ms]
+
+ 8 pass
+ 0 fail
+Ran 8 tests across 2 files. [3.82s]

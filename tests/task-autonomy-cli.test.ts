@@ -17,7 +17,7 @@ test('Event subscription wakes assigned ExecutionTask with scoped Memory and sta
   writeFileSync(count, '');
   writeFileSync(
     driver,
-    `#!${process.execPath}\nimport {appendFileSync} from 'node:fs';const input=JSON.parse(await Bun.stdin.text());const context=JSON.parse(input.instruction);const instruction=JSON.parse(context.instruction);if(!instruction.task.id||!context.memories.some(m=>m.content==='TASK_PRACTICE'))throw new Error('Missing Task or scoped Memory');appendFileSync(${JSON.stringify(count)},'turn\\n');if(input.message.includes('job.fail'))process.exit(1);console.log(JSON.stringify({type:'thread.started',thread_id:'provider'}));console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'Task complete'}}));console.log(JSON.stringify({type:'turn.completed',usage:{}}));\n`,
+    `#!${process.execPath}\nimport {appendFileSync} from 'node:fs';const input=JSON.parse(await Bun.stdin.text());const context=JSON.parse(input.instruction);const instruction=context.instruction?JSON.parse(context.instruction):null;if(instruction?.task){if(!instruction.task.id||!context.memories.some(m=>m.content==='TASK_PRACTICE'))throw new Error('Missing Task or scoped Memory');appendFileSync(${JSON.stringify(count)},'turn\\n');if(input.message.includes('job.fail'))process.exit(1);}else if(!input.message.includes('"type":"result"')&&!input.message.includes('"type":"blocker"'))throw new Error('Expected delegation notification');console.log(JSON.stringify({type:'thread.started',thread_id:'provider'}));console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'Task complete'}}));console.log(JSON.stringify({type:'turn.completed',usage:{}}));\n`,
     { mode: 0o700 },
   );
   writeFileSync(
@@ -315,7 +315,32 @@ test('Event subscription wakes assigned ExecutionTask with scoped Memory and sta
     assert.equal(turns(), 4);
     const sourceMessages = json(['room', 'messages', delegationRoom.id]);
     assert.ok(Array.isArray(sourceMessages));
-    assert.equal(sourceMessages.length, 1);
+    assert.ok(sourceMessages.length >= 1);
+    await wait(() => {
+      const all = json(['a2a', 'list', delegationRoom.id]);
+      assert.ok(Array.isArray(all));
+      return all.some(
+        (message: unknown) =>
+          record(message) && message.type === 'result' && message.replyTo === delegated.id,
+      );
+    });
+    const returned = json(['a2a', 'list', delegationRoom.id]);
+    assert.ok(Array.isArray(returned));
+    const notification: unknown = returned.find(
+      (message: unknown) => record(message) && message.type === 'result',
+    );
+    assert.ok(record(notification) && typeof notification.id === 'string');
+    assert.equal(notification.from, chief);
+    assert.equal(notification.to, coordinator.id);
+    assert.equal(notification.taskId, work.id);
+    assert.ok(record(notification.payload));
+    assert.equal(notification.payload.executionTaskId, delegatedTaskId);
+    assert.deepEqual(notification.payload.outputArtifacts, delegatedTask.outputArtifacts);
+    await wait(() => {
+      const all = json(['room', 'messages', delegationRoom.id]);
+      assert.ok(Array.isArray(all));
+      return all.some((message: unknown) => record(message) && message.replyTo === notification.id);
+    });
     const completed = entity([
       'task',
       'review',
@@ -338,6 +363,7 @@ test('Event subscription wakes assigned ExecutionTask with scoped Memory and sta
     await Bun.sleep(100);
     assert.equal(entity(['task', 'get', delegatedTaskId]).version, completed.version);
     assert.equal(turns(), 4);
+    assert.deepEqual(json(['a2a', 'list', delegationRoom.id]), returned);
   } finally {
     if (daemon) {
       spawnSync(process.execPath, ['--no-env-file', cli, 'daemon', 'stop', '--socket', socket], {

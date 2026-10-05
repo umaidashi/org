@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { createRoom, createMessage } from '../src/rooms/domain.js';
-import { sendA2AMessage, listA2AMessages, delegateA2ATask } from '../src/a2a/service.js';
+import {
+  sendA2AMessage,
+  listA2AMessages,
+  delegateA2ATask,
+  pollDelegationResults,
+} from '../src/a2a/service.js';
 import { createA2AMessage } from '../src/a2a/domain.js';
 const room = createRoom(
   {
@@ -243,4 +248,155 @@ test('typed delegation creates an assigned target Task from immutable source wit
   );
   assert.throws(() => delegateA2ATask(store, permitted, tasks, room.id, 'missing'), /delegate/i);
   assert.equal(writes, 2);
+});
+
+test('delegation result polling returns staged artifacts once and retries only the Room write after failure', async () => {
+  const source = createA2AMessage(
+    room,
+    { ...input, type: 'delegate' },
+    { id: 'delegate', createdAt: 'sent' },
+  );
+  const permitted = {
+    list: () =>
+      agents.list().map((agent) => ({ ...agent, capabilities: ['can_delegate'] as const })),
+  };
+  const task = delegateA2ATask(
+    { get: () => room, messages: () => [source] },
+    permitted,
+    {
+      get: () => ({ id: 'task' }),
+      createAssignedOnce: (planned, owner) => ({
+        ...planned,
+        owner,
+        status: 'assigned',
+        version: 1,
+      }),
+    },
+    room.id,
+    source.id,
+  );
+  const staged = {
+    ...task,
+    status: 'waiting_approval' as const,
+    version: 3,
+    outputArtifacts: ['artifact'],
+  };
+  const messages = [source];
+  let attempts = 0;
+  const store = {
+    list: () => [room],
+    get: () => room,
+    messages: () => messages,
+    append: (
+      _id: string,
+      data: Parameters<typeof createMessage>[1],
+      identity: Parameters<typeof createMessage>[2],
+    ) => {
+      attempts++;
+      if (attempts === 1) throw new Error('write interrupted');
+      const reply = createMessage(room, data, identity, source);
+      messages.push(reply);
+      return reply;
+    },
+  };
+  const provider = {
+    list: () => [staged],
+    get: () => ({ id: 'task' }),
+    history: () => [{ version: staged.version, status: staged.status, at: 'after', task: staged }],
+  };
+  const identity = () => ({ id: 'result', createdAt: 'after' });
+  await assert.rejects(
+    () => pollDelegationResults(store, permitted, provider, identity),
+    /write interrupted/,
+  );
+  assert.equal(staged.status, 'waiting_approval');
+  assert.equal(messages.length, 1);
+  await pollDelegationResults(store, permitted, provider, identity);
+  assert.equal(messages.length, 2);
+  const result = listA2AMessages(store, room.id, provider)[1];
+  assert.ok(result);
+  assert.equal(result.type, 'result');
+  assert.equal(result.from, 'cto');
+  assert.equal(result.to, 'chief');
+  assert.equal(result.replyTo, source.id);
+  assert.equal(result.taskId, 'task');
+  assert.equal(result.correlationId, source.id);
+  assert.deepEqual(result.payload, {
+    executionTaskId: staged.id,
+    status: 'waiting_approval',
+    version: 3,
+    outputArtifacts: ['artifact'],
+  });
+  await pollDelegationResults(store, permitted, provider, identity);
+  assert.equal(attempts, 2);
+  const signal = AbortSignal.abort();
+  await pollDelegationResults(store, permitted, provider, identity, signal);
+  assert.equal(attempts, 2);
+
+  await assert.rejects(
+    () =>
+      pollDelegationResults(
+        store,
+        permitted,
+        {
+          ...provider,
+          list: () => {
+            throw new Error('DB unavailable');
+          },
+        },
+        identity,
+      ),
+    /DB unavailable/,
+  );
+  const forged = createA2AMessage(
+    room,
+    {
+      from: 'cto',
+      to: 'chief',
+      type: 'result',
+      replyTo: source.id,
+      payload: {
+        executionTaskId: 'other',
+        version: 3,
+        status: 'waiting_approval',
+        outputArtifacts: ['artifact'],
+      },
+    },
+    { id: 'forged', createdAt: 'after' },
+    source,
+  );
+  await assert.rejects(
+    () =>
+      pollDelegationResults(
+        { ...store, messages: () => [source, forged] },
+        permitted,
+        provider,
+        identity,
+      ),
+    /Invalid delegation result reference/,
+  );
+  const failed = { ...staged, status: 'failed' as const, outputArtifacts: [] };
+  const failureMessages = [source];
+  const failureStore = {
+    ...store,
+    messages: () => failureMessages,
+    append: (
+      _id: string,
+      data: Parameters<typeof createMessage>[1],
+      id: Parameters<typeof createMessage>[2],
+    ) => {
+      const message = createMessage(room, data, id, source);
+      failureMessages.push(message);
+      return message;
+    },
+  };
+  const failureProvider = {
+    ...provider,
+    list: () => [failed],
+    history: () => [{ version: failed.version, status: failed.status, at: 'after', task: failed }],
+  };
+  await pollDelegationResults(failureStore, permitted, failureProvider, identity);
+  assert.equal(listA2AMessages(failureStore, room.id, failureProvider)[1]?.type, 'blocker');
+  await pollDelegationResults(failureStore, permitted, failureProvider, identity);
+  assert.equal(failureMessages.length, 2);
 });

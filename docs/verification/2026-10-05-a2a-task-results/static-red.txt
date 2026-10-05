@@ -1,0 +1,15 @@
+$ bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+tests/task-autonomy-cli.test.ts:20:524: error eslint(no-useless-escape): Unnecessary escape character '"' help: Replace `\"` with `"`.
+tests/task-autonomy-cli.test.ts:20:530: error eslint(no-useless-escape): Unnecessary escape character '"' help: Replace `\"` with `"`.
+tests/task-autonomy-cli.test.ts:20:533: error eslint(no-useless-escape): Unnecessary escape character '"' help: Replace `\"` with `"`.
+tests/task-autonomy-cli.test.ts:20:541: error eslint(no-useless-escape): Unnecessary escape character '"' help: Replace `\"` with `"`.
+tests/task-autonomy-cli.test.ts:20:572: error eslint(no-useless-escape): Unnecessary escape character '"' help: Replace `\"` with `"`.
+tests/task-autonomy-cli.test.ts:20:578: error eslint(no-useless-escape): Unnecessary escape character '"' help: Replace `\"` with `"`.
+tests/task-autonomy-cli.test.ts:20:581: error eslint(no-useless-escape): Unnecessary escape character '"' help: Replace `\"` with `"`.
+tests/task-autonomy-cli.test.ts:20:590: error eslint(no-useless-escape): Unnecessary escape character '"' help: Replace `\"` with `"`.
+error: script "lint" exited with code 1
+error: script "check:static" exited with code 1
+error: script "check" exited with code 1
