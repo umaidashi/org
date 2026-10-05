@@ -69,11 +69,13 @@ export function buildAudit(
       ? -1
       : a.at > b.at
         ? 1
-        : (a.approvalId ?? a.id) < (b.approvalId ?? b.id)
+        : (a.approvalId ?? a.taskId ?? a.id) < (b.approvalId ?? b.taskId ?? b.id)
           ? -1
-          : (a.approvalId ?? a.id) > (b.approvalId ?? b.id)
+          : (a.approvalId ?? a.taskId ?? a.id) > (b.approvalId ?? b.taskId ?? b.id)
             ? 1
-            : phase(a.result) - phase(b.result),
+            : a.approvalId === null && b.approvalId === null
+              ? 0
+              : phase(a.result) - phase(b.result),
   );
 }
 

@@ -1,0 +1,28 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/audit-domain.test.ts:
+(pass) Audit preserves request-decision-application order when the clock timestamp is identical [0.48ms]
+66 |     [
+67 |       { ...base, id: 'task:task:9', result: 'started' },
+68 |       { ...base, id: 'task:task:10', result: 'succeeded' },
+69 |     ],
+70 |   );
+71 |   assert.deepEqual(
+              ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
++   'succeeded',
+    'started',
+-   'succeeded'
+  ]
+
+      at innerFail (node:assert:36:32)
+      at deepStrictEqual (node:assert:134:14)
+      at <anonymous> (<REPO>/tests/audit-domain.test.ts:71:10)
+(fail) Audit keeps numeric Task history order when version nine and ten share a timestamp [2.04ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [26.00ms]

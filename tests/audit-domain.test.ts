@@ -48,3 +48,28 @@ test('Audit preserves request-decision-application order when the clock timestam
     ['approval', 'approval', 'approval'],
   );
 });
+
+test('Audit keeps numeric Task history order when version nine and ten share a timestamp', () => {
+  const base = {
+    actor: { kind: 'agent' as const, id: 'worker' },
+    taskId: 'task',
+    eventId: null,
+    tool: 'task.execution',
+    inputRef: 'org://tasks/task',
+    outputRef: 'org://tasks/task',
+    at: 'same',
+    approvalId: null,
+  };
+  const entries = buildAudit(
+    [],
+    [],
+    [
+      { ...base, id: 'task:task:9', result: 'started' },
+      { ...base, id: 'task:task:10', result: 'succeeded' },
+    ],
+  );
+  assert.deepEqual(
+    entries.map((entry) => entry.result),
+    ['started', 'succeeded'],
+  );
+});

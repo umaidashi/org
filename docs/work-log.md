@@ -651,3 +651,9 @@
 - 実CLI RED（review後decision待ちtimeout）→daemon wake-upへ接続GREEN。既存結果返送と併存し、decision correlation/declared human actor/Coordinator返信/再起動duplicateなし/Task version不変を確認、既存A2A含む9件3.90秒。Task参照照合を共通関数へまとめ両poll callerへ適用。
 - 最新全205/205・型/lint/format/AST成功40.69秒。実Jev1111判定missing/unsure0、errors/degradedなし。実Claude Maxの委譲→Task RESULT=42 Artifact→人間review→typed decision→Coordinator同Session再開を確認し、再openした原本ArtifactもRESULT=42と照合。生出力はprivate tmpのみ。
 - Final独立Reviewer Critical/Important/Minorなし、関連domain/service/TaskReview SQLite16件を独立成功。Final Ruling: 原本reviewを報告するdecisionでありAgentが承認しない。決定的IDのreceiptで通知のみretry、Task/Artifact再実行なし。原本と成果物の証拠が違えばfail closed。本人認証/外部Approvalと自律tool loopは後続。既存Audit同時刻sortのMinorは次に解消する。
+
+## Audit同時刻順のMinor解消
+
+- [計画](superpowers/plans/2026-10-05-audit-same-time-order.md)。version9開始/version10成功の同timestampが成功→開始になるRED→同Taskをgroupしnative stable sortで原本順を保持GREEN。ID parser/新ordinal/schemaは追加しない。既存Approval phase/Task CLI4件成功。
+- 全206/206・型/lint/format/AST成功38.94秒。実Jev1112判定missing/unsure0、errors/degradedなし。独立Reviewer Critical/Important/Minorなし、関連3件を独立成功。既存defer Minor1解消。Final Ruling: 同Task同timestampだけ原本history順、異timestamp/Approval phaseは既存規則を維持。Next: Memoryの有効期間をContext選択へ接続する。
+- main31a1551通常push成功、pre-push全205テスト/実Jev/公開検査51.26秒。
