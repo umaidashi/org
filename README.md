@@ -455,3 +455,17 @@ write/irreversible Workflowは自動Event配送でdeferredとなり、Agentのre
 `audit list --json`は不変Workflow receiptから、呼出しactor、Task/Event、Approval、入力hash参照、実行ID参照と観測結果を表示します。人間承認の要求・判断と実行を同じApproval IDで追跡でき、同時刻でも要求→判断→claim→開始→観測の順で表示します。
 
 通信中断などの結果不明は`unconfirmed`で、成功/失敗とは断定しません。status/cancelのnative観測者は`{"kind":"system","id":"host:workflow"}`です。Agent Taskの呼出しはAgent、承認済み手動実行は要求したhuman actorを記録します。host識別子は本人認証を意味しません。actor情報を持たない過去receiptには人物を補完せず、`workflow history`で原本を確認します。raw入力や資格情報はAuditへ出しません。
+
+## Roomのrule_based起動
+
+Room作成時に、参加Agentと人間Messageのmetadata条件を指定します。
+
+```sh
+bun run start room create 'Code requests' --type direct --human founder --agent AGENT_ID --activation-policy rule_based --activation-rules '[{"agentId":"AGENT_ID","metadata":{"topic":"code","urgent":true}}]' --json
+bun run start room send ROOM_ID --human founder --content '確認して' --metadata '{"topic":"code","urgent":true}' --json
+bun run start room targets ROOM_ID --message MESSAGE_ID --json
+```
+
+`daemon --wake-up --runtime-config ./runtime.local.json`で条件に一致するMessageを自動起動します。条件はscalarの完全一致で、`1`と`"1"`、nullと欠落は区別します。複数一致はAgentごとに一回だけ起動し、明示mention/A2Aを優先します。Agentの通常返信から暗黙起動しません。
+
+ルールは1〜32件、各条件は1〜16個。参加者外・空条件・非scalar・過大文字列・reserved mentions/a2a・未知fieldを拒否します。ルールはrule_based Roomだけに保存でき、任意コードや正規表現を実行しません。ルールなしの旧rule_based Roomは、暗黙起動を拒否する既存動作を保ちます。

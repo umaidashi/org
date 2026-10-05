@@ -1,0 +1,5 @@
+bun run check exit 0: 252 pass, 7 skip, 0 fail; 259 tests across 128 files, 49.61s.
+Type/lint/format/AST passed. Actual Jev exit 0: 1328 subjects, missing/unsure 0, warnings 78, errors/degraded [].
+Final independent review: no Critical/Important/Minor findings; 24 pure/SQLite tests and one native CLI/daemon fixture passed. Initial sandbox socket startup failed; authorized local socket rerun passed in 2.83s.
+RED pure selector lacked configured rules; RED CLI rejected --activation-rules. GREEN native metadata matching, participating Agent only, human implicit targets, explicit mention precedence, copied policy, strict scalar shape/limits, SQLite reopen, native Runtime fixture reply and restart no replay.
+Notion Room page specifies rule_based enum but no rule shape. This slice defines literal metadata scalar matching; no arbitrary code, regex or LLM evaluation. No actual Max run claimed for this new policy test.

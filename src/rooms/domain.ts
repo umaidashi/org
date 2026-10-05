@@ -4,6 +4,11 @@ export interface Participant {
   readonly kind: 'human' | 'agent';
   readonly id: string;
 }
+export type RuleValue = string | number | boolean | null;
+export interface ActivationRule {
+  readonly agentId: string;
+  readonly metadata: Readonly<Record<string, RuleValue>>;
+}
 export interface Room {
   readonly id: string;
   readonly title: string;
@@ -12,6 +17,7 @@ export interface Room {
   readonly participants: readonly Participant[];
   readonly taskId: string | null;
   readonly coordinatorId?: string;
+  readonly activationRules?: readonly ActivationRule[];
   readonly createdAt: string;
   readonly archivedAt: string | null;
 }
@@ -22,6 +28,7 @@ export interface RoomInput {
   readonly activationPolicy?: ActivationPolicy;
   readonly taskId?: string;
   readonly coordinatorId?: string;
+  readonly activationRules?: readonly ActivationRule[];
 }
 export type JsonValue =
   | null
@@ -55,8 +62,54 @@ function nonempty(value: string): void {
 function sameParticipant(a: Participant, b: Participant): boolean {
   return a.kind === b.kind && a.id === b.id;
 }
+export function validateActivationRules(
+  value: unknown,
+  participants: readonly Participant[],
+): readonly ActivationRule[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 32)
+    throw new Error('Activation Rules require 1–32 entries');
+  return value.map((entry: unknown) => {
+    if (entry === null || typeof entry !== 'object' || Array.isArray(entry))
+      throw new Error('Invalid Activation Rule');
+    const row: Record<string, unknown> = Object.fromEntries(Object.entries(entry));
+    if (
+      Object.keys(row).some((key) => !['agentId', 'metadata'].includes(key)) ||
+      typeof row.agentId !== 'string' ||
+      !participants.some((p) => p.kind === 'agent' && p.id === row.agentId) ||
+      row.metadata === null ||
+      typeof row.metadata !== 'object' ||
+      Array.isArray(row.metadata)
+    )
+      throw new Error('Activation Rule must target a participating Agent and metadata');
+    const conditions: [string, unknown][] = Object.entries(row.metadata);
+    if (conditions.length < 1 || conditions.length > 16)
+      throw new Error('Activation Rule requires 1–16 conditions');
+    const metadata: Record<string, RuleValue> = {};
+    for (const [key, item] of conditions) {
+      if (
+        !key.trim() ||
+        key.length > 64 ||
+        ['a2a', 'mentions', '__proto__'].includes(key) ||
+        !(
+          item === null ||
+          typeof item === 'boolean' ||
+          (typeof item === 'string' && item.length <= 1024) ||
+          (typeof item === 'number' && Number.isFinite(item))
+        )
+      )
+        throw new Error('Invalid Activation Rule condition');
+      metadata[key] = item;
+    }
+    return { agentId: row.agentId, metadata };
+  });
+}
 export function validateRoomInput(input: RoomInput): void {
   nonempty(input.title);
+  if (input.activationRules !== undefined) {
+    if (input.activationPolicy !== 'rule_based')
+      throw new Error('Activation Rules require rule_based policy');
+    validateActivationRules(input.activationRules, input.participants);
+  }
   const keys = new Set<string>();
   for (const participant of input.participants) {
     nonempty(participant.id);
@@ -102,6 +155,9 @@ export function createRoom(input: RoomInput, identity: Identity): Room {
     activationPolicy: input.activationPolicy ?? 'coordinator',
     participants: input.participants.map((p) => ({ ...p })),
     taskId: input.taskId ?? null,
+    ...(input.activationRules === undefined
+      ? {}
+      : { activationRules: validateActivationRules(input.activationRules, input.participants) }),
     archivedAt: null,
     ...(input.coordinatorId === undefined ? {} : { coordinatorId: input.coordinatorId }),
   };

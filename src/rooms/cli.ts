@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
 import { SqliteTaskProvider } from '../tasks/sqlite.js';
 import type { ActivationPolicy, MessageInput, RoomInput, RoomType } from './domain.js';
-import { validateRoomInput } from './domain.js';
+import { validateRoomInput, validateActivationRules } from './domain.js';
 import { registerRoom } from './service.js';
 import { metadataValue, SqliteRoomRepository } from './sqlite.js';
 
@@ -51,6 +51,7 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
       mention: { type: 'string', multiple: true },
       message: { type: 'string' },
       'activation-policy': { type: 'string' },
+      'activation-rules': { type: 'string' },
       human: { type: 'string', multiple: true },
       agent: { type: 'string', multiple: true },
       task: { type: 'string' },
@@ -68,7 +69,17 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
   required(base.db, '--db');
   const allowed =
     action === 'create'
-      ? ['db', 'json', 'type', 'activation-policy', 'human', 'agent', 'task', 'coordinator']
+      ? [
+          'db',
+          'json',
+          'type',
+          'activation-policy',
+          'activation-rules',
+          'human',
+          'agent',
+          'task',
+          'coordinator',
+        ]
       : action === 'send'
         ? ['db', 'json', 'human', 'agent', 'content', 'reply-to', 'metadata', 'mention']
         : action === 'targets' || action === 'activate'
@@ -88,6 +99,21 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
     return { ...base, action };
   }
   if (action === 'create') {
+    const participants = [
+      ...(parsed.values.human ?? []).map((id) => ({ kind: 'human' as const, id })),
+      ...(parsed.values.agent ?? []).map((id) => ({ kind: 'agent' as const, id })),
+    ];
+    let rules: unknown;
+    if (parsed.values['activation-rules'] !== undefined) {
+      if (Buffer.byteLength(parsed.values['activation-rules']) > 65536)
+        throw new Error('Activation Rules size limit');
+      try {
+        rules = JSON.parse(parsed.values['activation-rules']);
+      } catch {
+        throw new Error('Invalid Activation Rules JSON');
+      }
+    }
+
     const command: RoomCommand = {
       ...base,
       action,
@@ -98,10 +124,10 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
           : { coordinatorId: required(parsed.values.coordinator, 'coordinator') }),
         type: roomType(parsed.values.type),
         activationPolicy: policy(parsed.values['activation-policy']),
-        participants: [
-          ...(parsed.values.human ?? []).map((id) => ({ kind: 'human' as const, id })),
-          ...(parsed.values.agent ?? []).map((id) => ({ kind: 'agent' as const, id })),
-        ],
+        participants,
+        ...(parsed.values['activation-rules'] === undefined
+          ? {}
+          : { activationRules: validateActivationRules(rules, participants) }),
         ...(parsed.values.task === undefined ? {} : { taskId: parsed.values.task }),
       },
     };

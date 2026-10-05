@@ -836,3 +836,9 @@
 - Workflow receipt projection未module RED、実CLI auditの実行記録欠落RED→新規不変receiptにnative actor kind/id、Task/Event/Approval参照を明示し既存Auditへ投影するGREEN。関連5件863ms、型/lint/format/AST成功。過去actorなしreceiptは人物を補完せず投影対象外とし、実行結果不明はfailedと断定せずunconfirmed。
 - 同時刻のApproval decision/Workflow claim因果順テストでREDを確認し、request→decision→claim→started→観測の順へphaseを訂正。Task履歴の元順序は保持する。生input/API keyは追加保存しない。
 - 最終全249成功/7skip/0fail、256件126files47.12秒、型/lint/format/AST成功。実Jev1313対象missing/unsure0、errors/degradedなし、warning78。Final独立レビュー指摘なし、関連4files6件を独立成功。独立HTTP fixtureはsandbox listen制約を許可実行で再確認。[証拠](verification/2026-10-06-workflow-execution-audit/check.txt)。Ruling: catch failure/context候補はraw error非漏洩・unknown outcome保持・context不一致拒否・同時刻順を具体的UT/CLIで確認する。system actorはhost callerの記録で本人認証ではない。Next: Notion Room仕様を照合し、未実装rule_based activationを小さなnative条件と実Room/daemon e2eへ接続する。
+
+## 2026-10-06 Room rule_based activation（進行中）
+
+- main227f50d通常push成功、pre-push全検査/実Jev/公開検査59.37秒。Notion Room仕様を再取得しrule_based enumを確認、条件形式は未指定のため[計画](superpowers/plans/2026-10-06-room-rule-based-activation.md)にmetadata scalar完全一致の最小native契約を定義した。raw snapshotは保存しない。
+- pure target選択のrules未設定RED、実CLI --activation-rules未対応REDから実装。人間metadataのみ暗黙起動、明示mention/A2A優先、参加Agent限定、複数条件一致の重複排除、rules copy/SQLite再openを確認。実daemon Runtime返信とrestart no replayの関連5件成功2.32秒。初回lintのJSON anyはunknown+narrowingへ訂正中。任意コード/regex/LLM rule評価は追加しない。
+- unknown+narrowing訂正後の関連2件1198ms・静的検査成功。最終全252成功/7skip/0fail、259件128files49.61秒、型/lint/format/AST成功。実Jev1328対象missing/unsure0、errors/degradedなし、warning78。Final独立レビュー指摘なし、pure/SQLite24件と実CLI/daemon1件を独立成功。socket制約での初回起動待機失敗は許可環境で再実行2.83秒成功。[証拠](verification/2026-10-06-room-rule-based-activation/check.txt)。Ruling: failure-path候補は参加者外/shape/上限/scalar型/mention優先/通常Agent暗黙起動なしを具体的UT/CLIで確認。Next: provider Sessionが壊れた時にRoom原本とscoped Memoryから明示的に新規Sessionを再構築する経路を実装・検証する。

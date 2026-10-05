@@ -1,4 +1,4 @@
-import { messageMentions } from '../rooms/domain.js';
+import { messageMentions, validateActivationRules } from '../rooms/domain.js';
 import type { Room, Message } from '../rooms/domain.js';
 import { readA2AMessage } from '../a2a/domain.js';
 export function selectActivationAgents(room: Room, message: Message): readonly string[] {
@@ -27,8 +27,19 @@ export function selectActivationAgents(room: Room, message: Message): readonly s
         targets = [coordinator];
         break;
       }
-      case 'rule_based':
-        throw new Error('Activation rules are not configured');
+      case 'rule_based': {
+        if (room.activationRules === undefined)
+          throw new Error('Activation rules are not configured');
+        targets = validateActivationRules(room.activationRules, room.participants)
+          .filter((rule) =>
+            Object.entries(rule.metadata).every(
+              ([key, value]) =>
+                Object.hasOwn(message.metadata, key) && message.metadata[key] === value,
+            ),
+          )
+          .map((rule) => rule.agentId);
+        break;
+      }
     }
   }
   return [...new Set(targets)].filter(

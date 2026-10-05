@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
-import { archiveRoom, createMessage, createRoom } from './domain.js';
+import { archiveRoom, createMessage, createRoom, validateActivationRules } from './domain.js';
 import type { Identity, JsonValue, Message, MessageInput, Participant, Room } from './domain.js';
 import type { RoomRepository } from './port.js';
 
@@ -43,6 +43,14 @@ function decodeRoom(raw: unknown): Room {
       type: v.type,
       activationPolicy: v.activationPolicy,
       participants: v.participants.map((p: unknown) => participant(p)),
+      ...(v.activationRules === undefined
+        ? {}
+        : {
+            activationRules: validateActivationRules(
+              v.activationRules,
+              v.participants.map((p: unknown) => participant(p)),
+            ),
+          }),
       ...(v.coordinatorId === undefined ? {} : { coordinatorId: text(v.coordinatorId) }),
       ...(taskId === null ? {} : { taskId }),
     },
