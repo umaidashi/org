@@ -151,6 +151,14 @@ export function replaceMemory(previous: Memory, replacement: Memory): Memory {
     throw new Error('Memory replacement requires same type/scope active predecessor');
   return { ...previous, status: 'superseded' };
 }
+export function memoryLabels(items: unknown): readonly string[] {
+  if (!Array.isArray(items)) throw new Error('Invalid Memory tags/entities');
+  return items.map((item: unknown) => {
+    if (typeof item !== 'string') throw new Error('Invalid Memory tags/entities');
+    return item;
+  });
+}
+
 export function decodeMemory(value: unknown): Memory {
   if (
     value === null ||
@@ -180,15 +188,8 @@ export function decodeMemory(value: unknown): Memory {
   )
     throw new Error('Invalid stored Memory');
   const refs = value.sourceRefs.map(memorySource);
-  const labels = (items: unknown): readonly string[] => {
-    if (!Array.isArray(items)) throw new Error('Invalid stored Memory tags/entities');
-    return items.map((item: unknown) => {
-      if (typeof item !== 'string') throw new Error('Invalid stored Memory tags/entities');
-      return item;
-    });
-  };
-  const tags = 'tags' in value ? labels(value.tags) : undefined;
-  const entities = 'entities' in value ? labels(value.entities) : undefined;
+  const tags = 'tags' in value ? memoryLabels(value.tags) : undefined;
+  const entities = 'entities' in value ? memoryLabels(value.entities) : undefined;
   return createMemory(
     {
       ...(tags === undefined ? {} : { tags }),

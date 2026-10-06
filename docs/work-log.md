@@ -1090,3 +1090,11 @@
 - 実Claude Max/native Memory proof3成功0fail36.01秒（実Claude33.51秒）。要約のSQLite/Claude MaxとsourceRefs、直近30件外への原本除外、旧Session停止、新Kernel/provider Session ID、返信Session紐付け、再起動後の原本/Memory不変を確認。一般的な事実忠実性や常時要約は検証したと主張しない。
 - 全check335成功12skip0fail347tests174files78.09秒、型/lint/format/AST/dry-run非空。実jev1752対象warning113/missing・unsure0/errors・degraded空。変更ファイルの命名候補2件は実際のassertとproof helperの動作に照合し、変更不要と判断。
 - 独立最終review Critical/Importantなし、Minorはexactly one候補の件数assert未追加。今回の受入は内容・証拠・Session引継ぎであり件数保証は主張しないため補強候補として保持。独立native再実行は制限環境の既存daemon ready待機で2timeout、real skip。親の実機3成功と全check成功を採用し、独立再実行の成功とは記載しない。Ponytail review: Lean already. Ship. 新製品実装なし、再reviewなし。
+
+### 2026-10-07 — 全体目標の達成依頼とMemory検索metadata接続
+- ユーザー「達成してください」で全体目標の継続を指示。main e475bd6から分離branchを作成。前回main通常pushはpre-push全検査/実jev/公開検査成功93.75秒。
+- Notion Memoryを再取得し、既存Retriever/Contextへ渡せるtags/entities/importanceがExtractorでは未許可・service未接続と確認。[設計・計画](superpowers/plans/2026-10-07-memory-extraction-metadata.md)。既存domain検証/SQLite/Contextを再利用、新依存/Port/storeなし。
+- Ruling: 同type/contentでmetadataが異なる候補は明示supersedesを要求し、曖昧な上書き/別active/失効後復活を防ぐ。全候補を先行検証し部分保存を避ける。意味推論・vector追加はしない。全体目標の実API/業務Draft PR等は未完了として保持。
+- RED: metadata付き候補を既存DI UT/native CLIへ追加し、unknown fieldで2fail/1pass417ms。接続後targeted7成功817ms。metadata conflictガードを外した比較実行はMissing expected exceptionで1fail/1pass29ms、単一候補だけでなく既存失効Memory/同batch差異の部分保存も検証。ガードを戻しGREENと全checkを実行する。shape判定は既存decodeMemoryの文字列配列validatorを共有し、上限/重複/範囲はcreateMemoryへ委譲する。
+- targeted7成功0fail1328ms（native別プロセス再読取・同内容への明示supersedes metadata更新・失効後衝突拒否・同batch衝突・不正metadataの書込みゼロ）。型/lint/format/AST非空成功。Ponytail review: decodeMemoryの既存配列型検証を抽出して共有、値の制約はcreateMemoryを再利用。追加のmetadata framework/設定/依存なし。
+- 実Notion/Linear用envの存在のみ確認し、両方false（値非表示）。既存業務Issueと変更先repoを非同期で依頼、ローカル作業は停止しない。実jev1754対象warning112、missing/unsure0、errors/degraded空。全checkと共有Memory変更後の実Claude Max proofを実行中。

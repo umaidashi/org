@@ -1,5 +1,8 @@
-import { createMemory, type MemoryInput } from './domain.js';
-export interface MemoryCandidate extends Pick<MemoryInput, 'type' | 'content' | 'confidence'> {
+import { createMemory, memoryLabels, type MemoryInput } from './domain.js';
+export interface MemoryCandidate extends Pick<
+  MemoryInput,
+  'type' | 'content' | 'confidence' | 'tags' | 'entities' | 'importance'
+> {
   readonly sourceMessageIds: readonly string[];
   readonly supersedes?: string;
 }
@@ -38,7 +41,16 @@ export const jsonMemoryExtractor: MemoryExtractor = {
     const candidates: readonly unknown[] = proposal.candidates;
     return candidates.map((item) => {
       const c = record(item);
-      keys(c, ['type', 'content', 'confidence', 'sourceMessageIds', 'supersedes']);
+      keys(c, [
+        'type',
+        'content',
+        'confidence',
+        'sourceMessageIds',
+        'supersedes',
+        'tags',
+        'entities',
+        'importance',
+      ]);
       if (
         (c.type !== 'semantic' &&
           c.type !== 'episodic' &&
@@ -47,6 +59,7 @@ export const jsonMemoryExtractor: MemoryExtractor = {
         typeof c.content !== 'string' ||
         new TextEncoder().encode(c.content).byteLength > 16384 ||
         typeof c.confidence !== 'number' ||
+        (c.importance !== undefined && typeof c.importance !== 'number') ||
         !Array.isArray(c.sourceMessageIds) ||
         c.sourceMessageIds.length < 1 ||
         c.sourceMessageIds.length > 20 ||
@@ -62,6 +75,9 @@ export const jsonMemoryExtractor: MemoryExtractor = {
       if (new Set(sourceMessageIds).size !== sourceMessageIds.length)
         throw new Error('Duplicate Memory candidate source');
       const candidate: MemoryCandidate = {
+        ...(c.tags === undefined ? {} : { tags: memoryLabels(c.tags) }),
+        ...(c.entities === undefined ? {} : { entities: memoryLabels(c.entities) }),
+        ...(c.importance === undefined ? {} : { importance: c.importance }),
         type: c.type,
         content: c.content,
         confidence: c.confidence,

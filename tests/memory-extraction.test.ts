@@ -33,6 +33,9 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
     type: 'procedural',
     content: 'テストを小さくする',
     confidence: 1,
+    tags: ['testing'],
+    entities: ['org'],
+    importance: 0.9,
     sourceMessageIds: ['source'],
   };
   let proposal = createMessage(
@@ -89,6 +92,9 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
   const first = run()[0];
   assert.ok(first);
   assert.equal(first.scope, 'room:r');
+  assert.deepEqual(first.tags, ['testing']);
+  assert.deepEqual(first.entities, ['org']);
+  assert.equal(first.importance, 0.9);
   assert.deepEqual(first.sourceRefs, [
     { roomId: 'r', messageId: 'source' },
     { roomId: 'r', messageId: 'proposal' },
@@ -99,6 +105,63 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
   assert.equal(run()[0]?.status, 'invalidated');
   assert.equal(stored.size, 1);
   assert.equal(source.content, 'テストを小さくする');
+  const beforeConflict = writes;
+  proposal = {
+    ...valid,
+    content: JSON.stringify({
+      version: 1,
+      tool: 'memory',
+      candidates: [
+        { ...candidate, content: 'another fact' },
+        { ...candidate, importance: 0.1 },
+      ],
+    }),
+  };
+  assert.throws(run, /metadata conflict/);
+  assert.equal(writes, beforeConflict);
+  assert.equal(stored.size, 1);
+  proposal = {
+    ...valid,
+    content: JSON.stringify({
+      version: 1,
+      tool: 'memory',
+      candidates: [
+        { ...candidate, content: 'new duplicate' },
+        { ...candidate, content: 'new duplicate', tags: ['changed'] },
+      ],
+    }),
+  };
+  assert.throws(run, /metadata conflict/);
+  assert.equal(writes, beforeConflict);
+  proposal = valid;
+  for (const metadata of [
+    { tags: 'testing' },
+    { tags: [7] },
+    { tags: [''] },
+    { tags: ['x', 'x'] },
+    { entities: null },
+    { entities: [false] },
+    { entities: ['x'.repeat(129)] },
+    { tags: Array.from({ length: 33 }, (_, i) => String(i)) },
+    { importance: 'high' },
+    { importance: -0.1 },
+    { importance: 1.1 },
+  ]) {
+    proposal = {
+      ...valid,
+      content: JSON.stringify({
+        version: 1,
+        tool: 'memory',
+        candidates: [
+          { ...candidate, content: 'another valid fact' },
+          { ...candidate, ...metadata },
+        ],
+      }),
+    };
+    assert.throws(run);
+    assert.equal(writes, beforeConflict);
+  }
+  proposal = valid;
   for (const value of [
     { version: 1, tool: 'memory', candidates: [{ ...candidate, scope: 'global' }] },
     { version: 2, tool: 'memory', candidates: [candidate] },

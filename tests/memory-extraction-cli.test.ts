@@ -89,6 +89,9 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
               type: 'procedural',
               content: '小さなテストを先に実行する',
               confidence: 1,
+              tags: ['testing'],
+              entities: ['org'],
+              importance: 0.9,
               sourceMessageIds: [sourceId],
             },
           ],
@@ -101,6 +104,10 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
     assert.ok(Array.isArray(first));
     assert.equal(first.length, 1);
     const memoryId = id(first[0]);
+    assert.deepEqual(first[0].tags, ['testing']);
+    assert.deepEqual(first[0].entities, ['org']);
+    assert.equal(first[0].importance, 0.9);
+    assert.deepEqual(run(['memory', 'get', memoryId, '--json']), first[0]);
     assert.deepEqual(run(args), first);
     const duplicateId = id(
       run([
@@ -118,6 +125,9 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
               type: 'procedural',
               content: '小さなテストを先に実行する',
               confidence: 1,
+              tags: ['testing'],
+              entities: ['org'],
+              importance: 0.9,
               sourceMessageIds: [sourceId],
             },
           ],
@@ -156,7 +166,7 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
         '--scope',
         'room:' + roomId,
         '--content',
-        '小さなテストのみ',
+        '変更後は全テストも実行する',
         '--confidence',
         '1',
         '--room',
@@ -196,6 +206,9 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
               confidence: 1,
               sourceMessageIds: [changedId],
               supersedes: previousId,
+              tags: ['regression'],
+              entities: ['org'],
+              importance: 1,
             },
           ],
         }),
@@ -214,6 +227,10 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
     const replaced = run(replacementArgs);
     assert.ok(Array.isArray(replaced));
     assert.equal(replaced.length, 1);
+    assert.deepEqual(replaced[0].tags, ['regression']);
+    assert.deepEqual(replaced[0].entities, ['org']);
+    assert.equal(replaced[0].importance, 1);
+    assert.deepEqual(run(['memory', 'get', id(replaced[0]), '--json']), replaced[0]);
     assert.deepEqual(run(replacementArgs), replaced);
     const previous = run(['memory', 'get', previousId, '--json']);
     assert.ok(previous && typeof previous === 'object' && 'status' in previous);

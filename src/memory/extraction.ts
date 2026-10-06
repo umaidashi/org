@@ -54,6 +54,9 @@ export function extractRoomMemories(
     }
     return createMemory(
       {
+        ...(candidate.tags === undefined ? {} : { tags: candidate.tags }),
+        ...(candidate.entities === undefined ? {} : { entities: candidate.entities }),
+        ...(candidate.importance === undefined ? {} : { importance: candidate.importance }),
         type: candidate.type,
         content: candidate.content,
         confidence: candidate.confidence,
@@ -67,6 +70,26 @@ export function extractRoomMemories(
       { id, at: proposal.createdAt },
     );
   });
+  for (const [index, candidate] of candidates.entries()) {
+    if (candidate.supersedes !== null) continue;
+    const duplicate = [...existing, ...candidates.slice(0, index)].find(
+      (m) => m.type === candidate.type && m.content === candidate.content,
+    );
+    if (
+      duplicate &&
+      JSON.stringify([
+        duplicate.tags ?? null,
+        duplicate.entities ?? null,
+        duplicate.importance ?? null,
+      ]) !==
+        JSON.stringify([
+          candidate.tags ?? null,
+          candidate.entities ?? null,
+          candidate.importance ?? null,
+        ])
+    )
+      throw new Error('Memory candidate metadata conflict requires explicit replacement');
+  }
   const results: Memory[] = [];
   for (const candidate of candidates) {
     const own = existing.find((m) => m.id === candidate.id);

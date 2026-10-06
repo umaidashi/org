@@ -592,7 +592,7 @@ bun run start memory extract --room ROOM_ID --message PROPOSAL_MESSAGE_ID --json
 bun run start daemon --wake-up --runtime-config /absolute/runtime.json --memory-extraction-room ROOM_ID
 ```
 
-採用はlocal adminの明示操作です。active Room参加Agentのcan_read/can_write、同Roomの提案より前の原本を先行確認し、scopeは`room:ROOM_ID`へ固定します。最大10候補、候補本文16KiB、提案全体64KiB。既存4typeとconfidenceを検証し、根拠と提案Messageの両方をsourceRefsへ残します。
+採用はlocal adminの明示操作です。active Room参加Agentのcan_read/can_write、同Roomの提案より前の原本を先行確認し、scopeは`room:ROOM_ID`へ固定します。最大10候補、候補本文16KiB、提案全体64KiB。既存4typeとconfidenceを検証し、根拠と提案Messageの両方をsourceRefsへ残します。候補にoptional `tags`/`entities`（各32件、非空・重複なし・各128文字以内）と`importance`（0〜1）を指定でき、保存・検索・Contextへ保持します。同type/contentのmetadata変更は暗黙に上書きせず、active Memoryの明示`supersedes`を要求します。metadata不一致と不正候補は全候補の保存前に拒否します。
 
 完全一致type/contentはnon-activeも含めて再利用し、無効化・置換された内容を抽出から復活させません。候補の`supersedes`は同Room/typeのactive Memoryだけを明示置換します。全候補を検証後に個別保存するため、保存障害時に部分採用が残る場合があります。同proposalを再実行すると安定IDと原本で照合します。原本Messageは変更しません。confidenceはモデルの申告値で、事実の正しさや本人認証を保証しません。`--memory-extraction-room`は最大32のactive Roomを指定でき、通常本文やA2A返信は抽出しません。複数のMemory提案は採用前に拒否し、保存後の障害はfailed wakeupとして残すため、上記の手動抽出で回復します。意味による重複・競合判定、他scopeへの自動採用は未完了です。
 
