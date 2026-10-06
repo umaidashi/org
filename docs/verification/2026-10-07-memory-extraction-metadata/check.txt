@@ -1,0 +1,11 @@
+Metadata RED: 1 pass, 2 fail, 417ms (unknown candidate field).
+Metadata/conflict targeted GREEN: 7 pass, 0 fail, 1328ms.
+Real Claude/native Memory proof: 3 pass, 0 fail, 112.64s.
+Initial full check: 331 pass, 12 skip, 4 fail, 146.15s (existing timing paths).
+Timing paths isolated: 7 pass, 0 fail, 27.20s.
+A2A total test deadline fixed to 20s; per-operation limits unchanged. Target: 4 pass, 0 fail, 23.30s.
+Final full check: 335 pass, 12 skip, 0 fail, 347 tests, 174 files, 84.84s; exit 0.
+Real jev: 1754 subjects, 112 warnings; missing 0, unsure 0, errors [], degraded [].
+Independent review: Critical/Important/Minor 0; independent UT 4 pass, 50ms.
+Author verification Important: inconsistent A2A total deadline fixed in one pass. No rereview.
+Ponytail review: Lean already. Ship.

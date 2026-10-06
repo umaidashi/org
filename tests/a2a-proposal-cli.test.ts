@@ -255,4 +255,5 @@ test.each([
       rmSync(home, { recursive: true, force: true });
     }
   },
+  20000,
 );
