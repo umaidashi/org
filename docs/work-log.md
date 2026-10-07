@@ -1329,3 +1329,10 @@
 - Ruling: Local WorkItemの元externalRefは出典として保持し、同Issueの現在URLを新しいobjective/成功receiptの参照に使う。古い完全URL文字列の不変を外部entityの同一性と混同しない。判断が誤れば無効な旧参照や別entityを許容し得るため、UUID/番号/workspaceの検証と明示refresh/元参照保持を実CLIで確認する。
 - 初回全gate392 pass / 12 skip / 0 fail / 404 tests / 182 files / 103.80s。slug受理修正時も392 pass / 104.13s。以後の次要求/refresh修正は別の最終gateで検証する。最終高速UT133 pass / 48 files / 175ms。Ponytail自己点検: 既存query/read/claim/receipt/Auditと共有URL検証を使用、新依存/table/frameworkなし。不要な重複候補なし。全体目標active、最終全gate/実Jev/独立review待ち。
 - 最終全gate exit0、393 pass / 12 skip / 0 fail、405 tests / 182 files / 104.71s。型/Oxlint/Oxfmt326 files/非空AST成功。最終dry-run1973 subjects / 12 requests / excluded0を確認後、実Jev exit0、1973 subjects / 118 advisory warnings、missing/unsure/review0、errors/degradedなし。Approval/CLI/importの失敗経路候補と既存命名候補は実際の境界/保存検査へ照合し、機械的修正や全面網羅保証に扱わない。[証拠](verification/2026-10-07-approved-linear-issue-update/check.txt)。README/要件/MVP表を更新し、独立最終review待ち。
+- 独立最終review: Critical 0 / Important 0 / Minor 2、限定slice ready to merge。関連UT/SQLite27 pass / 88ms、native3 pass / 1.53s再実行。初回sandbox listen制限後、許可付き隔離fixtureで成功。全405件/Jevは保存済み証拠を確認。Ponytail: Lean already. Ship. 新依存/table/不要な汎用層なし、追加削減候補なし。
+- Final: minor (deferred): 要件のTask/TaskProvider行に「外部Issue update未完了」の総称が残り、外部連携行のtitle/description実装済みと粒度が不一致。次回文書整理で実装済みsliceとstatus/owner/labels・不明結果回収の残件を明確に分ける。
+- Final: minor (deferred): update UTはwrite credential取得中のLocal変更を確認するが、request/read HTTP待機中とmutation HTTP待機中のLocal変更は新経路で直接検査していない。実装では前者を保存/送信前に再照合、後者はLocalへ書かず外部結果のみ記録する。追加回帰の候補として保持する。
+- Final Ruling: 実Linear認証/空descriptionのサーバー正規化/実送信はfixtureと分離して未完了を維持。判断が誤れば実APIでの値正規化や応答差異を見逃すため、native資格情報設定後に実測する。
+- Final Ruling: 外部read→write間の排他は今回のbaseline拒否とは区別し保証しない。判断が誤ればread後の他writerの変更を上書きするため、上記の非原子的RulingとREADMEの境界を維持する。
+- Final Ruling: human文字列照合は本人認証と扱わない。判断が誤れば他人のactorを本人として扱うため、本人認証の要件を別途満たす。
+- Final Ruling: 全体MVP/構想の完了は主張しない。実業務Issue→Draft PR、実認証、Agent操作、全体Provider交換等の残件を維持。判断が誤れば業務固有の不足を見逃すため、対象指定後の実業務一周と全体要件の照合を続ける。

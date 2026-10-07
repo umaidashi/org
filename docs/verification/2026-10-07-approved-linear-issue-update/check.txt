@@ -14,4 +14,7 @@ Native owned HTTP/SQLite fixture: import/read request, same-key stable Approval,
 DI fault proof: pending/reject/input/version/actor, remote baseline, credential/Local change, claim/receipt/terminal persistence, transport, credential reflection, Issue/title/null description/URI/workspace/query/fragment, forged output digest.
 Empty description is explicit deletion; updated slug accepted only for same Issue identifier/workspace, canonical URL. Original Local externalRef retained; explicit refresh projects new source fields under Local CAS.
 Read and write are not an atomic remote CAS; edits after preflight read can race. Real Linear server/authentication remain unverified.
-Final fresh review pending. Update unknown-result observation, status/owner/labels, Agent actions, asynchronous TaskProvider exchange and business Draft PR remain incomplete.
+Final fresh review: Critical 0 / Important 0 / Minor 2; independently related UT/SQLite27 pass / 88ms, native3 pass / 1.53s, diff check passed.
+Deferred minors: requirement Task/TaskProvider rows still use blanket external-update-incomplete wording; update-specific request/read and mutation HTTP-wait Local-change tests remain candidates (write credential-change test exists).
+No final fix pass or rereview needed. Ponytail: Lean already. Ship.
+Update unknown-result observation, status/owner/labels, Agent actions, asynchronous TaskProvider exchange and business Draft PR remain incomplete. Native Linear authentication/empty-description normalization not validated; remote read/write is non-atomic; human actor is not identity authentication.
