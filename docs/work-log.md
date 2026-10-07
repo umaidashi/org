@@ -1274,3 +1274,7 @@
 - 競合修正GREEN: DB不要UT8 pass / 41ms。成功receipt保存をapply/observeで共有し、原本と同一payloadの並行winner以外は保存例外を伝播。型・Oxlint/Oxfmt（319 files）・AST成功。Ponytail自己点検: 二経路の承認/response/receipt保存を共有、未使用optional URL引数を削除。新規依存/table/frameworkなし。
 - 対象最終検証13 pass / 0 fail / 3.27s。高速UT116 pass / 45 files / 157ms。実Jev exit0、1870 subjects / 116 advisory warnings、missing/unsure/review 0、errors/degradedなし。dry-run 1870 subjects / 15 requestsを先に確認。変更箇所のapprovedComment/observeの命名advisoryは、承認要求の返却/読取後の原本保存という実動作と照合する。parseTaskCommandの失敗経路候補は非網羅性を全面保証へ読み替えない。
 - 全gate `bun run check` exit0、370 pass / 12 skip / 0 fail、382 tests / 178 files / 98.33s。非空AST/lint/Jev対象を確認。README・要件・MVP表と[証拠](verification/2026-10-07-linear-comment-status-recovery/check.txt)を更新。保存済み成功原本の返却は外部編集/削除の監視と区別。独立最終レビュー待ち、全体目標は未達成。
+- 独立最終レビュー: Critical/Important/Minor各0、対象13 pass / 3.27s再実行。reviewerのsandbox listener拒否は環境要因、許可付きowned fixture再実行で成功。Ponytail: Lean already. Ship. 不要な実装候補なし、正しさ/安全性は別途照合。
+- Final Ruling: 実Linear認証/投稿の受け入れは未完了として維持する — 今回の回収sliceはowned HTTP/SQLiteの証拠で反映する — 判断が誤れば実API固有の挙動を見逃すため、native資格情報設定後に実測が必要。
+- Final Ruling: 実業務Issue→Draft PRの受け入れは全体目標の残件とする — 対象Issue/repo未指定で任意業務writeはしない — 判断が誤れば業務対象に固有の不足が残るため、指定された対象での一周を別途完了する。
+- Nativeキー存在のみ再確認: NOTION_API_KEY/LINEAR_API_KEYはfalse。値の記録なし。Notion Security原則も再取得し、HTTPでの境界制御/不変Approval/Auditと全体の未完了を照合。
