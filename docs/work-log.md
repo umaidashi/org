@@ -1104,3 +1104,11 @@
 - 継続時に旧検査handleと一時出力が見つからず成功未確認。再起動した検査もturn中断後は保持PIDなし・末尾未完了であり、成功扱いせず終了コード別保存付きで再実行した。最終全check335成功12skip0fail347tests174files84.84秒、exit0、型/lint/format/AST/dry-run非空。A2A総期限一fixpass後の対象4成功23.30秒（個別7.20/6.56秒の一周も完了、操作制限不変）。
 - 最終実jev1754対象warning112/missing・unsure0/errors・degraded空。変更Extractor/共有validator/serviceの命名・失敗経路候補は先行shape/domain制約・invalid全候補書込みゼロ・native保存/再読取へ照合し変更不要と判断。独立review Critical/Important/Minor0、検証上のImportant一fixpass完了、Ponytail Lean already. Ship. [証拠](verification/2026-10-07-memory-extraction-metadata/check.txt)。全体目標は未達成。
 - Next: 公開用のquote/backslash付き偽Linear keyを返すHTTP DIで、既存JSON反射guardが迂回されtitleへ残ることを再現（credentialReflectionAccepted=true）。外部秘密の反射拒否を共有queryLinearで直し、get/list両経路をRED/GREEN検証する。業務Issue/変更先repo回答待ちだけでローカルを止めない。
+
+### 2026-10-07 — Linearのescaped credential反射を共有境界で拒否
+- Memory metadata f47972cはmain通常push成功102.04秒、pre-push全check335成功12skip0fail79.87秒/実jev/公開履歴検査成功。全体目標はactiveで継続する。
+- Notion Securityを再取得しsecret redactionの要求を照合。[設計・計画](superpowers/plans/2026-10-07-linear-credential-reflection.md)。get/list/import/refreshが共有するqueryLinearのJSON.stringify(data).includes(raw credential)はquote/backslash付き偽キーを見逃した（公開fixtureのみ、credentialReflectionAccepted=true）。Notionは復号済みmarkdown文字列、GitHubはJSON正規化したsecretの比較であり同じ欠陥なし。
+- Ruling: 許可credential文字範囲を狭めずJSON双方の正規化を再利用、一行の共通境界修正で全callerを守る。新framework/依存なし。native総期限だけ20秒、個別CLI10秒/ready5秒は維持する。
+- RED: get/list共有DIとnative CLIへquote/backslash付き反射fixtureを追加し、2成功2fail1.80秒。DIは期待した拒否がなく、CLIはexit0/stdoutありとなり漏れを確認。共有queryLinearの一行をGitHubと同じJSON正規化比較へ置換する。
+- GREEN: get/list/WorkItem import/refresh/Notion/GitHubとnative CLIのtargeted11成功0fail2.58秒。キーは全て公開fixture。CLIのget/listはstdout空・sanitized error・DB未作成を確認、無関係のquote/backslash本文は保持。高速UT101成功0fail43files258ms、型/lint/format/AST非空成功。
+- Ponytail review: GitHubの既存JSON正規化手法を共通queryLinearの一行で再利用。get/list/import/refreshの個別guard、新helper/依存/設定なし。全checkと実jevを実行中、独立最終reviewを一回行う。

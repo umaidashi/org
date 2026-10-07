@@ -65,7 +65,8 @@ async function queryLinear(
     Array.isArray(value.data)
   )
     throw new Error('Invalid or failed Linear response');
-  if (JSON.stringify(value.data).includes(credential)) throw new Error('Invalid Linear response');
+  if (JSON.stringify(value.data).includes(JSON.stringify(credential).slice(1, -1)))
+    throw new Error('Invalid Linear response');
   return value.data as Record<string, unknown>;
 }
 function parseLinearIssue(issue: unknown): LinearIssue {

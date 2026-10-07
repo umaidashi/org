@@ -1,6 +1,6 @@
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
-import { readLinearIssue } from '../src/linear/read.js';
+import { readLinearIssue, listLinearIssues } from '../src/linear/read.js';
 const id = '11111111-1111-4111-8111-111111111111';
 const issue = {
   id,
@@ -90,4 +90,45 @@ test('Linear reader rejects malformed inputs before secrets and sanitizes partia
       readLinearIssue(async () => new Response('fixture-linear-key', { status: 403 }), secrets, id),
     /403/,
   );
+});
+
+test('Linear shared query rejects escaped credentials in get/list values, keys and cursors while preserving unrelated quoted text', async () => {
+  for (const credential of [
+    'fixture-quote-"-key',
+    'fixture-backslash-\\-key',
+    'fixture-both-"-\\-key',
+  ]) {
+    const store = { getSecret: () => credential };
+    for (const data of [
+      { issue: { ...issue, title: 'prefix ' + credential + ' suffix' } },
+      { issue: { ...issue, description: credential } },
+      { issue, metadata: { [credential]: 'value' } },
+    ])
+      await assert.rejects(
+        readLinearIssue(async () => Response.json({ data }), store, 'ORG-1'),
+        (error) => error instanceof Error && error.message === 'Invalid Linear response',
+      );
+    for (const data of [
+      {
+        issues: {
+          nodes: [{ ...issue, title: credential }],
+          pageInfo: { hasNextPage: false, endCursor: null },
+        },
+      },
+      { issues: { nodes: [issue], pageInfo: { hasNextPage: true, endCursor: credential } } },
+      {
+        issues: { nodes: [issue], pageInfo: { hasNextPage: false, endCursor: null } },
+        metadata: { [credential]: 'value' },
+      },
+    ])
+      await assert.rejects(
+        listLinearIssues(async () => Response.json({ data }), store, { team: 'ORG', limit: 1 }),
+        (error) => error instanceof Error && error.message === 'Invalid Linear response',
+      );
+    const quoted = { ...issue, title: 'Keep "quoted" text', description: 'Keep \\ path' };
+    assert.deepEqual(
+      await readLinearIssue(async () => Response.json({ data: { issue: quoted } }), store, 'ORG-1'),
+      { provider: 'linear', ...quoted },
+    );
+  }
 });

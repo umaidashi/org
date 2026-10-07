@@ -19,7 +19,7 @@ test('Linear CLI read preserves existing issue without creating database and rej
   writeFileSync(response, JSON.stringify({ data: { issue } }));
   writeFileSync(
     preload,
-    `import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';const original=globalThis.fetch;globalThis.fetch=async(input,init)=>{if(String(input)==='https://api.linear.app/graphql'){assert.equal(init.method,'POST');assert.equal(new Headers(init.headers).get('Authorization'),'fixture-linear-key');const body=JSON.parse(init.body);if(body.query.startsWith('query KernelIssues(')){assert.deepEqual(body.variables,{team:'ORG',first:1,after:null});return Response.json({data:{issues:{nodes:[JSON.parse(readFileSync(${JSON.stringify(response)},'utf8')).data.issue],pageInfo:{hasNextPage:false,endCursor:'cursor'}}}});}assert.ok(['ORG-1',${JSON.stringify(issue.id)}].includes(body.variables.id));return new Response(readFileSync(${JSON.stringify(response)},'utf8'),{headers:{'Content-Type':'application/json'}});}return original(input,init);};`,
+    `import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';const original=globalThis.fetch;globalThis.fetch=async(input,init)=>{if(String(input)==='https://api.linear.app/graphql'){assert.equal(init.method,'POST');assert.equal(new Headers(init.headers).get('Authorization'),process.env.LINEAR_API_KEY);const body=JSON.parse(init.body);if(body.query.startsWith('query KernelIssues(')){assert.deepEqual(body.variables,{team:'ORG',first:1,after:null});return Response.json({data:{issues:{nodes:[JSON.parse(readFileSync(${JSON.stringify(response)},'utf8')).data.issue],pageInfo:{hasNextPage:false,endCursor:'cursor'}}}});}assert.ok(['ORG-1',${JSON.stringify(issue.id)}].includes(body.variables.id));return new Response(readFileSync(${JSON.stringify(response)},'utf8'),{headers:{'Content-Type':'application/json'}});}return original(input,init);};`,
   );
   const env = { ...process.env, LINEAR_API_KEY: 'fixture-linear-key' };
   const run = (args: string[], key = 'fixture-linear-key') =>
@@ -75,6 +75,21 @@ test('Linear CLI read preserves existing issue without creating database and rej
     );
     assert.equal(missingList.status, 1);
     assert.doesNotMatch(missingList.stderr, /fixture-linear-key/);
+    const escapedKey = 'fixture-quote-"-slash-\\-key';
+    writeFileSync(response, JSON.stringify({ data: { issue: { ...issue, title: escapedKey } } }));
+    for (const args of [
+      ['task', 'linear-get', 'ORG-1', '--json'],
+      ['task', 'linear-list', '--team', 'ORG', '--limit', '1', '--json'],
+    ]) {
+      const rejected = run(['--direct', ...args], escapedKey);
+      assert.equal(rejected.status, 1);
+      assert.equal(rejected.stdout, '');
+      assert.match(rejected.stderr, /Invalid Linear response/);
+      assert.equal(rejected.stderr.includes(escapedKey), false);
+      assert.equal(rejected.stderr.includes(JSON.stringify(escapedKey).slice(1, -1)), false);
+      assert.equal(existsSync(db), false);
+    }
+    writeFileSync(response, JSON.stringify({ data: { issue } }));
     daemon = spawn(
       process.execPath,
       ['--no-env-file', '--preload', preload, cli, '--db', db, 'daemon', '--socket', socket],
@@ -234,4 +249,4 @@ test('Linear CLI read preserves existing issue without creating database and rej
     }
     rmSync(home, { recursive: true, force: true });
   }
-});
+}, 20000);
