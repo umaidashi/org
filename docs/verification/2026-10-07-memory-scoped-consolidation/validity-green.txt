@@ -1,0 +1,10 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-consolidation.test.ts:
+(pass) conservative consolidation selects only same-scope valid exact metadata and validates Room before atomic Port commit [2.56ms]
+(pass) Memory domain rejects NUL scope for all callers [0.53ms]
+(pass) all scopes retain non-equivalent, inactive and out-of-period Memory and recheck authority at commit [1.45ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 1 file. [29.00ms]

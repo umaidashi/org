@@ -1,0 +1,25 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-nightly-cli.test.ts:
+(pass) opt-in native daemon consolidates allowed active Room once daily and restart preserves receipt and new same-day records [2163.47ms]
+
+tests/memory-consolidation-cli.test.ts:
+(pass) native CLI consolidates exact Room Memory with stable receipt, retains evidence and rejects invalid requests before DB creation [2019.42ms]
+
+tests/memory-consolidation-sqlite.test.ts:
+(pass) SQLite consolidation atomically stores immutable receipt with invalidations, detects changed snapshots and rolls back storage failure [16.97ms]
+(pass) SQLite consolidation atomically stores immutable receipt with invalidations, detects changed snapshots and rolls back storage failure [11.44ms]
+(pass) Room archive between selection and commit rejects consolidation without receipt or invalidation [10.54ms]
+
+tests/memory-nightly.test.ts:
+(pass) nightly consolidation is explicit, coalesces missed UTC days and preserves receipts across same-day polls and clock rollback [0.97ms]
+(pass) scoped nightly validates combined allowlist, preserves legacy key namespace and rejects corrupt receipt [1.19ms]
+
+tests/memory-consolidation.test.ts:
+(pass) conservative consolidation selects only same-scope valid exact metadata and validates Room before atomic Port commit [0.51ms]
+(pass) Memory domain rejects NUL scope for all callers
+(pass) all scopes retain non-equivalent, inactive and out-of-period Memory and recheck authority at commit [0.43ms]
+
+ 10 pass
+ 0 fail
+Ran 10 tests across 5 files. [4.29s]

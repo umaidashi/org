@@ -118,7 +118,7 @@ export class SqliteMemoryProvider
     return receipt;
   }
   latestConsolidation(prefix: string): MemoryConsolidationReceipt | null {
-    if (!/^nightly-memory:[a-f0-9]{64}:$/.test(prefix))
+    if (!/^(?:nightly-memory|nightly-scoped-memory):[a-f0-9]{64}:$/.test(prefix))
       throw new Error('Invalid nightly consolidation prefix');
     const row = this.db
       .query(

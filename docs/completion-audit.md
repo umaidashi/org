@@ -77,7 +77,7 @@ hash Artifact追加進捗: `--source-artifact org://artifacts/HASH`を既存capt
 | Deduplicate / Conflict detection | 同値content dedup、metadata不一致先行拒否、明示supersedes、Room夜間同値整理 | 完全同値/metadata衝突は検証あり。意味conflictの自動推定は未達 |
 | 旧Memory削除/上書き禁止、明示supersede/invalidate | immutable SQLiteとstatus projection、原本/REPLACE拒否/reopen tests | 検証あり |
 | retrieval優先:scope/type/tags/entity/recency/importance/full-text | `memory/retrieval.ts`のfilter/sort、SQLite FTS、retrieverとContext tests | 選択/順位・bounds・DI交換に検証あり。typeは選択filter。Vector/rerankは必要時のみ |
-| providerとpolicy分離、conservative extraction/nightly consolidation/scoped relevance | Provider/Extractor/Consolidator/Contextの別境界、明示Room allowlistのdaemon設定 | 現在の限定policyで検証。全scope nightly/意味consolidationは未達 |
+| providerとpolicy分離、conservative extraction/nightly consolidation/scoped relevance | Provider/Extractor/Consolidator/Contextの別境界、明示Room allowlistのdaemon設定 | 全scopeの明示allowlist nightlyを検証。意味consolidation/全scope自動抽出は未達 |
 
 ## Task・Event・Runtime（04–06）
 
@@ -189,3 +189,7 @@ Local/Linearの実AsyncTaskProvider.updateを同じawait consumerとCLI/direct/d
 ## 2026-10-07 Agent監査ログtail
 
 既存collectAudit/selectAuditLogsへAgent actor filterを接続し、他Agent/human同ID除外、filter後limit、登録対象照合、DB前parser拒否を検証。Task現在ownerを過去主体へ付け替えず、direct/daemon/停止後reopenで同結果を確認。[全gate](verification/2026-10-07-agent-log-tail/check.txt):475成功/14skip/0失敗489tests/197files166.02秒、実Jev2238subjects/missing・errors・degraded0。最新snapshotの明示操作で、Runtime stdout stream/全重要Audit/本人認証/実業務納品/全体完成を主張しない。
+
+### 2026-10-07 全scope保守的整理
+
+global/company/department/project/agent/room/taskを既存exact planner/transactionへ接続。公開Readerでactive Room/Agent・Task実在をreceipt前・transaction内照合、旧Room key互換、combined allowlist最大32・重複拒否、非Room別namespace、UTC coalesce/巻戻り/再起動no replayを確認。[証拠](verification/2026-10-07-memory-scoped-consolidation/)全gate484成功/14skip/0失敗498tests200files174.31秒、実Jev2287subjects/欠損・エラー・劣化0。全scope期間外同値グループのmutation RED→GREEN、実CLI7scope/実daemonRoom+department/SQLite rollbackも確認。意味conflict/全source・scope自動抽出/本人認証/全resource permission/実業務納品/全体は未達。[次の計画](superpowers/plans/2026-10-07-sandbox-execution-audit.md)へ進む。

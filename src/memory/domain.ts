@@ -5,6 +5,13 @@ export function memorySearchPhrase(query: string): string {
     throw new Error('Memory search requires 3–1024 Unicode characters without NUL');
   return '"' + query.replaceAll('"', '""') + '"';
 }
+export function validateMemoryScope(scope: string): void {
+  if (
+    !/^(global|company|(?:department|project|agent|room|task):[^\s]+)$/.test(scope) ||
+    scope.includes('\0')
+  )
+    throw new Error('Invalid Memory scope');
+}
 export type SourceRef =
   | { readonly roomId: string; readonly messageId: string }
   | { readonly uri: string };
@@ -106,8 +113,7 @@ export function createMemory(
 ): Memory {
   if (!['semantic', 'episodic', 'procedural', 'relational'].includes(input.type))
     throw new Error('Invalid Memory type');
-  if (!/^(global|company|(?:department|project|agent|room|task):[^\s]+)$/.test(input.scope))
-    throw new Error('Invalid Memory scope');
+  validateMemoryScope(input.scope);
   if (!Number.isFinite(input.confidence) || input.confidence < 0 || input.confidence > 1)
     throw new Error('Invalid Memory confidence');
   if ([identity.id, identity.at, input.content].some((v) => !v.trim()))

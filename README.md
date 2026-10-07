@@ -688,21 +688,21 @@ ContextBuilderは入力Messageまでの最大30件、Memory最大20件、UTF-8�
 bun run start memory consolidate --scope room:ROOM_ID --key REVIEW_KEY --at 2026-10-06T00:00:00.000Z --json
 ```
 
-active Roomの有効なMemoryだけを対象に、type/content/confidence/有効期間/tags/entities/importanceが完全に同値のものを整理します。最も古いcreatedAt/IDをkeeperとし、他を理由付きinvalidateします。元Message・Memory・sourceRefsは変更しません。各根拠はinactiveになった原記録にも残り、keeperへ自動mergeしません。
+global/company/department/project/agent/room/taskの明示scopeを指定できます。department/projectはhostが決めるscopeで、所属の推定や本人認証は行いません。指定scopeの有効なMemoryだけを対象に、type/content/confidence/有効期間/tags/entities/importanceが完全に同値のものを整理します。最も古いcreatedAt/IDをkeeperとし、他を理由付きinvalidateします。元Message・Memory・sourceRefsは変更しません。各根拠はinactiveになった原記録にも残り、keeperへ自動mergeしません。
 
-失効と不変receiptは同じtransactionで保存し、開始後に公開Room Portでactiveを再確認して、対象snapshotの変更やstorage障害を全rollbackします。同じkey/scopeは元receiptを返して再整理せず、時刻も更新しません。新しく整理する場合は新しいkeyを選びます。これはlocal adminの明示操作です。夜間処理は下記のhost opt-in、意味重複/競合推論は後続です。異なるDBや外部Roomとの分散transactionは保証しません。
+失効と不変receiptは同じtransactionで保存し、transaction内で公開ReaderからRoomのactive・Agent/Taskの実在を再確認して、対象snapshotの変更やstorage障害を全rollbackします。同じkey/scopeは元receiptを返して再整理せず、時刻も更新しません。新しく整理する場合は新しいkeyを選びます。これはlocal adminの明示操作です。夜間処理は下記のhost opt-in、意味重複/競合推論は後続です。異なるDBや外部Roomとの分散transactionは保証しません。
 
 
-## 指定Roomの夜間Memory整理
+## 指定scopeの夜間Memory整理
 
 ```sh
-bun run start daemon --memory-consolidation-room ROOM_ID --poll-interval 1000
+bun run start daemon --memory-consolidation-room ROOM_ID --memory-consolidation-scope department:engineering --poll-interval 1000
 bun run start memory consolidations --scope room:ROOM_ID --json
 ```
 
-Room指定は繰り返し可能（最大32）、既定では無効です。Runtime設定やLLMは不要です。最初のpollで現在UTC日の一回を処理し、翌日以降も最初のpollで一回。停止中の日は現在日にまとめ、同日poll・再起動・時計巻戻りで再整理しません。archived Roomは対象外です。同日追加のMemoryは次のUTC日に整理します。
+旧Room指定と新scope指定は繰り返し可能（合計最大32・同scopeの重複拒否）、既定では無効です。Runtime設定やLLMは不要です。最初のpollで現在UTC日の一回を処理し、翌日以降も最初のpollで一回。停止中の日は現在日にまとめ、同日poll・再起動・時計巻戻りで再整理しません。archived Roomは対象外です。同日追加のMemoryは次のUTC日に整理します。
 
-不変receiptはkey/scope/実処理時刻/keeper・失効IDを保存します。nightly-memory:のkeyはdaemon専用で、手動consolidateには指定できません。全文やAPIキーはreceiptへ追加保存しません。DB障害・不正履歴はdaemonのpoll errorとして報告します。対象は同値metadataの整理で、意味重複・競合推論・自動summary生成・全scopeの自動処理は未完了です。
+不変receiptはkey/scope/実処理時刻/keeper・失効IDを保存します。nightly-memory:（Room）とnightly-scoped-memory:（他scope）のkeyはdaemon専用で、手動consolidateには指定できません。全文やAPIキーはreceiptへ追加保存しません。DB障害・不正履歴はdaemonのpoll errorとして報告します。対象は同値metadataの整理で、意味重複・競合推論・自動summary生成・全scopeの自動抽出は未完了です。
 
 ## 両AgentのClaude Max実機検証
 

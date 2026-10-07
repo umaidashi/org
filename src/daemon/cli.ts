@@ -48,8 +48,12 @@ import { runExecutionTask, hasVerifiedInterruptedTaskResult } from '../tasks/exe
 import { recoverInterruptedExecutionTasks } from '../tasks/service.js';
 import { SqliteMemoryProvider } from '../memory/sqlite.js';
 import { projectReviewedTaskMemories } from '../memory/reviews.js';
-import { consolidateRoomMemories } from '../memory/consolidation.js';
-import { pollMemoryConsolidations, validateNightlyRooms } from '../memory/nightly.js';
+import { consolidateMemories, consolidationScopeAvailable } from '../memory/consolidation.js';
+import {
+  pollScopedMemoryConsolidations,
+  validateNightlyRooms,
+  validateNightlyScopes,
+} from '../memory/nightly.js';
 import { replyToRoomMessage } from '../rooms/runtime.js';
 import { randomUUID } from 'node:crypto';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
@@ -82,6 +86,7 @@ export interface DaemonCommand {
   readonly workflowConfig?: string;
   readonly wakeUp: boolean;
   readonly consolidationRooms?: readonly string[];
+  readonly consolidationScopes?: readonly string[];
   readonly delegationRooms?: readonly string[];
   readonly extractionRooms?: readonly string[];
   readonly observeWorkflows?: boolean;
@@ -108,6 +113,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       'delegation-room': { type: 'string', multiple: true },
       'memory-extraction-room': { type: 'string', multiple: true },
       'memory-consolidation-room': { type: 'string', multiple: true },
+      'memory-consolidation-scope': { type: 'string', multiple: true },
     },
   });
   const [noun, action, ...extra] = parsed.positionals;
@@ -143,6 +149,13 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
     if (action !== undefined || parsed.values.once)
       throw new Error('--memory-consolidation-room requires continuous mode');
   }
+  const consolidationScopes = parsed.values['memory-consolidation-scope'];
+  validateNightlyScopes([
+    ...(consolidationRooms ?? []).map((id) => 'room:' + id),
+    ...(consolidationScopes ?? []),
+  ]);
+  if (consolidationScopes !== undefined && (action !== undefined || parsed.values.once))
+    throw new Error('--memory-consolidation-scope requires continuous mode');
   if (noun !== 'daemon' || extra.length) throw new Error('Expected daemon command');
   const db = parsed.values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('Database path must not be empty');
@@ -197,6 +210,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
     ...(delegationRooms === undefined ? {} : { delegationRooms }),
     ...(extractionRooms === undefined ? {} : { extractionRooms }),
     ...(consolidationRooms === undefined ? {} : { consolidationRooms }),
+    ...(consolidationScopes === undefined ? {} : { consolidationScopes }),
     ...(parsed.values['sandbox-config'] === undefined
       ? {}
       : { sandboxConfig: resolve(parsed.values['sandbox-config']) }),
@@ -235,6 +249,7 @@ function openOperations(
   observeWorkflows = false,
   linearScopes: readonly LinearAgentScope[] = [],
   memoryGrants: readonly MemoryContextGrant[] = [],
+  consolidationScopes: readonly string[] = [],
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -271,10 +286,14 @@ function openOperations(
     );
     const memoryProvider = new SqliteMemoryProvider(db);
     memory = memoryProvider;
-    for (const roomId of consolidationRooms) {
-      if (roomRepository.get(roomId).id !== roomId)
-        throw new Error('Memory consolidation Room unavailable');
-    }
+    const nightlyScopes = [...consolidationRooms.map((id) => 'room:' + id), ...consolidationScopes];
+    const scopeAvailable = (scope: string) =>
+      consolidationScopeAvailable(scope, {
+        rooms: roomRepository,
+        agents: agentRepository,
+        tasks: taskProvider,
+      });
+    for (const scope of nightlyScopes) scopeAvailable(scope);
     for (const id of extractionRooms) {
       const room = roomRepository.get(id);
       if (room.id !== id || room.archivedAt !== null)
@@ -620,14 +639,17 @@ function openOperations(
     return {
       dispatch: () => {
         pollSchedules(scheduleRepository, eventBus, () => Date.now());
-        pollMemoryConsolidations(
-          roomRepository,
+        pollScopedMemoryConsolidations(
           memoryProvider,
           {
             consolidate: (request) =>
-              consolidateRoomMemories(roomRepository, memoryProvider, memoryProvider, request),
+              consolidateMemories(memoryProvider, memoryProvider, request, () => {
+                if (!scopeAvailable(request.scope))
+                  throw new Error('Memory consolidation requires active Room');
+              }),
           },
-          consolidationRooms,
+          nightlyScopes,
+          scopeAvailable,
           () => Date.now(),
         );
         return dispatchEvents(
@@ -874,6 +896,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
           command.observeWorkflows,
           linearScopes,
           memoryGrants,
+          command.consolidationScopes,
         );
       });
     } finally {

@@ -16,7 +16,8 @@ import { SqliteAgentRepository } from '../agents/sqlite.js';
 import { extractRoomMemories } from './extraction.js';
 import { jsonMemoryExtractor } from './extractor.js';
 import {
-  consolidateRoomMemories,
+  consolidateMemories,
+  consolidationScopeAvailable,
   validateConsolidationRequest,
   validateConsolidationScope,
   type MemoryConsolidationRequest,
@@ -146,7 +147,10 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       at: required(parsed.values.at, 'at'),
     };
     validateConsolidationRequest(request);
-    if (request.key.startsWith('nightly-memory:'))
+    if (
+      request.key.startsWith('nightly-memory:') ||
+      request.key.startsWith('nightly-scoped-memory:')
+    )
       throw new Error('Nightly consolidation keys are reserved for daemon');
     return { ...base, action, request };
   }
@@ -272,11 +276,30 @@ export async function runMemoryCommand(
         result = provider.listConsolidations(command.scope);
         break;
       case 'consolidate': {
-        const rooms = new SqliteRoomRepository(command.db);
+        let rooms: SqliteRoomRepository | undefined;
+        let agents: SqliteAgentRepository | undefined;
+        let tasks: SqliteTaskProvider | undefined;
         try {
-          result = consolidateRoomMemories(rooms, provider, provider, command.request);
+          result = consolidateMemories(provider, provider, command.request, () => {
+            if (
+              !consolidationScopeAvailable(command.request.scope, {
+                rooms: { get: (id) => (rooms ??= new SqliteRoomRepository(command.db)).get(id) },
+                agents: { list: () => (agents ??= new SqliteAgentRepository(command.db)).list() },
+                tasks: { get: (id) => (tasks ??= new SqliteTaskProvider(command.db)).get(id) },
+              })
+            )
+              throw new Error('Memory consolidation requires active Room');
+          });
         } finally {
-          rooms.close();
+          try {
+            rooms?.close();
+          } finally {
+            try {
+              agents?.close();
+            } finally {
+              tasks?.close();
+            }
+          }
         }
         break;
       }

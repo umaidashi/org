@@ -28,7 +28,7 @@ test('native CLI consolidates exact Room Memory with stable receipt, retains evi
           'memory',
           'consolidate',
           '--scope',
-          'global',
+          'unknown',
           '--key',
           'first',
           '--at',
@@ -115,6 +115,71 @@ test('native CLI consolidates exact Room Memory with stable receipt, retains evi
     ]);
     assert.ok(Array.isArray(active));
     assert.equal(active.length, 1);
+    const taskId = id(
+      run(['task', 'create', 'Memory scope fixture', '--objective', 'Verify consolidation']),
+    );
+    for (const scope of [
+      'global',
+      'company',
+      'department:engineering',
+      'project:kernel',
+      'agent:' + id(agents[0]),
+      'task:' + taskId,
+    ]) {
+      const scopedCapture = [...capture];
+      scopedCapture[5] = scope;
+      const keeper = id(run(scopedCapture)),
+        obsolete = id(run(scopedCapture));
+      const scopedArgs = [
+        'memory',
+        'consolidate',
+        '--scope',
+        scope,
+        '--key',
+        'manual:' + scope,
+        '--at',
+        '2026-10-06T00:00:00.000Z',
+      ];
+      const scopedReceipt = run(scopedArgs);
+      assert.ok(
+        scopedReceipt &&
+          typeof scopedReceipt === 'object' &&
+          'keepers' in scopedReceipt &&
+          'invalidated' in scopedReceipt,
+      );
+      assert.deepEqual(scopedReceipt.keepers, [keeper]);
+      assert.deepEqual(scopedReceipt.invalidated, [obsolete]);
+      assert.deepEqual(run(scopedArgs), scopedReceipt);
+      assert.deepEqual(run(['memory', 'consolidations', '--scope', scope]), [scopedReceipt]);
+    }
+    for (const scope of ['agent:missing', 'task:missing']) {
+      const missing = raw([
+        'memory',
+        'consolidate',
+        '--scope',
+        scope,
+        '--key',
+        'missing:' + scope,
+        '--at',
+        '2026-10-06T00:00:00.000Z',
+      ]);
+      assert.equal(missing.status, 1, missing.stderr);
+      assert.deepEqual(run(['memory', 'consolidations', '--scope', scope]), []);
+    }
+    for (const key of ['nightly-memory:manual', 'nightly-scoped-memory:manual'])
+      assert.equal(
+        raw([
+          'memory',
+          'consolidate',
+          '--scope',
+          'company',
+          '--key',
+          key,
+          '--at',
+          '2026-10-06T00:00:00.000Z',
+        ]).status,
+        2,
+      );
     const originals = run(['room', 'messages', roomId]);
     assert.ok(Array.isArray(originals));
     assert.equal(originals.length, 1);

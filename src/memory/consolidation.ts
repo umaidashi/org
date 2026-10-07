@@ -1,5 +1,7 @@
-import { memoryIsValidAt, type Memory } from './domain.js';
+import { memoryIsValidAt, validateMemoryScope, type Memory } from './domain.js';
 import type { MemoryProvider } from './port.js';
+import type { AgentRepository } from '../agents/port.js';
+import type { TaskProvider } from '../tasks/port.js';
 import type { RoomRepository } from '../rooms/port.js';
 export interface MemoryConsolidationRequest {
   readonly scope: string;
@@ -24,8 +26,7 @@ export interface MemoryConsolidator {
   consolidate(input: MemoryConsolidationRequest): MemoryConsolidationReceipt;
 }
 export function validateConsolidationScope(scope: string): void {
-  if (!/^room:[^\s]+$/.test(scope) || scope.includes('\0'))
-    throw new Error('Invalid Memory consolidation scope');
+  validateMemoryScope(scope);
 }
 export function validateConsolidationRequest(input: MemoryConsolidationRequest): void {
   validateConsolidationScope(input.scope);
@@ -76,19 +77,36 @@ export function planMemoryConsolidation(
   duplicates.sort((a, b) => a.obsolete.id.localeCompare(b.obsolete.id));
   return { ...request, duplicates };
 }
-export function consolidateRoomMemories(
-  rooms: Pick<RoomRepository, 'get'>,
+export function consolidationScopeAvailable(
+  scope: string,
+  readers: {
+    readonly rooms: Pick<RoomRepository, 'get'>;
+    readonly agents: Pick<AgentRepository, 'list'>;
+    readonly tasks: Pick<TaskProvider, 'get'>;
+  },
+): boolean {
+  validateConsolidationScope(scope);
+  const separator = scope.indexOf(':'),
+    kind = scope.slice(0, separator),
+    id = scope.slice(separator + 1);
+  if (kind === 'room') {
+    const room = readers.rooms.get(id);
+    if (room.id !== id) throw new Error('Memory consolidation Room mismatch');
+    return room.archivedAt === null;
+  }
+  if (kind === 'agent' && !readers.agents.list().some((agent) => agent.id === id))
+    throw new Error('Memory consolidation Agent not found');
+  if (kind === 'task' && readers.tasks.get(id).id !== id)
+    throw new Error('Memory consolidation Task mismatch');
+  return true;
+}
+export function consolidateMemories(
   memories: Pick<MemoryProvider, 'list'>,
   store: MemoryConsolidationStore,
   request: MemoryConsolidationRequest,
+  authorize: () => void,
 ): MemoryConsolidationReceipt {
   validateConsolidationRequest(request);
-  const authorize = () => {
-    const roomId = request.scope.slice('room:'.length),
-      room = rooms.get(roomId);
-    if (room.id !== roomId || room.archivedAt !== null)
-      throw new Error('Memory consolidation requires active Room');
-  };
   authorize();
   const previous = store.getConsolidation(request.key);
   if (previous) {
@@ -100,4 +118,20 @@ export function consolidateRoomMemories(
     planMemoryConsolidation(memories.list([request.scope]), request),
     authorize,
   );
+}
+export function consolidateRoomMemories(
+  rooms: Pick<RoomRepository, 'get'>,
+  memories: Pick<MemoryProvider, 'list'>,
+  store: MemoryConsolidationStore,
+  request: MemoryConsolidationRequest,
+): MemoryConsolidationReceipt {
+  validateConsolidationRequest(request);
+  if (!request.scope.startsWith('room:')) throw new Error('Room consolidation requires Room scope');
+  const authorize = () => {
+    const roomId = request.scope.slice('room:'.length),
+      room = rooms.get(roomId);
+    if (room.id !== roomId || room.archivedAt !== null)
+      throw new Error('Memory consolidation requires active Room');
+  };
+  return consolidateMemories(memories, store, request, authorize);
 }

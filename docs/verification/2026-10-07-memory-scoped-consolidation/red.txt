@@ -1,0 +1,94 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-nightly-cli.test.ts:
+ 97 |         '--poll-interval',
+ 98 |         '50',
+ 99 |       ]);
+100 |       exited = new Promise((resolve) => daemon?.once('exit', resolve));
+101 |       await new Promise<void>((resolve, reject) => {
+102 |         const timer = setTimeout(() => reject(new Error('Daemon not ready')), 5000);
+                                                        ^
+error: Daemon not ready
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-nightly-cli.test.ts:102:51)
+(fail) opt-in native daemon consolidates allowed active Room once daily and restart preserves receipt and new same-day records [5974.75ms]
+
+tests/memory-consolidation-cli.test.ts:
+11 |       encoding: 'utf8',
+12 |       timeout: 10000,
+13 |     });
+14 |   const run = (args: string[]): unknown => {
+15 |     const p = raw([...args, '--json']);
+16 |     assert.equal(p.status, 0, p.stderr);
+                ^
+AssertionError: Error: Invalid Memory consolidation scope
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent send AGENT_ID MESSAGE --room ROOM_ID --human HUMAN_ID [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org tui [--socket PATH] [--room ID --human ID]
+       org room open ROOM_ID --human HUMAN_ID
+       org logs [--task ID] [--event ID] [--limit N] [--json]
+       org logs tail AGENT_ID [--limit N] [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org task create|get|list|update|comment|artifact [OPTIONS] --provider local|linear [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|import-github|import-github-webhook|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org sandbox list [--json]
+       org workflow run|status|cancel|list|history [OPTIONS]
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org knowledge notion PAGE_ID [--room ROOM --human HUMAN] [--json]
+       org a2a send|adopt|get|list [OPTIONS]
+       org memory capture|extract|consolidate|consolidations|get|list|search|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org task observe-workflow ID --expected-version N
+       org task resume-workflow ID --approval ID --expected-version N
+       org task resume-linear-task|observe-linear-task ID --approval ID --expected-version N
+       org task linear-get|import-linear ISSUE_ID [--json]
+       org task linear-list --team TEAM_KEY [--limit 1..50] [--after CURSOR] [--json]
+       org task refresh-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task sync-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task artifact-content ID --artifact ARTIFACT_ID [--json]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH] [--observe-workflows] [--linear-updates]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at run (/Users/umaidashi/Documents/git/org/tests/memory-consolidation-cli.test.ts:16:12)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-consolidation-cli.test.ts:123:29)
+(fail) native CLI consolidates exact Room Memory with stable receipt, retains evidence and rejects invalid requests before DB creation [638.81ms]
+
+tests/memory-consolidation.test.ts:
+(pass) conservative consolidation selects only same-scope valid exact metadata and validates Room before atomic Port commit [2.10ms]
+80 |   );
+81 |   assert.throws(() => planMemoryConsolidation(records, { ...request, scope: 'unknown' }));
+82 | });
+83 | 
+84 | test('Memory domain rejects NUL scope for all callers', () => {
+85 |   assert.throws(() => createMemory({type: 'semantic', scope: 'department:eng\0', content: 'fact', confidence: 1, sourceRefs: [{roomId: 'r', messageId: 'm'}]}, {id:'m', at:'0'}), /scope/);
+              ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-consolidation.test.ts:85:10)
+(fail) Memory domain rejects NUL scope for all callers [0.08ms]
+
+ 1 pass
+ 3 fail
+Ran 4 tests across 3 files. [6.67s]

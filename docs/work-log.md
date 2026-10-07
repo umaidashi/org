@@ -1759,3 +1759,23 @@
 - [次の全scope整理計画](superpowers/plans/2026-10-07-memory-scoped-consolidation.md)を保存。既存exact conservative policy/不変receipt/transactionを再利用し、Room専用selectorを既に保存するscopeへ接続する。次単位の詳細契約は今回review対象外、未実装。
 
 - 補足後の最終全check終了0:480成功/14skip/0失敗494tests/200files173.20秒、static354files/AST成功。実Jev2265subjects/135warning/missing0/unsure0/review0/errors[]/degraded[]、直前dry-runの非空/除外・空実行なしも再確認。fast UT167成功56files265ms。[証拠](verification/2026-10-07-memory-candidate-evidence/)保存。前のgate結果だけで補足後のtreeを成功とせず、全gate/実Jevを再実行した。全体goalはactive。
+
+### 2026-10-07 全scopeの保守的Memory整理（進行中）
+- 前単位 `1139355` のmain通常pushはpre-push全検査/実Jevを含め195.63秒、終了0。main/origin/main一致を確認。次単位は `feat/memory-scoped-consolidation` に分離した。
+- [計画](superpowers/plans/2026-10-07-memory-scoped-consolidation.md)とcoding/reference/qualityを再読。executing-plans/TDD/Ponytail-reviewを継続。Notion03を再取得（fetch本文のas-ofは2026-10-04、編集日時の独立検証ではない）。全scopeを既存Provider/Contextと同じscopeへ接続する。
+- Pre-flight: domain scope→consolidation validator→CLI/SQLite receipt、旧Room allowlist→scoped nightly→daemonの共有interfaceを確認。旧Room receipt hash/prefixは維持し、非Roomは別namespaceにする。既存exact planner/receipt/transactionを共有し、DDL/新依存/意味推論engineを追加しない。
+- Ruling: department/project/global/companyはhostの明示scope、Agent/Taskは公開Readerで実在確認、Roomはactive確認 — 所属directoryや本人認証を推定しない — 誤解されるとresource permissionを満たしたとの過大主張になる。
+- Ruling: 非Room nightly keyは `nightly-scoped-memory:`、Roomは旧 `nightly-memory:` のまま — 任意Room IDとscope文字列hashの衝突・既存receipt再実行を防ぐ — namespaceを変えると既存運用の互換性を失う。
+- 最初のtest編集に `python` を指定して未インストールにより失敗、後続testは旧treeの成功だったためRED証拠にしない。`python3` で編集後、実CLI scope拒否/daemon未知flag/NUL許容の意図したRED（1成功/3失敗、4tests3files6.67秒）を確認してからsourceを変更。
+- GREEN: domain共通scope検証、Room専用wrapper+共通保存関数、公開Reader availability、lazy CLI cleanup、最大32の旧新combined allowlist、continuous限定flag、scoped nightlyを接続。旧Room APIとUTC coalesce/時計巻戻り/不変receiptの処理を再利用。
+- 対象検査10成功/0失敗、5files4.29秒。実CLIの7scope整理/存在しないAgent・Task拒否/再open、実daemonの旧Room+department/非allowlist/archived除外/再起動no replay、全metadata非同値/失効/未来/inactive保持、DI transaction再照合、同じ実SQLite fault rollbackをRoom/departmentで確認。静的検査354files/AST終了0。
+- 全gate/実Jev/独立reviewはまだ未完了。この時点で全体完了を主張しない。
+- 独立review: Critical0/Important0/Minor1、独立focused8成功3files91ms。Ponytail: Lean already（新engine・store・依存なし、既存policy/transaction再利用）。期間外Memory fixtureが各1件ではvalidity判定削除を検出しないとの指摘。
+- Final Ruling: このcoverage指摘は明示計画の期間外除外を直接証明する受け入れ不足としてImportantへ再gradeし、一回のtest-only補足を行う — product bugと混同しない — 検出できないassertを根拠に完了判定すると失効済みMemoryを整理してしまう変更を見逃す。
+- Final fixed: expired/futureの各同値2件を全scope fixtureへ追加。共有consolidationのvalidityを一時的にstatus-onlyへ変異させ、1成功/2失敗49msのmutation REDを観測。原sourceを直ちに復元し3成功/0失敗29ms。sourceの変更は不要。最後の全gate/実Jevを再実行して補足treeを検証し、review再dispatchはしない。
+- Final Ruling: reviewが独立実行しないnative/fullcheck/実Jevは親の実際の終了値に委ねる — focused testを全検査の代わりにしない — 混同すると実環境回帰を見逃す。
+- Final Ruling: 本人認証/resource permission/外部系原子性/意味的整理/全体完了は今回のscope availabilityの保証外 — active/実在と同DBのtransactionのみ — 過大保証なら権限漏れ・跨system部分失敗を見逃す。未完了は要件表に維持する。
+- 最終全gate: 484成功/14skip/0失敗、498tests200files174.31秒、static354files/AST・dry-run2287subjects/対象除外0/未宣言・idle・silentルール空。実Jev2287subjects/141warning、missing/unsure/review0、errors/degraded空、終了0。fast UT167成功56files273ms（新整理UTは別のfocused/all gateに含まれ、curated fast UTへ追加したとの主張はしない）。全証拠を [verification](verification/2026-10-07-memory-scoped-consolidation/) へ保存。
+- Jev warning判定: consolidation/nightlyのfailure-path候補は、CLI不存在/不正allowlist/Room archive/公開Reader・callback障害/SQLite storage・snapshot rollback/malformed receiptの直接assertと照合。plannerの重複IDや不正clock等、全個別branchの網羅は主張しない。fixtureのroom helper naming候補は実際にRoomを作るhelperで、正しさの新findingではない。既存warningを含め141件で、モデルだけの自動マージ判定にしない。
+- Final review補足後のsourceはreview済みのままで、test-only検出力を補足し全gate/実Jev終了0、rereviewなし。未解消のCritical/Important/この単位のMinorなし。README/要件/監査を観測結果へ更新、全体未達を維持。
+- Next: Notion08を再取得し、[Sandbox execution Audit計画](superpowers/plans/2026-10-07-sandbox-execution-audit.md) を保存。generic Task状態Auditを詳細Sandbox command Auditと混同せず、既存Event/collectAudit/共有Artifact経路を再利用する。新単位はまだ実装・検証していない。

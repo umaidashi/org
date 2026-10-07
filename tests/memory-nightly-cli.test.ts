@@ -49,7 +49,7 @@ test('opt-in native daemon consolidates allowed active Room once daily and resta
       excluded = room('excluded'),
       archived = room('archived');
     const source = new Map<string, string>();
-    const capture = (roomId: string, remote = false) =>
+    const capture = (roomId: string, remote = false, scope = 'room:' + roomId) =>
       run(
         [
           'memory',
@@ -57,7 +57,7 @@ test('opt-in native daemon consolidates allowed active Room once daily and resta
           '--type',
           'semantic',
           '--scope',
-          'room:' + roomId,
+          scope,
           '--content',
           'Use SQLite',
           '--confidence',
@@ -77,6 +77,10 @@ test('opt-in native daemon consolidates allowed active Room once daily and resta
       capture(roomId);
       capture(roomId);
     }
+    for (const scope of ['department:engineering', 'project:excluded']) {
+      capture(target, false, scope);
+      capture(target, false, scope);
+    }
     run(['room', 'archive', archived]);
     const start = async () => {
       daemon = spawn(process.execPath, [
@@ -91,6 +95,8 @@ test('opt-in native daemon consolidates allowed active Room once daily and resta
         target,
         '--memory-consolidation-room',
         archived,
+        '--memory-consolidation-scope',
+        'department:engineering',
         '--poll-interval',
         '50',
       ]);
@@ -118,6 +124,22 @@ test('opt-in native daemon consolidates allowed active Room once daily and resta
     assert.equal(active(target).length, 1);
     assert.equal(active(excluded).length, 2);
     assert.equal(active(archived).length, 2);
+    const scopedReceipts = list(
+      ['memory', 'consolidations', '--scope', 'department:engineering'],
+      true,
+    );
+    assert.equal(scopedReceipts.length, 1);
+    assert.ok(record(scopedReceipts[0]) && typeof scopedReceipts[0].key === 'string');
+    assert.match(scopedReceipts[0].key, /^nightly-scoped-memory:[a-f0-9]{64}:\d{4}-\d{2}-\d{2}$/);
+    assert.deepEqual(list(['memory', 'consolidations', '--scope', 'project:excluded'], true), []);
+    assert.equal(
+      list(
+        ['memory', 'list', '--scope', 'department:engineering', '--at', new Date().toISOString()],
+        true,
+      ).length,
+      1,
+    );
+    const scopedFresh = id(capture(target, true, 'department:engineering'));
     const fresh = id(capture(target, true));
     await Bun.sleep(200);
     assert.equal(active(target).length, 2);
@@ -130,6 +152,13 @@ test('opt-in native daemon consolidates allowed active Room once daily and resta
       list(['memory', 'consolidations', '--scope', 'room:' + target], true),
       receipts,
     );
+    assert.deepEqual(
+      list(['memory', 'consolidations', '--scope', 'department:engineering'], true),
+      scopedReceipts,
+    );
+    const scopedRecord = run(['memory', 'get', scopedFresh], true);
+    assert.ok(record(scopedRecord));
+    assert.equal(scopedRecord.status, 'active');
     const freshRecord = run(['memory', 'get', fresh], true);
     assert.ok(record(freshRecord));
     assert.equal(freshRecord.status, 'active');

@@ -1,0 +1,52 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-consolidation.test.ts:
+32 |     { ...entry('invalid'), status: 'invalidated' as const },
+33 |     keeper,
+34 |   ];
+35 |   const request = { scope: 'room:r', key: 'first', at: '2026-10-06T00:00:00.000Z' };
+36 |   const plan = planMemoryConsolidation(records, request);
+37 |   assert.equal(plan.duplicates.length, 1);
+              ^
+AssertionError: Expected values to be strictly equal:
+
+2 !== 1
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-consolidation.test.ts:37:10)
+(fail) conservative consolidation selects only same-scope valid exact metadata and validates Room before atomic Port commit [2.27ms]
+(pass) Memory domain rejects NUL scope for all callers [0.65ms]
+143 |       { ...entry('inactive'), status: 'invalidated' as const },
+144 |       { ...entry('superseded'), status: 'superseded' as const },
+145 |     ];
+146 |     const request = { scope, key: scope, at: '2026-10-06T00:00:00.000Z' };
+147 |     const plan = planMemoryConsolidation(records, request);
+148 |     assert.deepEqual(
+                 ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
+    [
+      'a',
+      'b'
+    ],
++   [
++     'expired',
++     'expired-copy'
++   ],
++   [
++     'future',
++     'future-copy'
++   ]
+  ]
+
+      at innerFail (node:assert:36:32)
+      at deepStrictEqual (node:assert:134:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-consolidation.test.ts:148:12)
+(fail) all scopes retain non-equivalent, inactive and out-of-period Memory and recheck authority at commit [1.10ms]
+
+ 1 pass
+ 2 fail
+Ran 3 tests across 1 file. [49.00ms]
