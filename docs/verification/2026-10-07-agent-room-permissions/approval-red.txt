@@ -1,0 +1,39 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-room-permissions.test.ts:
+(pass) Agent Room permissions use a closed finite allowlist and copy input values [1.44ms]
+(pass) Room resource permissions guard start resume rebuild and late completion independently of membership [5.04ms]
+132 |     const first = agents.applyCapabilities(
+133 |       requireApprovedPermission(approvals.get('restrict')),
+134 |       actor,
+135 |       'applied',
+136 |     );
+137 |     assert.deepEqual(first.permissions, { rooms: [] });
+                 ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
++   rooms: [
++     'allowed'
++   ]
+-   rooms: []
+  }
+
+ generatedMessage: true,
+     actual: {
+  rooms: [ "allowed" ],
+},
+   expected: {
+  rooms: [],
+},
+   operator: "deepStrictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/agent-room-permissions.test.ts:137:12
+      at processTicksAndRejections (native:7:39)
+(fail) approved Room permission changes share capability CAS, preserve omitted policy and retain idempotent receipts after reopen [11.74ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [45.00ms]

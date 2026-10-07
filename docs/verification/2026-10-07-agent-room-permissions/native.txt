@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-room-permissions-cli.test.ts:
+132 |     case 'group':
+133 |       if (humans < 1 || agents < 2)
+134 |         throw new Error('Group Room requires human and multiple Agents');
+135 |       break;
+136 |     case 'agent':
+137 |       if (humans !== 0 || agents < 2) throw new Error('Agent Room requires multiple Agents only');
+                                                      ^
+error: Agent Room requires multiple Agents only
+      at validateRoomInput (/Users/umaidashi/Documents/git/org/src/rooms/domain.ts:137:49)
+      at createRoom (/Users/umaidashi/Documents/git/org/src/rooms/domain.ts:149:3)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/agent-room-permissions-cli.test.ts:81:7)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/agent-room-permissions-cli.test.ts:12:115)
+(fail) native Room permissions persist and human Approval blocks Context before Runtime and after an active turn [131.52ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [196.00ms]

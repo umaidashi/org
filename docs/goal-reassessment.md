@@ -1,6 +1,6 @@
 # 全体ゴールの再照合（2026-10-07）
 
-全体は未達。現在の実装baselineは `9df2eb4`、490成功/14skip/0失敗、実Docker4成功と実Jev2303対象/欠損・エラー・劣化0まで観測済み。[最新証拠](verification/2026-10-07-sandbox-execution-audit/)と[時系列ログ](work-log.md)を参照。外部HTTP fixtureと実API認証、ローカル納品fixtureと指定業務への納品を混同しない。
+全体は未達。再照合時点の実装baselineは `9df2eb4`、490成功/14skip/0失敗、実Docker4成功と実Jev2303対象/欠損・エラー・劣化0まで観測済み。[最新証拠](verification/2026-10-07-sandbox-execution-audit/)と[時系列ログ](work-log.md)を参照。外部HTTP fixtureと実API認証、ローカル納品fixtureと指定業務への納品を混同しない。
 
 ## 原文と合意
 
@@ -22,7 +22,7 @@ root/00–10の12ページを再取得。全件成功・タイトルを照合、
 | Webhook | 05/09。署名済みGitHub payloadをCLIから受理して一度publish/dispatchするnative contract | payload検証と常駐HTTP自動受信は別。後者/実Webhook配送は未達。public endpointの公開を勝手に行わない |
 | Docker/Artifact/n8n | 06/09。one-shot隔離、repo export、run/回収/destroy、n8n invoke/status/cancel実機記録 | 検証あり。06の限定credential注入は未実装。network none/credential noneは現在の安全な既定で、任意network/万能credentialへ広げない |
 | CLI/TUI/daemon | 07。全例示verbの実経路、actual PTY四領域/送信/終了、agent send、sandbox list、logs tail | 検証あり。例示の名前を安定ID/必須role/source/参加者flagへ置換する差はREADMEに明示。continuous stdout/follow/全container履歴は現方式外 |
-| Agent permissions | 01/08。Agent domainにpermissions fieldなし、host resource scopeとcapabilityは別々の実行guard | 未達。fieldだけ追加して完了にしない。現実のread/write/tool resource境界を共通契約へ接続する設計が必要 |
+| Agent permissions | 01/08。permissions.roomsの有限Context allowlistをdomain/SQLite/human Approval/shared Session guardへ接続 | Context送信の実拒否/失効/reopenは検証済み。Memory抽出の同policyと他resource統合は未達。fieldの存在だけで全境界完了にしない |
 | Capability | 08。Shell/外部service/委譲/Memory抽出でguard。Room/Session読取は参加/ownerを照合 | 全境界適用は未達。Session/Context経路でcan_readの明示取消が効くかを直接TDDで確認する。全enumに未提供のメール/支出等Adapterを作ることは要求しない |
 | Credential/secret | 06/08。per-Agent cwd/選択env、SecretStore/Keychain actor/ref grant、service credential反射拒否 | 部分検証。configuredDriversは選択envを渡すがRuntime text/error/provider IDからの既知credential反射を検査しない。現在の実callerにある具体的なsecret redaction不足として最優先で扱う |
 | Approval/Audit | 08。不可逆/外部write/permission変更承認、Task/Workflow/Linear/Decision/Sandbox原本Audit、actor/task/event/tool/ref/time/result/approval | 既存経路は検証あり。重要操作の全inventoryを改めて照合し、未記録操作を隠さない。内部docker setupを全て別tool/domainに増やすことは求めない |

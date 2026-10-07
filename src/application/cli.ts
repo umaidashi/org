@@ -25,7 +25,12 @@ import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
-import { validateCapabilities, validateMemoryPolicy, type AgentInput } from '../agents/domain.js';
+import {
+  validateCapabilities,
+  validatePermissions,
+  validateMemoryPolicy,
+  type AgentInput,
+} from '../agents/domain.js';
 import { registerAgent, setReportingLine } from '../agents/service.js';
 import { sendAgentMessage, type AgentSendInput } from '../agents/send.js';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
@@ -151,6 +156,7 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
       'reports-to': { type: 'string' },
       capability: { type: 'string', multiple: true },
       'memory-policy': { type: 'string' },
+      permissions: { type: 'string' },
       to: { type: 'string' },
       clear: { type: 'boolean' },
       room: { type: 'string' },
@@ -168,7 +174,7 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
   if (command !== 'agent' || (action === 'send' ? extra.length !== 1 : extra.length > 0))
     throw new UsageError('Expected agent command');
   const allowed: Record<string, readonly string[]> = {
-    create: ['role', 'runtime', 'reports-to', 'capability', 'memory-policy'],
+    create: ['role', 'runtime', 'reports-to', 'capability', 'memory-policy', 'permissions'],
     list: [],
     send: ['room', 'human'],
     capabilities: [],
@@ -222,6 +228,9 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
       db,
       input: {
         name: required(name, 'name'),
+        ...(parsed.values.permissions === undefined
+          ? {}
+          : { permissions: validatePermissions(JSON.parse(parsed.values.permissions)) }),
         ...(parsed.values['memory-policy'] === undefined
           ? {}
           : { memoryPolicy: validateMemoryPolicy(parsed.values['memory-policy']) }),

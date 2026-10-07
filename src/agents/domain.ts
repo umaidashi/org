@@ -36,6 +36,28 @@ export function requireCapability(agent: Agent, capability: Capability): void {
   if (!agent.capabilities?.includes(capability))
     throw new Error(`Agent capability required: ${capability}`);
 }
+export interface AgentPermissions {
+  readonly rooms: readonly string[];
+}
+export function validatePermissions(value: unknown): AgentPermissions {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    Object.keys(value).some((key) => key !== 'rooms') ||
+    !('rooms' in value) ||
+    !Array.isArray(value.rooms) ||
+    value.rooms.length > 128 ||
+    new Set(value.rooms).size !== value.rooms.length
+  )
+    throw new Error('Invalid Agent permissions');
+  const rooms = Array.from(value.rooms, (id: unknown) => {
+    if (typeof id !== 'string' || !id || id.trim() !== id || id.includes('\0') || id.length > 128)
+      throw new Error('Invalid Agent Room permission');
+    return id;
+  });
+  return { rooms };
+}
 export interface Agent {
   readonly id: string;
   readonly name: string;
@@ -45,6 +67,7 @@ export interface Agent {
   readonly reportsTo?: string;
   readonly capabilities?: readonly Capability[];
   readonly memoryPolicy?: MemoryPolicy;
+  readonly permissions?: AgentPermissions;
 }
 
 export interface AgentInput {
@@ -54,6 +77,7 @@ export interface AgentInput {
   readonly reportsTo?: string;
   readonly capabilities?: readonly string[];
   readonly memoryPolicy?: string;
+  readonly permissions?: unknown;
 }
 
 export interface Identity {
@@ -67,12 +91,13 @@ export function createAgent(input: AgentInput, identity: Identity): Agent {
   }
   if (input.reportsTo !== undefined && (!input.reportsTo.trim() || input.reportsTo === identity.id))
     throw new Error('Agent reportsTo must name another Agent');
-  const { capabilities: grants, memoryPolicy: policy, ...fields } = input;
+  const { capabilities: grants, memoryPolicy: policy, permissions, ...fields } = input;
   return {
     ...fields,
     ...identity,
     ...(grants === undefined ? {} : { capabilities: validateCapabilities(grants) }),
     ...(policy === undefined ? {} : { memoryPolicy: validateMemoryPolicy(policy) }),
+    ...(permissions === undefined ? {} : { permissions: validatePermissions(permissions) }),
   };
 }
 

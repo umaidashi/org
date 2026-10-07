@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-room-permissions.test.ts:
+17 |     { rooms: [' room'] },
+18 |     { rooms: ['bad\0id'] },
+19 |     { rooms: new Array<string>(1) },
+20 |     { rooms: Array.from({ length: 129 }, (_, i) => 'room-' + i) },
+21 |   ])
+22 |     assert.throws(() => createAgent({ ...base, permissions }, identity), /permission/i);
+                ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/agent-room-permissions.test.ts:22:12)
+(fail) Agent Room permissions use a closed finite allowlist and copy input values [2.04ms]
+(pass) Room resource permissions guard start resume rebuild and late completion independently of membership [4.55ms]
+(pass) approved Room permission changes share capability CAS, preserve omitted policy and retain idempotent receipts after reopen [14.21ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [73.00ms]

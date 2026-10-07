@@ -14,6 +14,8 @@ export function sessionAgent(
   const agent = agents.list().find((agent) => agent.id === agentId);
   if (!agent) throw new Error('Session Agent not found');
   requireCapability(agent, 'can_read');
+  if (agent.permissions && !agent.permissions.rooms.includes(roomId))
+    throw new Error('Agent Room permission required');
   if (agent.runtime !== 'codex' && agent.runtime !== 'claude')
     throw new Error('Unsupported Session runtime');
   const room = rooms.get(roomId);

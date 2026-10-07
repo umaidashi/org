@@ -1948,3 +1948,16 @@
 - Fresh reviewer P2一件をImportantとして採用: 同時刻数値sequenceが文字列順になり最新ログが誤る。12変更RED→existing causalIdとstable sortで1行修正、finalfocused4成功1.52秒。onefixpass/no rereview、Deferred Minorなし。Ponytail Lean/net0、新sort/engine/dependencyは不要。
 - 修正前full514成功21skip0失敗535tests210files183.44秒。最終terminal0 full515成功21skip0失敗536tests210files184.88秒、type/Oxlint/Oxfmt367files/非空AST/dry-run成功。実Jev2388subjects145warnings、missing/unsure/review/errors/degraded0、変更source/newtestのbyFile対象あり。具体counterexampleのないモデルwarningから追加実装しない。
 - [証拠](verification/2026-10-07-agent-configuration-audit/)、棚卸し更新。実actor認証/trusted host原本捏造防止/全重要操作/全体は認定しない。次は01 permissions fieldと実Room guardの具体gapを[最小Room policy計画](superpowers/plans/2026-10-07-agent-room-permissions.md)で進める。Memory等のAudit/実業務APIも残件。
+
+## 2026-10-07 — Agentの明示Room Context permission
+
+- 前構成Audit d3e8cde main通常push terminal0/localgate208.34秒。最終commit tree515成功21skip0失敗536tests210files184.23秒、remote exact head確認。
+- [計画](superpowers/plans/2026-10-07-agent-room-permissions.md)を実行。閉じた有限permissions.rooms型/stdlib parse・コピー・SQLite移行/保存。共有sessionAgentの2行でcreate/start/resume/rebuild/Runtime完了保存を拒否し、既存各callerを照合。旧Agent未設定は既存参加/can_read、空policyは全Context拒否。
+- Ruling: schema formatは原文未指定なので最初の実resourceはRoom Contextとする — 実送信/保存境界で効果を確認できる — 他の有限Issue/workflow/credential host grantを置換せず、全resource共通engineとは主張しない。初期trusted host登録は既存capability bootstrapと同じ。既存human Approval agent_capabilitiesへoptional policy、同じCAS/原本history、未指定は現在制限を維持。制限の暗黙解除/新revision/storeは作らない。
+- domain/guard RED→focused8成功94ms。最初の静的検査はvalidator import不足、修正。CAS fixtureの存在しないrequest methodをrequestOnce/createApprovalRequestへ合わせた後、実readbackでpolicyが落ちるREDを確認、既存Approval SQLite parserに接続して14成功61ms。エラー段階を意味的REDと混同しない。
+- native初回はRoom type agentの構成違反、続いてSession startの位置Agent ID指定でUsage拒否。既存direct Room/--agentへfixture修正。最初のsetup失敗で残ったowned一時DB一つを削除しsetup全体finallyを追加。snapshot Agent IDをconstにし型narrowingを保持。固定時間待ちを承認apply後release markerへ置換。
+- 実CLI/daemon/別process fixtureで許可外RoomはRuntime0、許可は1、human Approval deny/restore、active turn中再deny後Room permission stderr/Session failed/旧provider ID保持/Runtime回数3固定、revision/history/Audit/direct reopen/rebuild拒否を確認。最終focused4成功2.21秒。実Codex API認証の証拠へ置換しない。
+- Fresh reviewer C0/I0/M0、Ponytail Lean/net0。その後Jev validatePermissionsのfailure-path候補から、疎配列をmapが飛ばす実欠陥をREDで確認。ImportantとしてArray.fromの1行fixpass、再レビューなし。最大128の境界拒否も検査。createCapabilityChange/Approval等の抽象warningは拒否/CAS/原本/実CLIと照合、具体反例のない候補だけで追加しない。
+- 修正前full519成功21skip0失敗540tests212files185.98秒。最終terminal0 full519成功21skip0失敗540tests212files184.25秒、type/Oxlint/Oxfmt369files/非空AST/dry-run成功。実Jev2402subjects146warnings、missing/unsure/review/errors/degraded0。
+- Notion root/01/03/08を再fetch成功、前回fetchとのcontent body一致。Notion verification/独立編集時刻の証明へ言い換えず、raw本文の新公開/意味API送信なし。[証拠](verification/2026-10-07-agent-room-permissions/)とREADME/要件更新。
+- 次の実反例: 既存Memory抽出はrooms=[]でも過去proposalからDI保存1回/result1を返した。[次計画](superpowers/plans/2026-10-07-memory-room-permission-boundary.md)でshared guardを接続する。全重要操作Audit/本人認証/実業務API・指定対象と全体は未達。

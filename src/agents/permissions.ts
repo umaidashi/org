@@ -1,14 +1,21 @@
-import { validateCapabilities, type Capability } from './domain.js';
+import {
+  validateCapabilities,
+  validatePermissions,
+  type AgentPermissions,
+  type Capability,
+} from './domain.js';
 import { requireApprovedPermission, type ApprovedPermission } from '../approvals/domain.js';
 import type { Participant } from '../rooms/domain.js';
 export interface CapabilitySnapshot {
   readonly agentId: string;
   readonly revision: number;
   readonly capabilities: readonly Capability[];
+  readonly permissions?: AgentPermissions;
 }
 export interface CapabilityChange extends CapabilitySnapshot {
   readonly approvalId: string;
   readonly previousCapabilities: readonly Capability[];
+  readonly previousPermissions?: AgentPermissions;
   readonly actor: Participant;
   readonly taskId: string | null;
   readonly eventId: string | null;
@@ -41,11 +48,17 @@ export function createCapabilityChange(
     (approved.request.actor.kind !== 'agent' || approved.request.actor.id !== actor.id)
   )
     throw new Error('Permission executor must match requesting Agent');
+  const permissions =
+    operation.permissions === undefined ? snapshot.permissions : operation.permissions;
   return {
     agentId: snapshot.agentId,
     revision: snapshot.revision + 1,
     capabilities: validateCapabilities(operation.capabilities),
     previousCapabilities: validateCapabilities(snapshot.capabilities),
+    ...(permissions === undefined ? {} : { permissions: validatePermissions(permissions) }),
+    ...(snapshot.permissions === undefined
+      ? {}
+      : { previousPermissions: validatePermissions(snapshot.permissions) }),
     approvalId: approved.request.id,
     actor: { ...actor },
     taskId: approved.request.taskId,

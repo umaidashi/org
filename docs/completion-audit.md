@@ -54,7 +54,7 @@ hash Artifact追加進捗: `--source-artifact org://artifacts/HASH`を既存capt
 | 明示項目 | 現在の直接証拠 | 判定・不足 |
 |---|---|---|
 | Agent id/name/role/reportsTo/runtime/capabilities/memoryPolicy | `src/agents/domain.ts`、SQLite、`agent-domain`/`agent-reporting-cli`/`agent-permission` tests | 検証あり。roleとRuntimeを分離。memoryPolicyはnone/reviewed-tasks |
-| Agent permissions | Agent domainにこのfieldなし。host Runtime/Workflow/Linear scopeとcapabilityを別々に照合 | resource permissionの共通契約・本人認証は未達。capabilitiesの存在だけで代替完了にしない |
+| Agent permissions | permissions.roomsを実装しContext送信前/完了前・SQLite・human Approval/CASへ接続 | Room Context境界を検証。Memory抽出の同Room policy/他resource統合/本人認証は未達。fieldだけで全完了としない |
 | Chief of Staff→専門Agent | `src/agents/service.ts`、A2A delegate、`coordinator-claude-real.test.ts` | fixture/実Claudeの委譲一周あり。任意業務の実装/納品は未証明 |
 | Coordinatorのみ起動 / mention例外 / 一斉起動抑止 | `src/activation/domain.ts`、`room-runtime`/`activation-cli`/`automatic-wake-up-cli` tests | 検証あり |
 | A2A id/from/to/type/taskId/payload/correlationId | `src/a2a/domain.ts`、service、`a2a-cli.test.ts` | 検証あり。delegate/request/result/question/decision/blocker/cancelの型あり |
@@ -224,3 +224,5 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 2026-10-07 Sandbox完了後の権限再照合: 実行開始後のhuman Approval撤回でdirect/RPC両方の成果物保存を拒否。[証拠](verification/2026-10-07-sandbox-completion-authority/) full513成功21skip0失敗534tests209files182.90秒/実Jev2382subjects欠損・エラー・劣化0。送信済みcode/秘密回収と保存原子性は別。重要操作の[棚卸し](important-operation-audit-inventory.md)に未接続項目あり、resource permissions/実業務API/全体は未達。
 
 2026-10-07 Agent構成Audit: trusted local-hostの登録/報告先変更を既存transactionで不変8field原本へ接続、legacy無backfill/no-op/rollback/reopen/同時刻順序を検証。[証拠](verification/2026-10-07-agent-configuration-audit/) full515成功21skip0失敗536tests210files184.88秒、実Jev2388subjects欠損・エラー・劣化0。全重要操作/resource permissions/実業務API/全体は未達。[明示Room permission計画](superpowers/plans/2026-10-07-agent-room-permissions.md)へ続行。
+
+2026-10-07 明示Room Context permission: 有限rooms allowlistとhuman Approval/CAS/DB再open、Runtime前と実行中失効後の拒否を検証。[証拠](verification/2026-10-07-agent-room-permissions/) full519成功21skip0失敗540tests212files184.25秒、実Jev2402subjects欠損・エラー・劣化0。[Memory抽出兄弟caller](superpowers/plans/2026-10-07-memory-room-permission-boundary.md)は実反例あり、次に共有guardを接続。全重要操作/実API業務/全体は未達。

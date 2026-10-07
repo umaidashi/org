@@ -1,0 +1,21 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-room-permissions.test.ts:
+(pass) Agent Room permissions use a closed finite allowlist and copy input values [0.88ms]
+(pass) Room resource permissions guard start resume rebuild and late completion independently of membership [6.01ms]
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [4.14ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.87ms]
+(pass) Agent capabilities persist across reopen and reject malformed direct adapter input [2.31ms]
+
+tests/approval-sqlite.test.ts:
+(pass) Linear update approval baseline survives reopening and rejects changed intent under the same key [5.00ms]
+(pass) Approval requests and decisions are immutable, idempotent and visible across adapters [15.45ms]
+
+tests/agent-permission.test.ts:
+(pass) Approved permission applies only to the named Agent and exact revision [0.75ms]
+
+ 8 pass
+ 0 fail
+Ran 8 tests across 4 files. [94.00ms]

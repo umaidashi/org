@@ -239,7 +239,7 @@ bun run start session history SESSION_ID --json
 bun run start session stop SESSION_ID --json
 ```
 
-Agentはactive Roomの参加者で、明示`can_read`を持つ必要があります。作成時は`--capability can_read`を指定し、既存Agentへの付与/失効は後述のhuman Approvalとrevision CASを使います。legacy/権限省略は既定拒否です。Runtime送信前と完了保存前に登録/runtime/Room参加/権限を再照合し、実行中の失効後は新provider ID・返信・成果物を保存しません。既存provider IDは保持します。Sessionの開始・送信はRuntimeの完了まで待機し、別のterminalからstopできます。待機時間はRuntime設定で制限します。daemon停止時は実行中のturnを中止して終了を待ち、再起動時に残ったrunning状態はfailedへ復旧します。provider Session IDを維持してresumeします。Codexはread-only/approval neverに加え、native shell・view_image・hooks/legacy notify・apps・plugins・native委譲・web_searchを無効化する固定設定を渡し、ClaudeはMaxのログインを使えるsafe-modeで起動し、tools・custom hooks・MCP・slash commandsを無効にします。管理policyはClaude Codeの優先規則に従います。自動e2eは実subprocessのfixtureを使用します。実Codexでも開始→同じprovider IDで再開→停止を別途確認済みです。実Claude MaxでもAPIキーなしで開始→同じprovider IDで再開→Task実行→承認待ち→停止を確認済みです。
+Agentはactive Roomの参加者で、明示`can_read`を持つ必要があります。作成時は`--capability can_read`を指定し、既存Agentへの付与/失効は後述のhuman Approvalとrevision CASを使います。legacy/`can_read`省略は既定拒否です。Runtime送信前と完了保存前に登録/runtime/Room参加/権限を再照合し、実行中の失効後は新provider ID・返信・成果物を保存しません。既存provider IDは保持します。Sessionの開始・送信はRuntimeの完了まで待機し、別のterminalからstopできます。待機時間はRuntime設定で制限します。daemon停止時は実行中のturnを中止して終了を待ち、再起動時に残ったrunning状態はfailedへ復旧します。provider Session IDを維持してresumeします。Codexはread-only/approval neverに加え、native shell・view_image・hooks/legacy notify・apps・plugins・native委譲・web_searchを無効化する固定設定を渡し、ClaudeはMaxのログインを使えるsafe-modeで起動し、tools・custom hooks・MCP・slash commandsを無効にします。管理policyはClaude Codeの優先規則に従います。自動e2eは実subprocessのfixtureを使用します。実Codexでも開始→同じprovider IDで再開→停止を別途確認済みです。実Claude MaxでもAPIキーなしで開始→同じprovider IDで再開→Task実行→承認待ち→停止を確認済みです。
 
 RoomのMessageに応答を残す場合は、保存済みのMessage IDを指定します。
 
@@ -308,7 +308,9 @@ org agent list --json
 
 上司がいるAgentのJSONには`reportsTo`が含まれます。存在しない上司や循環は拒否し、変更と履歴を一緒に保存します。同じ関係の再設定は履歴を増やしません。上司関係は組織の記録であり、実行権限や自動委譲は別の境界です。
 
-Agentのdelegate権限は作成時に`--capability can_delegate`で明示します。省略したAgentはtyped A2Aのdelegateを送信・自動起動できません。通常のRoom metadata経由でも起動前に検証します。既知の他のcan_*値は保存できますが、対応する実行境界の権限制約は後続です。ローカル管理者のCLI操作をAgent本人として認証する機能ではありません。作成後の権限変更はhuman Approvalとrevision CASで適用します（下記Approval参照）。
+Agentのdelegate権限は作成時に`--capability can_delegate`で明示します。省略したAgentはtyped A2Aのdelegateを送信・自動起動できません。通常のRoom metadata経由でも起動前に検証します。保存した他のcan_*値は、提供済みの実行Adapterで検査します。ローカル管理者のCLI操作をAgent本人として認証する機能ではありません。作成後の権限変更はhuman Approvalとrevision CASで適用します（下記Approval参照）。
+
+Agent作成時の `--permissions '{"rooms":["ROOM_ID"]}'` は、参加者と `can_read` の検査に追加するRoom Context許可です。空配列は全Roomを拒否します。旧Agentの未設定値は既存の参加者制約を保ちます。変更は `approval request AGENT_ID --actor founder --key POLICY_KEY --expected-revision N --capability can_read --permissions '{"rooms":[]}'` をhumanがdecide/applyし、同じrevisionで保存します。権限値の省略は現在のRoom制限を維持します。wildcardや暗黙のRole継承はありません。他の外部service/credential scopeは既存の個別grantで制限します。
 
 `--wake-up`付きdaemonでtyped A2Aの`delegate`を送ると、宛先AgentにExecutionTaskを一度だけ割り当てます。JSON payloadをTask指示に含め、`--task`参照は親Taskとして保持します。元Roomの通常返信turnは発行せず、Task RoomでMemoryを含めて実行し、成果物を承認待ちへ保存します。`room activate`による手動delegateはTask割当まで行います。結果はTask/Artifactで参照できます。--wake-up workerが委譲元へtyped result（成果物なし失敗はblocker）を返し、既存activationでCoordinatorへ通知します。返送失敗でTask結果を失わず、次tick/再起動では返送だけを再試行します。人間がtask reviewした後は、レビュー原本と前後Task履歴を照合したtyped decisionを委譲元へ返します。owner Agentは記録済みの人間判断を報告し、承認を代行しません。
 

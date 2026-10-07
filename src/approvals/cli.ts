@@ -13,7 +13,7 @@ import { SqliteApprovalStore } from './sqlite.js';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
 import { SqliteTaskProvider } from '../tasks/sqlite.js';
 import { SqliteEventBus } from '../events/sqlite.js';
-import { validateCapabilities } from '../agents/domain.js';
+import { validateCapabilities, validatePermissions } from '../agents/domain.js';
 import { applyPermissionApproval } from './service.js';
 import { collectAudit } from '../audit/service.js';
 import { selectAuditLogs, type LogFilter } from '../audit/logs.js';
@@ -41,6 +41,7 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
       key: { type: 'string' },
       actor: { type: 'string' },
       capability: { type: 'string', multiple: true },
+      permissions: { type: 'string' },
       'expected-revision': { type: 'string' },
       decision: { type: 'string' },
       reason: { type: 'string' },
@@ -74,7 +75,7 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
           : action === 'request-workflow'
             ? ['key', 'actor', 'host', 'input-digest', 'request-id', 'effect', 'task', 'event']
             : action === 'request'
-              ? ['key', 'actor', 'capability', 'expected-revision', 'task', 'event']
+              ? ['key', 'actor', 'capability', 'permissions', 'expected-revision', 'task', 'event']
               : action === 'decide'
                 ? ['actor', 'decision', 'reason']
                 : action === 'apply'
@@ -182,6 +183,9 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
           required(parsed.values['expected-revision'], '--expected-revision'),
         ),
         capabilities: validateCapabilities(parsed.values.capability ?? []),
+        ...(parsed.values.permissions === undefined
+          ? {}
+          : { permissions: validatePermissions(JSON.parse(parsed.values.permissions)) }),
       },
     };
     createApprovalRequest(input, { id: 'validate', createdAt: 'validate' });

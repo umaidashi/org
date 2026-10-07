@@ -21,7 +21,7 @@ import type {
   LinearIssueUpdateOperation,
 } from './domain.js';
 import type { ApprovalStore } from './port.js';
-import { validateCapabilities } from '../agents/domain.js';
+import { validateCapabilities, validatePermissions } from '../agents/domain.js';
 import type { Participant } from '../rooms/domain.js';
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -58,6 +58,9 @@ function request(raw: unknown): ApprovalRequest {
       agentId: text(operation.agentId),
       expectedRevision: operation.expectedRevision,
       capabilities: validateCapabilities(operation.capabilities),
+      ...(operation.permissions === undefined
+        ? {}
+        : { permissions: validatePermissions(operation.permissions) }),
     };
   else if (
     operation.kind === 'workflow_invocation' &&

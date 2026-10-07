@@ -16,6 +16,7 @@ import {
   createAgent,
   validateCapabilities,
   validateMemoryPolicy,
+  validatePermissions,
 } from './domain.js';
 import type { Agent } from './domain.js';
 import type {
@@ -57,6 +58,8 @@ export class SqliteAgentRepository
           this.db.exec('ALTER TABLE agents ADD COLUMN reports_to TEXT');
         if (!columns.some((column) => column.name === 'capabilities'))
           this.db.exec('ALTER TABLE agents ADD COLUMN capabilities TEXT');
+        if (!columns.some((column) => column.name === 'permissions'))
+          this.db.exec('ALTER TABLE agents ADD COLUMN permissions TEXT');
         if (!columns.some((column) => column.name === 'memory_policy'))
           this.db.exec('ALTER TABLE agents ADD COLUMN memory_policy TEXT');
         this.db
@@ -99,8 +102,8 @@ export class SqliteAgentRepository
           changeReportingLine([...this.list(), agent], agent.id, agent.reportsTo);
         this.db
           .prepare<Record<string, unknown>, (string | number | null)[]>(
-            `INSERT INTO agents (id, name, role, runtime, created_at, reports_to, capabilities, memory_policy)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO agents (id, name, role, runtime, created_at, reports_to, capabilities, memory_policy, permissions)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
             agent.id,
@@ -111,6 +114,7 @@ export class SqliteAgentRepository
             agent.reportsTo ?? null,
             agent.capabilities === undefined ? null : JSON.stringify(agent.capabilities),
             agent.memoryPolicy ?? null,
+            agent.permissions === undefined ? null : JSON.stringify(agent.permissions),
           );
         if (agent.reportsTo !== undefined)
           this.appendReporting(agent.id, null, agent.reportsTo, agent.createdAt);
@@ -135,7 +139,7 @@ export class SqliteAgentRepository
   list(): readonly Agent[] {
     const rows = this.db
       .prepare<Record<string, unknown>, (string | number | null)[]>(
-        `SELECT id, name, role, runtime, created_at AS createdAt, reports_to AS reportsTo, capabilities, memory_policy
+        `SELECT id, name, role, runtime, created_at AS createdAt, reports_to AS reportsTo, capabilities, memory_policy, permissions
       FROM agents ORDER BY name`,
       )
       .all();
@@ -145,6 +149,9 @@ export class SqliteAgentRepository
       role: String(row.role),
       runtime: String(row.runtime),
       createdAt: String(row.createdAt),
+      ...(row.permissions === null
+        ? {}
+        : { permissions: validatePermissions(JSON.parse(text(row.permissions))) }),
       ...(row.memory_policy === null
         ? {}
         : { memoryPolicy: validateMemoryPolicy(row.memory_policy) }),
@@ -265,7 +272,10 @@ export class SqliteAgentRepository
 
   capabilitySnapshot(id: string): CapabilitySnapshot {
     const row = this.db
-      .query<{ capabilities: string | null; revision: number }, [string]>(`SELECT capabilities,
+      .query<
+        { capabilities: string | null; permissions: string | null; revision: number },
+        [string]
+      >(`SELECT capabilities, permissions,
       COALESCE((SELECT MAX(revision) FROM agent_capability_history WHERE agent_id=agents.id),0) AS revision
       FROM agents WHERE id=?`)
       .get(id);
@@ -277,6 +287,9 @@ export class SqliteAgentRepository
       revision: row.revision,
       capabilities:
         row.capabilities === null ? [] : validateCapabilities(JSON.parse(row.capabilities)),
+      ...(row.permissions === null
+        ? {}
+        : { permissions: validatePermissions(JSON.parse(row.permissions)) }),
     };
   }
   applyCapabilities(
@@ -297,7 +310,13 @@ export class SqliteAgentRepository
         if (
           existing.agentId !== operation.agentId ||
           existing.revision !== operation.expectedRevision + 1 ||
-          !isDeepStrictEqual(existing.capabilities, operation.capabilities)
+          !isDeepStrictEqual(existing.capabilities, operation.capabilities) ||
+          !isDeepStrictEqual(
+            existing.permissions,
+            operation.permissions === undefined
+              ? existing.previousPermissions
+              : operation.permissions,
+          )
         )
           throw new Error('Permission approval receipt conflict');
         return existing;
@@ -309,8 +328,12 @@ export class SqliteAgentRepository
         at,
       );
       this.db
-        .query('UPDATE agents SET capabilities=? WHERE id=?')
-        .run(JSON.stringify(next.capabilities), next.agentId);
+        .query('UPDATE agents SET capabilities=?,permissions=? WHERE id=?')
+        .run(
+          JSON.stringify(next.capabilities),
+          next.permissions === undefined ? null : JSON.stringify(next.permissions),
+          next.agentId,
+        );
       this.db
         .query(
           'INSERT INTO agent_capability_history(agent_id,revision,approval_id,data) VALUES(?,?,?,?)',
@@ -358,6 +381,10 @@ function capabilityChange(raw: unknown): CapabilityChange {
     revision: row.revision,
     capabilities: validateCapabilities(row.capabilities),
     previousCapabilities: validateCapabilities(row.previousCapabilities),
+    ...(row.permissions === undefined ? {} : { permissions: validatePermissions(row.permissions) }),
+    ...(row.previousPermissions === undefined
+      ? {}
+      : { previousPermissions: validatePermissions(row.previousPermissions) }),
     approvalId: text(row.approvalId),
     actor: { kind: actor.kind, id: text(actor.id) },
     taskId: nullableText(row.taskId),

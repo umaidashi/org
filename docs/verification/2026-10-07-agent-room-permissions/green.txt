@@ -1,0 +1,27 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-service.test.ts:
+(pass) Session service validates references before creation and runs explicit provider resume via minimal Ports [1.22ms]
+(pass) Session failure and restart recovery preserve provider identity without persisting external error text [0.64ms]
+(pass) Session stop wins over a late runtime response and parallel turns are rejected [0.16ms]
+(pass) Session rejects legacy and missing read grants before creation, begin or Runtime invocation [0.34ms]
+(pass) Session refuses late completion after grant changes and preserves the prior provider identity [0.27ms]
+(pass) Session refuses late completion after runtime changes and preserves the prior provider identity [0.04ms]
+(pass) Session refuses late completion after archive changes and preserves the prior provider identity
+(pass) Session refuses late completion after participant changes and preserves the prior provider identity
+
+tests/agent-room-permissions.test.ts:
+(pass) Agent Room permissions use a closed finite allowlist and copy input values
+(pass) Room resource permissions guard start resume rebuild and late completion independently of membership [5.05ms]
+(pass) approved Room permission changes share capability CAS, preserve omitted policy and retain idempotent receipts after reopen [12.78ms]
+
+tests/approval-sqlite.test.ts:
+(pass) Linear update approval baseline survives reopening and rejects changed intent under the same key [5.07ms]
+(pass) Approval requests and decisions are immutable, idempotent and visible across adapters [3.35ms]
+
+tests/agent-permission.test.ts:
+(pass) Approved permission applies only to the named Agent and exact revision [0.26ms]
+
+ 14 pass
+ 0 fail
+Ran 14 tests across 4 files. [61.00ms]

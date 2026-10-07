@@ -1,10 +1,16 @@
-import { validateCapabilities, type Capability } from '../agents/domain.js';
+import {
+  validateCapabilities,
+  validatePermissions,
+  type AgentPermissions,
+  type Capability,
+} from '../agents/domain.js';
 import type { Participant } from '../rooms/domain.js';
 export interface PermissionOperation {
   readonly kind: 'agent_capabilities';
   readonly agentId: string;
   readonly expectedRevision: number;
   readonly capabilities: readonly Capability[];
+  readonly permissions?: AgentPermissions;
 }
 export interface TaskWorkflowBinding {
   readonly taskVersion: number;
@@ -394,6 +400,9 @@ export function createApprovalRequest(
     operation = {
       ...input.operation,
       capabilities: validateCapabilities(input.operation.capabilities),
+      ...(input.operation.permissions === undefined
+        ? {}
+        : { permissions: validatePermissions(input.operation.permissions) }),
     };
   } else if (input.operation.kind === 'workflow_invocation') {
     const value = input.operation;

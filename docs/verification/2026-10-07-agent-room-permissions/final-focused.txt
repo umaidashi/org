@@ -1,0 +1,13 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-room-permissions.test.ts:
+(pass) Agent Room permissions use a closed finite allowlist and copy input values [0.48ms]
+(pass) Room resource permissions guard start resume rebuild and late completion independently of membership [8.50ms]
+(pass) approved Room permission changes share capability CAS, preserve omitted policy and retain idempotent receipts after reopen [14.04ms]
+
+tests/agent-room-permissions-cli.test.ts:
+(pass) native Room permissions persist and human Approval blocks Context before Runtime and after an active turn [2133.24ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 2 files. [2.21s]
