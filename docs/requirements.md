@@ -8,7 +8,7 @@
 
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
-| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで445成功/12skipの457テストをローカル検証（外部・OS実機12件は別途opt-in実行）。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
+| 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで実Claude Linear opt-inを含む447成功/12skipの459テストをローカル検証（残る外部・OS実機12件は今回未実行）。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
 | Agent | 永続Identity、role、reportsTo、runtime、capabilities、permissions、memoryPolicy | TSのID・name・role・runtime・createdAt・optional reportsToを実装。legacy schema/root JSON互換・循環/不存在拒否・同時変更時再検証・不変履歴/rollback・実CLIを検証。optional capabilitiesの既知値/重複/型/コピーとSQLite legacy互換・CLI明示指定を実装。delegateの送信/activation前can_delegateを検証。memoryPolicyはnone/reviewed-tasksの明示opt-inを登録/SQLite/CLI/不変TaskReview由来Memoryで検証。Linear読取とTask更新承認要求のIssue scope/Agent credentialを追加。他Capability境界/本人認証は未完了 |
 | 組織 | Chief of Staffから専門Agentへの委譲 | reportsToによるChief→専門Agentの関係と変更履歴を保存。can_delegate付きtyped A2A delegateを宛先ownerのExecutionTaskへ冪等生成し、opt-in daemonで自動実行。Coordinator原本のstrict A2A proposalを明示採用でき、--delegation-roomでhuman入力直後だけ自動採用。実Claude Max二Agentの委譲→専門成果→人間review→Memory→同Session Coordinator再開をopt-in実機テストで確認。HTTP fixture WorkItemから実Claude二Agentのコード/テスト生成・実Docker/生成物checkを確認。human review後の同Artifactからlocal Git branch/commit/file-only bare remote pushとmain不変も実機確認。一般tool loop/実業務対象の実装は未完了 |
 | A2A | delegate/request/result/question/decision/blocker/cancel、correlation、Task参照 | version付きRoom Message・CLI send/get/listを実装。宛先/Task/返信/correlationを検証。実daemon request→resultと再openを確認。can_delegate付きdelegate→parent/source参照の冪等ExecutionTask→自動実行を実daemonと実Claude Maxで検証。Task結果のtyped result/blocker返送とCoordinator通知・snapshot参照検証/返送失敗再試行/再起動重複なしを実daemon/実Maxで確認。人間TaskReviewを原本/前後history/成果物照合してtyped decisionで返送、通知retry/再起動no duplicateを実daemon、同Session Coordinator再開を実Claude Maxで検証。strict Coordinator proposalの明示採用とopt-in human入力直後の自動採用を実装。結果/decisionから再委譲しない。実Claude Max二Agentでreview/Memory/Session継続/restart no duplicateを確認。一般tool loopは後続 |
@@ -69,3 +69,7 @@ MVPのPhaseごとの現在の実装・検査・実機証拠と未達は[受け�
 - 型・lint・AST・jev-lintで生成物をレビューする。実装済み：strict tsgo、type-aware Oxlint、fixture付きAST、指針をcontextにしたjev rule。実APIの判定も実行済み。結果と指摘の扱いはverificationに記録。
 - GHAは使わず全てローカルで行う。Lefthookのpre-commitでindexの静的検査、pre-pushで全push対象treeの全検査・意味レビュー。Agentは作業中にRED/GREENと全テストを実行する。実装・hook設定済み。実際のhook実行結果は作業ログへ記録する。
 - APIキーはユーザーが `.env` に設定し使用を許可。`.env` はGit除外、値は出力しない。
+
+## 2026-10-07 実Claude Linear Task受け入れ
+
+既存Maxログインの実Claudeでcontent/fields提案を生成し、同provider Session/version4/5状態履歴と原本JSON完全一致、human操作承認、並行再開一回、receipt Artifactと人間結果review、再起動後のSession/履歴/Room Message原本不変を全gateで確認した。[証拠](verification/2026-10-07-runtime-linear-real-claude/check.txt)：447成功/12skip/0失敗、459tests/190files/214.87秒。Linear HTTPは固定fixtureであり実API認証・本人認証・業務Draft PRの証拠ではない。これらと他の全体残件は維持する。

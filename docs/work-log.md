@@ -1453,3 +1453,15 @@
 - 全bun run check終了0:445成功/12skip/0失敗、457tests/190files。nativeはcontent/fields両モードで最終26件（並行観測/SIGKILL含む）を実行し、旧human/assigned管理も維持。[全検査証拠](verification/2026-10-07-runtime-linear-resume/check.txt)。12skipは今回未実行の実機opt-inで成功へ数えない。
 - main通常fast-forwardとorigin/main push終了0、公開commit69f0f4c。Lefthook push対象treeの全検査/実Jev成功170.74秒。通常gateの実測151.61秒。秘密情報/raw Notionを公開証拠へ追加しない。
 - 次の[実Claude Max受け入れ計画](superpowers/plans/2026-10-07-runtime-linear-real-claude.md)を保存し、MVP受け入れ文書の旧未接続記述を修正。Ponytail review:既存native e2eと既存Claude driver/configを再利用し、fixtureの複製や新依存を追加しない。文書照合の正しさは公開した実装/全gate証拠と突合、git diff --check成功。実Claudeで今回の新経路はまだ未実行で、実API/本人認証/既存業務IssueからのDraft PRを含む全体goalはactive。
+
+## 2026-10-07 実Claude MaxによるLinear Task受け入れ
+
+- 前ターンはRuntime再開/復旧の実装・全検査・main公開のprogress。全体goalはactive。[計画](superpowers/plans/2026-10-07-runtime-linear-real-claude.md)、指針、リファレンス、Runtime driverとSession履歴を照合。Notion 06を再取得（編集2026-10-04、切詰め/欠損なし）。inline executing-plans/TDD/Ponytail-reviewを継続。独立reviewは最終差分で一回行う。
+- 実Runtime指定のRED:content real-resumeでcodex !== claude、0成功/1失敗930ms。既存native e2eに実Claude opt-inを追加し、APIキーではなく既存Maxログイン・明示envを使う。Linear HTTPは固定fixtureのまま。通常の26ケースに実機の遅いtimeoutを適用しない。
+- Ruling:同じprovider SessionでのRuntime提案と一回送信を確認し、操作再開の前後でSession/履歴/Room Message原本が不変であることをassertする。固定driverのturn counterは実Runtime証拠に使わない（誤るとfixture成功を実Claude成功へ読み替える）。scratch ledgerは追加せず本work-logを公開する記録として継続する。新DDL/依存/Runtime adapterは追加しない。
+- 最初の実Claude content/fieldsは操作承認・送信まで進んだが、テスト内に残った固定driver counterのTT期待で0成功/2失敗67.44秒。実Runtimeはこのfileへ書かないため、fixture counterのassertだけを固定driver条件へ限定し、Session/履歴/Message不変のassertを追加。製品のRuntime処理は変更しない。再実行2成功/0失敗70.39秒。その後、原本提案の完全一致とidle/running/idle/running/idleの5履歴を追加し、最終treeの全gateで実機も含めて確認中。
+- static339files/AST成功、送信前standalone dry-run2107対象を確認。実Jev終了0:2107subjects/128warning/missing0/unsure0/review0/errors[]/degraded[]、変更e2eの指摘なし。既存warningは前sliceの判定を維持し、未校正モデル候補から自動修正しない。READMEの古いRuntime未接続記述を明示daemon opt-in経路と分けて修正。
+- Ponytail review:Lean already. Ship. 既存e2e/Claude driver/Session/Room/claim/receiptを共用し、製品コード・依存・新fixtureを増やさない。Oxfmtによるcallback indentの整形を含むため、意味差分はgit diff -wでも確認。独立正しさ/安全性reviewを最終差分に依頼し、全体完了や実Linear送信の証拠と混同しない。
+- 独立最終review:Critical0/Important0/Minor0、git diff --check成功。実Claude選択/no fallback、env/既存tools・hooks・MCP制限、provider Session/version/原本提案/5状態履歴、pending拒否/承認/並行再開/Artifact/結果review、timeout/cleanup、READMEのfixture境界を確認。重複の実機/全checkは実行せず、最終gateの終了結果を親が確認する。Ponytail:Lean already. Ship. Deferred minorなし。
+- Final Ruling:Session/historyの不変は永続Runtime履歴の証拠で、独立OSプロセス監査までは主張しない（誤ると非永続のプロセス起動を見逃す）。PATHのClaudeはhost管理下の既存実行fileを前提とし、binary attestationは追加しない（誤ると改変されたhost実行fileを実Claudeと誤認する）。実Linear認証/本人認証/業務Draft PRは未達、以前の70.39秒GREENを最終強化assertの証拠へ読み替えない（誤ると実APIの拒否/なりすまし/未納品/未実行のassertを見逃す）。
+- 最終ORG_CLAUDE_LINEAR_TEST=1 bun run check終了0:447成功/12skip/0失敗、459tests/190files/214.87秒。最終強化assertで実Claude content28.91秒/fields28.82秒成功、通常26native異常/復旧ケースも成功。static339files/AST fixture/非空dry-run2107対象。[全検査証拠](verification/2026-10-07-runtime-linear-real-claude/check.txt)。12skipは他の実機opt-inの今回未実行で成功へ数えない。通常gateは今回追加の実Claude2件もskipする。
