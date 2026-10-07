@@ -1959,5 +1959,18 @@
 - 実CLI/daemon/別process fixtureで許可外RoomはRuntime0、許可は1、human Approval deny/restore、active turn中再deny後Room permission stderr/Session failed/旧provider ID保持/Runtime回数3固定、revision/history/Audit/direct reopen/rebuild拒否を確認。最終focused4成功2.21秒。実Codex API認証の証拠へ置換しない。
 - Fresh reviewer C0/I0/M0、Ponytail Lean/net0。その後Jev validatePermissionsのfailure-path候補から、疎配列をmapが飛ばす実欠陥をREDで確認。ImportantとしてArray.fromの1行fixpass、再レビューなし。最大128の境界拒否も検査。createCapabilityChange/Approval等の抽象warningは拒否/CAS/原本/実CLIと照合、具体反例のない候補だけで追加しない。
 - 修正前full519成功21skip0失敗540tests212files185.98秒。最終terminal0 full519成功21skip0失敗540tests212files184.25秒、type/Oxlint/Oxfmt369files/非空AST/dry-run成功。実Jev2402subjects146warnings、missing/unsure/review/errors/degraded0。
-- Notion root/01/03/08を再fetch成功、前回fetchとのcontent body一致。Notion verification/独立編集時刻の証明へ言い換えず、raw本文の新公開/意味API送信なし。[証拠](verification/2026-10-07-agent-room-permissions/)とREADME/要件更新。
+- Notion root/01/02/08を再fetch成功、前回fetchとのcontent body一致。Notion verification/独立編集時刻の証明へ言い換えず、raw本文の新公開/意味API送信なし。[証拠](verification/2026-10-07-agent-room-permissions/)とREADME/要件更新。
 - 次の実反例: 既存Memory抽出はrooms=[]でも過去proposalからDI保存1回/result1を返した。[次計画](superpowers/plans/2026-10-07-memory-room-permission-boundary.md)でshared guardを接続する。全重要操作Audit/本人認証/実業務API・指定対象と全体は未達。
+
+## 2026-10-07 — Memory抽出のRoom permission
+
+- 前Room policy7e65941のmain通常push terminal0/localgate213.13秒を確認。
+- [計画](superpowers/plans/2026-10-07-memory-room-permission-boundary.md)を実行。Sessionの純粋guardをagents/domainへ移し、同じ手動/自動extractRoomMemoriesの開始前と根拠await後・保存前で再利用。新policy engineなし。
+- 初期拒否RED2成功1失敗34ms、初期guardだけで非同期失効RED2成功1失敗34ms。GREEN14成功0失敗3files80ms、extractor/保存ゼロと許可/legacy対照。実CLI/SQLite/daemon5成功0失敗3files3.83秒、human Approval deny/restore/根拠付き採用/再openと既存Session経路を確認。
+- 初回全checkはassert.rejectsのRegExp|undefined引数によるtsgo型エラーで停止。常に正規表現を渡すfixture修正後に全検査を再実行。型エラーを意味的REDと混同しない。調査中、存在しないmemory-provider.test.tsの読取失敗が一件あり、rg --filesの実名memory-sqlite.test.tsへ訂正。
+- Fresh reviewer C0/I0/M0、Ponytail Lean/net0、fixpassなし/再レビューなし。独立code inspectionと親実行結果を区別。既読情報の回収・他writerとの完全原子性は認定しない。
+- 記録訂正: 前単位の再fetch対象はroot/01/02/08だったが03と誤記した。本文一致の結果を広げず、該当記録/evidence表記のみ訂正。
+- [証拠](verification/2026-10-07-memory-room-permission-boundary/)。次は[Memory操作Audit](superpowers/plans/2026-10-07-memory-operation-audit.md)。Sessionその他重要操作Audit/実API業務受入/全体は未達。
+
+- 最終terminal0全check: 519成功21skip0失敗540tests212files185.24秒。type/Oxlint/Oxfmt369files/非空AST/dry-run成功。実Jev2406subjects147warnings、missing/unsure/review/errors/degraded0。変更source/test対象あり。failure-path warningは初期/非同期拒否・legacy/許可・実CLI対照と照合、具体的未対応反例なし。
+- 次Audit反例は保存1件/Audit Reader undefined、合成データのみ。[次計画](superpowers/plans/2026-10-07-memory-operation-audit.md)に記録。

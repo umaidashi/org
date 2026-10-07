@@ -226,3 +226,5 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 2026-10-07 Agent構成Audit: trusted local-hostの登録/報告先変更を既存transactionで不変8field原本へ接続、legacy無backfill/no-op/rollback/reopen/同時刻順序を検証。[証拠](verification/2026-10-07-agent-configuration-audit/) full515成功21skip0失敗536tests210files184.88秒、実Jev2388subjects欠損・エラー・劣化0。全重要操作/resource permissions/実業務API/全体は未達。[明示Room permission計画](superpowers/plans/2026-10-07-agent-room-permissions.md)へ続行。
 
 2026-10-07 明示Room Context permission: 有限rooms allowlistとhuman Approval/CAS/DB再open、Runtime前と実行中失効後の拒否を検証。[証拠](verification/2026-10-07-agent-room-permissions/) full519成功21skip0失敗540tests212files184.25秒、実Jev2402subjects欠損・エラー・劣化0。[Memory抽出兄弟caller](superpowers/plans/2026-10-07-memory-room-permission-boundary.md)は実反例あり、次に共有guardを接続。全重要操作/実API業務/全体は未達。
+
+2026-10-07 Memory抽出Room permission: 同じ共有guardを開始前/根拠await後・保存前へ接続、失効時extractor/保存ゼロと実CLI human Approval deny/restore/再openを検証。[証拠](verification/2026-10-07-memory-room-permission-boundary/)。Memory更新/Sessionその他重要操作Auditと実業務API受入/全体は未達。

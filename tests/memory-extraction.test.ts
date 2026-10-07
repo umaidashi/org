@@ -53,7 +53,8 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
     { id: 'future', createdAt: '3' },
   );
   const stored = new Map<string, Memory>();
-  let writes = 0;
+  let writes = 0,
+    extractions = 0;
   const run = (evidence?: MemoryEvidenceReaders) =>
     extractRoomMemories(
       { get: () => active, messages: () => [source, proposal, later] },
@@ -68,7 +69,12 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
           return memory;
         },
       },
-      jsonMemoryExtractor,
+      {
+        extract: (content) => {
+          extractions++;
+          return jsonMemoryExtractor.extract(content);
+        },
+      },
       { roomId: 'r', messageId: proposal.id },
       evidence,
     );
@@ -87,7 +93,12 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
   owner = { ...agent, capabilities: ['can_read'] };
   await assert.rejects(run);
   assert.equal(writes, 0);
-  owner = agent;
+  owner = { ...agent, permissions: { rooms: [] } };
+  const priorExtractions = extractions;
+  await assert.rejects(run, /Room permission/);
+  assert.equal(extractions, priorExtractions);
+  assert.equal(writes, 0);
+  owner = { ...agent, permissions: { rooms: ['r'] } };
   active = { ...room, archivedAt: 'closed' };
   await assert.rejects(run);
   active = room;
@@ -203,7 +214,7 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
     }),
   };
   await assert.rejects(() => run(), /Artifact reader required/);
-  for (const change of ['archive', 'capability', 'snapshot']) {
+  for (const change of ['archive', 'capability', 'snapshot', 'permissions']) {
     const { promise, resolve } = Promise.withResolvers<string>();
     const { promise: entered, resolve: mark } = Promise.withResolvers<void>();
     const pending = run({
@@ -215,9 +226,10 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
     await entered;
     if (change === 'archive') active = { ...room, archivedAt: 'closed' };
     else if (change === 'capability') owner = { ...agent, capabilities: [] };
+    else if (change === 'permissions') owner = { ...agent, permissions: { rooms: [] } };
     else stored.set(first.id, { ...first, status: 'active' });
     resolve('verified bytes');
-    await assert.rejects(() => pending);
+    await assert.rejects(() => pending, change === 'permissions' ? /Room permission/ : /.+/);
     assert.equal(writes, beforeConflict);
     active = room;
     owner = agent;

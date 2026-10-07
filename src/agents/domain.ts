@@ -58,6 +58,11 @@ export function validatePermissions(value: unknown): AgentPermissions {
   });
   return { rooms };
 }
+export function requireRoomPermission(agent: Agent, roomId: string): void {
+  if (agent.permissions && !agent.permissions.rooms.includes(roomId))
+    throw new Error('Agent Room permission required');
+}
+
 export interface Agent {
   readonly id: string;
   readonly name: string;

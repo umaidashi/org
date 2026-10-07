@@ -1,0 +1,25 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-service.test.ts:
+(pass) Session service validates references before creation and runs explicit provider resume via minimal Ports [0.92ms]
+(pass) Session failure and restart recovery preserve provider identity without persisting external error text [0.67ms]
+(pass) Session stop wins over a late runtime response and parallel turns are rejected [0.61ms]
+(pass) Session rejects legacy and missing read grants before creation, begin or Runtime invocation [0.33ms]
+(pass) Session refuses late completion after grant changes and preserves the prior provider identity [0.20ms]
+(pass) Session refuses late completion after runtime changes and preserves the prior provider identity [0.03ms]
+(pass) Session refuses late completion after archive changes and preserves the prior provider identity
+(pass) Session refuses late completion after participant changes and preserves the prior provider identity
+
+tests/memory-extraction.test.ts:
+(pass) Memory extraction anchors typed candidates to prior Room history, validates before writes, deduplicates and never revives invalidation [4.75ms]
+(pass) Memory JSON extractor bounds unknown input and accepts all four typed candidate kinds [0.52ms]
+(pass) Memory URI candidates reject malformed or NUL-bearing canonical evidence before lookup [0.30ms]
+
+tests/agent-room-permissions.test.ts:
+(pass) Agent Room permissions use a closed finite allowlist and copy input values [0.37ms]
+(pass) Room resource permissions guard start resume rebuild and late completion independently of membership [4.20ms]
+(pass) approved Room permission changes share capability CAS, preserve omitted policy and retain idempotent receipts after reopen [13.21ms]
+
+ 14 pass
+ 0 fail
+Ran 14 tests across 3 files. [80.00ms]

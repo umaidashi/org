@@ -173,6 +173,52 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
       ]),
     );
     const args = ['memory', 'extract', '--room', roomId, '--message', proposalId, '--json'];
+    const policy = (scopes: string[], revision: number, key: string) => {
+      const requestId = id(
+        run([
+          'approval',
+          'request',
+          agentId,
+          '--key',
+          key,
+          '--actor',
+          'founder',
+          '--expected-revision',
+          String(revision),
+          '--capability',
+          'can_read',
+          '--capability',
+          'can_write',
+          '--permissions',
+          JSON.stringify({ rooms: scopes }),
+          '--json',
+        ]),
+      );
+      run([
+        'approval',
+        'decide',
+        requestId,
+        '--actor',
+        'founder',
+        '--decision',
+        'approve',
+        '--reason',
+        'Bounded Memory Room access',
+        '--json',
+      ]);
+      run(['approval', 'apply', requestId, '--actor', 'founder', '--json']);
+    };
+    policy([], 0, 'deny-extraction');
+    const denied = spawnSync(
+      process.execPath,
+      ['--no-env-file', cli, '--direct', '--db', home + '/org.db', ...args],
+      { encoding: 'utf8', timeout: 10000 },
+    );
+    assert.notEqual(denied.status, 0);
+    assert.match(denied.stderr, /Room permission/);
+    assert.deepEqual(run(['memory', 'list', '--scope', 'room:' + roomId, '--json']), []);
+    policy([roomId], 1, 'allow-extraction');
+
     const first = run(args);
     assert.ok(Array.isArray(first));
     assert.equal(first.length, 1);

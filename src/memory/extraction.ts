@@ -1,7 +1,7 @@
 import { isDeepStrictEqual } from 'node:util';
 import { verifyMemorySources, type MemoryEvidenceReaders } from './service.js';
 import { createHash } from 'node:crypto';
-import { requireCapability } from '../agents/domain.js';
+import { requireCapability, requireRoomPermission } from '../agents/domain.js';
 import type { AgentRepository } from '../agents/port.js';
 import type { RoomRepository } from '../rooms/port.js';
 import { createMemory, type Memory } from './domain.js';
@@ -31,6 +31,7 @@ export async function extractRoomMemories(
   if (!agent) throw new Error('Memory proposal Agent unavailable');
   requireCapability(agent, 'can_read');
   requireCapability(agent, 'can_write');
+  requireRoomPermission(agent, room.id);
   const scope = 'room:' + room.id;
   const existing = memories.list([scope]).filter((m) => m.scope === scope);
   const replaced = new Set<string>();
@@ -109,6 +110,7 @@ export async function extractRoomMemories(
     throw new Error('Memory extraction authority changed during evidence read');
   requireCapability(currentAgent, 'can_read');
   requireCapability(currentAgent, 'can_write');
+  requireRoomPermission(currentAgent, room.id);
   const ordered = (items: readonly Memory[]) => [...items].sort((a, b) => a.id.localeCompare(b.id));
   if (
     !isDeepStrictEqual(

@@ -1,4 +1,4 @@
-import { requireCapability } from '../agents/domain.js';
+import { requireCapability, requireRoomPermission } from '../agents/domain.js';
 import type { AgentRepository } from '../agents/port.js';
 import type { RoomRepository } from '../rooms/port.js';
 import type { RuntimeTurnInput, RuntimeTurnResult } from '../runtime/port.js';
@@ -14,8 +14,7 @@ export function sessionAgent(
   const agent = agents.list().find((agent) => agent.id === agentId);
   if (!agent) throw new Error('Session Agent not found');
   requireCapability(agent, 'can_read');
-  if (agent.permissions && !agent.permissions.rooms.includes(roomId))
-    throw new Error('Agent Room permission required');
+  requireRoomPermission(agent, roomId);
   if (agent.runtime !== 'codex' && agent.runtime !== 'claude')
     throw new Error('Unsupported Session runtime');
   const room = rooms.get(roomId);

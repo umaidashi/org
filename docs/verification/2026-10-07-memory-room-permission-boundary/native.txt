@@ -1,0 +1,16 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-extraction.test.ts:
+(pass) Memory extraction anchors typed candidates to prior Room history, validates before writes, deduplicates and never revives invalidation [6.60ms]
+(pass) Memory JSON extractor bounds unknown input and accepts all four typed candidate kinds [0.35ms]
+(pass) Memory URI candidates reject malformed or NUL-bearing canonical evidence before lookup [0.31ms]
+
+tests/agent-room-permissions-cli.test.ts:
+(pass) native Room permissions persist and human Approval blocks Context before Runtime and after an active turn [1905.81ms]
+
+tests/memory-extraction-cli.test.ts:
+(pass) native CLI extracts original Agent Memory proposal once and preserves Room evidence and invalidation across reopen [1835.08ms]
+
+ 5 pass
+ 0 fail
+Ran 5 tests across 3 files. [3.83s]
