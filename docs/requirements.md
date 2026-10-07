@@ -42,6 +42,8 @@
 | 運営の実務e2e | Issue→委譲→実装→テスト→レビュー→Draft PR→人間判断→記憶 | HTTP fixtureの既存Linear Issue→local WorkItem→Task Roomから実Claude Coordinator→実Claude専門Agentのparent付き内部Executionでコード/テスト生成→native Docker→取得test再実行/独立assert/生成物の隔離bun run check→人間review→Memory→同providerSession再開/restart no duplicateをopt-in実機検証。承認済み同Artifactからowned local Git branchへcommitし、main不変/原本blob一致/file-only bare remote head一致も確認。既存業務Issueと変更先repo未指定、Draft PRと実Linear/Notion APIは未完了 |
 | ログ | 依頼・承認・判断・変更・テスト結果をリポジトリ/Gitへ記録 | `docs/work-log.md`、Notion snapshot、RED/GREEN、実jevレビューを記録。継続する |
 
+MVPのPhaseごとの現在の実装・検査・実機証拠と未達は[受け入れ照合](mvp-acceptance.md)にも記録する。これは全体完了の代わりではない。
+
 ## 実装順
 
 1. TSへ移行し既存Agent e2eを維持。既存SQLiteデータを読めることを検証。

@@ -1,0 +1,13 @@
+Baseline: main 1501862100378cb974fa00e14aa2694f0d49cae6 (2026-10-07)
+ORG_CLAUDE_CODE_TEST=1 ORG_GENERATED_GATE_TEST=1 bun --no-env-file test tests/coordinator-claude-real.test.ts
+7 pass / 1 skip / 0 fail; 8 tests, 1 file, 99.35s, exit 0.
+Actual Claude Coordinator/specialist code proof: 97644.72ms.
+GENERATED_BUN_CHECK_OK
+LOCAL_GIT_HANDOFF_OK
+Actual generated explicit-any rejection: 1605.16ms.
+Includes HTTP-fixture WorkItem, actual Claude OAuth/Max, native Docker code/tests/Artifact, isolated generated static/AST/test gate, human review/Memory, same Session/restart no duplicate, owned local bare Git handoff.
+Excludes actual business Linear Issue, actual Linear/Notion authentication, business repo/GitHub Draft PR, arithmetic-only skipped opt-in case.
+Credentials configuration checked by booleans only: Notion false / Linear false.
+Existing org GitHub open Issue query: [] (no issue created).
+Linear connector searches org / Kernel / AIカンパニー: empty results (not proof that all workspace issues are absent).
+No product source changes in this acceptance-audit step.

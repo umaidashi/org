@@ -1233,3 +1233,13 @@
 - 独立review Critical0/Important0/Minor0、関連テスト4成功75ms。Ponytail: Lean already. Ship. 既存Room PortとTask artifactsを再利用し、新table/registry/外部fetch/依存は不要と判断。READMEと要件書へ検証済み範囲を反映。全体目標は実業務Issue/Draft PR、外部native認証、一般tool loop/Scheduler cron等が残りactive。
 - Notion親ページを再取得（編集2026-10-07）し、追加のOrg Desk設計を確認。Agentごとの閲覧専用read model/並行Session/時系列原本参照を要件照合へ追記。閲覧権限・鮮度閾値・提供画面・正式schemaは未決定のため、推測で確定/実装しない。原文snapshotは新規保存・Jev送信しない。native Notion/Linearのキーは値を出さず設定有無だけ再確認し、両方未設定。
 - 5b89b64をmainへffし、pre-push全gate110.88秒で通常remote push成功。今回のNotion追加照合は文書のみ。Ponytail: Lean already. Ship. Desk専用table/権限/鮮度設定/画面を先行追加せず、未決定範囲を明記した。正しさは取得した設計の確定事項と設計案を分けて照合した。
+
+
+### 2026-10-07 MVPの受け入れ証拠と外部Adapter不足の照合
+
+- 前goal turnはprogress: 6553f47/5b89b64の実装・実CLI/全gate、1501862の追加Notion設計照合までmain/origin一致。1501862通常pushのpre-push全gate111.66秒成功、current tree cleanから開始。
+- [受け入れ照合](mvp-acceptance.md)。Notion MVPの全6 Phase、現在のPort/CLI配線・対応tests・既存実機記録を照合。Phase6 Linearは読取/Local取込/refreshまでで、認証だけでなく非同期の外部write Adapter自体が未完了と確認した。一般cronや未決定Deskを先行増築せず、外部Adapterの一操作を次の実装対象とする。
+- 現mainで実Claude Max二Agentのコード生成一周と生成物negative gateを再実行。7成功1skip0失敗99.35秒、実コード一周97.64秒、生成物explicit-anyの実Oxlint拒否1.61秒、exit0。Docker/非ゼロ生成test/独立assert/生成物check/元ArtifactローカルGit受渡し/人間review/Memory/同Session/restart no duplicateを確認。[証拠](verification/2026-10-07-mvp-acceptance/check.txt)。raw生成物/credentialは保存・Jev送信しない。
+- native CLI用Notion/Linearキーは値を出さず設定有無falseを確認。org公開GitHubのopen Issue一覧は空。Linear connectorのorg/Kernel/AIカンパニー検索も空（全workspaceのIssue不存在とは断定しない）。対象指定の既存質問を維持し、任意業務write/新Issueは行わない。
+- Ponytail review: Lean already. Ship. 受け入れ表は既存コード・実行記録へリンクし、新verifier/schema/CI/ライブラリは追加しない。正しさレビューは全体要件・現在mainの実機結果・古い別opt-in証拠・fixtureと実業務の境界を照合。全体目標は未達のままactive。
+- Notion MVPを再取得し編集2026-10-04の6 Phaseが変わっていないことを確認。受け入れ文書の56ローカル参照の実在を確認、欠落0、diff check成功。次の[既存Issueコメント計画](superpowers/plans/2026-10-07-approved-linear-existing-issue-comment.md)を保存。最初の非同期外部writeを明示human Approval付きで作り、Local同期Portは維持する。公式GraphQL/ページング資料を参照し、具体mutation schemaは実装前に確認する。
