@@ -1,0 +1,11 @@
+Runtime result execution reference and explicit recovery — 2026-10-07
+Room DI RED: 4pass1fail75ms; missing host execution reference. Native RED: 0pass1fail1.75s, missing reference after owned SQLite stage failure; later command RED0pass1fail2.02s, unsupported recover-result.
+Core/Room DI GREEN: 6pass59ms, invalid/legacy/extra/foreign references and changed snapshot rejected; repeated stage failure stays blocked; retry only restages; original CAS preserves concurrent decision.
+Final normal native before review fix: 1pass2.61s. Owned INSERT fault -> blocked with saved reply -> same DB/socket restart -> repair -> recover-result -> human review. Task Runtime counter exactly one, original reply unchanged, stale/repeated command rejected, original Room URI retained.
+Fast unit: 106pass0fail44files159ms. Frozen install checked22 installs85packages, no dependency changes24ms.
+Review: Critical0/Important0, Minor constructor-resource leak found, regraded Important because repeated failures in persistent daemon accumulate open Room connections. Source checked all caller/host marker/Workflow exclusion/history/CAS; independent DI6pass49ms. Ponytail: Lean already. Ship.
+One fix pass RED: 1pass1fail2.81s; isolated child uses real owned SQLite session_history view causing Session initialization failure, observes Room.close0!=1. GREEN2pass2.68s after outer Room finally and inner Session finally.
+Final full check: 353pass12skip0fail365tests176files91.36s, exit0; Type/Oxlint/Oxfmt315files/AST and nonempty review plan passed.
+Final actual Jev: subjects1795/reported115/missing0/unsure0/errors[]/degraded[], exit0. Recovery-name candidate assessed against explicit restaging contract; failure-path candidates do not prove all DB faults covered.
+Ruling: no new Agent capability recheck for restaging existing plain results; no Runtime/external action occurs, current Task snapshot and Room participant owner checked. No human authentication or physical isolation from same-UID DB edits claimed; those require separate boundaries.
+Limits: no marker invented for old replies; no Workflow/Sandbox proposal restaging through this command; running state after blocked-write failure, whole-database outage and general retry remain unfinished. No new table/Port/retry framework.

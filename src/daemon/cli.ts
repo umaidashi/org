@@ -378,7 +378,7 @@ function openOperations(
         taskProvider,
         sessionStore,
         roomRepository,
-        (id, source, instruction) =>
+        (id, source, instruction, running) =>
           replyToRoomMessage(
             roomRepository,
             sessionStore,
@@ -387,6 +387,9 @@ function openOperations(
               sessionId: id,
               messageId: source,
               instruction,
+              ...(!shellTask && !workflowScope
+                ? { taskExecution: { taskId: running.id, version: running.version } }
+                : {}),
             },
             { id: randomUUID(), at: new Date().toISOString() },
             memoryProvider,

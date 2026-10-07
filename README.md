@@ -266,6 +266,14 @@ runningを先に保存し、Runtime返信をRoomに残します。結果Artifact
 
 同じDBのcontinuous daemonは一台だけ起動できます。socketを変えてもSQLiteのPID/token leaseで二重所有を拒否します。DB/親のsymlinkは実パスへ正規化し、新DBは0600で作成します。終了した所有PIDのleaseは起動時に取得し直し、解放時は自分のtokenだけを削除します。PID reuseは生存扱いで拒否します。continuousモードでin-memory DBは使用できません。
 
+通常TaskのRuntime返信にはhostがTask IDと実行versionを記録します。返信保存後の成果物関連付けだけが失敗したblocked Taskは、障害を直してから次のコマンドで元返信を再関連付けできます。
+
+```sh
+bun run start task recover-result TASK_ID --session SESSION_ID --room-message REPLY_MESSAGE_ID --expected-version BLOCKED_VERSION --json
+```
+
+Runtimeは再呼出しせず、元のTask snapshot・statusだけの履歴変更・Session・active Task Room・返信原本・依存を照合して結果レビュー待ちへ戻します。元返信は変更しません。Workflow/Sandbox提案はこの経路の対象外です。`room send --metadata`からhost用の`taskExecution`を指定できません。実行参照のない旧返信や変更済みTaskを推測で復旧しません。状態記録まで失敗してrunningが残った場合の復旧は後続です。
+
 ### Task結果の確認
 
 ```sh

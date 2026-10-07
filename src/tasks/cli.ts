@@ -24,6 +24,9 @@ import type { TaskInput, TaskKind, TaskPatch, TaskStatus } from './domain.js';
 import type { TaskFilter } from './port.js';
 import { assignTask } from './service.js';
 import { SqliteTaskProvider } from './sqlite.js';
+import { SqliteRoomRepository } from '../rooms/sqlite.js';
+import { SqliteSessionStore } from '../sessions/sqlite.js';
+import { recoverExecutionTaskResult } from './execution.js';
 
 type TaskAction =
   | { kind: 'linear-list'; input: LinearIssueListInput }
@@ -34,6 +37,13 @@ type TaskAction =
   | { kind: 'observe-workflow'; id: string; expectedVersion: number }
   | { kind: 'resume-workflow'; id: string; approvalId: string; expectedVersion: number }
   | { kind: 'run'; id: string; sessionId: string; messageId: string }
+  | {
+      kind: 'recover-result';
+      id: string;
+      sessionId: string;
+      messageId: string;
+      expectedVersion: number;
+    }
   | { kind: 'create'; input: TaskInput }
   | { kind: 'get' | 'history' | 'comments' | 'artifacts' | 'reviews'; id: string }
   | { kind: 'comment'; id: string; body: string; actor: string }
@@ -110,6 +120,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     review: ['actor', 'reason', 'decision', 'expected-version'],
     reviews: [],
     run: ['session', 'room-message'],
+    'recover-result': ['session', 'room-message', 'expected-version'],
     'resume-workflow': ['approval', 'expected-version'],
     'observe-workflow': ['expected-version'],
     create: ['objective', 'kind', 'priority', 'parent', 'dependency', 'label'],
@@ -240,16 +251,24 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
         expectedVersion: priority(required(values['expected-version'], '--expected-version')),
       },
     };
-  if (action === 'run')
+  if (action === 'run' || action === 'recover-result') {
+    const result = {
+      id: taskId,
+      sessionId: required(values.session, '--session'),
+      messageId: required(values['room-message'], '--room-message'),
+    };
     return {
       ...common,
-      action: {
-        kind: 'run',
-        id: taskId,
-        sessionId: required(values.session, '--session'),
-        messageId: required(values['room-message'], '--room-message'),
-      },
+      action:
+        action === 'run'
+          ? { kind: action, ...result }
+          : {
+              kind: action,
+              ...result,
+              expectedVersion: priority(required(values['expected-version'], '--expected-version')),
+            },
     };
+  }
   if (
     action === 'get' ||
     action === 'history' ||
@@ -368,6 +387,31 @@ export async function runTaskCommand(
     const action = command.action;
     let result: unknown;
     switch (action.kind) {
+      case 'recover-result': {
+        const rooms = new SqliteRoomRepository(command.db);
+        try {
+          const sessions = new SqliteSessionStore(command.db);
+          try {
+            result = recoverExecutionTaskResult(
+              provider,
+              sessions,
+              rooms,
+              {
+                taskId: action.id,
+                sessionId: action.sessionId,
+                messageId: action.messageId,
+                expectedVersion: action.expectedVersion,
+              },
+              () => new Date().toISOString(),
+            );
+          } finally {
+            sessions.close();
+          }
+        } finally {
+          rooms.close();
+        }
+        break;
+      }
       case 'review':
         result = reviewTaskResult(provider, action.id, action.input, {
           id: randomUUID(),

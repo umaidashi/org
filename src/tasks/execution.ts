@@ -4,6 +4,106 @@ import type { TaskArtifact, Task } from './domain.js';
 import type { SessionStore } from '../sessions/port.js';
 import type { RoomRepository } from '../rooms/port.js';
 import type { Message } from '../rooms/domain.js';
+import { changeTask } from './domain.js';
+import { isDeepStrictEqual } from 'node:util';
+export function recoverExecutionTaskResult(
+  tasks: Pick<TaskProvider, 'get' | 'history' | 'update'> & ExecutionResultWriter,
+  sessions: Pick<SessionStore, 'get'>,
+  rooms: Pick<RoomRepository, 'get' | 'messages'>,
+  input: {
+    readonly taskId: string;
+    readonly sessionId: string;
+    readonly messageId: string;
+    readonly expectedVersion: number;
+  },
+  now: () => string,
+): Task {
+  const blocked = tasks.get(input.taskId);
+  if (
+    blocked.kind !== 'execution_task' ||
+    blocked.status !== 'blocked' ||
+    blocked.owner === null ||
+    blocked.version !== input.expectedVersion ||
+    blocked.outputArtifacts.length !== 0
+  )
+    throw new Error('Result recovery requires current blocked ExecutionTask');
+  const session = sessions.get(input.sessionId);
+  const room = rooms.get(session.roomId);
+  if (
+    session.agentId !== blocked.owner ||
+    session.status === 'running' ||
+    room.type !== 'task' ||
+    room.taskId !== blocked.id ||
+    room.id !== session.roomId ||
+    room.archivedAt !== null ||
+    !room.participants.some((p) => p.kind === 'agent' && p.id === blocked.owner)
+  )
+    throw new Error('Result recovery requires original Session and active Task Room');
+  const messages = rooms.messages(room.id);
+  const message = messages.find((m) => m.id === input.messageId && m.roomId === room.id);
+  const reference = message?.metadata.taskExecution;
+  if (
+    !message ||
+    message.sender.kind !== 'agent' ||
+    message.sender.id !== blocked.owner ||
+    message.metadata.sessionId !== session.id ||
+    message.replyTo === null ||
+    !messages.some((m) => m.id === message.replyTo && m.roomId === room.id) ||
+    reference === null ||
+    typeof reference !== 'object' ||
+    Array.isArray(reference) ||
+    Object.keys(reference).some((k) => !['taskId', 'version'].includes(k)) ||
+    !('taskId' in reference) ||
+    reference.taskId !== blocked.id ||
+    !('version' in reference) ||
+    typeof reference.version !== 'number' ||
+    !Number.isSafeInteger(reference.version) ||
+    reference.version < 1
+  )
+    throw new Error('Task result execution reference missing or mismatched');
+  const history = tasks.history(blocked.id);
+  const index = history.findIndex((h) => h.version === reference.version);
+  let previous = history[index]?.task;
+  if (
+    !previous ||
+    previous.id !== blocked.id ||
+    previous.version !== reference.version ||
+    previous.status !== 'running' ||
+    previous.owner !== blocked.owner ||
+    previous.outputArtifacts.length !== 0 ||
+    !isDeepStrictEqual(history.at(-1)?.task, blocked)
+  )
+    throw new Error('Task result execution history missing');
+  for (const entry of history.slice(index + 1)) {
+    if (
+      !['blocked', 'running'].includes(entry.status) ||
+      entry.version !== entry.task.version ||
+      !isDeepStrictEqual(changeTask(previous, { status: entry.status }, entry.at), entry.task)
+    )
+      throw new Error('Task result snapshot changed since execution');
+    previous = entry.task;
+  }
+  if (blocked.dependencies.some((id) => tasks.get(id).status !== 'completed'))
+    throw new Error('Task dependencies are not complete');
+  const running = tasks.update(blocked.id, { status: 'running' }, now(), blocked.version);
+  try {
+    return stagePendingExecutionResult(tasks, running, {
+      id: message.id,
+      uri: `org://rooms/${encodeURIComponent(room.id)}/messages/${encodeURIComponent(message.id)}`,
+      createdAt: now(),
+    });
+  } catch (error) {
+    try {
+      tasks.update(running.id, { status: 'blocked' }, now(), running.version);
+    } catch (failure) {
+      throw new AggregateError(
+        [error, failure],
+        'Task result recovery failed and state could not be recorded',
+      );
+    }
+    throw error;
+  }
+}
 export function stagePendingExecutionResult(
   provider: ExecutionResultWriter,
   running: Task,
@@ -19,7 +119,12 @@ export async function runExecutionTask(
   provider: Pick<TaskProvider, 'get' | 'update'> & ExecutionResultWriter,
   sessions: Pick<SessionStore, 'get'>,
   rooms: Pick<RoomRepository, 'get' | 'messages'>,
-  reply: (sessionId: string, messageId: string, instruction: string) => Promise<Message>,
+  reply: (
+    sessionId: string,
+    messageId: string,
+    instruction: string,
+    running: Task,
+  ) => Promise<Message>,
   input: {
     readonly taskId: string;
     readonly sessionId: string;
@@ -60,6 +165,7 @@ export async function runExecutionTask(
         task: { id: original.id, title: original.title, objective: original.objective },
         instruction: input.instruction ?? 'Produce the Task result for human review.',
       }),
+      running,
     );
     if (
       result.roomId !== room.id ||

@@ -2,10 +2,11 @@ import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, rmSync, writeFileSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync, unlinkSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { SqliteSessionStore } from '../src/sessions/sqlite.js';
 import { transitionSession } from '../src/sessions/domain.js';
+import { Database } from 'bun:sqlite';
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -16,9 +17,12 @@ test('Session CLI runs configured daemon runtime and cancels pending turns befor
   const executable = join(home, 'runtime.ts');
   const config = join(home, 'runtime.json');
   const marker = join(home, 'started');
+  const taskTurns = join(home, 'task-turns');
+  writeFileSync(taskTurns, '');
   writeFileSync(
     executable,
     `#!${process.execPath}\nconst input = JSON.parse(await Bun.stdin.text());
+    if (input.message === 'task question') await Bun.write(${JSON.stringify(taskTurns)},(await Bun.file(${JSON.stringify(taskTurns)}).text())+'turn\\n');
     if (input.message === 'wait') { await Bun.write(${JSON.stringify(marker)}, 'ready'); setInterval(() => {}, 100); }
     else { if(input.message === 'task question' && JSON.parse(JSON.parse(input.instruction).instruction).task.objective !== 'Research options') throw new Error('Task objective missing'); if(input.message === 'room question' && !JSON.parse(input.instruction).memories.some(m=>m.content === 'Room practice')) throw new Error('Scoped Memory missing'); console.log(JSON.stringify({type:'thread.started',thread_id:'provider'})); console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:input.message}})); console.log(JSON.stringify({type:'turn.completed',usage:{}})); }\n`,
     { mode: 0o700 },
@@ -218,7 +222,15 @@ test('Session CLI runs configured daemon runtime and cancels pending turns befor
       'task question',
     ]);
     assert.ok(record(taskMessage) && typeof taskMessage.id === 'string');
-    const execution = json([
+    const fault = new Database(db);
+    try {
+      fault.run(
+        "CREATE TRIGGER owned_runtime_stage_fault BEFORE INSERT ON task_artifacts BEGIN SELECT RAISE(ABORT, 'owned stage fault'); END",
+      );
+    } finally {
+      fault.close();
+    }
+    const failedStage = run([
       '--socket',
       socket,
       'task',
@@ -229,16 +241,118 @@ test('Session CLI runs configured daemon runtime and cancels pending turns befor
       '--room-message',
       taskMessage.id,
     ]);
-    assert.ok(record(execution) && record(execution.task) && record(execution.reply));
+    assert.equal(failedStage.status, 1, failedStage.stderr);
+    const blocked = json(['--socket', socket, 'task', 'get', task.id]);
+    assert.ok(record(blocked) && typeof blocked.version === 'number');
+    assert.equal(blocked.status, 'blocked');
+    assert.deepEqual(blocked.outputArtifacts, []);
+    assert.equal(readFileSync(taskTurns, 'utf8'), 'turn\n');
+    const replies = json(['--socket', socket, 'room', 'messages', taskRoom.id]);
+    assert.ok(Array.isArray(replies));
+    const original: unknown = replies.find(
+      (m: unknown) => record(m) && m.replyTo === taskMessage.id,
+    );
+    assert.ok(record(original) && typeof original.id === 'string' && record(original.metadata));
+    assert.deepEqual(original.metadata.taskExecution, {
+      taskId: task.id,
+      version: blocked.version - 1,
+    });
+    assert.equal(
+      run([
+        '--socket',
+        socket,
+        'room',
+        'send',
+        taskRoom.id,
+        '--agent',
+        list[0].id,
+        '--content',
+        'forged',
+        '--metadata',
+        JSON.stringify({ taskExecution: { taskId: task.id, version: blocked.version - 1 } }),
+      ]).status,
+      2,
+    );
+    assert.equal(run(['daemon', 'stop', '--socket', socket]).status, 0);
+    assert.equal(await daemon.exited, 0);
+    daemon = undefined;
+    const repaired = new Database(db);
+    try {
+      repaired.run('DROP TRIGGER owned_runtime_stage_fault');
+    } finally {
+      repaired.close();
+    }
+    daemon = launch();
+    await daemon.ready;
+    const execution = {
+      task: json([
+        '--socket',
+        socket,
+        'task',
+        'recover-result',
+        task.id,
+        '--session',
+        taskSession.session.id,
+        '--room-message',
+        original.id,
+        '--expected-version',
+        String(blocked.version),
+      ]),
+      reply: original,
+    };
+    assert.ok(record(execution.task) && record(execution.reply));
     assert.equal(execution.task.status, 'waiting_approval');
     assert.deepEqual(execution.task.outputArtifacts, [execution.reply.id]);
     assert.equal(execution.reply.content, 'task question');
+    assert.equal(readFileSync(taskTurns, 'utf8'), 'turn\n');
+    assert.equal(
+      run([
+        '--socket',
+        socket,
+        'task',
+        'recover-result',
+        task.id,
+        '--session',
+        taskSession.session.id,
+        '--room-message',
+        original.id,
+        '--expected-version',
+        String(blocked.version),
+      ]).status,
+      1,
+    );
     const artifacts = json(['--socket', socket, 'task', 'artifacts', task.id]);
     assert.ok(Array.isArray(artifacts));
     assert.equal(artifacts.length, 1);
+    assert.ok(record(artifacts[0]));
+    assert.equal(artifacts[0].uri, `org://rooms/${taskRoom.id}/messages/${original.id}`);
     const history = json(['--socket', socket, 'task', 'history', task.id]);
     assert.ok(Array.isArray(history));
     assert.ok(history.some((row: unknown) => record(row) && row.status === 'running'));
+    const reviewed = json([
+      '--socket',
+      socket,
+      'task',
+      'review',
+      task.id,
+      '--decision',
+      'approve',
+      '--actor',
+      'founder',
+      '--reason',
+      'Verified original saved reply',
+      '--expected-version',
+      String(execution.task.version),
+    ]);
+    assert.ok(record(reviewed));
+    assert.equal(reviewed.status, 'completed');
+    const preserved = json(['--socket', socket, 'room', 'messages', taskRoom.id]);
+    assert.ok(Array.isArray(preserved));
+    assert.deepEqual(
+      preserved.find((m: unknown) => record(m) && m.id === original.id),
+      original,
+    );
+    assert.equal(readFileSync(taskTurns, 'utf8'), 'turn\n');
     assert.equal(
       run([
         '--direct',
@@ -316,3 +430,35 @@ test('Session CLI runs configured daemon runtime and cancels pending turns befor
     rmSync(home, { recursive: true, force: true });
   }
 }, 20000);
+test('Runtime result recovery releases Room connection when Session initialization fails', () => {
+  const home = mkdtempSync('/tmp/org-result-init-failure-');
+  try {
+    const fixture = join(home, 'fault.ts');
+    writeFileSync(
+      fixture,
+      `
+      import assert from 'node:assert/strict';
+      import {Database} from 'bun:sqlite';
+      import {SqliteRoomRepository} from ${JSON.stringify(new URL('../src/rooms/sqlite.ts', import.meta.url).href)};
+      import {parseTaskCommand,runTaskCommand} from ${JSON.stringify(new URL('../src/tasks/cli.ts', import.meta.url).href)};
+      const db=${JSON.stringify(join(home, 'org.db'))};
+      const fault=new Database(db);
+      fault.run("CREATE VIEW session_history AS SELECT 's' AS id,0 AS version,'{}' AS data");
+      fault.close();
+      let closes=0;
+      const close=SqliteRoomRepository.prototype.close;
+      SqliteRoomRepository.prototype.close=function(){closes++;close.call(this);};
+      await assert.rejects(runTaskCommand(parseTaskCommand(['task','recover-result','t','--db',db,'--session','s','--room-message','m','--expected-version','1']),()=>{}));
+      assert.equal(closes,1);
+    `,
+    );
+    const child = spawnSync(process.execPath, ['--no-env-file', fixture], {
+      env: { PATH: process.env.PATH ?? '', HOME: home },
+      encoding: 'utf8',
+      timeout: 5000,
+    });
+    assert.equal(child.status, 0, child.stderr);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});

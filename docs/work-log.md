@@ -1195,3 +1195,18 @@
 - 実jev1786対象113warning、missing/unsure0/errors/degraded空、exit0。既存authorizeの名前候補とexecute/resume/observeのfailure-path候補は具体的DI/native assertと独立source確認で判定し、未再現の全障害まで成功とは扱わない。
 - 最終check350成功12skip0失敗362tests175files91.85秒、型/Oxlint/Oxfmt/ASTと非空review plan成功、exit0。共有stageを通る実Docker/Sandbox CLI1成功1.63秒、成果物保存→明示人間review成功。[検証](verification/2026-10-07-task-result-staging-recovery/check.txt)。
 - Next: Workflow以外の保存済みRuntime結果を、原本Room/Message/SessionとTask履歴を照合して再関連付けする明示経路を検証する。一般retry・実務Issue/repo→Draft PR・実Notion/Linear認証など全体の未完了項目は維持する。
+
+## 2026-10-07 Runtime結果の実行参照と明示再関連付け
+
+- 前ターンは成果物stage失敗復旧の進捗。180c233はmain/origin一致・clean、通常pushのpre-push全gate107.69秒で成功。全体ゴールは引き続きactive。
+- [計画](superpowers/plans/2026-10-07-task-runtime-result-reference.md)。指針/referenceとrunExecutionTask/Room Runtimeの全caller、Task CLI・Session/Room Portを確認。返信原本にはSession IDだけでTask実行versionがなく、旧返信を安全に再関連付けする根拠が不足していた。
+- Room DI RED4成功1失敗75ms、taskExecutionが原本にない。native RED0成功1失敗1.75秒、stage障害でblockedとなるが原本のTask実行参照がない。参照保存後のcommand RED0成功1失敗2.02秒、recover-resultが未対応というCLI errorを確認。
+- running snapshotを既存reply callbackへ渡し、通常結果だけhostがTask ID/version参照をRoom原本へ保存。Workflow/Sandbox提案に付けず、room sendのユーザーmetadataにはhost-only fieldを拒否。Room一致・正整数version・既存replyの同一実行を確認する。
+- 明示recover-resultはblocked/version/成果物なし、原本Room/Message/Sessionと実行参照、runningからstatus-onlyの不変履歴、最新snapshot、依存completedを照合して元返信URIを再stageする。Runtimeは呼ばない。旧/別実行/変更履歴を拒否し、stage障害はblockedへ戻す。再stage障害と複数回のstatus-only再試行、並行判断のCAS保護をDI6成功59msで確認。
+- 初回型検査はrun/recover-resultのdiscriminated unionにoptional versionをspreadする型不一致で失敗。条件ごとに明示unionを返すよう修正し型検査成功。初回native GREEN1成功2.50秒。最終fixtureへ実行counter・原本不変・旧version拒否・明示人間reviewを追加。
+- Notion Task抽象化を再取得し、Local内部Execution/TaskProvider原本/状態遷移を再照合（編集日2026-10-04、原文は新規保存・jev送信しない）。最終native1成功2.61秒、Runtime counter一回・元返信不変・旧version拒否・同DB/socket再起動後の元返信再関連付け→人間reviewを確認。高速UTへ新Core DIを追加し106成功44files159ms、lockfile依存22installs/85packages変更なし24ms。
+- 独立review Critical0/Important0、MinorとしてSession初期化失敗時のRoom接続解放漏れを指摘。永続daemonの繰返し障害で接続が蓄積するためImportantへ再評価し一回のfix pass対象とした。所有DBのsession_historyをviewとして初期化失敗を起こす隔離子プロセスRED1成功1失敗2.81秒、Room.close呼出し0!=1。Room生成直後からfinallyで保護し、その内側でSession生成/closeを行う。
+- Reviewの保留判断: current Agent capability再照合は新規追加しない。復旧は元の通常結果の関連付けでRuntime/外部作用を行わず、Task snapshotとRoom参加ownerを検証する。本人認証・同UID DB改変からの物理隔離は今回保証しない（必要な環境では別の認証/隔離境界が必要）。Ponytail: Lean already. Ship. 履歴/原本照合は必須で削減しない。Review DI6成功49ms。
+- Review fix GREEN2成功2.68秒、Room接続を一回解放し正常復旧経路も維持。一回のfix pass後の最終check353成功12skip0失敗365tests176files91.36秒、型/Oxlint/Oxfmt315files/ASTと非空review plan成功、exit0。実jev1795対象115warning、missing/unsure0/errors/degraded空、exit0。[検証](verification/2026-10-07-task-runtime-result-reference/check.txt)。
+- JevのrecoverExecutionTaskResult名前候補は、ここでの復旧が明示blocked結果の再関連付けでありRuntime再実行ではないという実装/CLI/READMEの契約に照合して据置。failure-path候補は具体的DI/native/実初期化障害と独立source確認で判定し、全DB障害を再現したとは主張しない。
+- Next: Taskのblocked記録も失敗してrunningが残る場合、保存済み通常返信の実行参照を使い起動時に結果保存待ちへ回復する経路を検証する。原本がない旧/不確定実行を推測で再実行しない。Sandbox結果/一般retry/実務Issue・repo→Draft PR/実API認証などは引き続き未完了。

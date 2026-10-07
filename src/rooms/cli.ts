@@ -142,6 +142,7 @@ export function parseRoomCommand(argv: string[]): RoomCommand {
     if (humans.length + agents.length !== 1)
       throw new Error('Expected exactly one --human or --agent sender');
     const metadata = metadataValue(JSON.parse(parsed.values.metadata ?? '{}'));
+    if ('taskExecution' in metadata) throw new Error('Task execution metadata is host-only');
     if (parsed.values.mention !== undefined && 'mentions' in metadata)
       throw new Error('Choose --mention or metadata.mentions');
     return {

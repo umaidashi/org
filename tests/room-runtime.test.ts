@@ -3,6 +3,80 @@ import assert from 'node:assert/strict';
 import { replyToRoomMessage } from '../src/rooms/runtime.js';
 import { createRoom, createMessage } from '../src/rooms/domain.js';
 import { createSession } from '../src/sessions/domain.js';
+test('Task Runtime reply retains its execution version and rejects another execution or Room before runtime', async () => {
+  const room = createRoom(
+    { title: 'task', type: 'task', taskId: 't', participants: [{ kind: 'agent', id: 'a' }] },
+    { id: 'r', createdAt: 'before' },
+  );
+  const session = createSession(
+    { agentId: 'a', roomId: 'r', runtime: 'codex' },
+    { id: 's', at: 'before' },
+  );
+  const source = createMessage(
+    room,
+    { sender: { kind: 'agent', id: 'a' }, content: 'question' },
+    { id: 'source', createdAt: 'before' },
+  );
+  const messages = [source];
+  let calls = 0;
+  const rooms = {
+    get: () => room,
+    messages: () => messages,
+    append: (
+      _id: string,
+      input: Parameters<typeof createMessage>[1],
+      identity: Parameters<typeof createMessage>[2],
+    ) => {
+      const reply = createMessage(room, input, identity, source);
+      messages.push(reply);
+      return reply;
+    },
+  };
+  const runtime = {
+    send: async () => {
+      calls++;
+      return { session, text: 'answer' };
+    },
+  };
+  const input = {
+    sessionId: 's',
+    messageId: 'source',
+    instruction: '',
+    taskExecution: { taskId: 't', version: 2 },
+  };
+  const reply = await replyToRoomMessage(rooms, { get: () => session }, runtime, input, {
+    id: 'reply',
+    at: 'later',
+  });
+  assert.deepEqual(reply.metadata.taskExecution, { taskId: 't', version: 2 });
+  assert.equal(
+    (
+      await replyToRoomMessage(rooms, { get: () => session }, runtime, input, {
+        id: 'unused',
+        at: 'later',
+      })
+    ).id,
+    'reply',
+  );
+  for (const taskExecution of [
+    { taskId: 'other', version: 2 },
+    { taskId: 't', version: 3 },
+    { taskId: 't', version: 0 },
+    { taskId: 't', version: NaN },
+  ]) {
+    await assert.rejects(
+      replyToRoomMessage(
+        rooms,
+        { get: () => session },
+        runtime,
+        { ...input, taskExecution },
+        { id: 'invalid', at: 'later' },
+      ),
+    );
+  }
+  assert.equal(calls, 1);
+  assert.equal(messages.length, 2);
+});
 test('Room runtime uses history through the source and persists an Agent reply only after success', async () => {
   const room = createRoom(
     {

@@ -10,7 +10,12 @@ export async function replyToRoomMessage(
   rooms: Pick<RoomRepository, 'get' | 'messages' | 'append'>,
   sessions: Pick<SessionStore, 'get'>,
   runtime: Pick<LocalAgentRuntime, 'send'>,
-  input: { readonly sessionId: string; readonly messageId: string; readonly instruction: string },
+  input: {
+    readonly sessionId: string;
+    readonly messageId: string;
+    readonly instruction: string;
+    readonly taskExecution?: { readonly taskId: string; readonly version: number };
+  },
   identity: { readonly id: string; readonly at: string },
   memory?: Pick<MemoryProvider, 'list'> & Partial<Pick<MemoryProvider, 'search'>>,
   builder: ContextBuilder = boundedContextBuilder,
@@ -22,6 +27,14 @@ export async function replyToRoomMessage(
     throw new Error('Session Room unavailable');
   if (!room.participants.some((p) => p.kind === 'agent' && p.id === session.agentId))
     throw new Error('Session Agent is not a Room participant');
+  if (
+    input.taskExecution &&
+    (room.type !== 'task' ||
+      room.taskId !== input.taskExecution.taskId ||
+      !Number.isSafeInteger(input.taskExecution.version) ||
+      input.taskExecution.version < 1)
+  )
+    throw new Error('Task execution reference does not match Room');
   const messages = rooms.messages(room.id);
   const index = messages.findIndex((m) => m.id === input.messageId && m.roomId === room.id);
   if (index < 0) throw new Error('Source Message not found in Session Room');
@@ -34,7 +47,21 @@ export async function replyToRoomMessage(
       m.sender.id === session.agentId &&
       m.metadata.sessionId === session.id,
   );
-  if (existing) return existing;
+  if (existing) {
+    const reference = existing.metadata.taskExecution;
+    if (
+      input.taskExecution &&
+      (reference === null ||
+        typeof reference !== 'object' ||
+        Array.isArray(reference) ||
+        !('taskId' in reference) ||
+        !('version' in reference) ||
+        reference.taskId !== input.taskExecution.taskId ||
+        reference.version !== input.taskExecution.version)
+    )
+      throw new Error('Existing reply belongs to another Task execution');
+    return existing;
+  }
   const scopes = [
     'room:' + room.id,
     'agent:' + session.agentId,
@@ -66,7 +93,10 @@ export async function replyToRoomMessage(
       sender: { kind: 'agent', id: session.agentId },
       content: reply.text,
       replyTo: source.id,
-      metadata: { sessionId: session.id },
+      metadata: {
+        sessionId: session.id,
+        ...(input.taskExecution ? { taskExecution: input.taskExecution } : {}),
+      },
     },
     { id: identity.id, createdAt: identity.at },
   );
