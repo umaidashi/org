@@ -24,6 +24,7 @@ test.each([
       url: 'https://linear.app/org/issue/ORG-1/existing',
       title: 'existing',
       description: 'source',
+      priority: 2,
       state: { id: '55555555-5555-4555-8555-555555555555' },
       assignee: { id: '66666666-6666-4666-8666-666666666666' } as { id: string } | null,
       labels: {
@@ -35,6 +36,7 @@ test.each([
       stateId: '22222222-2222-4222-8222-222222222222',
       assigneeId: null,
       labelIds: ['33333333-3333-4333-8333-333333333333', '44444444-4444-4444-8444-444444444444'],
+      priority: 0,
     };
     let issue = { ...originalIssue },
       mutations = 0,
@@ -77,6 +79,7 @@ test.each([
           assert.deepEqual(payload.variables, { id: issue.id, input: fields });
           issue = {
             ...issue,
+            priority: fields.priority,
             state: { id: fields.stateId },
             assignee: null,
             labels: {
@@ -202,7 +205,7 @@ test.each([
         issue =
           mode === 'content'
             ? { ...issue, description: 'external edit' }
-            : { ...issue, state: { id: '88888888-8888-4888-8888-888888888888' } };
+            : { ...issue, priority: 4 };
       const results = await Promise.all([apply(), apply()]);
       assert.deepEqual(
         results

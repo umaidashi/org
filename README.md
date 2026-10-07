@@ -808,7 +808,7 @@ bun --env-file=.env src/cli.ts --direct task observe-linear-update WORKITEM_ID -
 
 ### 承認付きLinear status・担当者・labels更新
 
-同じrequest/apply/observe操作へ`--fields`を指定できます。title/descriptionモードとは排他で、stateId・assigneeId・labelIdsだけを許可します。値はLinearのcanonical UUIDです。CoreのTask状態やAgent ownerとの自動対応付けは行いません。[公式APIのIssue更新](https://linear.app/developers/graphql)に渡す、選択fieldだけの入力です。
+同じrequest/apply/observe操作へ`--fields`を指定できます。title/descriptionモードとは排他で、stateId・assigneeId・labelIds・priorityを許可します。IDはLinearのcanonical UUID、priorityは整数0–4（0は優先度なし）です。CoreのTask状態やAgent ownerとの自動対応付けは行いません。[公式APIのIssue更新](https://linear.app/developers/graphql)に渡す、選択fieldだけの入力です。
 
 ```sh
 bun --env-file=.env src/cli.ts --direct task request-linear-update WORKITEM_ID --fields '{"stateId":"STATE_UUID","assigneeId":null,"labelIds":[]}' --expected-version VERSION --actor HUMAN --key UPDATE_KEY --json

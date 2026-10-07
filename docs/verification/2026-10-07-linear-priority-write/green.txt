@@ -1,0 +1,13 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-update-cli.test.ts:
+(pass) native Linear Issue update freezes approved intent and baseline with fault=success mode=content [696.82ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=unknown mode=content [581.54ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=stale mode=content [576.23ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=success mode=fields [714.75ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=unknown mode=fields [579.46ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=stale mode=fields [578.99ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 1 file. [3.76s]

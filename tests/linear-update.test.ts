@@ -411,6 +411,8 @@ test('Linear selected fields canonicalize nullable assignee and label sets and r
     labelIds: [id, other],
   });
   assert.deepEqual(parseLinearIssueFields({ labelIds: [] }), { labelIds: [] });
+  for (const priority of [0, 1, 2, 3, 4])
+    assert.deepEqual(parseLinearIssueFields({ priority }), { priority });
   for (const value of [
     null,
     [],
@@ -422,14 +424,19 @@ test('Linear selected fields canonicalize nullable assignee and label sets and r
     { labelIds: [null] },
     { labelIds: new Array<unknown>(1) },
     { stateId: null },
+    ...[undefined, null, -1, 5, 1.5, '2', NaN, Infinity].map((priority) => ({ priority })),
   ])
     assert.throws(() => parseLinearIssueFields(value));
   const issue = {
     ...f.issue,
+    priority: 0,
     state: { id },
     assignee: null,
     labels: { nodes: [{ id: other }, { id }], pageInfo: { hasNextPage: false } },
   };
+  assert.deepEqual(parseLinearUpdateIssue(issue, ['priority']).fields, { priority: 0 });
+  for (const priority of [undefined, null, -1, 5, 1.5, '2'])
+    assert.throws(() => parseLinearUpdateIssue({ ...issue, priority }, ['priority']));
   assert.deepEqual(parseLinearUpdateIssue(issue, ['stateId', 'assigneeId', 'labelIds']).fields, {
     stateId: id,
     assigneeId: null,
@@ -461,6 +468,7 @@ test('Linear field update reuses authority and claim while preserving omitted fi
       url: 'https://linear.app/org/issue/ORG-1/existing',
       title: 'keep title',
       description: 'keep body',
+      priority: 2,
       state: { id },
       assignee: null,
     };
@@ -494,7 +502,12 @@ test('Linear field update reuses authority and claim while preserving omitted fi
         return 'fixture-key';
       },
     };
-    const input = { taskId: task.id, actor: 'operator', expectedVersion: 0, fields: { stateId } };
+    const input = {
+      taskId: task.id,
+      actor: 'operator',
+      expectedVersion: 0,
+      fields: { stateId, priority: 0 },
+    };
     const http = async (_url: string, init: RequestInit) => {
       calls++;
       assert.ok(typeof init.body === 'string');
@@ -507,19 +520,23 @@ test('Linear field update reuses authority and claim while preserving omitted fi
         if (activeFault === 'local-read') task = { ...task, version: 1 };
         return Response.json({
           data: {
-            issue: { ...baseIssue, state: { id: activeFault === 'baseline' ? stateId : id } },
+            issue: { ...baseIssue, priority: activeFault === 'baseline' ? 4 : 2, state: { id } },
           },
         });
       }
       writes++;
       assert.ok('variables' in body);
-      assert.deepEqual(body.variables, { id, input: { stateId } });
+      assert.deepEqual(body.variables, { id, input: { stateId, priority: 0 } });
       assert.doesNotMatch(body.query, /assignee|labels/);
       return Response.json({
         data: {
           issueUpdate: {
             success: true,
-            issue: { ...baseIssue, state: { id: activeFault === 'returned' ? id : stateId } },
+            issue: {
+              ...baseIssue,
+              priority: activeFault === 'returned' ? 4 : 0,
+              state: { id: stateId },
+            },
           },
         },
       });
@@ -557,7 +574,7 @@ test('Linear field update reuses authority and claim while preserving omitted fi
         () => 'same',
       );
     const before = calls;
-    await assert.rejects(() => apply({ stateId: id }));
+    await assert.rejects(() => apply({ stateId, priority: 4 }));
     assert.equal(calls, before);
     activeFault = fault;
     if (fault) await assert.rejects(apply);

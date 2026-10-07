@@ -431,7 +431,7 @@ function openOperations(
                 instruction:
                   'Return only a proposed Linear update JSON: {"version":1,"tool":"linear-update","workItemVersion":' +
                   taskProvider.get(task.parentId).version +
-                  ',"title":"proposed title","description":"proposed description"}. Alternatively replace title/description with "fields" containing only stateId, assigneeId or labelIds using canonical UUIDs. This is a proposal requiring human operation Approval. The host derives the Issue from the parent WorkItem and keeps credentials; do not add actor, Issue or credential fields.',
+                  ',"title":"proposed title","description":"proposed description"}. Alternatively replace title/description with "fields" containing stateId, assigneeId or labelIds using canonical UUIDs, or priority as an integer from 0 through 4. This is a proposal requiring human operation Approval. The host derives the Issue from the parent WorkItem and keeps credentials; do not add actor, Issue or credential fields.',
               }
             : workflowScope
               ? {

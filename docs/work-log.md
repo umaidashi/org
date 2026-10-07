@@ -1551,3 +1551,23 @@
 
 - main通常fast-forwardとorigin/main push終了0、公開commit af1cf33。push対象Lefthook全検査/実Jev成功180.74秒、再検査462成功/14skip/0失敗、476tests/197files/160.78秒。公開sourceのHEAD/origin/main一致を確認する。
 - 次の[Linear priority write計画](superpowers/plans/2026-10-07-linear-priority-write.md)を保存。共有field/mask/parser/responseとTask-bound/CLI/Core projectionの46参照を照合。公式SDK schema/GraphQL説明を確認し、既存fields native fixtureのsuccess/unknown/staleへpriorityを追加してREDから進める。公式生成documentのweb取得はサイズ上限で失敗したため、取得成功や実API確認の証拠に数えない。Ponytail:既存engine/fixtureを拡張し、新mutation engine/SDK依存なし。全体goalはactive。
+
+## 2026-10-07 Linear priorityの承認付き更新
+
+- 前ターンは共通三操作の実装/全gate/main公開によるprogress。全体goalはactive。main01a2fee（公開source af1cf33）からfeatureを作成し、[priority計画](superpowers/plans/2026-10-07-linear-priority-write.md)、指針/リファレンス/共有field mask・入力・応答・baseline/input digest・claim/receipt/observe・Task-bound提案/daemon prompt/Core読取を照合。Notion04再取得（編集2026-10-04、欠損/切詰めなし、verification unverified）。inline executing-plans/TDDとPonytail-reviewを継続、公開work-logをledgerとして使用する。
+- Pre-flight:input canonical順序は承認field maskとdigest/応答/観測が共用する。priorityを末尾へ追加し旧三field順序を維持。Core projectionのpriority guardは共有field parserへ集約。公式Linear SDK生成型を認証なしでtmpへ取得し、IssueUpdateInput.priority Int、0–4の契約を確認（生成sourceをGit/Jevへ送らない）。
+- native RED:fieldsのsuccess/unknown/staleにpriority0を追加し、承認requestが終了2で拒否、3成功/3失敗2.31秒。DI RED6成功/2失敗58ms。共有mask/input/selection/response parserを拡張し、priority単独/0–4/null・欠落・小数・範囲外拒否、priority-only baseline変更/返却mismatch/承認入力変更を既存engineで確認。初回DI GREEN15成功/0失敗57ms。新mutation engine/DDL/依存なし。
+- Ponytail review:priority検証は共有parserへ集約しCore読取の重複guardを削除。既存承認/claim/receipt/観測とnative fixtureを拡張し、汎用patch engineを追加しない。正しさ/安全性は全branch独立reviewへ渡す。共通update/六操作と他の全体残件は未完成。
+
+- native GREEN6成功/0失敗3.76秒:priority0を含むsuccess/unknown/staleを既存実CLIで検証し、priority-only baseline変更と並行apply/observe一回・再openを確認。Task-bound提案parserもpriority0/範囲外を確認。fast UT160成功/56files225ms、static350files/AST成功。standalone dry-run2193対象/cached2169/requests11、除外/未宣言/空rule0。
+- 実Jev終了0:2193subjects/134warning/missing0/unsure0/review0/errors[]/degraded[]。readLinearUpdateIssueの失敗経路候補0.73と既存projection候補0.80/0.68は不完全/missing応答・identity・mapping・取得失敗のDI/nativeと独立reviewで判定し、モデルのみで追加frameworkや全分岐網羅を主張しない。全checkは実行中、Notion08も再取得（編集2026-10-04、欠損/切詰めなし）し、承認/credential隔離/重要Audit/再送防止の全体残件を維持する。
+
+- 独立最終review:Critical0/Important0/Minor1。targeted update/Task approval10成功107ms、Core projection2成功36ms、git diff --check成功。誤ったCore test名は対象ゼロで成功に数えず、正しいfileで再実行済み。Ponytail:Lean already、削減候補0。C/Iなしでfix pass・再reviewなし。Final minor (deferred):HTTP fixtureはselectionに関係なくpriorityを返すため、query/response selectionのassert追加が非blockingの改善候補。現在のproduction selectionは正しい。
+- Final Ruling:実Linear API/credentialsはfixtureだけでは未達 — 認証付き受け入れを別の残件に保つ — 誤ると実サービス互換を誤認する。
+- Final Ruling:実Runtimeによるpriority提案生成はparser/prompt接続の検証だけ — 実モデル生成の成功に数えない — 誤るとAgent実務受け入れを誤認する。
+- Final Ruling:共通Core update/逆mapping/content混合/comment/artifactは続く計画 — priority前提だけで六操作完成にしない — 誤ると未接続consumerを完成と誤認する。
+- Final Ruling:全体goal/本人認証/業務納品は未達を維持 — 今回の狭い検査では証明できない — 誤ると公開システム/納品を完成と誤認する。
+- Final Ruling:既存観測は時点一致だけ — 跨system原子性や誰がpriorityを変更したかの帰属を保証しない — 誤ると他writerの変更や途中障害を誤判定する。
+- Final Ruling:全checkは親のterminal終了と実測値だけを採用 — reviewerは重複/推測しない — 誤ると未終了検査を成功に数える。
+
+- 最終全bun run check終了0:462成功/14skip/0失敗、476tests/197files/161.79秒、static350files/AST成功。非空dry-run2193対象/除外・未宣言・空rule0、実Jevの欠損/通信/判定劣化0。[RED/GREEN/全gate/実Jev証拠](verification/2026-10-07-linear-priority-write/)を保存。未実行opt-inは成功へ数えず、priority前提の実装と共通write/実API/全体未達を区別する。

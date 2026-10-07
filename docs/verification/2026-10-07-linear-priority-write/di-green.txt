@@ -1,0 +1,26 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/approval-domain.test.ts:
+(pass) Linear Issue update approval freezes baseline and proposed input separately [0.98ms]
+(pass) Permission changes remain unavailable until a matching human approval [0.57ms]
+(pass) Linear comment approval pins human, existing Issue, Task version and body digest [0.26ms]
+(pass) Linear Artifact approval pins existing WorkItem, output Artifact reference and input digest [0.21ms]
+(pass) Linear update approval freezes a closed canonical field mask while preserving legacy content approvals [0.37ms]
+
+tests/linear-core-projection.test.ts:
+(pass) Core Linear projection rejects malformed mapping and incomplete or unknown remote fields without inventing authority [5.31ms]
+(pass) Core Linear projection accepts long identifier requests independently of UUID string length [0.50ms]
+
+tests/linear-update.test.ts:
+(pass) Linear Issue update refuses mismatched authority and input before credential lookup [2.30ms]
+(pass) Linear Issue update preserves baseline rejection, uncertainty and no replay across boundary faults [5.26ms]
+(pass) Linear Issue update success Audit binds output digest to immutable approval and claim [0.96ms]
+(pass) Linear update observation validates approval and claim before read and preserves known immutable success [1.06ms]
+(pass) Linear update observation rejects mismatched current contents and saves no proof on boundary failures [2.64ms]
+(pass) Linear update observation is distinct from mutation success, survives version progress and rejects forged receipts [0.72ms]
+(pass) Linear selected fields canonicalize nullable assignee and label sets and reject unknown or incomplete values [0.84ms]
+(pass) Linear field update reuses authority and claim while preserving omitted fields and rejecting returned mismatches [1.99ms]
+
+ 15 pass
+ 0 fail
+Ran 15 tests across 3 files. [57.00ms]

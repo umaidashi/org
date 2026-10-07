@@ -1,0 +1,42 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-update.test.ts:
+(pass) Linear Issue update refuses mismatched authority and input before credential lookup [5.69ms]
+(pass) Linear Issue update preserves baseline rejection, uncertainty and no replay across boundary faults [6.63ms]
+(pass) Linear Issue update success Audit binds output digest to immutable approval and claim [0.95ms]
+(pass) Linear update observation validates approval and claim before read and preserves known immutable success [1.51ms]
+(pass) Linear update observation rejects mismatched current contents and saves no proof on boundary failures [3.48ms]
+(pass) Linear update observation is distinct from mutation success, survives version progress and rejects forged receipts [1.16ms]
+24 |     typeof value !== 'object' ||
+25 |     Array.isArray(value) ||
+26 |     Object.keys(value).length < 1 ||
+27 |     Object.keys(value).some((key) => !linearIssueFieldNames.some((name) => name === key))
+28 |   )
+29 |     throw new Error('Invalid Linear Issue fields');
+                   ^
+error: Invalid Linear Issue fields
+      at parseLinearIssueFields (/Users/umaidashi/Documents/git/org/src/linear/fields.ts:29:15)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/linear-update.test.ts:415:22)
+(fail) Linear selected fields canonicalize nullable assignee and label sets and reject unknown or incomplete values [0.98ms]
+24 |     typeof value !== 'object' ||
+25 |     Array.isArray(value) ||
+26 |     Object.keys(value).length < 1 ||
+27 |     Object.keys(value).some((key) => !linearIssueFieldNames.some((name) => name === key))
+28 |   )
+29 |     throw new Error('Invalid Linear Issue fields');
+                   ^
+error: Invalid Linear Issue fields
+      at parseLinearIssueFields (/Users/umaidashi/Documents/git/org/src/linear/fields.ts:29:15)
+      at validateLinearUpdateInput (/Users/umaidashi/Documents/git/org/src/linear/update.ts:64:35)
+      at target (/Users/umaidashi/Documents/git/org/src/linear/update.ts:70:3)
+      at prepareLinearUpdateOperation (/Users/umaidashi/Documents/git/org/src/linear/update.ts:127:20)
+      at prepareLinearUpdateOperation (/Users/umaidashi/Documents/git/org/src/linear/update.ts:122:3)
+      at requestLinearUpdateApproval (/Users/umaidashi/Documents/git/org/src/linear/update.ts:142:27)
+      at requestLinearUpdateApproval (/Users/umaidashi/Documents/git/org/src/linear/update.ts:135:3)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/linear-update.test.ts:535:28)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/linear-update.test.ts:453:122)
+(fail) Linear field update reuses authority and claim while preserving omitted fields and rejecting returned mismatches [0.52ms]
+
+ 6 pass
+ 2 fail
+Ran 8 tests across 1 file. [58.00ms]

@@ -91,3 +91,7 @@ MVPのPhaseごとの現在の実装・検査・実機証拠と未達は[受け�
 ## 2026-10-07 共通非同期TaskProvider三操作
 
 共通Core consumerのcreate/get/listをLocal/Linear両Adapterへ接続し、実CLI/direct/daemon/reopen、外部snapshotとLocal原本保持、完全page検証とCAS同期を確認。[全gate](verification/2026-10-07-async-task-provider/check.txt):462成功/14skip/0失敗。実Jev2191subjects/missing・errors・degraded0。Linear createは既存Issueのミラー作成で新Issueを作らない。残update/addComment/linkArtifact・双方向明示mapping・実API認証と他の全体残件は未達。[次の計画](superpowers/plans/2026-10-07-core-provider-writes.md)へ続く。
+
+## 2026-10-07 Linear priority承認付き更新
+
+既存selected-field updateへpriority整数0–4を追加。承認mask/input digest/baseline/返却値/不明結果観測に通し、priority0、priority-only競合、承認後変更、返却mismatch、並行一回/再送禁止/再openをDI・実CLI fixtureで確認。[全gate](verification/2026-10-07-linear-priority-write/check.txt):462成功/14skip/0失敗、実Jev2193subjects/missing・errors・degraded0。Core共通update・明示逆mapping・複合変更・残comment/artifact・実API/本人認証/実業務納品と他の全体残件は未達。

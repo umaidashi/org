@@ -116,7 +116,7 @@ function parseCoreWorkItem(
   mapping: LinearTaskMapping,
   expectedId?: string,
 ): WorkItem {
-  const issue = parseLinearUpdateIssue(value, ['stateId', 'assigneeId', 'labelIds']);
+  const issue = parseLinearUpdateIssue(value, ['stateId', 'assigneeId', 'labelIds', 'priority']);
   if (expectedId !== undefined && issue.id !== expectedId && issue.identifier !== expectedId)
     throw new Error('Linear WorkItem identity conflict');
   const status =
@@ -126,15 +126,9 @@ function parseCoreWorkItem(
   if (assignee === undefined) throw new Error('Missing Linear owner');
   const owner = assignee === null ? null : mapping.owners[assignee];
   if (owner === undefined) throw new Error('Unmapped Linear owner');
-  if (
-    !record(value) ||
-    typeof value.priority !== 'number' ||
-    !Number.isInteger(value.priority) ||
-    value.priority < 0 ||
-    value.priority > 4 ||
-    !record(value.labels) ||
-    !Array.isArray(value.labels.nodes)
-  )
+  const priority = issue.fields?.priority;
+  if (priority === undefined) throw new Error('Missing Linear priority');
+  if (!record(value) || !record(value.labels) || !Array.isArray(value.labels.nodes))
     throw new Error('Invalid Linear WorkItem fields');
   const labels = value.labels.nodes
     .map((label: unknown) => {
@@ -152,7 +146,7 @@ function parseCoreWorkItem(
       {
         title: issue.title,
         objective: issue.description?.trim() ? issue.description : issue.title,
-        priority: value.priority,
+        priority,
         labels,
       },
       { id: 'linear:issue:' + issue.id, createdAt },
