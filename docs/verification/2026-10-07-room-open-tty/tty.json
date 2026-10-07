@@ -1,0 +1,47 @@
+{
+  "fixture": "synthetic local Agent/Task/Room/Event only",
+  "monitorExit": 0,
+  "chatQuitExit": 0,
+  "chatInterruptExit": 0,
+  "daemonExit": 0,
+  "monitor": "\u001b[?1049h\u001b[?25l\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[H\u001b[2Jorg monitor — q/Ctrl-C quit | r refresh\nagent (1)\n  sessions=0  cto  Fixture CTO  worker\nroom (1)\n  architecture  Fixture architecture  direct\ntask (1)\n  task  Fixture Task  assigned\nevent (1)\n  event  fixture.opened\u001b[?25h\u001b[?1049l",
+  "chat": "founder: Fixture initial\nRoom chat — /refresh read | /quit exit | Ctrl-C exit\n\u001b[1G\u001b[0J> \u001b[3GFixture TTY sent\n\nfounder: Fixture initial\nfounder: Fixture TTY sent\n\u001b[1G\u001b[0J> \u001b[3G/refresh\n\nfounder: Fixture initial\nfounder: Fixture TTY sent\n\u001b[1G\u001b[0J> \u001b[3G/quit\n\n",
+  "chatInterrupt": "founder: Fixture initial\nfounder: Fixture TTY sent\nRoom chat — /refresh read | /quit exit | Ctrl-C exit\n\u001b[1G\u001b[0J> \u001b[3G",
+  "messages": [
+    {
+      "id": "initial",
+      "roomId": "architecture",
+      "sender": {
+        "kind": "human",
+        "id": "founder"
+      },
+      "content": "Fixture initial",
+      "replyTo": null,
+      "metadata": {},
+      "createdAt": "2026-10-07T09:21:52.771Z"
+    },
+    {
+      "id": "e720f53b-955c-4ff7-9690-f32ddf597598",
+      "roomId": "architecture",
+      "sender": {
+        "kind": "human",
+        "id": "founder"
+      },
+      "content": "Fixture TTY sent",
+      "replyTo": null,
+      "metadata": {},
+      "createdAt": "2026-10-07T09:22:41.849Z"
+    }
+  ],
+  "verified": [
+    "four monitor sections",
+    "r refresh and q exit",
+    "cursor and alternate screen restoration",
+    "Room send exactly once",
+    "refresh",
+    "quit",
+    "persisted message on reopen",
+    "Ctrl-C clean exit",
+    "owned daemon stopped"
+  ]
+}

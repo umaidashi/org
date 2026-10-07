@@ -1,0 +1,80 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/tui-cli.test.ts:
+15 |   try {
+16 |     const noTerminal = run(['tui']);
+17 |     assert.equal(noTerminal.status, 1, noTerminal.stderr);
+18 |     assert.match(noTerminal.stderr, /interactive terminal/);
+19 |     const roomOpen = run(['room','open','room','--human','founder']);
+20 |     assert.equal(roomOpen.status,1,roomOpen.stderr);
+                ^
+AssertionError: Error: Unexpected --human for room open
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent send AGENT_ID MESSAGE --room ROOM_ID --human HUMAN_ID [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org tui [--socket PATH] [--room ID --human ID]
+       org logs [--task ID] [--event ID] [--limit N] [--json]
+       org logs tail AGENT_ID [--limit N] [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org task create|get|list|update|comment|artifact [OPTIONS] --provider local|linear [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|import-github|import-github-webhook|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org sandbox list [--json]
+       org workflow run|status|cancel|list|history [OPTIONS]
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org knowledge notion PAGE_ID [--room ROOM --human HUMAN] [--json]
+       org a2a send|adopt|get|list [OPTIONS]
+       org memory capture|extract|consolidate|consolidations|get|list|search|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org task observe-workflow ID --expected-version N
+       org task resume-workflow ID --approval ID --expected-version N
+       org task resume-linear-task|observe-linear-task ID --approval ID --expected-version N
+       org task linear-get|import-linear ISSUE_ID [--json]
+       org task linear-list --team TEAM_KEY [--limit 1..50] [--after CURSOR] [--json]
+       org task refresh-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task sync-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task artifact-content ID --artifact ARTIFACT_ID [--json]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH] [--observe-workflows] [--linear-updates]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 1
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/tui-cli.test.ts:20:12)
+(fail) real TUI CLI requires a terminal and rejects direct or extra arguments without database creation [80.94ms]
+
+tests/tui-chat.test.ts:
+ 9 |     args: argv,
+10 |     strict: true,
+11 |     allowPositionals: true,
+12 |     options: { room: { type: 'string' }, human: { type: 'string' } },
+13 |   });
+14 |   if (positionals.length !== 1 || positionals[0] !== 'tui') throw new Error('Expected org tui');
+                                                                                                   ^
+error: Expected org tui
+      at parseTuiCommand (/Users/umaidashi/Documents/git/org/src/tui/chat.ts:14:95)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/tui-chat.test.ts:13:20)
+(fail) TUI chat parses a strict Room and human pair before opening a terminal
+(pass) Room chat validates participation then sends the exact explicit text once without retry [1.18ms]
+(pass) Room chat rejects inactive or mismatched rooms and bounds history without terminal controls [0.79ms]
+(pass) chat stop during an in-flight send discards buffered input without refresh or prompt [0.67ms]
+
+ 3 pass
+ 2 fail
+Ran 5 tests across 2 files. [131.00ms]

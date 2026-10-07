@@ -11,16 +11,16 @@ export function parseTuiCommand(argv: string[]): TuiCommand {
     allowPositionals: true,
     options: { room: { type: 'string' }, human: { type: 'string' } },
   });
-  if (positionals.length !== 1 || positionals[0] !== 'tui') throw new Error('Expected org tui');
-  if (values.room === undefined && values.human === undefined) return { mode: 'monitor' };
-  if (
-    !values.room?.trim() ||
-    !values.human?.trim() ||
-    values.room.length > 256 ||
-    values.human.length > 256
-  )
+  const roomOpen =
+    positionals.length === 3 && positionals[0] === 'room' && positionals[1] === 'open';
+  if (!roomOpen && (positionals.length !== 1 || positionals[0] !== 'tui'))
+    throw new Error('Expected org tui or room open ROOM_ID');
+  if (roomOpen && values.room !== undefined) throw new Error('Room open takes one Room ID');
+  const roomId = roomOpen ? positionals[2] : values.room;
+  if (!roomOpen && roomId === undefined && values.human === undefined) return { mode: 'monitor' };
+  if (!roomId?.trim() || !values.human?.trim() || roomId.length > 256 || values.human.length > 256)
     throw new Error('TUI chat requires --room ID and --human ID');
-  return { mode: 'chat', roomId: values.room, humanId: values.human };
+  return { mode: 'chat', roomId, humanId: values.human };
 }
 function readJson(result: CommandResult): unknown {
   if (result.code !== 0 || result.stdout.length !== 1) throw new Error('Unable to read Room chat');

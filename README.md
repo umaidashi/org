@@ -886,3 +886,7 @@ Linear成果物はLocalで明示stage済みのoutputが必要です。既存`tas
 ## Agentの監査ログtail
 
 `bun run start logs tail AGENT_ID --limit 20 --json`は登録Agentのactor IDに一致する最新Audit snapshotを返します。`--task`/`--event`で追加filterできます。過去Taskの現在ownerへ主体を付け替えず、同じIDのhumanも除外します。結果は既存input/output/approval reference付きAuditEntry配列です。directとdaemonで使用できます。引数だけでは継続followしません。Runtime stdoutのstreamや全重要操作の収集完了を示すものではありません。
+
+## Roomを開く
+
+`bun run start room open ROOM_ID --human HUMAN_ID`で既存Room chatを開きます。`tui --room ROOM_ID --human HUMAN_ID`と同じ処理です。interactive terminalとdaemon、active Roomの明示human参加者が必要です。`/refresh`で読み直し、`/quit`またはCtrl-Cで終了します。Room名をIDへ推測変換せず、human宣言を本人認証とは扱いません。

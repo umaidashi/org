@@ -10,12 +10,20 @@ test('TUI chat parses a strict Room and human pair before opening a terminal', (
     roomId: 'room',
     humanId: 'founder',
   });
+  assert.deepEqual(parseTuiCommand(['room', 'open', 'room', '--human', 'founder']), {
+    mode: 'chat',
+    roomId: 'room',
+    humanId: 'founder',
+  });
   for (const args of [
     ['tui', '--room', 'room'],
     ['tui', '--human', 'founder'],
     ['tui', '--room', '', '--human', 'founder'],
     ['tui', 'extra'],
     ['tui', '--json'],
+    ['room', 'open', 'room'],
+    ['room', 'open', 'room', 'extra', '--human', 'founder'],
+    ['room', 'open', 'room', '--room', 'other', '--human', 'founder'],
   ])
     assert.throws(() => parseTuiCommand(args));
 });

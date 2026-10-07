@@ -1,0 +1,14 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/tui-cli.test.ts:
+(pass) real TUI CLI requires a terminal and rejects direct or extra arguments without database creation [326.22ms]
+
+tests/tui-chat.test.ts:
+(pass) TUI chat parses a strict Room and human pair before opening a terminal [0.31ms]
+(pass) Room chat validates participation then sends the exact explicit text once without retry [0.91ms]
+(pass) Room chat rejects inactive or mismatched rooms and bounds history without terminal controls [0.94ms]
+(pass) chat stop during an in-flight send discards buffered input without refresh or prompt [0.19ms]
+
+ 5 pass
+ 0 fail
+Ran 5 tests across 2 files. [375.00ms]

@@ -16,10 +16,17 @@ test('real TUI CLI requires a terminal and rejects direct or extra arguments wit
     const noTerminal = run(['tui']);
     assert.equal(noTerminal.status, 1, noTerminal.stderr);
     assert.match(noTerminal.stderr, /interactive terminal/);
+    const roomOpen = run(['room', 'open', 'room', '--human', 'founder']);
+    assert.equal(roomOpen.status, 1, roomOpen.stderr);
+    assert.match(roomOpen.stderr, /interactive terminal/);
     for (const args of [
       ['--direct', 'tui'],
       ['tui', 'extra'],
       ['tui', '--json'],
+      ['room', 'open', 'room'],
+      ['--direct', 'room', 'open', 'room', '--human', 'founder'],
+      ['room', 'open', 'room', 'extra', '--human', 'founder'],
+      ['room', 'open', 'room', '--human', 'founder', '--json'],
     ])
       assert.equal(run(args).status, 2);
     assert.equal(existsSync(home + '/absent'), false);

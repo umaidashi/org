@@ -115,3 +115,7 @@ comment/artifactをLocal/Linear両Adapterと実await consumerへ接続。Local�
 ## 2026-10-07 Agent logs tail
 
 `org logs tail AGENT_ID`を登録Agentと既存immutable Audit actor filterへ接続。filter後latest limit、別Agent/human除外、現在Task ownerの誤帰属防止、direct/daemon/reopen・不正入力DB前拒否を確認。[証拠](verification/2026-10-07-agent-log-tail/)全gate475成功/14skip/0失敗、実Jev2238subjects/欠損・エラー・劣化0。snapshotとcontinuous streamを区別し、本人認証/全重要Audit/業務納品/全体未達を維持。次は[Room open/実TTY計画](superpowers/plans/2026-10-07-room-open-tty.md)。
+
+## 2026-10-07 Room open alias受け入れ
+
+`org room open ROOM_ID --human HUMAN_ID`を既存Chatへ接続。実PTYのMonitor四領域描画・Room送信一回・refresh・再open・quit/Ctrl-C端末復元を確認。[証拠](verification/2026-10-07-room-open-tty/)全gate475成功/14skip/0失敗、実Jev2238subjects/欠損・エラー・劣化0。安定IDと参加者宣言を使用し、名前検索/本人認証/実モデル対話/業務納品/全体未達を維持。

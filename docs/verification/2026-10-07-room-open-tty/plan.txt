@@ -1,0 +1,164 @@
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 2238,
+  "cached": 2222,
+  "requests": 9,
+  "tokens": 27115,
+  "usd": 0.0011388300000000002,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1473,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2447,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2011,
+      "degraded": null
+    },
+    {
+      "file": "src/cli.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "local",
+      "tokens": 5932,
+      "degraded": null
+    },
+    {
+      "file": "src/tui/chat.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2019,
+      "degraded": null
+    },
+    {
+      "file": "src/tui/chat.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2982,
+      "degraded": null
+    },
+    {
+      "file": "src/tui/chat.ts",
+      "rule": null,
+      "subjects": 5,
+      "arm": "paired",
+      "tokens": 7072,
+      "degraded": null
+    },
+    {
+      "file": "tests/tui-chat.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1530,
+      "degraded": null
+    },
+    {
+      "file": "tests/tui-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1649,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 6,
+      "requests": 2,
+      "tokens": 9083,
+      "usd": 0.00038148600000000005,
+      "share": 0.33498063802323436
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 4,
+      "requests": 1,
+      "tokens": 5932,
+      "usd": 0.000249144,
+      "share": 0.21877189747372303
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 2,
+      "requests": 2,
+      "tokens": 5429,
+      "usd": 0.000228018,
+      "share": 0.20022127973446432
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 2,
+      "requests": 2,
+      "tokens": 3492,
+      "usd": 0.00014666400000000002,
+      "share": 0.12878480545823345
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 2,
+      "requests": 2,
+      "tokens": 3179,
+      "usd": 0.000133518,
+      "share": 0.11724137931034483
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 8,
+    "files": [
+      "src/audit/service.ts",
+      "src/linear/config.ts",
+      "src/runtime/guardian.ts",
+      "src/runtime/http.ts",
+      "src/tasks/proposal.ts",
+      "src/tui/room-chat.ts"
+    ]
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": []
+}

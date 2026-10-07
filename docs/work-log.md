@@ -1669,3 +1669,20 @@
 - Final: Ruling:実API/本人認証/全重要Audit/業務納品/全体完成は未達 — exact actor snapshotだけを成果とする — 誤ると実務全体の受け入れと誤認する。
 
 - 最終fullcheck終了0:475成功/14skip/0失敗489tests/197files166.02秒、static350files/AST成功。実Jev2238subjects/137warning/missing0/unsure0/review0/errors[]/degraded[]、dry-run excluded/undeclared/idleLanguages/silentRules0。最終fast UT166成功56files262ms。[証拠](verification/2026-10-07-agent-log-tail/)保存、最終gateを確認してからcompletion-auditの旧Agent tail行を実績へ更新。[次のRoom alias/実TTY計画](superpowers/plans/2026-10-07-room-open-tty.md)保存、全体goalはactive。
+
+## 2026-10-07 room openと実TTY受け入れ
+
+- 前単位Agent tailのmain通常ff/push終了0、公開e491505、公開時点main/origin/main一致。Lefthook committed tree全gate/実Jev成功188.01秒、forceなし。Room alias差分を専用featureへ移動。
+- [Room open/実TTY計画](superpowers/plans/2026-10-07-room-open-tty.md)に従い、既存parseTuiCommand/runRoomChatを再利用。Notion07、指針/リファレンス/quality-review/Ponytailを継続。非TTY実CLI/parser RED3成功/2失敗131ms、GREEN5成功/0失敗375ms。human必須、余剰/未知option/direct拒否と旧TUIを維持。初回static350files/AST終了0。
+- 実PTY（system script+TTY）でMonitorのAgent/Room/Task/Event四領域描画、r refresh/q終了/alternate screen+cursor restoreを確認。Room aliasで初期表示/一回送信/refresh/quitと再open/Ctrl-C終了を実測、各exit0。Room原本2件（初期fixture+送信一回）と宣言sender一致、再open表示を確認し、検証専用daemon停止/exit0。mock callbacksや非TTY拒否だけを実対話の証拠にしない。
+- 最初のsynthetic fixtureは一human/一Agentをgroupへ置き、既存Group guardで拒否された。起動済み検証daemonを停止し、自分の一時DBだけ再作成してDirect Roomへ訂正。product不具合/成功として数えず、訂正後の実PTY結果のみ採用。
+- Ruling:room openは安定Room IDと明示humanで既存Chatへ接続 — 名前検索や本人identity推測を追加せず既存参加者検証を保持 — 誤るとNotionの名前例を自動解決/本人認証まで達成と誤認する。
+- Ponytail review:新Chat/Monitor engine/Port/保存機構なし。既存parserの同一Room/human validationを再利用し、約30行のalias/否定fixture差分だけ。削減候補なし、正しさ/安全性の独立reviewと全gateを続ける。全体goalはactive。
+
+- 最終fullcheck終了0:475成功/14skip/0失敗489tests/197files165.78秒、型/Oxlint/Oxfmt350files/AST成功。実Jev終了0:2238subjects/137warning/missing0/unsure0/review0/errors[]/degraded[]。直前dry-run非空対象とexcluded/undeclared/idleLanguages/silentRules0を確認。fast UT166成功/56files260ms。[証拠](verification/2026-10-07-room-open-tty/)保存。
+- 独立最終review:Critical0/Important0/Minor1、focused parser/Chat DI4成功29ms、git diff --check成功。Ponytail Lean already、engine/Port/保存重複なし。C/I fix pass・再reviewなし。
+- Final: minor (deferred):alias不足引数の案内がaliasでは拒否される--roomを要求する。共有案内をRoom IDと--human IDへ直す文言候補、動作/安全性問題なしとして保留。
+- Final: Ruling:実PTYは親の操作/terminal/保存原本で判定 — reviewerはproofを確認し独立再実行しない。r更新は定期更新と出力だけで区別できない — 誤ると独立操作確認の強さを誤認する。
+- Final: Ruling:fullgate/実Jevは親terminal実測で判定 — reviewerのfocused結果では代用しない — 誤ると未実行を成功へ数える。
+- Final: Ruling:Notion07は既取得原文と保存計画へ照合 — reviewerは原文再取得を重複しない — 誤ると独立原文確認済みと誤認する。
+- Final: Ruling:本人認証/全重要Audit・Memory/実API/業務納品/全体完成は未達 — 現TTY経路だけを受け入れる — 誤ると未納品業務を完成と誤認する。completion-auditの旧alias/TTY baselineを現証拠へ更新。

@@ -109,13 +109,13 @@ CLIの原文は例示だが、例示した操作の提供有無を省略しな�
 | org daemon / org agent list / agent create | application parser、daemon、`cli.test.ts` | 検証。createにはrole明示を要求 |
 | org agent send chief MESSAGE | `agents/send.ts`と実CLI/daemon tests、Room/activation再利用 | 明示送信・監査・実Runtime経路を検証済み。本人認証は別残件 |
 | room list/create | Room parser/CLI tests | 検証。参加者は--human/--agentで指定 |
-| room open | `org tui --room ID --human ID`のRoom chat | 同等対話面あり。room open alias自体なし |
+| room open | `org room open ROOM_ID --human HUMAN_ID`、既存Room chat | alias実装済み、実PTY送信/再open/終了を検証。名前検索・本人認証は未達 |
 | task list/assign | Task parser/CLI tests | 検証 |
 | workflow run --input | Workflow parserとJSON入力、Approval/native tests | 検証。任意業務Workflow実機は別 |
 | event publish --data | Event parser/CLI、JSON payload | 検証。必須sourceを追加指定 |
 | sandbox list | `sandbox/jobs.ts`、daemon composition、実Docker CLI/DI | daemon所有jobのrunning/cancelling snapshotを検証済み。direct/Docker全container/別daemon/終了履歴の一覧は対象外 |
 | logs tail AGENT | `audit/logs.ts`、Approval CLI parser/registry、実direct/daemon/reopen | exact immutable Agent actorの最新Audit snapshotを検証済み。連続follow/Runtime stdout/全重要Audit収集は別範囲 |
-| org tui:Agents/Rooms/Tasks/Events | `tui/monitor.ts`、Session状態別counts、monitor/CLI/Room chat tests | 監視と対話あり。対話TTYの全操作実機証拠は未確認 |
+| org tui:Agents/Rooms/Tasks/Events | `tui/monitor.ts`、Session状態別counts、monitor/CLI/Room chat tests | 監視と対話あり。[現行実PTY証拠](verification/2026-10-07-room-open-tty/tty.json)で四領域描画/送信/再open/終了を確認。全platform・本人認証・実モデル対話は未達 |
 | thin client/local API/socket | daemon client/server、0600、PID/lease/inode、client/native tests | 検証。RPC/人間本人認証は未達 |
 | scheduler/event polling/runtime管理/execution state/timeout/wake-up | 各daemon stages、Schedule/Runtime/Task/native tests | 検証 |
 | retry | delivery attempts/deferredの再処理、A2A通知/Artifact status-only再観測 | 限定retryのみ。Task実行の安全なretry方針/契約は未達。外部効果を無条件再送しない |

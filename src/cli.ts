@@ -18,8 +18,11 @@ export async function main(argv: string[]): Promise<number> {
       );
       return 0;
     }
-    if (transport.argv[0] === 'tui') {
-      if (transport.direct) throw new Error('Expected org tui with daemon transport');
+    if (
+      transport.argv[0] === 'tui' ||
+      (transport.argv[0] === 'room' && transport.argv[1] === 'open')
+    ) {
+      if (transport.direct) throw new Error('TUI requires daemon transport');
       const mode = parseTuiCommand(transport.argv);
       try {
         if (mode.mode === 'chat') await runRoomChat(transport.socket, mode.roomId, mode.humanId);
