@@ -1,14 +1,21 @@
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { cli } from './cli-path.js';
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
-test.each(['success', 'unknown', 'stale'])(
-  'native Linear Issue update freezes approved intent and baseline with fault=%s',
-  async (fault) => {
+test.each([
+  ['success', 'content'],
+  ['unknown', 'content'],
+  ['stale', 'content'],
+  ['success', 'fields'],
+  ['unknown', 'fields'],
+  ['stale', 'fields'],
+] as const)(
+  'native Linear Issue update freezes approved intent and baseline with fault=%s mode=%s',
+  async (fault, mode) => {
     const home = mkdtempSync('/tmp/org-linear-update-'),
       db = home + '/org.db';
     const originalIssue = {
@@ -17,6 +24,17 @@ test.each(['success', 'unknown', 'stale'])(
       url: 'https://linear.app/org/issue/ORG-1/existing',
       title: 'existing',
       description: 'source',
+      state: { id: '55555555-5555-4555-8555-555555555555' },
+      assignee: { id: '66666666-6666-4666-8666-666666666666' } as { id: string } | null,
+      labels: {
+        nodes: [{ id: '77777777-7777-4777-8777-777777777777' }],
+        pageInfo: { hasNextPage: false },
+      },
+    };
+    const fields = {
+      stateId: '22222222-2222-4222-8222-222222222222',
+      assigneeId: null,
+      labelIds: ['33333333-3333-4333-8333-333333333333', '44444444-4444-4444-8444-444444444444'],
     };
     let issue = { ...originalIssue },
       mutations = 0,
@@ -30,27 +48,46 @@ test.each(['success', 'unknown', 'stale'])(
         assert.ok(
           record(payload) && typeof payload.query === 'string' && record(payload.variables),
         );
-        if (payload.query.startsWith('query KernelIssue(')) {
+        if (
+          payload.query.startsWith('query KernelIssue(') ||
+          payload.query.startsWith('query KernelIssueFields(')
+        ) {
           queries++;
           assert.deepEqual(payload.variables, { id: issue.id });
           return Response.json({ data: { issue } });
         }
-        assert.equal(
-          payload.query,
-          'mutation KernelIssueUpdate($id: String!, $title: String!, $description: String!) { issueUpdate(id: $id, input: { title: $title, description: $description }) { success issue { id identifier title description url } } }',
-        );
-        assert.deepEqual(payload.variables, {
-          id: issue.id,
-          title: 'approved title',
-          description: '',
-        });
+        if (mode === 'content') {
+          assert.equal(
+            payload.query,
+            'mutation KernelIssueUpdate($id: String!, $title: String!, $description: String!) { issueUpdate(id: $id, input: { title: $title, description: $description }) { success issue { id identifier title description url } } }',
+          );
+          assert.deepEqual(payload.variables, {
+            id: issue.id,
+            title: 'approved title',
+            description: '',
+          });
+          issue = {
+            ...issue,
+            title: 'approved title',
+            description: '',
+            url: 'https://linear.app/org/issue/ORG-1/approved-title',
+          };
+        } else {
+          assert.ok(payload.query.startsWith('mutation KernelIssueFieldsUpdate('));
+          assert.deepEqual(payload.variables, { id: issue.id, input: fields });
+          issue = {
+            ...issue,
+            state: { id: fields.stateId },
+            assignee: null,
+            labels: {
+              nodes: fields.labelIds.toReversed().map((id) => ({ id })),
+              pageInfo: { hasNextPage: false },
+            },
+          };
+          assert.equal(issue.title, originalIssue.title);
+          assert.equal(issue.description, originalIssue.description);
+        }
         mutations++;
-        issue = {
-          ...issue,
-          title: 'approved title',
-          description: '',
-          url: 'https://linear.app/org/issue/ORG-1/approved-title',
-        };
         if (fault === 'unknown') return new Response('owned uncertainty', { status: 503 });
         return Response.json({ data: { issueUpdate: { success: true, issue } } });
       },
@@ -90,15 +127,31 @@ test.each(['success', 'unknown', 'stale'])(
       return { code, stdout, stderr };
     };
     try {
+      if (mode === 'fields' && fault === 'success') {
+        const invalid = await run([
+          'task',
+          'request-linear-update',
+          'linear:issue:' + issue.id,
+          '--fields',
+          '{fixture-update-key',
+          '--expected-version',
+          '0',
+          '--actor',
+          'operator',
+          '--key',
+          'invalid',
+        ]);
+        assert.equal(invalid.code, 2);
+        assert.equal(existsSync(db), false);
+      }
       const imported = await run(['task', 'import-linear', issue.id, '--json']);
       assert.equal(imported.code, 0, imported.stderr);
       const taskId = 'linear:issue:' + issue.id;
       const input = [
         taskId,
-        '--title',
-        'approved title',
-        '--description',
-        '',
+        ...(mode === 'content'
+          ? ['--title', 'approved title', '--description', '']
+          : ['--fields', JSON.stringify(fields)]),
         '--expected-version',
         '0',
         '--actor',
@@ -145,7 +198,11 @@ test.each(['success', 'unknown', 'stale'])(
         'reviewed title and description deletion',
       ]);
       assert.equal(decided.code, 0, decided.stderr);
-      if (fault === 'stale') issue = { ...issue, description: 'external edit' };
+      if (fault === 'stale')
+        issue =
+          mode === 'content'
+            ? { ...issue, description: 'external edit' }
+            : { ...issue, state: { id: '88888888-8888-4888-8888-888888888888' } };
       const results = await Promise.all([apply(), apply()]);
       assert.deepEqual(
         results
@@ -228,9 +285,9 @@ test.each(['success', 'unknown', 'stale'])(
         assert.equal(refreshed.code, 0, refreshed.stderr);
         const current: unknown = JSON.parse(refreshed.stdout);
         assert.ok(record(current));
-        assert.equal(current.title, 'approved title');
+        assert.equal(current.title, mode === 'content' ? 'approved title' : 'existing');
         assert.equal(current.externalRef, originalIssue.url);
-        assert.equal(current.version, 1);
+        assert.equal(current.version, mode === 'content' ? 1 : 0);
       }
     } finally {
       await server.stop(true);

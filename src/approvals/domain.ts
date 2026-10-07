@@ -78,6 +78,21 @@ export interface LinearArtifactLinkOperation extends LinearTarget {
 export interface LinearIssueUpdateOperation extends LinearTarget {
   readonly kind: 'linear_issue_update';
   readonly baselineDigest: string;
+  readonly fields?: readonly LinearIssueField[];
+}
+export const linearIssueFieldNames = ['stateId', 'assigneeId', 'labelIds'] as const;
+export type LinearIssueField = (typeof linearIssueFieldNames)[number];
+export function parseLinearIssueFieldMask(value: unknown): readonly LinearIssueField[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > linearIssueFieldNames.length)
+    throw new Error('Invalid Linear Issue field mask');
+  let previous = -1;
+  return Array.from(value, (field: unknown) => {
+    const index = linearIssueFieldNames.findIndex((name) => name === field);
+    const name = linearIssueFieldNames[index];
+    if (name === undefined || index <= previous) throw new Error('Invalid Linear Issue field mask');
+    previous = index;
+    return name;
+  });
 }
 export function parseLinearIssueUpdateOperation(value: unknown): LinearIssueUpdateOperation {
   if (
@@ -86,9 +101,15 @@ export function parseLinearIssueUpdateOperation(value: unknown): LinearIssueUpda
     Array.isArray(value) ||
     Object.keys(value).some(
       (key) =>
-        !['kind', 'issueId', 'issueUrl', 'taskVersion', 'inputDigest', 'baselineDigest'].includes(
-          key,
-        ),
+        ![
+          'kind',
+          'issueId',
+          'issueUrl',
+          'taskVersion',
+          'inputDigest',
+          'baselineDigest',
+          'fields',
+        ].includes(key),
     ) ||
     !('kind' in value) ||
     value.kind !== 'linear_issue_update' ||
@@ -101,6 +122,7 @@ export function parseLinearIssueUpdateOperation(value: unknown): LinearIssueUpda
     kind: 'linear_issue_update',
     ...parseLinearTarget(value),
     baselineDigest: value.baselineDigest,
+    ...('fields' in value ? { fields: parseLinearIssueFieldMask(value.fields) } : {}),
   };
 }
 function parseLinearTarget(value: unknown): LinearTarget {

@@ -399,3 +399,180 @@ test('Linear update observation is distinct from mutation success, survives vers
   );
   assert.deepEqual([f.state.calls, f.state.lookups, f.state.writes], before);
 });
+
+test('Linear selected fields canonicalize nullable assignee and label sets and reject unknown or incomplete values', async () => {
+  const { parseLinearIssueFields, parseLinearUpdateIssue } =
+    await import('../src/linear/fields.js');
+  const f = fixture(),
+    id = f.issue.id,
+    other = '22222222-2222-4222-8222-222222222222';
+  assert.deepEqual(parseLinearIssueFields({ labelIds: [other, id], assigneeId: null }), {
+    assigneeId: null,
+    labelIds: [id, other],
+  });
+  assert.deepEqual(parseLinearIssueFields({ labelIds: [] }), { labelIds: [] });
+  for (const value of [
+    null,
+    [],
+    {},
+    { title: 'unapproved' },
+    { stateId: 'ORG-1' },
+    { assigneeId: undefined },
+    { labelIds: [id, id] },
+    { labelIds: [null] },
+    { labelIds: new Array<unknown>(1) },
+    { stateId: null },
+  ])
+    assert.throws(() => parseLinearIssueFields(value));
+  const issue = {
+    ...f.issue,
+    state: { id },
+    assignee: null,
+    labels: { nodes: [{ id: other }, { id }], pageInfo: { hasNextPage: false } },
+  };
+  assert.deepEqual(parseLinearUpdateIssue(issue, ['stateId', 'assigneeId', 'labelIds']).fields, {
+    stateId: id,
+    assigneeId: null,
+    labelIds: [id, other],
+  });
+  for (const labels of [
+    { nodes: [{ id }], pageInfo: { hasNextPage: true } },
+    { nodes: [{ id }, { id }], pageInfo: { hasNextPage: false } },
+    { nodes: [{ id: 'ORG-1' }], pageInfo: { hasNextPage: false } },
+  ])
+    assert.throws(() => parseLinearUpdateIssue({ ...issue, labels }, ['labelIds']));
+});
+
+test('Linear field update reuses authority and claim while preserving omitted fields and rejecting returned mismatches', async () => {
+  const id = '11111111-1111-4111-8111-111111111111',
+    stateId = '22222222-2222-4222-8222-222222222222';
+  for (const fault of [
+    '',
+    'baseline',
+    'returned',
+    'credential',
+    'local-read',
+    'local-write',
+    'save',
+  ]) {
+    const baseIssue = {
+      id,
+      identifier: 'ORG-1',
+      url: 'https://linear.app/org/issue/ORG-1/existing',
+      title: 'keep title',
+      description: 'keep body',
+      state: { id },
+      assignee: null,
+    };
+    let task = {
+      ...createTask(
+        { title: 'original', objective: 'original' },
+        { id: 'linear:issue:' + id, createdAt: 'same' },
+      ),
+      externalRef: baseIssue.url,
+    };
+    let approval: Approval | undefined,
+      calls = 0,
+      writes = 0,
+      activeFault = '';
+    const records: Event[] = [];
+    const tasks = { get: () => task },
+      events = {
+        list: () => records,
+        publish: (e: Event) => {
+          if (activeFault === 'save' && e.type === 'linear.update.updated')
+            throw Error('owned storage');
+          records.push(e);
+          return e;
+        },
+      };
+    const secrets = {
+      getSecret: (_actor: string, reference: string) => {
+        if (activeFault === 'credential') throw Error('fixture-key');
+        if (activeFault === 'local-write' && reference === 'linear:write')
+          task = { ...task, version: 1 };
+        return 'fixture-key';
+      },
+    };
+    const input = { taskId: task.id, actor: 'operator', expectedVersion: 0, fields: { stateId } };
+    const http = async (_url: string, init: RequestInit) => {
+      calls++;
+      assert.ok(typeof init.body === 'string');
+      const body: unknown = JSON.parse(init.body);
+      assert.ok(
+        body && typeof body === 'object' && 'query' in body && typeof body.query === 'string',
+      );
+      if (body.query.startsWith('query ')) {
+        assert.doesNotMatch(body.query, /assignee|labels/);
+        if (activeFault === 'local-read') task = { ...task, version: 1 };
+        return Response.json({
+          data: {
+            issue: { ...baseIssue, state: { id: activeFault === 'baseline' ? stateId : id } },
+          },
+        });
+      }
+      writes++;
+      assert.ok('variables' in body);
+      assert.deepEqual(body.variables, { id, input: { stateId } });
+      assert.doesNotMatch(body.query, /assignee|labels/);
+      return Response.json({
+        data: {
+          issueUpdate: {
+            success: true,
+            issue: { ...baseIssue, state: { id: activeFault === 'returned' ? id : stateId } },
+          },
+        },
+      });
+    };
+    const original = await requestLinearUpdateApproval(
+      tasks,
+      { requestOnce: (r) => r },
+      secrets,
+      http,
+      { ...input, key: 'fields' },
+      { id: 'approval', createdAt: 'same' },
+    );
+    approval = {
+      request: original,
+      decision: createApprovalDecision(
+        original,
+        { actor: { kind: 'human', id: 'reviewer' }, decision: 'approve', reason: 'reviewed field' },
+        'same',
+      ),
+    };
+    const approvals = {
+      get: () => {
+        assert.ok(approval);
+        return approval;
+      },
+    };
+    const apply = (patch = input.fields) =>
+      applyApprovedLinearUpdate(
+        tasks,
+        approvals,
+        events,
+        secrets,
+        http,
+        { ...input, fields: patch, approvalId: 'approval' },
+        () => 'same',
+      );
+    const before = calls;
+    await assert.rejects(() => apply({ stateId: id }));
+    assert.equal(calls, before);
+    activeFault = fault;
+    if (fault) await assert.rejects(apply);
+    else {
+      assert.equal((await apply()).type, 'linear.update.updated');
+      assert.equal(task.version, 0);
+    }
+    const claimed = records.some((e) => e.type === 'linear.update.claimed');
+    assert.equal(writes, ['', 'returned', 'save'].includes(fault) ? 1 : 0);
+    assert.equal(claimed, writes === 1);
+    if (claimed) {
+      const after = calls;
+      await assert.rejects(apply);
+      assert.equal(calls, after);
+    }
+    assert.equal(task.title, 'original');
+  }
+});

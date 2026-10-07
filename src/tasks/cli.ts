@@ -50,6 +50,7 @@ import { SqliteTaskProvider } from './sqlite.js';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
 import { SqliteSessionStore } from '../sessions/sqlite.js';
 import { recoverExecutionTaskResult } from './execution.js';
+import { parseLinearIssueFields, type LinearIssueFields } from '../linear/fields.js';
 
 type TaskAction =
   | {
@@ -134,6 +135,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       kind: { type: 'string' },
       title: { type: 'string' },
       description: { type: 'string' },
+      fields: { type: 'string' },
       status: { type: 'string' },
       owner: { type: 'string' },
       priority: { type: 'string' },
@@ -163,8 +165,15 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const allowed: Record<string, readonly string[]> = {
     'request-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'key'],
     'apply-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'approval'],
-    'request-linear-update': ['title', 'description', 'expected-version', 'actor', 'key'],
-    'apply-linear-update': ['title', 'description', 'expected-version', 'actor', 'approval'],
+    'request-linear-update': ['title', 'description', 'fields', 'expected-version', 'actor', 'key'],
+    'apply-linear-update': [
+      'title',
+      'description',
+      'fields',
+      'expected-version',
+      'actor',
+      'approval',
+    ],
     'observe-linear-update': ['actor', 'approval'],
     'observe-linear-artifact': ['title', 'actor', 'approval'],
     'request-linear-comment': ['expected-version', 'actor', 'body', 'key'],
@@ -213,11 +222,29 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   if (!db.trim()) throw new Error('The database path must not be empty');
   const common = { db, json: values.json ?? false };
   if (action === 'request-linear-update' || action === 'apply-linear-update') {
-    if (values.description === undefined) throw new Error('Expected --description');
-    const input = {
+    if (
+      values.fields !== undefined &&
+      (values.title !== undefined || values.description !== undefined)
+    )
+      throw new Error('Use either --fields or --title/--description');
+    if (values.fields === undefined && values.description === undefined)
+      throw new Error('Expected --description');
+    let fields: LinearIssueFields | undefined;
+    if (values.fields !== undefined) {
+      try {
+        fields = parseLinearIssueFields(JSON.parse(values.fields));
+      } catch {
+        throw new Error('Invalid --fields JSON or values');
+      }
+    }
+    const input: LinearUpdateInput = {
       taskId: required(id, 'WorkItem ID'),
-      title: required(values.title, '--title'),
-      description: values.description,
+      ...(fields === undefined
+        ? {
+            title: required(values.title, '--title'),
+            description: values.description ?? '',
+          }
+        : { fields }),
       expectedVersion: priority(required(values['expected-version'], '--expected-version')),
       actor: required(values.actor, '--actor'),
     };

@@ -7,18 +7,38 @@ import type { EventBus } from '../events/port.js';
 import type { SecretStore } from '../secrets/port.js';
 import { createEvent, type Identity } from '../events/domain.js';
 import { linearWorkItemIssueId } from './import.js';
-import { readLinearIssue, queryLinear, parseLinearIssue, type LinearIssue } from './read.js';
+import { queryLinear } from './read.js';
+import {
+  readLinearUpdateIssue,
+  parseLinearUpdateIssue,
+  parseLinearIssueFields,
+  linearIssueFieldSelection,
+  type LinearIssueFields,
+  type LinearUpdateIssue,
+} from './fields.js';
+import { parseLinearIssueFieldMask } from '../approvals/domain.js';
 import {
   requireApprovedLinearRequest,
   linearClaimPayload,
   publishVerifiedLinearReceipt,
 } from './operation.js';
-export interface LinearUpdateInput {
+interface LinearUpdateTargetInput {
   readonly taskId: string;
-  readonly title: string;
-  readonly description: string;
   readonly expectedVersion: number;
   readonly actor: string;
+}
+export type LinearUpdateInput = LinearUpdateTargetInput &
+  (
+    | { readonly title: string; readonly description: string; readonly fields?: never }
+    | { readonly fields: LinearIssueFields; readonly title?: never; readonly description?: never }
+  );
+function changes(input: LinearUpdateInput) {
+  return input.fields === undefined
+    ? { title: input.title, description: input.description }
+    : parseLinearIssueFields(input.fields);
+}
+function outputChanges(issue: LinearUpdateIssue) {
+  return issue.fields ?? { title: issue.title, description: issue.description };
 }
 export function validateLinearUpdateInput(input: LinearUpdateInput): void {
   linearWorkItemIssueId(input.taskId);
@@ -29,15 +49,18 @@ export function validateLinearUpdateInput(input: LinearUpdateInput): void {
     !input.actor.trim() ||
     input.actor.length > 128 ||
     input.actor.includes('\0') ||
-    typeof input.title !== 'string' ||
-    !input.title.trim() ||
-    Buffer.byteLength(input.title) > 512 ||
-    input.title.includes('\0') ||
-    typeof input.description !== 'string' ||
-    Buffer.byteLength(input.description) > 32768 ||
-    input.description.includes('\0')
+    (input.fields === undefined
+      ? typeof input.title !== 'string' ||
+        !input.title.trim() ||
+        Buffer.byteLength(input.title) > 512 ||
+        input.title.includes('\0') ||
+        typeof input.description !== 'string' ||
+        Buffer.byteLength(input.description) > 32768 ||
+        input.description.includes('\0')
+      : input.title !== undefined || input.description !== undefined)
   )
     throw new Error('Invalid Linear Issue update input');
+  if (input.fields !== undefined) parseLinearIssueFields(input.fields);
 }
 function digest(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -57,16 +80,20 @@ function target(tasks: Pick<TaskProvider, 'get'>, input: LinearUpdateInput) {
     issueId: linearWorkItemIssueId(input.taskId),
     issueUrl: task.externalRef,
     taskVersion: task.version,
-    inputDigest: digest({ title: input.title, description: input.description }),
+    inputDigest: digest(changes(input)),
+    ...(input.fields === undefined
+      ? {}
+      : { fields: parseLinearIssueFieldMask(Object.keys(parseLinearIssueFields(input.fields))) }),
   };
 }
-function baseline(issue: LinearIssue): string {
+function baseline(issue: LinearUpdateIssue): string {
   return digest({
     id: issue.id,
     identifier: issue.identifier,
     url: issue.url,
-    title: issue.title,
-    description: issue.description,
+    ...(issue.fields
+      ? { fields: issue.fields }
+      : { title: issue.title, description: issue.description }),
   });
 }
 export async function requestLinearUpdateApproval(
@@ -78,7 +105,7 @@ export async function requestLinearUpdateApproval(
   identity: Identity,
 ) {
   const original = target(tasks, input);
-  const issue = await readLinearIssue(request, secrets, original.issueId);
+  const issue = await readLinearUpdateIssue(request, secrets, original.issueId, original.fields);
   validateLinearUpdatedIssueUrl(original, issue.url);
   if (!isDeepStrictEqual(target(tasks, input), original))
     throw new Error('Linear Issue update target changed');
@@ -118,7 +145,12 @@ export async function applyApprovedLinearUpdate(
     payload = linearClaimPayload(original);
   if (events.list().some((e) => e.id === payload.claimId))
     throw new Error('Linear Issue update already claimed; do not retry mutation');
-  const issue = await readLinearIssue(request, secrets, original.operation.issueId);
+  const issue = await readLinearUpdateIssue(
+    request,
+    secrets,
+    original.operation.issueId,
+    original.operation.fields,
+  );
   if (baseline(issue) !== original.operation.baselineDigest)
     throw new Error('Linear Issue baseline changed; request new approval');
   const receipt = (type: string, suffix: string) =>
@@ -131,8 +163,14 @@ export async function applyApprovedLinearUpdate(
     const data = await queryLinear(
       request,
       secrets,
-      'mutation KernelIssueUpdate($id: String!, $title: String!, $description: String!) { issueUpdate(id: $id, input: { title: $title, description: $description }) { success issue { id identifier title description url } } }',
-      { id: original.operation.issueId, title: input.title, description: input.description },
+      original.operation.fields
+        ? 'mutation KernelIssueFieldsUpdate($id: String!, $input: IssueUpdateInput!) { issueUpdate(id: $id, input: $input) { success issue { id identifier title description url ' +
+            linearIssueFieldSelection(original.operation.fields) +
+            ' } } }'
+        : 'mutation KernelIssueUpdate($id: String!, $title: String!, $description: String!) { issueUpdate(id: $id, input: { title: $title, description: $description }) { success issue { id identifier title description url } } }',
+      original.operation.fields
+        ? { id: original.operation.issueId, input: changes(input) }
+        : { id: original.operation.issueId, title: input.title, description: input.description },
       {
         reference: 'linear:write',
         beforeRequest: () => {
@@ -152,12 +190,11 @@ export async function applyApprovedLinearUpdate(
       !('issue' in result)
     )
       throw new Error('Invalid Linear Issue update response');
-    const updated = parseLinearIssue(result.issue);
+    const updated = parseLinearUpdateIssue(result.issue, original.operation.fields);
     if (
       updated.id !== original.operation.issueId ||
       updated.identifier !== issue.identifier ||
-      updated.title !== input.title ||
-      updated.description !== input.description
+      digest(outputChanges(updated)) !== original.operation.inputDigest
     )
       throw new Error('Linear Issue update response mismatch');
     const issueUrl = validateLinearUpdatedIssueUrl(original.operation, updated.url);
@@ -170,7 +207,7 @@ export async function applyApprovedLinearUpdate(
           payload: {
             ...payload,
             issueUrl,
-            outputDigest: digest({ title: updated.title, description: updated.description }),
+            outputDigest: digest(outputChanges(updated)),
           },
         },
         { id: payload.claimId + ':updated', createdAt: now() },
@@ -242,9 +279,9 @@ export async function observeApprovedLinearUpdate(
       throw new Error('Linear Issue update receipt mismatch');
     return known;
   }
-  const issue = await readLinearIssue(request, secrets, operation.issueId),
+  const issue = await readLinearUpdateIssue(request, secrets, operation.issueId, operation.fields),
     issueUrl = validateLinearUpdatedIssueUrl(operation, issue.url);
-  if (digest({ title: issue.title, description: issue.description }) !== operation.inputDigest)
+  if (digest(outputChanges(issue)) !== operation.inputDigest)
     throw new Error('Linear Issue current contents do not match approval');
   validateTarget();
   // ponytail: this is a point-in-time observation, not proof of which writer changed the Issue or ongoing synchronization.

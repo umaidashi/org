@@ -26,7 +26,7 @@ export async function queryLinear(
   request: (url: string, init: RequestInit) => Promise<Response>,
   secrets: Pick<SecretStore, 'getSecret'>,
   query: string,
-  variables: Readonly<Record<string, string | number | null>>,
+  variables: Readonly<Record<string, unknown>>,
   access:
     | { readonly reference: 'linear:read' }
     | { readonly reference: 'linear:write'; readonly beforeRequest: () => void } = {

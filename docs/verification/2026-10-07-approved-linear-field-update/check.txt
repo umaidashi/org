@@ -1,0 +1,12 @@
+Scope: human-approved selected Linear stateId/assigneeId/labelIds update through existing request/apply/observe.
+Approval mask RED4pass1fail72ms -> GREEN5pass. Closed canonical mask preserves absent legacy fields.
+Native RED3pass3fail2.11s -> GREEN6pass0fail3.73s. Content+fields success/unknown/stale; canonical label ordering, assignee null, omitted title/description retained; concurrent apply single mutation and observe exact winner; same-key/reopen/known receipt no HTTP; Local original unchanged.
+Sparse mask/labels RED11pass2fail79ms -> shared Array.from validation GREEN.
+Focused Approval/SQLite/new update/old comment+Artifact31pass0fail85ms.
+Fast UT139pass0fail48files189ms.
+Static type/Oxlint/Oxfmt327files/AST pass after test RequestInit.body string narrowing fix.
+Dry-run2012subjects25requests, src/tests/scripts only; no snapshots/env/DB/logs.
+Full gate: exit0 402pass12skip0fail414tests182files106.97s.
+Actual Jev: exit0 2012subjects122warning missing0unsure0review0 errors[]degraded[].
+Fresh final review: pending.
+Limits: explicit Adapter UUIDs do not map Core status or Agent owner. No Local field sync. Read/write not atomic; baseline only selected fields. labels bound100 and complete page required. Real authentication/Team references/server normalization/human identity/real business Draft PR unverified. Whole goal remains active.

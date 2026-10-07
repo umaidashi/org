@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import {
   createApprovalRequest,
+  parseLinearIssueUpdateOperation,
   createApprovalDecision,
   requireApprovedPermission,
 } from '../src/approvals/domain.js';
@@ -157,4 +158,35 @@ test('Linear Artifact approval pins existing WorkItem, output Artifact reference
     { ...input, operation: { ...input.operation, extra: true } },
   ])
     assert.throws(() => createApprovalRequest(invalid, identity));
+});
+
+test('Linear update approval freezes a closed canonical field mask while preserving legacy content approvals', () => {
+  const input = {
+    key: 'fields',
+    actor: { kind: 'human' as const, id: 'operator' },
+    taskId: 'linear:issue:11111111-1111-4111-8111-111111111111',
+    eventId: null,
+    operation: {
+      kind: 'linear_issue_update' as const,
+      issueId: '11111111-1111-4111-8111-111111111111',
+      issueUrl: 'https://linear.app/org/issue/ORG-1/existing',
+      taskVersion: 0,
+      inputDigest: 'a'.repeat(64),
+      baselineDigest: 'b'.repeat(64),
+      fields: ['stateId', 'assigneeId', 'labelIds'] as const,
+    },
+  };
+  const identity = { id: 'approval', createdAt: 'same' };
+  const result = createApprovalRequest(input, identity);
+  assert.deepEqual(result.operation, input.operation);
+  for (const fields of [
+    new Array<unknown>(1),
+    [],
+    ['other'],
+    ['stateId', 'stateId'],
+    ['labelIds', 'stateId'],
+    'stateId',
+    [null],
+  ])
+    assert.throws(() => parseLinearIssueUpdateOperation({ ...input.operation, fields }));
 });

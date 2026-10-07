@@ -1354,3 +1354,16 @@
 - 独立最終review: `f61d5d0..74109db`、Ready merge yes、Critical0/Important0/Minor0。承認/claim/元WorkItem/mapping前後検査、応答identity/URL/digest、並行receiptの完全一致、既知成功/観測区別とHTTPなし再利用を確認。独立DI/旧comment/Artifact22成功/0失敗67ms。native/full/Jevは記録された証拠を読んだもので独立再実行とは扱わない。Ponytail: Lean already. Ship.
 - Final Ruling: 実Linear認証/空description正規化はfixtureでは未検証のため残件。誤るとサーバ差異を見逃す。human文字列は本人認証ではなくLocal明示承認の範囲であるため認証を残件として維持。誤るとなりすましを権限と誤認する。実業務Issue→Draft PRと全体MVP完了をslice公開で証明しない。誤ると未検証業務を納品済みと誤認する。
 - 公開結果：mainへ通常fast-forward、`18372f1`をorigin/mainへpush成功（終了0）。push時点のHEAD/origin/main完全一致を確認。Lefthook全push対象tree検査/実Jevは122.21秒で成功。全体目標はactive。次はNotion/要件の外部Task field更新と認証・実務受け入れの残件を照合し、安全なローカル実装を進める。
+
+## 2026-10-07 承認付き選択Linear field更新
+
+- 前ターンは結果不明の読取確認実装/検証/main公開まで進捗。全体目標activeを維持し、[今回の設計・計画](superpowers/plans/2026-10-07-approved-linear-field-update.md)へ進む。`feat/approved-linear-field-update`へ分離。coding-guidelines/referenceを実装前に読んだ。
+- Notion 04 Task抽象化再取得（編集2026-10-04、欠損/切詰め警告なし）。外部WorkItemと内部Execution分離、CoreはProvider固有modelを知らない目標を維持。status/owner/labelsの残件を既存更新serviceへ選択fieldとして接続する。
+- 公式GraphQL資料と公式SDK schemaのIssueUpdateInputを照合。stateId/assigneeId/labelIdsをAdapterへ限定し、未指定fieldは送らない。既存Approval/claim/Audit/observeを再利用する。read/write原子的排他・Core status/Agent ownerの暗黙対応・Team参照の実サーバ検証は保証しない。誤ると同時編集の上書きや外部/内部参照の混同を起こし得るため未検証境界を文書へ残す。
+- Approval mask RED4成功/1失敗72ms（新fields拒否）→GREEN。native旧content3成功/新fields3失敗2.11秒（--fields未対応）→最終6成功/0失敗3.73秒。成功/unknown/stale、担当解除、labels置換と逆順応答、並行apply一回/observe唯一原本、同key/別プロセス再open、未指定title/descriptionとLocal原本不変を確認。field maskのSQLite保存/reopenはこのnative経路で検証、既存schemaは変更しない。
+- DI部分stateId更新で未指定assignee/labelsをquery/mutationに含めないこと、変更入力の秘密取得前拒否、baseline変化/応答不一致/資格情報障害/HTTP読取中とwrite credential取得中のLocal変更/成功receipt保存障害と再送禁止を確認。parserはnullable assignee、空/順不同labels、未知値/不完全page/重複を検査。新faultはDIでありnative SQL fault検証を新たに行ったとは扱わない。
+- 疎配列mask/labelIdsを見逃すケースはRED11成功/2失敗79msで再現。Array.fromでholesもvalidatorを通す根因修正後、Approval/SQLite/new update/旧comment/Artifact31成功/0失敗85ms。Fast UT139成功/0失敗48files189ms。初回lintはtestのRequestInit.bodyをStringへ変換した点を拒否。typeof assertでnarrowing後はstatic型/Oxlint/Oxfmt327files/AST成功。
+- 不正JSONに資格情報風のfixture値を含めるCLI検査は成功しDB作成なし（追加のcharacterizationでありREDとは扱わない）。parserエラーをstatic errorへ統一し、空descriptionの存在検査を明示してIIFEを除去。実キーやNotion snapshotはテスト・API送信対象へ含めない。
+- ponytail-review: Lean already. Ship. title/descriptionの更新serviceとApproval/claim/receipt/Audit/observeを再利用し、専用の重複write/retry層・新依存・新tableは追加なし。UUID/選択response/labels完全性はtrust境界として保持。正しさ・安全性はテストと独立最終reviewで別途確認。
+- 全`bun run check`終了0: 402成功/12skip/0失敗、414tests/182files/106.97秒。型/Oxlint/Oxfmt327files/AST fixture/非空dry-run成功。12skipは実機opt-inの残件である。[証拠](verification/2026-10-07-approved-linear-field-update/check.txt)。
+- dry-run2012対象/25requests確認後、実Jev終了0: 2012subjects/122warning/missing0/unsure0/review0/errors[]/degraded[]。変更箇所の候補は旧requireApprovedPermission命名0.72、workflow/Approval/CLI等失敗経路0.70–0.85、observe命名0.63、mask/legacy承認テスト名0.73/0.71、readLinearUpdateIssue失敗経路0.71。候補は型/具体native/DI/旧経路検証と独立reviewで判断し、未校正閾値だけで機械renameや全失敗経路網羅を主張しない。
