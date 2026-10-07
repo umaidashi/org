@@ -1112,3 +1112,5 @@
 - RED: get/list共有DIとnative CLIへquote/backslash付き反射fixtureを追加し、2成功2fail1.80秒。DIは期待した拒否がなく、CLIはexit0/stdoutありとなり漏れを確認。共有queryLinearの一行をGitHubと同じJSON正規化比較へ置換する。
 - GREEN: get/list/WorkItem import/refresh/Notion/GitHubとnative CLIのtargeted11成功0fail2.58秒。キーは全て公開fixture。CLIのget/listはstdout空・sanitized error・DB未作成を確認、無関係のquote/backslash本文は保持。高速UT101成功0fail43files258ms、型/lint/format/AST非空成功。
 - Ponytail review: GitHubの既存JSON正規化手法を共通queryLinearの一行で再利用。get/list/import/refreshの個別guard、新helper/依存/設定なし。全checkと実jevを実行中、独立最終reviewを一回行う。
+- 最終全check336成功12skip0fail348tests174files107.56秒、exit0、型/lint/format/AST/dry-run非空。実jev1755対象warning112/missing・unsure0/errors・degraded空、exit0。Linearの既存import失敗経路候補のみで今回の新指摘なし。独立最終review Critical/Important/Minor0、独立get/list UT4成功42ms。Ponytail独立review Lean already. Ship. 再reviewなし。[証拠](verification/2026-10-07-linear-credential-reflection/check.txt)。
+- Next: Notion SecurityのAgentごとのworking directory/credential分離可能という要件に対し、Runtime configは現在providerごとにcwd/envを共有している。既存DriverConfigの検証を使う明示Agent別host profileを接続し、選択Actor以外のenv非注入と明示profileでのruntime未設定拒否を実CLIで検証する。物理filesystem隔離の完了とは主張しない。実API認証/業務Issue/Draft PR等の全体未完了も保持。

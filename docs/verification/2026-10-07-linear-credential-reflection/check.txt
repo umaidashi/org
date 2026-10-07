@@ -1,0 +1,7 @@
+RED: 2 pass, 2 fail, 1.80s; escaped credential returned by shared query/native CLI.
+GREEN: 11 pass, 0 fail, 2.58s; get/list/import/refresh/Notion/GitHub + native CLI.
+Fast UT: 101 pass, 0 fail, 43 files, 258ms.
+Full check: 336 pass, 12 skip, 0 fail, 348 tests, 174 files, 107.56s; exit 0.
+Real jev: 1755 subjects, 112 warnings; missing 0, unsure 0, errors [], degraded []; exit 0.
+Independent whole-branch review: Critical/Important/Minor 0; independent get/list UT 4 pass, 42ms.
+Ponytail review: Lean already. Ship.
