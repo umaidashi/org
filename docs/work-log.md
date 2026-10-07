@@ -1591,3 +1591,6 @@
 - Final Ruling:本人認証/実業務納品/全体goalは未達 — 今回の狭い差分では証明できない — 誤ると公開運営や納品を完成と誤認する。
 - Final Ruling:全check/実Jevは親のterminal実測だけ、opt-in skipは未実施 — 重複/推測で成功にしない — 誤ると未終了検査を成功に数える。
 - 最終native全check終了0:465成功/14skip/0失敗、479tests/197files/163.76秒。最終native9成功5.90秒。実Jev終了0:2195subjects/132warning/missing0/unsure0/review0/errors[]/degraded[]、dry-runの空rule/未宣言/除外0。旧observe名前候補0.63とshared readの失敗経路候補0.68は既存の時点観測契約/否定fixtureと独立reviewで判定し、モデルのみで改名/追加frameworkを行わない。LINEAR/NOTION API keyの設定なしを値を出さず再確認、TYPESAFEあり。既存Maxは別の実Runtime証拠であり実Linear/Notion CLI API認証の代用にしない。
+
+- main通常fast-forwardとorigin/main push終了0、公開commit962de87、公開時点HEAD/origin/main一致。Lefthook push対象全検査/実Jev成功182.78秒。最終fast UT160成功/56files251msの証拠を保存済み。forceなし。
+- 次の[Core mappingと共通update実consumer計画](superpowers/plans/2026-10-07-linear-core-write-mapping.md)を保存。state/Agent ownerの一意逆対応とhost明示labels対応を実承認入力へ接続し、同じ検証単位でLocal/LinearのAsyncTaskProvider.updateを実消費する。準備command/pure mappingだけで完成にせず、外部receipt後のCAS同期障害を区別し再送しない。Local所有関係/原本と残comment/artifact、他の全体残件を維持する。Ponytail:既存Approval/claim/receipt/観測/mergeを再利用し、新mutation engine/背景syncを追加しない。文書git diff --check成功、全体goalはactive。
