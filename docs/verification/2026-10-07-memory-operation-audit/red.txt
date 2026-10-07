@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-operation-audit.test.ts:
+ 7 |   const store = new SqliteMemoryProvider(':memory:');
+ 8 |   try {
+ 9 |     const original = createMemory({type:'semantic',scope:'global',content:'synthetic',confidence:1,sourceRefs:[{roomId:'r',messageId:'m'}]}, {id:'one',at:'old'});
+10 |     store.createOnce(original);
+11 |     const reader = store as unknown as { operationHistory?: () => readonly {tool:string}[] };
+12 |     assert.equal(reader.operationHistory?.().length ?? 0, 1);
+                ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 1
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-operation-audit.test.ts:12:12)
+(fail) Memory mutation Audit records actual actor and mutation time, preserving idempotency [7.16ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [60.00ms]

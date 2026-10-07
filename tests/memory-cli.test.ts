@@ -155,6 +155,21 @@ test('Memory CLI captures evidence, supersedes without altering history, and per
     const invalid = json(['memory', 'invalidate', second.id, '--reason', 'obsolete']);
     assert.ok(invalid !== null && typeof invalid === 'object' && 'status' in invalid);
     assert.equal(invalid.status, 'invalidated');
+    const records = json(['audit', 'list']);
+    assert.ok(Array.isArray(records));
+    const mutations = records.filter((entry) => entry.tool.startsWith('memory.'));
+    assert.deepEqual(
+      mutations.map((entry) => String(entry.tool)),
+      ['memory.capture', 'memory.supersede', 'memory.invalidate'],
+    );
+    for (const entry of mutations) {
+      assert.deepEqual(entry.actor, { kind: 'system', id: 'local-host' });
+      assert.equal(entry.result, 'succeeded');
+      assert.ok(entry.inputRef.startsWith('org://memories/'));
+      assert.ok(entry.outputRef.startsWith('org://memories/'));
+    }
+    assert.deepEqual(json(['audit', 'list']), records);
+
     const list = json(['memory', 'list', '--scope', 'room:' + room.id]);
     assert.ok(Array.isArray(list));
     assert.equal(list.length, 2);

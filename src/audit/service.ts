@@ -1,3 +1,4 @@
+import type { MemoryOperationReader } from '../memory/port.js';
 import type { AgentConfigurationReader } from '../agents/port.js';
 import { buildSandboxAudit } from './sandbox.js';
 import { buildLinearAudit } from './linear.js';
@@ -13,11 +14,13 @@ export function collectAudit(
   agents: AgentConfigurationReader & { capabilityHistory(): readonly CapabilityChange[] },
   tasks: Pick<TaskProvider, 'list' | 'history'>,
   events: Pick<EventBus, 'list'>,
+  memories: MemoryOperationReader,
 ): readonly AuditEntry[] {
   const decisions = approvals.list();
   const originals = events.list();
   return buildAudit(decisions, agents.capabilityHistory(), [
     ...agents.configurationHistory(),
+    ...memories.operationHistory(),
     ...tasks.list().flatMap((task) => buildTaskExecutionAudit(tasks.history(task.id))),
     ...buildWorkflowAudit(originals),
     ...buildSandboxAudit(originals),

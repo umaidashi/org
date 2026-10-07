@@ -326,7 +326,9 @@ function openOperations(
       () => new Date().toISOString(),
       randomUUID,
     );
-    const memoryProvider = new SqliteMemoryProvider(db);
+    const memoryProvider = new SqliteMemoryProvider(db, { kind: 'system', id: 'core' }, () =>
+      new Date().toISOString(),
+    );
     memory = memoryProvider;
     const nightlyScopes = [...consolidationRooms.map((id) => 'room:' + id), ...consolidationScopes];
     const scopeAvailable = (scope: string) =>

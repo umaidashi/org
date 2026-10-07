@@ -1,0 +1,14 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-consolidation-cli.test.ts:
+(pass) native CLI consolidates exact Room Memory with stable receipt, retains evidence and rejects invalid requests before DB creation [2176.45ms]
+
+tests/memory-extraction-cli.test.ts:
+(pass) native CLI extracts original Agent Memory proposal once and preserves Room evidence and invalidation across reopen [1795.43ms]
+
+tests/memory-cli.test.ts:
+(pass) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [2255.87ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 3 files. [6.28s]

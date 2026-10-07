@@ -1974,3 +1974,16 @@
 
 - 最終terminal0全check: 519成功21skip0失敗540tests212files185.24秒。type/Oxlint/Oxfmt369files/非空AST/dry-run成功。実Jev2406subjects147warnings、missing/unsure/review/errors/degraded0。変更source/test対象あり。failure-path warningは初期/非同期拒否・legacy/許可・実CLI対照と照合、具体的未対応反例なし。
 - 次Audit反例は保存1件/Audit Reader undefined、合成データのみ。[次計画](superpowers/plans/2026-10-07-memory-operation-audit.md)に記録。
+
+## 2026-10-07 — Memory重要操作Audit
+
+- 前00f8b9a main通常push terminal0/localgate208.51秒/remote exact head確認。[計画](superpowers/plans/2026-10-07-memory-operation-audit.md)を実行、manual/auto extraction/review projection/nightlyの全writerを追跡。
+- RED0成功1失敗60ms、原本保存1件/Auditゼロ。既存SQLite transactionへimmutable JSON操作原本、mandatory collectAudit Reader、writer optional Actor/Task contextを接続。adapterにactor/clock DI、proposal/reviewの過去時刻を保存時刻として使わない。新engine/dependencyなし。
+- Ruling: CLI=system/local-host、daemon=system/core、提案原本Agent、review projection=system/memory.review-projectionと既知Task ID — 信頼されたhostで分かる論理主体を記録 — 人間本人を証明する場合は追加認証が必要。旧DB主体を推測したbackfill/本文秘密コピーなし。更新失敗は既存transaction rollbackのため成功Auditを作らず、失敗試行の独立監査を今回認定しない。
+- 初期GREEN6成功102ms。初回staticはconsolidation Audit挿入を誤ってlistConsolidationsへ置きplan未定義で停止、commit writerへ訂正。追加fixtureはduplicate planner keeperを誤りinvalidate非activeで失敗、実keeperへ修正。native初回1成功2失敗はaudit listのlist省略Usage拒否、既存CLI契約へ訂正。lint unsafe-returnはfixtureのtool mapをStringへ。Actor context変更時のassertの余分なactorネストも実shapeへ修正。これらを意味的REDやproduct修正成果に置換しない。
+- SQLite/既存Audit focused14成功198ms、caller proof3成功73ms、native3成功6.28秒。no-op不増/障害rollback/immutability/legacy/reopenと手動3操作/7scope consolidation/Agent採用/Task review contextを確認。
+- Fresh reviewer C0/I0/M0、独立3成功79ms、Ponytail Lean/net0。既存atomic wrapper候補はdiff外で追加整理なし。fixpassなし/再レビューなし。
+- 初回全check520成功21skip0失敗541tests213files186.50秒、370files/非空AST/dry-run成功。実Jev2411subjects146warnings、missing/unsure/review/errors/degraded0、変更subjectあり。途中test追加後の最終全checkを再実行中。
+- [証拠](verification/2026-10-07-memory-operation-audit/)と棚卸し更新。次は[Session重要操作Audit](superpowers/plans/2026-10-07-session-operation-audit.md)。全体未達、既存業務Issue/変更先repoと実Linear/Notion API認証は未指定/未設定のまま。任意外部writeはしない。
+
+- 最終tree全check terminal0: 520成功21skip0失敗、Ran 541 tests across 213 files. [186.44s]。type/lint/Oxfmt370files/非空AST/dry-run成功。次Session反例はrunning/history2/Audit Reader undefined、合成データのみ。

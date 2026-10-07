@@ -1,10 +1,11 @@
+import type { AuditActor, AuditEntry } from '../audit/domain.js';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
 import { isDeepStrictEqual } from 'node:util';
 import { decodeMemory, replaceMemory, memorySearchPhrase } from './domain.js';
 import type { Memory } from './domain.js';
-import type { MemoryProvider } from './port.js';
+import type { MemoryProvider, MemoryOperationContext } from './port.js';
 import type { MemoryConsolidationHistory } from './nightly.js';
 import {
   planMemoryConsolidation,
@@ -65,11 +66,19 @@ export class SqliteMemoryProvider
   implements MemoryProvider, MemoryConsolidationStore, MemoryConsolidationHistory
 {
   private readonly db: Database;
-  constructor(path: string) {
+  constructor(
+    path: string,
+    private readonly auditActor: AuditActor = { kind: 'system', id: 'unspecified' },
+    private readonly auditNow: () => string = () => new Date().toISOString(),
+  ) {
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
     this.db = new Database(path, { create: true });
     try {
       this.db.exec(`PRAGMA busy_timeout=5000;
+   CREATE TABLE IF NOT EXISTS memory_operation_history(sequence INTEGER PRIMARY KEY AUTOINCREMENT,data TEXT NOT NULL CHECK(json_valid(data)));
+   CREATE TRIGGER IF NOT EXISTS memory_operations_no_replace BEFORE INSERT ON memory_operation_history WHEN EXISTS(SELECT 1 FROM memory_operation_history WHERE sequence=NEW.sequence) BEGIN SELECT RAISE(ABORT,'Memory operation immutable'); END;
+   CREATE TRIGGER IF NOT EXISTS memory_operations_no_update BEFORE UPDATE ON memory_operation_history BEGIN SELECT RAISE(ABORT,'Memory operation immutable'); END;
+   CREATE TRIGGER IF NOT EXISTS memory_operations_no_delete BEFORE DELETE ON memory_operation_history BEGIN SELECT RAISE(ABORT,'Memory operation immutable'); END;
    CREATE TABLE IF NOT EXISTS memory_records(sequence INTEGER PRIMARY KEY AUTOINCREMENT,id TEXT UNIQUE NOT NULL,data TEXT NOT NULL,supersedes TEXT UNIQUE);
    CREATE TABLE IF NOT EXISTS memory_invalidations(id TEXT PRIMARY KEY,reason TEXT NOT NULL,at TEXT NOT NULL);
    CREATE TABLE IF NOT EXISTS memory_consolidations(key TEXT PRIMARY KEY,data TEXT NOT NULL);
@@ -185,8 +194,58 @@ export class SqliteMemoryProvider
       this.db
         .query('INSERT INTO memory_consolidations(key,data) VALUES (?,?)')
         .run(plan.key, JSON.stringify(receipt));
+      this.appendOperation(
+        'memory.consolidate',
+        'org://memory-scopes/' + encodeURIComponent(plan.scope),
+        'org://memory-consolidations/' + encodeURIComponent(plan.key),
+      );
       return receipt;
     });
+  }
+  private appendOperation(
+    tool: string,
+    inputRef: string,
+    outputRef: string,
+    context: MemoryOperationContext = { actor: this.auditActor },
+  ): void {
+    const { actor, taskId } = context;
+    const at = this.auditNow();
+    if (
+      !['human', 'agent', 'system'].includes(actor.kind) ||
+      (taskId !== undefined && (!taskId.trim() || taskId.includes('\0'))) ||
+      !actor.id.trim() ||
+      actor.id.includes('\0') ||
+      actor.id.length > 128 ||
+      !Number.isFinite(new Date(at).getTime()) ||
+      new Date(at).toISOString() !== at
+    )
+      throw new Error('Invalid Memory Audit actor/timestamp');
+    const entry: Omit<AuditEntry, 'id'> = {
+      causalId: 'org://memory-operations',
+      actor,
+      taskId: taskId ?? null,
+      eventId: null,
+      tool,
+      inputRef,
+      outputRef,
+      at,
+      result: 'succeeded',
+      approvalId: null,
+    };
+    this.db
+      .query('INSERT INTO memory_operation_history(data) VALUES (?)')
+      .run(JSON.stringify(entry));
+  }
+  operationHistory(): readonly AuditEntry[] {
+    return this.db
+      .query<{ sequence: number; data: string }, []>(
+        'SELECT sequence,data FROM memory_operation_history ORDER BY sequence',
+      )
+      .all()
+      .map((row) => ({
+        ...(JSON.parse(row.data) as Omit<AuditEntry, 'id'>),
+        id: 'memory:operation:' + row.sequence,
+      }));
   }
   private atomic<T>(operation: () => T): T {
     this.db.exec('BEGIN IMMEDIATE');
@@ -199,24 +258,33 @@ export class SqliteMemoryProvider
       throw error;
     }
   }
-  create(memory: Memory): Memory {
+  create(memory: Memory, context?: MemoryOperationContext): Memory {
     const original = decodeMemory(memory);
     if (memory.status !== 'active') throw new Error('New Memory must be active');
-    return this.atomic(() => this.insert(original));
+    return this.atomic(() => this.insert(original, context));
   }
-  private insert(original: Memory): Memory {
+  private insert(original: Memory, context?: MemoryOperationContext): Memory {
     if (original.supersedes !== null) replaceMemory(this.get(original.supersedes), original);
     this.db
       .query('INSERT INTO memory_records(id,data,supersedes) VALUES (?,?,?)')
       .run(original.id, JSON.stringify(original), original.supersedes);
+    const ref = 'org://memories/' + encodeURIComponent(original.id);
+    this.appendOperation(
+      original.supersedes === null ? 'memory.capture' : 'memory.supersede',
+      original.supersedes === null
+        ? ref
+        : 'org://memories/' + encodeURIComponent(original.supersedes),
+      ref,
+      context,
+    );
     return this.get(original.id);
   }
-  createOnce(memory: Memory): Memory {
+  createOnce(memory: Memory, context?: MemoryOperationContext): Memory {
     const original = decodeMemory(memory);
     if (memory.status !== 'active') throw new Error('New Memory must be active');
     return this.atomic(() => {
       const row = this.db.query('SELECT data FROM memory_records WHERE id=?').get(original.id);
-      if (row === null) return this.insert(original);
+      if (row === null) return this.insert(original, context);
       if (!isDeepStrictEqual(rowMemory(row), original))
         throw new Error('Memory idempotency conflict');
       return this.get(original.id);
@@ -259,6 +327,8 @@ export class SqliteMemoryProvider
       this.db
         .query('INSERT INTO memory_invalidations(id,reason,at) VALUES (?,?,?)')
         .run(id, reason, at);
+      const ref = 'org://memories/' + encodeURIComponent(id);
+      this.appendOperation('memory.invalidate', ref, ref + '/invalidation');
       return this.get(id);
     });
   }

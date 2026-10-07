@@ -6,15 +6,15 @@
 |---|---|---|
 | capability変更/human承認 | ApprovalとCapabilityChange、不変8field Audit | 接続済み |
 | Workflow invoke/status/cancel | Event/Approval/result原本 | 接続済み |
-| Sandbox実行 | started/completed Event、Task/Artifact/実行主体 | 接続済み。完了権限の再照合を追加検証中 |
+| Sandbox実行 | started/completed Event、Task/Artifact/実行主体 | 接続済み。完了権限の再照合も検証済み |
 | Linear Agent read/write/comment/artifact | scoped read Event、承認write/receipt | 接続済み。実API認証は未証明 |
 | Task execution/review | Task history/result/reviewからAudit | 接続済み。全手動Task CRUDの実行主体は同じ証拠ではない |
 | Agent登録/報告先変更 | Agent Configuration原本/ReportingHistory、transaction内8field Audit | 新規実操作を接続済み。旧主体不明はbackfillしない |
-| Memory capture/supersede/invalidate/consolidate | 不変Memory/invalidations/receiptとsource refs | 不足。内容原本があるが8fieldの操作主体/入力出力参照へ未接続 |
+| Memory capture/supersede/invalidate/consolidate | 不変Memory/invalidations/receiptとsource refs | 新規成功更新を同transactionの不変8field原本へ接続。clock/主体DI、no-op不増/rollback、旧主体はbackfillしない |
 | Session Context送信/停止/rebuild | Session/Room/Messageの原本と状態履歴 | 不足。Runtime呼出の重要操作Auditとして未集約 |
 | Room/Task/Event/Subscription/Schedule設定 | 個別状態/Message/Event/履歴 | 操作別に未照合。全件充足と認定しない |
 | Runtime/credential/resource grant config | trusted host設定ファイル | DB内の権限変更Auditとは別。設定をAPI秘密値付きで記録しない |
 
 Ruling: 原本が存在するだけで8field Audit完了としない。一方、過去の主体不明データを推測したhuman/Agentとして補完しない。新しい実操作から最小限の原本を同じwriter transactionに保存し、既存`collectAudit`へ投影する。完全な別監査engine/全低水準コマンド追跡は作らない。
 
-Agent登録/報告先の実callerは検証済み。Memory/Sessionその他の未接続を任意の「管理操作だから対象外」にしない。全重要操作・全体は未達。
+Agent登録/報告先の実callerは検証済み。Sessionその他の未接続を任意の「管理操作だから対象外」にしない。全重要操作・全体は未達。

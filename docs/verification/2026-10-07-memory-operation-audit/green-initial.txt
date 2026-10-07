@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-sqlite.test.ts:
+(pass) Memory projection preserves original evidence and atomically supersedes active same-scope records [17.00ms]
+(pass) Memory createOnce retains immutable originals and explicit invalidation without reviving them [11.09ms]
+
+tests/memory-consolidation-sqlite.test.ts:
+(pass) SQLite consolidation atomically stores immutable receipt with invalidations, detects changed snapshots and rolls back storage failure [15.16ms]
+(pass) SQLite consolidation atomically stores immutable receipt with invalidations, detects changed snapshots and rolls back storage failure [13.99ms]
+(pass) Room archive between selection and commit rejects consolidation without receipt or invalidation [12.73ms]
+
+tests/memory-operation-audit.test.ts:
+(pass) Memory mutation Audit records actual actor and mutation time, preserving idempotency [1.35ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 3 files. [102.00ms]

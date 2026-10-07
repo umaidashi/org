@@ -46,6 +46,7 @@ export function projectReviewedTaskMemories(
             at: review.createdAt,
           },
         ),
+        { actor: { kind: 'system', id: 'memory.review-projection' }, taskId: task.id },
       );
     }
   }

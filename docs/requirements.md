@@ -180,3 +180,5 @@ Host finite Agent/Task grant・Environment SecretStore・前後owner/version/cap
 2026-10-07 明示Room Context permission: 有限rooms allowlistとhuman Approval/CAS/DB再open、Runtime前と実行中失効後の拒否を検証。[証拠](verification/2026-10-07-agent-room-permissions/) full519成功21skip0失敗540tests212files184.25秒、実Jev2402subjects欠損・エラー・劣化0。[Memory抽出兄弟caller](superpowers/plans/2026-10-07-memory-room-permission-boundary.md)は実反例あり、次に共有guardを接続。全重要操作/実API業務/全体は未達。
 
 2026-10-07 Memory抽出Room permission: 同じ共有guardを開始前/根拠await後・保存前へ接続、失効時extractor/保存ゼロと実CLI human Approval deny/restore/再openを検証。[証拠](verification/2026-10-07-memory-room-permission-boundary/)。Memory更新/Sessionその他重要操作Auditと実業務API受入/全体は未達。
+
+2026-10-07 Memory更新Audit: capture/supersede/invalidate/consolidateの新規成功更新を同transactionの不変8field原本へ接続、既知主体/実保存clock/Task review Task ID、no-op不増/rollback/legacy無backfill/実CLI7scope/reopenを検証。[証拠](verification/2026-10-07-memory-operation-audit/)。失敗試行の独立監査/Sessionその他/実API業務受入/全体は未達。

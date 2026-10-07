@@ -268,7 +268,9 @@ export async function runMemoryCommand(
   command: MemoryCommand,
   output: (line: string) => void,
 ): Promise<void> {
-  const provider = new SqliteMemoryProvider(command.db);
+  const provider = new SqliteMemoryProvider(command.db, { kind: 'system', id: 'local-host' }, () =>
+    new Date().toISOString(),
+  );
   try {
     let result: unknown;
     switch (command.action) {

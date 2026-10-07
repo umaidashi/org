@@ -1,0 +1,6 @@
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+tests/memory-cli.test.ts:162:32: error typescript(no-unsafe-return): Unsafe return of a value of type `any`.
+error: script "lint" exited with code 1
+error: script "check:static" exited with code 1

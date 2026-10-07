@@ -1,3 +1,4 @@
+import type { MemoryOperationContext } from '../src/memory/port.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { createAgent } from '../src/agents/domain.js';
@@ -48,14 +49,20 @@ test('Reviewed Task Memory uses explicit owner policy and verified historical fa
     reviews: () => [review],
   };
   const memories: Memory[] = [];
+  const contexts: (MemoryOperationContext | undefined)[] = [];
   const writer = {
-    createOnce: (memory: Memory) => {
+    createOnce: (memory: Memory, context?: MemoryOperationContext) => {
+      contexts.push(context);
       memories.push(memory);
       return memory;
     },
   };
   projectReviewedTaskMemories(writer, { list: () => [agent] }, tasks);
   assert.equal(memories.length, 1);
+  assert.deepEqual(contexts[0], {
+    actor: { kind: 'system', id: 'memory.review-projection' },
+    taskId: 't',
+  });
   const memory = memories[0];
   assert.ok(memory);
   assert.equal(memory.type, 'episodic');

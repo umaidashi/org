@@ -1,0 +1,29 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-sqlite.test.ts:
+(pass) Memory projection preserves original evidence and atomically supersedes active same-scope records [17.22ms]
+(pass) Memory createOnce retains immutable originals and explicit invalidation without reviving them [9.69ms]
+
+tests/memory-consolidation-sqlite.test.ts:
+(pass) SQLite consolidation atomically stores immutable receipt with invalidations, detects changed snapshots and rolls back storage failure [15.71ms]
+(pass) SQLite consolidation atomically stores immutable receipt with invalidations, detects changed snapshots and rolls back storage failure [14.01ms]
+(pass) Room archive between selection and commit rejects consolidation without receipt or invalidation [13.60ms]
+
+tests/sandbox-execution-audit.test.ts:
+(pass) Sandbox preserves actor/version-linked execution receipts without copying code or output for success and failures [36.76ms]
+(pass) Sandbox refuses to run when initial immutable Audit claim cannot be saved [14.10ms]
+(pass) Sandbox Audit decoder rejects completed receipts that claim another started result
+(pass) Sandbox rejects an invalid injected input digest before runner and Audit writes
+(pass) Sandbox result Audit storage failure retains started receipt and rejects replay of that execution version [13.99ms]
+(pass) Sandbox started Audit records claim time independently of earlier Runtime Task start [0.25ms]
+
+tests/memory-operation-audit.test.ts:
+(pass) Memory mutation Audit records actual actor/time, idempotency, immutable rollback and reopen [15.54ms]
+
+tests/agent-configuration-audit.test.ts:
+(pass) Agent registration and reporting changes expose immutable Audit with atomic rollback and no legacy backfill [9.83ms]
+(pass) same-timestamp Agent configuration Audit retains numeric reporting chronology for recent logs [1.24ms]
+
+ 14 pass
+ 0 fail
+Ran 14 tests across 5 files. [198.00ms]

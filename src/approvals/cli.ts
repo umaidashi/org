@@ -1,3 +1,4 @@
+import { SqliteMemoryProvider } from '../memory/sqlite.js';
 import {
   requestTaskWorkflowApproval,
   type TaskWorkflowApprovalInput,
@@ -296,8 +297,14 @@ export function runApprovalCommand(command: ApprovalCommand, output: (line: stri
         try {
           const events = new SqliteEventBus(command.db);
           try {
-            const records = collectAudit(store, agents, tasks, events);
-            result = command.action === 'logs' ? selectAuditLogs(records, command.filter) : records;
+            const memories = new SqliteMemoryProvider(command.db);
+            try {
+              const records = collectAudit(store, agents, tasks, events, memories);
+              result =
+                command.action === 'logs' ? selectAuditLogs(records, command.filter) : records;
+            } finally {
+              memories.close();
+            }
           } finally {
             events.close();
           }

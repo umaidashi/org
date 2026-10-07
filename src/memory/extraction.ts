@@ -129,7 +129,9 @@ export async function extractRoomMemories(
           )
         : undefined;
     results.push(
-      own ? memories.createOnce(candidate) : (duplicate ?? memories.createOnce(candidate)),
+      own
+        ? memories.createOnce(candidate, { actor: proposal.sender })
+        : (duplicate ?? memories.createOnce(candidate, { actor: proposal.sender })),
     );
   }
   return results;

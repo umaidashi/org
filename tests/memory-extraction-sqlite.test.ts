@@ -63,6 +63,9 @@ test('same-batch and cross-proposal exact dedup never resurrect invalidated Memo
   try {
     const projected = await run('first');
     assert.equal(projected.length, 2);
+    assert.equal(provider.operationHistory().length, 1);
+    assert.deepEqual(provider.operationHistory()[0]?.actor, { kind: 'agent', id: 'a' });
+    assert.notEqual(provider.operationHistory()[0]?.at, first.createdAt);
     assert.ok(projected[0]);
     assert.equal(projected[1]?.id, projected[0].id);
     assert.equal((await run('second'))[0]?.id, projected[0].id);
@@ -78,6 +81,7 @@ test('same-batch and cross-proposal exact dedup never resurrect invalidated Memo
     );
     assert.equal((await run('second'))[0]?.status, 'invalidated');
     assert.equal(provider.list().length, 1);
+    assert.equal(provider.operationHistory().length, 2);
   } finally {
     provider.close();
     rmSync(home, { recursive: true, force: true });

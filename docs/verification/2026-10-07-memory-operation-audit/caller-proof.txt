@@ -1,0 +1,14 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-extraction-sqlite.test.ts:
+(pass) same-batch and cross-proposal exact dedup never resurrect invalidated Memory on extraction retry after SQLite reopen [16.82ms]
+
+tests/memory-operation-audit.test.ts:
+(pass) Memory mutation Audit records actual actor/time, idempotency, immutable rollback and reopen [20.25ms]
+
+tests/reviewed-task-memory.test.ts:
+(pass) Reviewed Task Memory uses explicit owner policy and verified historical facts without rerunning work [1.32ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 3 files. [73.00ms]

@@ -183,6 +183,17 @@ test('native CLI consolidates exact Room Memory with stable receipt, retains evi
     const originals = run(['room', 'messages', roomId]);
     assert.ok(Array.isArray(originals));
     assert.equal(originals.length, 1);
+
+    const records = run(['audit', 'list']);
+    assert.ok(Array.isArray(records));
+    const operations = records.filter((entry) => entry.tool === 'memory.consolidate');
+    assert.equal(operations.length, 7);
+    for (const entry of operations) {
+      assert.deepEqual(entry.actor, { kind: 'system', id: 'local-host' });
+      assert.ok(entry.outputRef.startsWith('org://memory-consolidations/'));
+      assert.equal(entry.result, 'succeeded');
+    }
+    assert.deepEqual(run(['audit', 'list']), records);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
