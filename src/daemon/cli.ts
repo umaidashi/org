@@ -9,6 +9,10 @@ import {
 } from '../workflows/task-observe.js';
 import { SqliteApprovalStore } from '../approvals/sqlite.js';
 import { requestTaskWorkflowApproval } from '../workflows/task-approval.js';
+import { requestTaskLinearUpdateApproval } from '../linear/task-approval.js';
+import { linearAgentScopes } from '../linear/config.js';
+import type { LinearAgentScope } from '../linear/agent-read.js';
+import { EnvironmentSecretStore } from '../secrets/environment.js';
 import { resumeTaskWorkflow } from '../workflows/task-resume.js';
 import { produceTaskWorkflowArtifact } from '../workflows/task.js';
 import { configuredWorkflowRuntime } from '../workflows/cli.js';
@@ -75,6 +79,7 @@ export interface DaemonCommand {
   readonly delegationRooms?: readonly string[];
   readonly extractionRooms?: readonly string[];
   readonly observeWorkflows?: boolean;
+  readonly linearUpdates?: boolean;
 }
 export function parseDaemonCommand(argv: string[]): DaemonCommand {
   const parsed = parseArgs({
@@ -92,12 +97,18 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       'workflow-config': { type: 'string' },
       'wake-up': { type: 'boolean' },
       'observe-workflows': { type: 'boolean' },
+      'linear-updates': { type: 'boolean' },
       'delegation-room': { type: 'string', multiple: true },
       'memory-extraction-room': { type: 'string', multiple: true },
       'memory-consolidation-room': { type: 'string', multiple: true },
     },
   });
   const [noun, action, ...extra] = parsed.positionals;
+  if (
+    parsed.values['linear-updates'] &&
+    (action !== undefined || parsed.values.once || parsed.values['runtime-config'] === undefined)
+  )
+    throw new Error('--linear-updates requires configured continuous mode');
   if (
     parsed.values['observe-workflows'] &&
     (action !== undefined || parsed.values.once || parsed.values['workflow-config'] === undefined)
@@ -176,6 +187,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       : { workflowConfig: resolve(parsed.values['workflow-config']) }),
     wakeUp: parsed.values['wake-up'] ?? false,
     observeWorkflows: parsed.values['observe-workflows'] ?? false,
+    linearUpdates: parsed.values['linear-updates'] ?? false,
     db,
     json: parsed.values.json ?? false,
     socket,
@@ -203,6 +215,7 @@ function openOperations(
   delegationRooms: readonly string[] = [],
   extractionRooms: readonly string[] = [],
   observeWorkflows = false,
+  linearScopes: readonly LinearAgentScope[] = [],
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -365,19 +378,23 @@ function openOperations(
       return replies;
     };
     const execute = (taskId: string, sessionId: string, messageId: string) => {
+      const task = taskProvider.get(taskId);
       const shellTask =
         sandboxPolicy !== undefined &&
         agentRepository
           .list()
-          .some(
-            (a) =>
-              a.id === taskProvider.get(taskId).owner && a.capabilities?.includes('can_run_shell'),
-          );
+          .some((a) => a.id === task.owner && a.capabilities?.includes('can_run_shell'));
       const workflowScope = workflow?.agentScopes.find(
-        (scope) => scope.agentId === taskProvider.get(taskId).owner && scope.workflowIds.length > 0,
+        (scope) => scope.agentId === task.owner && scope.workflowIds.length > 0,
       );
-      if (shellTask && workflowScope)
-        throw new Error('Task has ambiguous Sandbox and Workflow scopes');
+      const linearScope = linearScopes.find(
+        (scope) =>
+          scope.agentId === task.owner &&
+          scope.effect === 'write' &&
+          scope.issueIds.some((id) => task.parentId === 'linear:issue:' + id),
+      );
+      if ([shellTask, Boolean(workflowScope), Boolean(linearScope)].filter(Boolean).length > 1)
+        throw new Error('Task has ambiguous Sandbox, Workflow or Linear scopes');
       return runExecutionTask(
         taskProvider,
         sessionStore,
@@ -402,101 +419,143 @@ function openOperations(
           taskId,
           sessionId,
           messageId,
-          ...(workflowScope
+          ...(linearScope && task.parentId
             ? {
                 instruction:
-                  'Return only JSON: {"version":1,"tool":"workflow","workflowId":"allowed ID","input":{}}. Use one short ' +
-                  (workflowScope.effect === 'read_only'
-                    ? 'read-only Workflow'
-                    : 'Workflow requiring human Approval') +
-                  ' from this host allowlist: ' +
-                  JSON.stringify(workflowScope.workflowIds) +
-                  '. Credentials remain on the host. The native result is saved for human review.',
+                  'Return only a proposed Linear update JSON: {"version":1,"tool":"linear-update","workItemVersion":' +
+                  taskProvider.get(task.parentId).version +
+                  ',"title":"proposed title","description":"proposed description"}. Alternatively replace title/description with "fields" containing only stateId, assigneeId or labelIds using canonical UUIDs. This is a proposal requiring human operation Approval. The host derives the Issue from the parent WorkItem and keeps credentials; do not add actor, Issue or credential fields.',
               }
-            : shellTask && sandboxPolicy
+            : workflowScope
               ? {
                   instruction:
-                    'Return only JSON: {"version":1,"tool":"sandbox","code":"TypeScript code"}. Code runs in isolated Bun with no network. Produce the Task result for human review. Host policy: ' +
-                    JSON.stringify({
-                      writable: sandboxPolicy.writable,
-                      files: sandboxPolicy.files,
-                      timeoutMs: sandboxPolicy.timeoutMs,
-                      maxOutputBytes: sandboxPolicy.maxOutputBytes,
-                      repoProvided: sandboxPolicy.repo !== undefined,
-                    }),
+                    'Return only JSON: {"version":1,"tool":"workflow","workflowId":"allowed ID","input":{}}. Use one short ' +
+                    (workflowScope.effect === 'read_only'
+                      ? 'read-only Workflow'
+                      : 'Workflow requiring human Approval') +
+                    ' from this host allowlist: ' +
+                    JSON.stringify(workflowScope.workflowIds) +
+                    '. Credentials remain on the host. The native result is saved for human review.',
                 }
-              : {}),
+              : shellTask && sandboxPolicy
+                ? {
+                    instruction:
+                      'Return only JSON: {"version":1,"tool":"sandbox","code":"TypeScript code"}. Code runs in isolated Bun with no network. Produce the Task result for human review. Host policy: ' +
+                      JSON.stringify({
+                        writable: sandboxPolicy.writable,
+                        files: sandboxPolicy.files,
+                        timeoutMs: sandboxPolicy.timeoutMs,
+                        maxOutputBytes: sandboxPolicy.maxOutputBytes,
+                        repoProvided: sandboxPolicy.repo !== undefined,
+                      }),
+                  }
+                : {}),
         },
         () => new Date().toISOString(),
-        workflowScope && workflow !== undefined
-          ? async (running, message) =>
-              produceTaskWorkflowArtifact(
+        linearScope
+          ? async (running, message) => {
+              await requestTaskLinearUpdateApproval(
                 taskProvider,
                 agentRepository,
                 roomRepository,
-                eventBus,
-                running,
-                message,
+                approvalStore,
+                linearScopes,
+                new EnvironmentSecretStore([
+                  {
+                    actorId: linearScope.agentId,
+                    reference: 'linear:read',
+                    environmentVariable: linearScope.apiKeyEnv,
+                  },
+                ]),
+                (url, init) =>
+                  fetch(url, {
+                    ...init,
+                    signal: AbortSignal.any([
+                      workflowController.signal,
+                      ...(init.signal ? [init.signal] : []),
+                    ]),
+                  }),
                 {
-                  ...workflow,
-                  requestApproval: (running, message, effect, requiredCapabilities) => {
-                    requestTaskWorkflowApproval(
+                  taskId: running.id,
+                  expectedVersion: running.version,
+                  roomId: message.roomId,
+                  messageId: message.id,
+                  phase: 'running',
+                  key: `linear:task:${running.id}:${running.version}`,
+                },
+                { id: randomUUID(), createdAt: new Date().toISOString() },
+              );
+              return null;
+            }
+          : workflowScope && workflow !== undefined
+            ? async (running, message) =>
+                produceTaskWorkflowArtifact(
+                  taskProvider,
+                  agentRepository,
+                  roomRepository,
+                  eventBus,
+                  running,
+                  message,
+                  {
+                    ...workflow,
+                    requestApproval: (running, message, effect, requiredCapabilities) => {
+                      requestTaskWorkflowApproval(
+                        taskProvider,
+                        agentRepository,
+                        roomRepository,
+                        approvalStore,
+                        {
+                          taskId: running.id,
+                          roomId: message.roomId,
+                          messageId: message.id,
+                          expectedVersion: running.version,
+                          host: workflow.host,
+                          effect,
+                          requiredCapabilities,
+                          phase: 'running',
+                        },
+                        { id: randomUUID(), createdAt: new Date().toISOString() },
+                      );
+                    },
+                  },
+                  (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
+                  () => new Date().toISOString(),
+                  () => randomUUID(),
+                  workflowController.signal,
+                )
+            : shellTask && sandboxPolicy !== undefined
+              ? async (running, message) => {
+                  let artifact: Awaited<ReturnType<typeof produceTaskSandboxArtifact>> | undefined;
+                  await sandboxJobs.run(running.id, async (signal) => {
+                    artifact = await produceTaskSandboxArtifact(
                       taskProvider,
                       agentRepository,
                       roomRepository,
-                      approvalStore,
-                      {
-                        taskId: running.id,
-                        roomId: message.roomId,
-                        messageId: message.id,
-                        expectedVersion: running.version,
-                        host: workflow.host,
-                        effect,
-                        requiredCapabilities,
-                        phase: 'running',
-                      },
-                      { id: randomUUID(), createdAt: new Date().toISOString() },
+                      running,
+                      message,
+                      sandboxPolicy,
+                      (input) =>
+                        runDockerSandbox(
+                          runProcess,
+                          {
+                            executable: 'docker',
+                            env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
+                            cwd: process.cwd(),
+                            uid: process.getuid?.() ?? 0,
+                            gid: process.getgid?.() ?? 0,
+                          },
+                          input,
+                          signal,
+                        ),
+                      (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
+                      () => new Date().toISOString(),
+                      randomUUID,
                     );
-                  },
-                },
-                (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
-                () => new Date().toISOString(),
-                () => randomUUID(),
-                workflowController.signal,
-              )
-          : shellTask && sandboxPolicy !== undefined
-            ? async (running, message) => {
-                let artifact: Awaited<ReturnType<typeof produceTaskSandboxArtifact>> | undefined;
-                await sandboxJobs.run(running.id, async (signal) => {
-                  artifact = await produceTaskSandboxArtifact(
-                    taskProvider,
-                    agentRepository,
-                    roomRepository,
-                    running,
-                    message,
-                    sandboxPolicy,
-                    (input) =>
-                      runDockerSandbox(
-                        runProcess,
-                        {
-                          executable: 'docker',
-                          env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
-                          cwd: process.cwd(),
-                          uid: process.getuid?.() ?? 0,
-                          gid: process.getgid?.() ?? 0,
-                        },
-                        input,
-                        signal,
-                      ),
-                    (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
-                    () => new Date().toISOString(),
-                    randomUUID,
-                  );
-                });
-                if (!artifact) throw new Error('Sandbox artifact missing');
-                return artifact;
-              }
-            : undefined,
+                  });
+                  if (!artifact) throw new Error('Sandbox artifact missing');
+                  return artifact;
+                }
+              : undefined,
       );
     };
     const observe = (
@@ -711,6 +770,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
         ? undefined
         : await configuredWorkflowRuntime(command.workflowConfig);
     const drivers = configuredDrivers(command.runtimeConfig);
+    const linearScopes = command.linearUpdates ? linearAgentScopes() : [];
     let sandboxPolicy: SandboxPolicy | undefined;
     if (command.sandboxConfig !== undefined) {
       const file = Bun.file(command.sandboxConfig);
@@ -737,6 +797,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
           command.delegationRooms,
           command.extractionRooms,
           command.observeWorkflows,
+          linearScopes,
         );
       });
     } finally {

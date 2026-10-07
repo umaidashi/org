@@ -67,7 +67,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org task artifact-content ID --artifact ARTIFACT_ID [--json]
        org [--db PATH] daemon --once [--json]
        org [--db PATH] daemon deliveries [--json]
-       org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH] [--observe-workflows]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH] [--observe-workflows] [--linear-updates]
        org daemon status|dispatch|wakeups|stop --socket PATH [--json]
 
 Register and list persistent Agent identities. Runtime processes are not started.

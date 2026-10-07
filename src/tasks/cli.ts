@@ -34,8 +34,8 @@ import {
 } from '../linear/read.js';
 import type { LinearIssueListInput } from '../linear/read.js';
 import { EnvironmentSecretStore } from '../secrets/environment.js';
-import { readFileSync } from 'node:fs';
-import { parseLinearAgentScopes, readAgentLinearIssue } from '../linear/agent-read.js';
+import { linearAgentScopes } from '../linear/config.js';
+import { readAgentLinearIssue } from '../linear/agent-read.js';
 import {
   requestTaskLinearUpdateApproval,
   executeApprovedTaskLinearUpdate,
@@ -562,17 +562,6 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   };
   if (Object.keys(clearedPatch).length === 0) throw new Error('Task update requires a patch');
   return { ...common, action: { kind: 'update', id: taskId, patch: clearedPatch } };
-}
-function linearAgentScopes() {
-  let value: unknown;
-  try {
-    const path = process.env.ORG_LINEAR_AGENT_SCOPES;
-    if (!path) throw new Error('Missing scope configuration');
-    value = JSON.parse(readFileSync(path, 'utf8'));
-  } catch {
-    throw new Error('Agent Linear scope configuration unavailable');
-  }
-  return parseLinearAgentScopes(value);
 }
 export async function runTaskCommand(
   command: TaskCommand,

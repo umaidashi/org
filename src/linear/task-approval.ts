@@ -30,6 +30,7 @@ export interface TaskLinearApprovalInput {
   readonly roomId: string;
   readonly messageId: string;
   readonly key: string;
+  readonly phase?: 'running';
 }
 function resolveTaskLinearProposal(
   tasks: Pick<TaskProvider, 'get'>,
@@ -50,7 +51,12 @@ function resolveTaskLinearProposal(
     throw new Error('Task proposal source mismatch');
   const message = rooms.messages(room.id).find((m) => m.id === source.messageId);
   if (!message) throw new Error('Task proposal Message not found');
-  requireTaskOwnerMessage(task, room, message);
+  requireTaskOwnerMessage(
+    task,
+    room,
+    message,
+    source.phase === 'running' ? task.version : undefined,
+  );
   if (!task.parentId || !task.owner) throw new Error('Linear proposal requires parent WorkItem');
   const issueId = linearWorkItemIssueId(task.parentId);
   requireAgentLinearScope(agents, configured, { agentId: task.owner, issueId, effect: 'write' });
@@ -132,7 +138,9 @@ export async function requestTaskLinearUpdateApproval(
         if (actor !== 'linear:host' || reference !== 'linear:read')
           throw new Error('Secret access denied');
         authorize();
-        return secrets.getSecret(original.update.actor, 'linear:read');
+        const credential = secrets.getSecret(original.update.actor, 'linear:read');
+        authorize();
+        return credential;
       },
     },
     request,

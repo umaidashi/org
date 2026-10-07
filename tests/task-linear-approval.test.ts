@@ -112,97 +112,123 @@ test('Task Linear approval refuses source and capability changes during read wit
     workItemVersion: 0,
     fields: { labelIds: [] },
   });
-  for (const fault of [
-    '',
-    'version',
-    'parent',
-    'owner',
-    'archive',
-    'message',
-    'capability',
-    'reflection',
-    'missing-capability',
-  ]) {
-    let task = original,
-      activeRoom = room,
-      activeOwner = owner,
-      body = content,
-      calls = 0,
-      saved = 0,
-      lookups = 0;
-    if (fault === 'missing-capability') activeOwner = { ...owner, capabilities: ['can_read'] };
-    const run = () =>
-      requestTaskLinearUpdateApproval(
-        { get: (id) => (id === work.id ? work : task) },
-        { list: () => [activeOwner] },
-        {
-          get: () => activeRoom,
-          messages: () => [
+  for (const phase of ['assigned', 'running'] as const)
+    for (const fault of [
+      '',
+      'version',
+      'parent',
+      'owner',
+      'archive',
+      'message',
+      'capability',
+      'reflection',
+      'missing-capability',
+      'status',
+      'readonly-scope',
+      'outside-issue',
+      'secret-status',
+    ]) {
+      let task: import('../src/tasks/domain.js').Task = { ...original, status: phase },
+        activeRoom = room,
+        activeOwner = owner,
+        body = content,
+        calls = 0,
+        saved = 0,
+        lookups = 0;
+      if (fault === 'missing-capability') activeOwner = { ...owner, capabilities: ['can_read'] };
+      const run = (configuredPhase = phase) =>
+        requestTaskLinearUpdateApproval(
+          { get: (id) => (id === work.id ? work : task) },
+          { list: () => [activeOwner] },
+          {
+            get: () => activeRoom,
+            messages: () => [
+              {
+                id: 'message',
+                roomId: room.id,
+                sender: { kind: 'agent', id: owner.id },
+                content: body,
+                replyTo: null,
+                metadata: {},
+                createdAt: '0',
+              },
+            ],
+          },
+          {
+            requestOnce: (r) => {
+              saved++;
+              return r;
+            },
+          },
+          [
             {
-              id: 'message',
-              roomId: room.id,
-              sender: { kind: 'agent', id: owner.id },
-              content: body,
-              replyTo: null,
-              metadata: {},
-              createdAt: '0',
+              agentId: owner.id,
+              issueIds: fault === 'outside-issue' ? [] : [issueId],
+              apiKeyEnv: 'OWNER_KEY',
+              ...(fault === 'readonly-scope' ? {} : { effect: 'write' as const }),
             },
           ],
-        },
-        {
-          requestOnce: (r) => {
-            saved++;
-            return r;
-          },
-        },
-        [{ agentId: owner.id, issueIds: [issueId], apiKeyEnv: 'OWNER_KEY', effect: 'write' }],
-        {
-          getSecret: (actor, reference) => {
-            lookups++;
-            assert.deepEqual([actor, reference], [owner.id, 'linear:read']);
-            return 'fixture-owner-key';
-          },
-        },
-        async () => {
-          calls++;
-          if (fault === 'version') task = { ...task, version: 2 };
-          if (fault === 'parent') task = { ...task, parentId: null };
-          if (fault === 'owner') task = { ...task, owner: 'other' };
-          if (fault === 'archive') activeRoom = { ...room, archivedAt: 'now' };
-          if (fault === 'message')
-            body = JSON.stringify({
-              version: 1,
-              tool: 'linear-update',
-              workItemVersion: 0,
-              fields: { assigneeId: null },
-            });
-          if (fault === 'capability') activeOwner = { ...owner, capabilities: [] };
-          return Response.json({
-            data: {
-              issue: {
-                id: issueId,
-                identifier: 'ORG-1',
-                title: fault === 'reflection' ? 'fixture-owner-key' : work.title,
-                description: null,
-                url: work.externalRef,
-                labels: { nodes: [], pageInfo: { hasNextPage: false } },
-              },
+          {
+            getSecret: (actor, reference) => {
+              lookups++;
+              assert.deepEqual([actor, reference], [owner.id, 'linear:read']);
+              if (fault === 'secret-status') task = { ...task, status: 'waiting_approval' };
+              return 'fixture-owner-key';
             },
-          });
-        },
-        {
-          taskId: task.id,
-          expectedVersion: 1,
-          roomId: room.id,
-          messageId: 'message',
-          key: 'proposal',
-        },
-        { id: 'approval', createdAt: 'same' },
+          },
+          async () => {
+            calls++;
+            if (fault === 'status') task = { ...task, status: 'waiting_approval' };
+            if (fault === 'version') task = { ...task, version: 2 };
+            if (fault === 'parent') task = { ...task, parentId: null };
+            if (fault === 'owner') task = { ...task, owner: 'other' };
+            if (fault === 'archive') activeRoom = { ...room, archivedAt: 'now' };
+            if (fault === 'message')
+              body = JSON.stringify({
+                version: 1,
+                tool: 'linear-update',
+                workItemVersion: 0,
+                fields: { assigneeId: null },
+              });
+            if (fault === 'capability') activeOwner = { ...owner, capabilities: [] };
+            return Response.json({
+              data: {
+                issue: {
+                  id: issueId,
+                  identifier: 'ORG-1',
+                  title: fault === 'reflection' ? 'fixture-owner-key' : work.title,
+                  description: null,
+                  url: work.externalRef,
+                  labels: { nodes: [], pageInfo: { hasNextPage: false } },
+                },
+              },
+            });
+          },
+          {
+            taskId: task.id,
+            expectedVersion: 1,
+            roomId: room.id,
+            messageId: 'message',
+            key: 'proposal',
+            ...(configuredPhase === 'running' ? { phase: 'running' as const } : {}),
+          },
+          { id: 'approval', createdAt: 'same' },
+        );
+      if (phase === 'running') {
+        await assert.rejects(() => run('assigned'));
+        assert.equal(lookups, 0);
+        assert.equal(calls, 0);
+        assert.equal(saved, 0);
+      }
+      if (fault) await assert.rejects(() => run());
+      else assert.equal((await run()).actor.kind, 'agent');
+      assert.equal(saved, fault ? 0 : 1);
+      assert.equal(
+        calls,
+        ['missing-capability', 'readonly-scope', 'outside-issue', 'secret-status'].includes(fault)
+          ? 0
+          : 1,
       );
-    if (fault) await assert.rejects(run);
-    else assert.equal((await run()).actor.kind, 'agent');
-    assert.equal(saved, fault ? 0 : 1);
-    assert.equal(calls, fault === 'missing-capability' ? 0 : 1);
-    assert.equal(lookups, calls);
-  }
+      assert.equal(lookups, fault === 'secret-status' ? 1 : calls);
+    }
 });

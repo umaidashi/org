@@ -104,3 +104,18 @@ test('Workflow status observation opt-in requires configured continuous mode', (
   ])
     assert.throws(() => parseDaemonCommand(args));
 });
+
+test('Runtime Linear proposals require explicit configured continuous opt-in', () => {
+  assert.equal(parseDaemonCommand(['daemon']).linearUpdates, false);
+  assert.equal(
+    parseDaemonCommand(['daemon', '--runtime-config', '/tmp/runtime.json', '--linear-updates'])
+      .linearUpdates,
+    true,
+  );
+  for (const args of [
+    ['daemon', '--linear-updates'],
+    ['daemon', '--once', '--linear-updates', '--runtime-config', '/tmp/runtime.json'],
+    ['daemon', 'status', '--linear-updates', '--runtime-config', '/tmp/runtime.json'],
+  ])
+    assert.throws(() => parseDaemonCommand(args));
+});

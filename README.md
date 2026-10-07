@@ -776,3 +776,11 @@ stateIdは状態の変更、assigneeIdのnullは担当解除、labelIdsの空配
 `event import-github-webhook OWNER/REPO --payload RAW_JSON --signature sha256=HEX --delivery UUID --json`は、hostの`GITHUB_WEBHOOK_SECRET`でraw UTF-8 bodyのHMAC-SHA256を検証し、既存EventBusへ一度だけ保存します。公開repoのissues opened/edited/closed/reopenedだけが対象です。payloadは64KiBまで、repo/Issue URL/日時も照合します。
 
 同じbodyはdelivery headerが変わっても初回Eventを返し、既存Subscriptionから重複Taskを作りません。新Issueや外部APIへの書込みは行いません。これは署名済みpayloadのCLI取込境界で、公開HTTP endpoint・GitHubからの実配送・REST pollingとの横断dedupは未実装です。署名は配送の鮮度を証明しません。
+
+### RuntimeからのLinear操作承認要求
+
+`ORG_LINEAR_AGENT_SCOPES=./linear-scopes.local.json org daemon --runtime-config ./runtime.local.json --linear-updates`で明示有効にします。`--wake-up`は自動Task実行も必要な場合だけ追加します。Task ownerのwrite scopeにparent WorkItemの既存Issue UUIDが含まれるExecutionだけが対象です。Sandbox/Workflowと同じTaskへ複数の実行engineが一致する場合は開始前に拒否します。
+
+Runtimeはhostが示すWorkItem versionに対し、既存のclosed `linear-update` JSONでcontentまたはfieldsを提案します。hostは原本running Task/owner/Room Message、Issue scope、四capabilityをbaseline読取前後と専用read credential取得前後に照合し、Agent操作Approvalを作成します。外部mutationや成果物の保存は行わず、Taskはartifactなしの`waiting_approval`になります。通常のTask result reviewでは完了できません。`approval list/get/decide`で人間が操作承認を判断します。Runtimeへキーを渡しません。
+
+この段階では、Runtime由来の待機Taskを承認後に再開する経路は未接続です。既存のassigned管理CLIのapply/observeを待機Taskへ流用できません。再起動でRuntimeや外部更新を自動再送しません。Approval保存とTaskの待機保存は別々で、後者が失敗するとTaskはfailed・Approval原本は残ります。人間の承認だけではそれを実行しません。実API認証・本人認証・実業務Draft PRは引き続き未完了です。
