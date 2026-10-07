@@ -1353,3 +1353,4 @@
 - Notion全体構想（編集2026-10-07）とMVP（編集2026-10-04）も再取得。6PhaseとCore/Adapter交換目標、外部実務Issueを勝手に新設しない境界を維持。.envを使うCLIのLINEAR_API_KEY/NOTION_API_KEYの存在だけ再検査し、両方未設定。値は出力・記録しない。
 - 独立最終review: `f61d5d0..74109db`、Ready merge yes、Critical0/Important0/Minor0。承認/claim/元WorkItem/mapping前後検査、応答identity/URL/digest、並行receiptの完全一致、既知成功/観測区別とHTTPなし再利用を確認。独立DI/旧comment/Artifact22成功/0失敗67ms。native/full/Jevは記録された証拠を読んだもので独立再実行とは扱わない。Ponytail: Lean already. Ship.
 - Final Ruling: 実Linear認証/空description正規化はfixtureでは未検証のため残件。誤るとサーバ差異を見逃す。human文字列は本人認証ではなくLocal明示承認の範囲であるため認証を残件として維持。誤るとなりすましを権限と誤認する。実業務Issue→Draft PRと全体MVP完了をslice公開で証明しない。誤ると未検証業務を納品済みと誤認する。
+- 公開結果：mainへ通常fast-forward、`18372f1`をorigin/mainへpush成功（終了0）。push時点のHEAD/origin/main完全一致を確認。Lefthook全push対象tree検査/実Jevは122.21秒で成功。全体目標はactive。次はNotion/要件の外部Task field更新と認証・実務受け入れの残件を照合し、安全なローカル実装を進める。
