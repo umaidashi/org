@@ -1,0 +1,18 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-secret-reflection-cli.test.ts:
+(pass) native daemon rejects both provider reflections without Room reply or Memory and preserves failed Sessions across restart [3014.79ms]
+
+tests/runtime-secret-reflection.test.ts:
+(pass) codex refuses selected private environment reflected in text or provider identity [423.83ms]
+(pass) claude refuses selected private environment reflected in text or provider identity [222.01ms]
+(pass) codex DI rejects decoded cross-profile values and exceptions while preserving safe failure reasons [2.38ms]
+(pass) claude DI rejects decoded cross-profile values and exceptions while preserving safe failure reasons [1.16ms]
+(pass) Runtime private matching includes short values but excludes empty and trusted public settings [0.95ms]
+
+tests/runtime-agent-profiles-cli.test.ts:
+(pass) native daemon selects Agent cwd and aliased env across resume, preserves default and refuses missing profile runtime [1628.95ms]
+
+ 7 pass
+ 0 fail
+Ran 7 tests across 3 files. [5.35s]

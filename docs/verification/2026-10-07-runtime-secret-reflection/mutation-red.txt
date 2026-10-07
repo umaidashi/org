@@ -1,0 +1,54 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-secret-reflection-cli.test.ts:
+188 |           Array.isArray(after) &&
+189 |           JSON.stringify(after) !== JSON.stringify(before) &&
+190 |           after.every((value: unknown) => record(value) && value.status !== 'running')
+191 |         );
+192 |       });
+193 |       assert.deepEqual(json(['--socket', socket, 'room', 'messages', room]), [original]);
+                   ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+... Skipped lines
+
+  [
+    {
+      content: 'private-memory',
+      createdAt: '2026-10-07T11:11:11.936Z',
+      id: '9d9ef9ba-9bfd-4bdc-b24e-35a3ba0c098d',
+...
+    },
++   {
++     content: '{"version":1,"tool":"memory","candidates":[{"type":"procedural","content":"synthetic-private-token","confidence":1,"sourceMessageIds":["9d9ef9ba-9bfd-4bdc-b24e-35a3ba0c098d"]}]}',
++     createdAt: '2026-10-07T11:11:11.944Z',
++     id: '9fda00e0-0786-404a-914f-c5292a8181fc',
++     metadata: {
++       sessionId: 'd87946c9-5ef0-4958-8a7e-f4c144889aa0'
++     },
++     replyTo: '9d9ef9ba-9bfd-4bdc-b24e-35a3ba0c098d',
++     roomId: '1798e771-54b8-4650-acc9-2fb06573c829',
++     sender: {
++       id: '5aae5527-2009-4f3b-8145-04b4cef32ed9',
++       kind: 'agent'
++     }
++   }
+  ]
+
+ generatedMessage: true,
+     actual: [
+  [Object ...], [Object ...]
+],
+   expected: [
+  [Object ...]
+],
+   operator: "deepStrictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/runtime-secret-reflection-cli.test.ts:193:14
+      at processTicksAndRejections (native:7:39)
+(fail) native daemon rejects both provider reflections without Room reply or Memory and preserves failed Sessions across restart [1655.20ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [1.70s]

@@ -1,0 +1,11 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-secret-reflection.test.ts:
+(pass) codex DI rejects decoded cross-profile values and exceptions while preserving safe failure reasons [4.41ms]
+(pass) claude DI rejects decoded cross-profile values and exceptions while preserving safe failure reasons [4.13ms]
+(pass) Runtime private matching includes short values but excludes empty and trusted public settings [1.19ms]
+
+ 3 pass
+ 2 filtered out
+ 0 fail
+Ran 3 tests across 1 file. [37.00ms]

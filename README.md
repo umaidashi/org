@@ -902,3 +902,9 @@ Roomのtyped Memory候補は、必須の過去同Room `sourceMessageIds` に加�
 明示direct/daemon実行とRuntime提案は、Task実行versionごとの不変Event claimをrunner前に保存し、結果とArtifact URIを記録します。`audit list`と`logs tail AGENT_ID`で当時のowner・Task/Event・入力digest/提案原本ref・時刻・結果・approval ref（現在はnull）を確認できます。code/stdout/stderr/repo path/例外本文は新Auditへコピーしません。
 
 開始Auditを保存できなければ実行せず、結果Auditの保存障害は開始記録だけを残して失敗を伝えます。同じ実行versionを再実行しません。`succeeded`はSandbox成果物の保存完了で、Task stage・人間reviewとは別です。startedだけの記録から成功や未実行を推測しないでください。Task/Event/Artifact全体の一括transactionや本人認証、network/credential注入を追加したものではありません。
+
+### Runtimeの既知private環境値
+
+Runtime設定で選択した環境値のうち、公開process設定（`PATH/HOME/TMPDIR/LANG/LC_ALL/TZ/NO_COLOR/FORCE_COLOR`）以外の非空値は、全Agent profile/defaultを通じて反射検査します。成功stdout・復号後の返信/provider IDに一致した場合は全応答を拒否し、秘密値入りのRoom返信やMemoryを保存しません。Process例外の反射は固定エラーへ置換し、安全なstderrの既存reason-only挙動を維持します。
+
+公開設定へsecretをaliasしないことがhost側の契約です。literal一致だけなので短いprivate通常値は誤検出し得ます。未知・変換済み・auth cache credentialや同UID隔離の保証ではありません。高速検証は `bun --no-env-file test tests/runtime-secret-reflection.test.ts -t 'DI|private matching'`、実CLIの保存拒否と安全な提案採用は `tests/runtime-secret-reflection-cli.test.ts`。

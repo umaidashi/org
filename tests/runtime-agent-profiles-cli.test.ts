@@ -17,8 +17,8 @@ test('native daemon selects Agent cwd and aliased env across resume, preserves d
     executable,
     `#!${process.execPath}\nimport {appendFileSync} from 'node:fs';
     import {basename} from 'node:path'; await Bun.stdin.text();
-    appendFileSync(${JSON.stringify(calls)}, 'turn\\n');
-    const text=JSON.stringify({cwd:process.cwd(),home:process.env.HOME??null,marker:process.env.ORG_MARKER??null,
+    appendFileSync(${JSON.stringify(calls)}, JSON.stringify({marker:process.env.ORG_MARKER??null})+'\\n');
+    const text=JSON.stringify({cwd:process.cwd(),home:process.env.HOME??null,marker:process.env.ORG_MARKER!==undefined,
       foreign:!!(process.env.ORG_ALPHA_SECRET||process.env.ORG_BETA_SECRET||process.env.ORG_HOST_ONLY)});
     const id='provider-'+basename(process.cwd());
     if(process.argv.includes('--print')) console.log(JSON.stringify({type:'result',subtype:'success',is_error:false,session_id:id,result:text}));
@@ -162,7 +162,7 @@ test('native daemon selects Agent cwd and aliased env across resume, preserves d
       assert.deepEqual(result, {
         cwd: agent === fallback ? home : home + '/' + agent.name,
         home: agent === fallback ? null : home + '/' + agent.name,
-        marker: agent === fallback ? 'fixture-default' : 'fixture-' + agent.name,
+        marker: true,
         foreign: false,
       });
       if (agent !== fallback) {
@@ -194,7 +194,19 @@ test('native daemon selects Agent cwd and aliased env across resume, preserves d
       }
     }
     const before = readFileSync(calls, 'utf8');
-    assert.equal(before.trim().split('\n').length, 5);
+    assert.deepEqual(
+      before
+        .trim()
+        .split('\n')
+        .map((line): unknown => JSON.parse(line)),
+      [
+        { marker: 'fixture-alpha' },
+        { marker: 'fixture-alpha' },
+        { marker: 'fixture-beta' },
+        { marker: 'fixture-beta' },
+        { marker: 'fixture-default' },
+      ],
+    );
     const refused = run([
       '--socket',
       socket,

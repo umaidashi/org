@@ -146,3 +146,7 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 ### 2026-10-07 Sandbox詳細execution Audit
 
 既存immutable Event/共有Artifact producer/collectAuditへ実行claim・結果receiptを接続。actor/Task実行version/元Event/入力digest/proposal ref/時刻/Artifact URIを保存し、本文・出力・repo path・例外本文を追加保存しない。開始保存前runnerゼロ、結果保存障害は開始のみ/同version再実行禁止を実SQLiteで確認。[証拠](verification/2026-10-07-sandbox-execution-audit/)全gate490成功/14skip/0失敗504tests201files175.40秒、実Jev2303subjects/欠損・エラー・劣化0。実Docker4成功3files12.02秒でdirect/daemon/Runtime、cancel/drain/SIGINT/Agent tail/再起動原本保持を確認。成果物生成とTask stage/review、同DB操作と跨操作全原子性は区別する。全体は未達、[次の要件再照合](superpowers/plans/2026-10-07-goal-reassessment.md)で必須残件と将来候補を整理する。
+
+### 2026-10-07 Runtime既知private環境値の反射拒否
+
+全default/per-Agent runtime選択envのprivate非空値を共通wrapperで検査し、成功stdout解析前と復号後text/provider IDの反射を全応答拒否。Process例外反射は固定Error、既存非zero stderrはreason-onlyを維持。実Room activation/auto Memoryでprivate提案の返信・Memory保存拒否とsafe提案採用を対照検証し、再起動原本保持を確認。[証拠](verification/2026-10-07-runtime-secret-reflection/)全gate496成功/14skip/0失敗510tests203files178.37秒、実Jev2319subjects/欠損・エラー・劣化0、DI3成功37ms。既知literal/信頼されたpublic target設定だけの保護であり、未知・変換/auth-cache secret・同UID隔離の保証ではない。全体未達、[次のcan_read境界](superpowers/plans/2026-10-07-session-read-capability.md)へ進む。

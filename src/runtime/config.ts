@@ -96,9 +96,34 @@ export function parseRuntimeConfig(
   );
   return { ...result, agents };
 }
-export function configuredDrivers(path?: string): Readonly<Record<'codex' | 'claude', Driver>> {
+export function configuredDrivers(
+  path?: string,
+  runner: typeof runProcess = runProcess,
+): Readonly<Record<'codex' | 'claude', Driver>> {
   const value: unknown = path === undefined ? {} : JSON.parse(readFileSync(path, 'utf8'));
   const configuration = parseRuntimeConfig(value, process.env);
+  // ponytail: literal known values only; transformed or unknown credentials need a separate boundary.
+  const publicNames = new Set([
+    'PATH',
+    'HOME',
+    'TMPDIR',
+    'LANG',
+    'LC_ALL',
+    'TZ',
+    'NO_COLOR',
+    'FORCE_COLOR',
+  ]);
+  const secrets = new Set(
+    [configuration, ...Object.values(configuration.agents ?? {})].flatMap((profile) =>
+      [profile.codex, profile.claude].flatMap((config) =>
+        Object.entries(config?.env ?? {})
+          .filter(([name, value]) => !publicNames.has(name) && value !== '')
+          .map(([, value]) => value),
+      ),
+    ),
+  );
+  const reflected = (text: string): boolean => [...secrets].some((value) => text.includes(value));
+  const refusal = () => new Error('Runtime output contains private environment value');
   const driver =
     (kind: 'codex' | 'claude'): Driver =>
     async (input, signal) => {
@@ -110,7 +135,23 @@ export function configuredDrivers(path?: string): Readonly<Record<'codex' | 'cla
       if (!config)
         throw new Error(`Runtime ${kind} is not configured; use daemon --runtime-config`);
       const run = kind === 'codex' ? runCodexTurn : runClaudeTurn;
-      return run(runProcess, input, { ...config, ...(signal ? { signal } : {}) });
+      try {
+        const result = await run(
+          async (processInput) => {
+            const output = await runner(processInput);
+            if (output.reason === 'exited' && output.exitCode === 0 && reflected(output.stdout))
+              throw refusal();
+            return output;
+          },
+          input,
+          { ...config, ...(signal ? { signal } : {}) },
+        );
+        if (reflected(result.text) || reflected(result.sessionId)) throw refusal();
+        return result;
+      } catch (error) {
+        if (reflected(error instanceof Error ? error.message : String(error))) throw refusal();
+        throw error;
+      }
     };
   return { codex: driver('codex'), claude: driver('claude') };
 }

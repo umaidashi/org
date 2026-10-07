@@ -1814,3 +1814,25 @@
 - Final Ruling: reviewer判断対象外の全permission境界/全Audit inventoryと未実装secret実効性・未知/変換secret/auth cache/同UID隔離は未完了/未証明のまま — 現source不足の確認は修正の成功ではない — この区別を失うと秘密/権限保護を誤って完了扱いする。
 - Final Ruling: reviewer判断対象外の実Linear/Notion CLI/実Webhook/指定業務納品・全体は未達のまま — 保留情報と未実装の独立必須作業を分ける — fixtureや文書整理だけで達成にはしない。
 - 文書3filesの相対link2件の実在とgit diff --checkを確認。code/testは `9df2eb4` と同一で、Agent全gate/実Jevの追加重複実行は行わず、ステージ済み/push対象hookは現行規則のまま。次単位の実装前REDへ継続する。
+
+## 2026-10-07 Runtime既知private環境値の反射拒否
+
+- 要件: 全体達成まで継続する依頼に基づき、[実装計画](superpowers/plans/2026-10-07-runtime-secret-reflection.md)のsecret redaction境界を実装中。全体未達の残件は[再照合](goal-reassessment.md)を維持。
+- Ruling: 既存非zero stderrは両driverが本文を捨てreason/exitのみを返すため、REDではなく既存GREEN回帰として扱う — 不必要に安全な既存挙動を変更しない — 誤った場合は失敗出力の保存漏洩。
+- Ruling: public設定target名の除外は信頼されたhost設定の契約であり、値の非秘密性を名前から保証しない — HOME/PATH等を返す既存隔離検証を維持 — secretをpublic targetへaliasした場合は保護対象外。
+- 共通configuredDriversで全default/per-Agent profileの非空private値をSet化し、成功stdoutの解析前と復号後text/provider IDをliteral検査。反射は全応答拒否、Process例外message/string反射は固定Errorへ置換しraw causeを保存しない。既存Process関数Portの任意DIを追加、新provider/依存/保存schemaなし。
+- RED: 合成private値を実processのCodex本文/Claude provider IDに返す2件が拒否されず、0pass/2fail（615ms）。実装後同経路GREEN。現実のkeyは使わない。
+- GREEN focused: 実daemon両providerのtext/identity/malformed/stderr8失敗、failed Session8件/provider ID未保存、Room返信/Memoryゼロ、再起動後Session原本保持。復号改行secret・別profile値・Process例外・通常エラー同一性・timeout/cancel/output_limitの高速DI回帰。既存Agent別fixtureはprivate一時side-channelで注入値を検証し返信から値を削除。6pass/0fail/3files/4.26sec。
+- 静的検査: typecheckがfor-of注釈を拒否、修正。lintがfixture JSON.parseのany戻りを拒否、unknown戻りへ修正。最終型/lint/format/AST成功（358files）。
+- 制約: literal既知値だけ。未知/auth cache/変換されたcredential、同UID隔離、principal認可、限定Sandbox credential、Webhook、実業務納品は未達。短いprivate通常値は誤検出し得る。安全なstderrを成功応答の拒否根拠にしない。
+- fresh whole-unit reviewer: C0/I1/M0、Ponytail Lean already、削減候補なし。ImportantはSession単体の空Room/Memory assertが実保存経路を通らない受け入れ証拠の不足。製品漏洩発見ではない。
+- 一回fix pass: 実Room send/auto activation/Memory extraction allowlistとcan_read/can_writeを追加。両providerでprivate候補拒否と安全候補の実採用を対照検証。既存activationはfailed Sessionを再利用するため新Session件数で待つ誤りをversion/状態変化待ちへ訂正。guardをMemory提案だけ故意に無効化したmutationはAgent返信追加でRED（0pass/1fail/1.70sec）、finallyでsource即時復元、元guardで実native GREEN（1pass/3.08sec）。再レビューしない。
+- Final Ruling: reviewerのnative2失敗はsandbox listen EPERM/ready timeoutであり製品退行とはしない — 親の昇格済み実CLI成功と独立UT5成功を区別 — native実行条件を見誤ると受け入れ過大評価。
+- Final Ruling: 未知/変換/auth-cache secret、公的targetへhostがsecretをaliasした誤設定、同UID隔離/principal/resource permissionsは今回保証外 — literal既知値とtrusted host契約の限定保護 — これらも防ぐと主張すれば認可・漏洩リスクを隠す。
+- Final Ruling: Sandbox credential/Webhook/実業務/全体は別残件、reviewerは全gate/Jev/認証/main pushを独立判断しない — 親の観測結果だけを記録、残件継続 — fixtureと実納品を混同すると未達を完成と誤認。
+- Final Ruling: 非zero stderrは既存reason-onlyのGREEN回帰 — 既存安全挙動を変更しない — RED修正と呼ぶと証拠が不正確。Deferred minors: 本単位なし。
+- Next: [Session Contextのcan_read境界](superpowers/plans/2026-10-07-session-read-capability.md)。既存共有guardで権限なしRuntimeへの入力と非同期中失効後の保存を拒否する。
+- 要件再照合文書はcommit becf15cをmainへffし、通常pushの対象commit全gate/実Jev hook成功（199.69秒）とremote origin/main一致を確認。mainはbecf15c、実装はfeat/runtime-secret-reflectionで分離。
+- 最終focused7成功/0失敗3files5.35秒。DIだけは3成功/2filter/0失敗37ms。実Jev2319subjects/141warnings、missing/unsure/review/errors/degraded0、変更対象へのfindingなし。既存未校正warningは保証へ置換しない。証拠は[検証ディレクトリ](verification/2026-10-07-runtime-secret-reflection/)へ保存。最終全gateは実行中、成功の先行記載なし。
+
+- 最終全gate terminal0: 型/Oxlint/Oxfmt/AST（358files）、496成功/14skip/0失敗510tests203files178.37秒、Jev dry-run2319subjects/excluded0/undeclared・idle・silent空を確認。実Jev/全gate/RED/GREEN/fast証拠を保存し、README/要件/監査を更新。全体未達を維持。
