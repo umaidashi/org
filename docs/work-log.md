@@ -1342,3 +1342,11 @@
 - 通常fast-forwardでmainを`f61d5d0`へ反映し、origin/mainへpush成功。push終了0、HEAD/origin/mainの一致を確認。Lefthookのpush対象tree検査は121.84秒で成功。秘密値は記録しない。
 - 全体目標はactiveのまま。次は[更新不明結果の読取確認計画](superpowers/plans/2026-10-07-linear-update-status-recovery.md)を進める。実装は`feat/linear-update-status-recovery`で分離する。
 - 判断：通常のIssue更新には、この送信固有の結果UUIDがない。現在のtitle/descriptionが承認digestと一致しても送信主体・継続的な成功は証明できないため、読取確認はobserved原本/Auditとし、updated成功原本を捏造しない。誤ると別writerの更新を当該送信の成功として扱う。
+- Notion「04 Task抽象化」を再取得（編集2026-10-04、truncated/unknown block警告なし）。外部WorkItemと内部Executionの分離、交換可能なTaskProviderの目標を維持。現在の同期Local Portへ非同期外部writeを暗黙に差し替えない。
+- 新observe CLIのRED: 0成功/3失敗、1403ms、未対応操作の終了2を確認。実装後は3成功/0失敗、1.80秒。成功receipt再利用、不明結果の並行observed唯一原本、claimなし競合拒否、別プロセス再open後HTTP不要、mutation一回/Local原本不変とAudit observedを確認。
+- DB不要DIと旧コメント/Artifact UTは22成功/0失敗、67ms。pending/reject/別actor/Approval/WorkItem/claim不一致は秘密取得前に拒否。現在値/UUID/識別子/workspace/query/資格情報反射/読取中Local mapping変更・証拠保存失敗で原本不追加、保存障害後のread retry、version進行・並行winner・偽造receipt/Audit拒否を確認。これらfault検査はDIであり新native SQL fault proofではない。
+- 初回staticでclosure内approval.idがunknownとして型エラー。検証済みstringをconstへ保持し、既存型assertionも除去。再staticで型/Oxlint/format326files/AST成功。意図的なbehavior変更ではない。
+- ponytail-review: Lean already. Ship. 既存query/read/Approval/claim/verified receipt/URL validatorを再利用。新依存・table・interface・汎用retry層は追加なし。正しさ・安全性は別のテストと最終独立reviewで確認する。
+- Fast UTは136成功/0失敗、48files173ms。実Jev: dry-run1983対象/14requestsを確認後、実レビュー終了0。1983対象/119warning/missing0/unsure0/review0/errors[]/degraded[]。変更箇所warningはparseTaskCommand失敗経路候補0.81（既存）とobserveApprovedLinearUpdate命名候補0.64。observeは読取とその証拠記録を表し、既知receipt再利用も明記。全失敗経路網羅は主張せず、新操作と境界検査を実行しているため候補を理由なく機械修正しない。
+- 判断：Local version進行は許容して元externalRefのidentityを前後で照合する。誤るとremap後のWorkItemへ旧証拠を帰属させ得る。保存済みobservedは過去の証拠をHTTPなしで返すため、現在値の再pollとは明確に区別する。誤ると古い状態を現在値と誤解し得る。
+- 全`bun run check`終了0: 396成功/12skip/0失敗、408tests/182files/104.30秒。型/Oxlint/Oxfmt/AST fixture/非空dry-run成功。12skipは外部/実機opt-inの残件であり全実サービス成功ではない。[今回の証拠](verification/2026-10-07-linear-update-status-recovery/check.txt)。Task/TaskProvider行の旧「外部update未完」総称をtitle/description実装済みと残status/owner/labels等へ分けた。

@@ -30,6 +30,7 @@ export function buildLinearAudit(
           'linear.artifact.unconfirmed',
           'linear.update.claimed',
           'linear.update.updated',
+          'linear.update.observed',
           'linear.update.unconfirmed',
         ].includes(event.type),
     )
@@ -97,7 +98,10 @@ export function buildLinearAudit(
         )
           throw new Error('Linear Audit Artifact mismatch');
         outputRef = artifactUri;
-      } else if (event.type === 'linear.update.updated') {
+      } else if (
+        event.type === 'linear.update.updated' ||
+        event.type === 'linear.update.observed'
+      ) {
         if (operation.kind !== 'linear_issue_update')
           throw new Error('Linear Audit operation mismatch');
         const issueUrl = validateLinearUpdatedIssueUrl(operation, event.payload.issueUrl);
@@ -109,8 +113,8 @@ export function buildLinearAudit(
           })
         )
           throw new Error('Linear Audit update mismatch');
-        result = 'succeeded';
-        expectedId += ':updated';
+        result = event.type === 'linear.update.updated' ? 'succeeded' : 'observed';
+        expectedId += event.type === 'linear.update.updated' ? ':updated' : ':observed';
         outputRef = issueUrl;
       } else if (event.type === prefix + '.unconfirmed') {
         result = 'unconfirmed';

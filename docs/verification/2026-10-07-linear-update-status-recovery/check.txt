@@ -1,0 +1,11 @@
+Scope: read-only current-content observation after claimed Linear Issue update.
+Native RED: 0pass3fail, 1403ms, unsupported observe CLI.
+Native GREEN: 3pass0fail, 1.80s. Success receipt reused; uncertainty yields observed; missing claim rejects; concurrent observation uses one immutable winner; reopen uses receipt without HTTP; mutations remain one.
+DI and old comment/Artifact: 22pass0fail67ms. Approval/claim/current content/identity/URL/credential reflection/Local mapping change/storage faults rejected without false evidence. Version progress and known success/observation reused.
+Fast unit: 136pass0fail48files173ms.
+Static: type/Oxlint/Oxfmt326files/AST pass after closure string narrowing fix.
+Actual Jev: 1983 subjects119warning missing0unsure0review0 errors[]degraded[], exit0. Dry-run14requests; snapshots/credentials/DB/logs excluded.
+Jev disposition: observer name describes read+immutable observation and receipt reuse; current-content match does not prove writer. Existing parser failure-path candidate retained without exhaustive-coverage claim.
+Full gate: exit0,396pass12skip0fail408tests182files104.30s, type/Oxlint/Oxfmt/AST fixture and nonempty dry-run pass. Fresh review: pending.
+Ponytail: Lean already. Ship. Existing query/claim/receipt/Approval/URL validator reused; no dependency/table/generic layer added.
+Limits: owned HTTP/DB fixture is not real Linear authentication/send. Empty-description server normalization unverified. Observed is historical matching-current-state evidence, not exclusive mutation attribution or ongoing sync. Human actor string is not identity authentication. Whole MVP remains active.

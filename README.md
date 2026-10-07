@@ -736,7 +736,15 @@ bun --env-file=.env src/cli.ts --direct task apply-linear-update WORKITEM_ID --t
 
 pending/reject/別actor/入力/versionでは秘密取得やHTTP前に拒否します。送信前に外部baselineを再読取し、変化があれば新しいkeyでの承認要求が必要です。readとwriteを跨ぐ他writerとの原子的排他は保証しません。一回claim後の不明応答/成功記録保存障害では再送せず、`logs --task WORKITEM_ID --json`に不明結果を残します。Issue UUID/番号/workspaceと返却title/descriptionを確認し、同IssueのURL slug変更は受理します。Auditにはdigestと参照URLを残し、title/descriptionの本文を格納しません。
 
-送信だけではLocal WorkItemを変更しません。必要なら既存の`task refresh-linear WORKITEM_ID --expected-version VERSION --json`で明示的に反映します。refreshは同Issueのslug変更を許可して元externalRefを保持し、返った現在URLをobjectiveの出典へ使用します。別Issue/workspaceへの変更は拒否します。結果不明updateの読取回収、status/owner/labels更新、Agent操作・実API認証・TaskProvider全体の非同期交換は未完了です。
+送信だけではLocal WorkItemを変更しません。必要なら既存の`task refresh-linear WORKITEM_ID --expected-version VERSION --json`で明示的に反映します。refreshは同Issueのslug変更を許可して元externalRefを保持し、返った現在URLをobjectiveの出典へ使用します。別Issue/workspaceへの変更は拒否します。status/owner/labels更新、Agent操作・実API認証・TaskProvider全体の非同期交換は未完了です。
+
+結果不明の更新は、mutationを再送せず現在のIssueを読取確認します。
+
+```sh
+bun --env-file=.env src/cli.ts --direct task observe-linear-update WORKITEM_ID --actor HUMAN --approval APPROVAL_ID --json
+```
+
+同じ承認とclaim、Issueのidentity、title/descriptionのdigestが一致した場合だけ`linear.update.observed`を記録し、Auditも`observed`にします。他writerが同内容へ変更した可能性があるため、当該送信の更新成功とは区別します。Local versionが進んでも元WorkItem参照は照合します。保存済み`updated`または`observed`はHTTPなしで返し、観測済み現在値を自動で再pollしません。本文不一致や読取・保存障害では証拠を追加せず、applyの再送禁止は維持します。
 
 ### 実Claude二Agentのコード生成
 

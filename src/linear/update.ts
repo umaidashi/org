@@ -190,3 +190,73 @@ export async function applyApprovedLinearUpdate(
     throw error;
   }
 }
+
+export async function observeApprovedLinearUpdate(
+  tasks: Pick<TaskProvider, 'get'>,
+  approvals: Pick<ApprovalStore, 'get'>,
+  events: Pick<EventBus, 'list' | 'publish'>,
+  secrets: Pick<SecretStore, 'getSecret'>,
+  request: (url: string, init: RequestInit) => Promise<Response>,
+  input: { readonly taskId: string; readonly actor: string; readonly approvalId: string },
+  now: () => string,
+) {
+  const approved = requireApprovedLinearRequest(approvals, input);
+  if (approved.operation.kind !== 'linear_issue_update')
+    throw new Error('Linear Issue update Approval does not match input');
+  const original = { ...approved, operation: approved.operation },
+    operation = original.operation;
+  const validateTarget = () => {
+    const task = tasks.get(input.taskId);
+    if (
+      linearWorkItemIssueId(input.taskId) !== operation.issueId ||
+      task.id !== input.taskId ||
+      task.kind !== 'work_item' ||
+      task.externalRef !== operation.issueUrl
+    )
+      throw new Error('Linear Issue update target changed');
+  };
+  validateTarget();
+  const payload = linearClaimPayload(original),
+    receipts = events.list(),
+    claim = receipts.find((event) => event.id === payload.claimId);
+  if (
+    !claim ||
+    claim.type !== 'linear.update.claimed' ||
+    claim.source !== 'linear:host' ||
+    !isDeepStrictEqual(claim.payload, payload)
+  )
+    throw new Error('Linear Issue update claim missing or mismatched');
+  for (const suffix of ['updated', 'observed']) {
+    const known = receipts.find((event) => event.id === payload.claimId + ':' + suffix);
+    if (!known) continue;
+    const issueUrl = validateLinearUpdatedIssueUrl(operation, known.payload.issueUrl);
+    if (
+      known.type !== 'linear.update.' + suffix ||
+      known.source !== 'linear:host' ||
+      !isDeepStrictEqual(known.payload, {
+        ...payload,
+        issueUrl,
+        outputDigest: operation.inputDigest,
+      })
+    )
+      throw new Error('Linear Issue update receipt mismatch');
+    return known;
+  }
+  const issue = await readLinearIssue(request, secrets, operation.issueId),
+    issueUrl = validateLinearUpdatedIssueUrl(operation, issue.url);
+  if (digest({ title: issue.title, description: issue.description }) !== operation.inputDigest)
+    throw new Error('Linear Issue current contents do not match approval');
+  validateTarget();
+  // ponytail: this is a point-in-time observation, not proof of which writer changed the Issue or ongoing synchronization.
+  return publishVerifiedLinearReceipt(
+    events,
+    createEvent(
+      {
+        type: 'linear.update.observed',
+        source: 'linear:host',
+        payload: { ...payload, issueUrl, outputDigest: operation.inputDigest },
+      },
+      { id: payload.claimId + ':observed', createdAt: now() },
+    ),
+  );
+}

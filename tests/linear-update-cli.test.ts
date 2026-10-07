@@ -115,6 +115,7 @@ test.each(['success', 'unknown', 'stale'])(
       assert.equal(requested.code, 0, requested.stderr);
       const approval: unknown = JSON.parse(requested.stdout);
       assert.ok(record(approval) && typeof approval.id === 'string');
+      const approvalId = approval.id;
       assert.doesNotMatch(requested.stdout, /approved title|source/);
       const repeat = await run([
         'task',
@@ -127,14 +128,7 @@ test.each(['success', 'unknown', 'stale'])(
       assert.equal(repeat.code, 0, repeat.stderr);
       assert.deepEqual(JSON.parse(repeat.stdout), approval);
       const apply = () =>
-        run([
-          'task',
-          'apply-linear-update',
-          ...input,
-          '--approval',
-          approval.id as string,
-          '--json',
-        ]);
+        run(['task', 'apply-linear-update', ...input, '--approval', approvalId, '--json']);
       const before = queries;
       assert.equal((await apply()).code, 1);
       assert.equal(queries, before);
@@ -142,7 +136,7 @@ test.each(['success', 'unknown', 'stale'])(
       const decided = await run([
         'approval',
         'decide',
-        approval.id,
+        approvalId,
         '--actor',
         'reviewer',
         '--decision',
@@ -170,6 +164,38 @@ test.each(['success', 'unknown', 'stale'])(
       const after = await run(['task', 'get', taskId, '--json']);
       assert.equal(after.code, 0, after.stderr);
       assert.deepEqual(JSON.parse(after.stdout), JSON.parse(imported.stdout));
+      const observe = () =>
+        run([
+          'task',
+          'observe-linear-update',
+          taskId,
+          '--actor',
+          'operator',
+          '--approval',
+          approvalId,
+          '--json',
+        ]);
+      const observed = await Promise.all([observe(), observe()]);
+      for (const result of observed) {
+        assert.equal(result.code, fault === 'stale' ? 1 : 0, result.stderr);
+        if (fault !== 'stale') {
+          const receipt: unknown = JSON.parse(result.stdout);
+          assert.ok(record(receipt));
+          assert.equal(
+            receipt.type,
+            fault === 'success' ? 'linear.update.updated' : 'linear.update.observed',
+          );
+        }
+      }
+      if (fault !== 'stale')
+        assert.deepEqual(
+          JSON.parse(observed[0]?.stdout ?? ''),
+          JSON.parse(observed[1]?.stdout ?? ''),
+        );
+      const beforeObserveRetry = queries;
+      assert.equal((await observe()).code, fault === 'stale' ? 1 : 0);
+      assert.equal(queries, beforeObserveRetry);
+      assert.equal(mutations, fault === 'stale' ? 0 : 1);
       const logs = await run(['logs', '--task', taskId, '--json']);
       assert.equal(logs.code, 0, logs.stderr);
       const entries: unknown = JSON.parse(logs.stdout);
@@ -178,7 +204,7 @@ test.each(['success', 'unknown', 'stale'])(
       assert.ok(record(last));
       assert.equal(
         last.result,
-        fault === 'stale' ? 'approved' : fault === 'success' ? 'succeeded' : 'unconfirmed',
+        fault === 'stale' ? 'approved' : fault === 'success' ? 'succeeded' : 'observed',
       );
       assert.doesNotMatch(logs.stdout, /approved title|external edit|source|fixture-update-key/);
       if (fault === 'success') {
