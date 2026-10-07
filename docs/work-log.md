@@ -1309,3 +1309,9 @@
 - 非空dry-run1931 subjects / 13 requests / excluded0。実Jev exit0、1931 subjects / 119 advisory warnings、missing/unsure/review0、errors/degradedなし。observeの命名候補は外部読取から原本receipt保存までの責務と照合、機械的renameはしない。apply失敗経路候補を全経路の網羅保証に読み替えない。
 - Ponytail自己点検: 実際のapply/observeだけで検証・保存を共有、既存query/receipt競合処理/Auditを再利用。新table/依存/frameworkなし。不要な抽象化の削減候補なし。全gate/独立最終reviewは実行結果確認後に追記。全体目標active。
 - 全gate exit0、384 pass / 12 skip / 0 fail、396 tests / 180 files / 102.16s。最後に固定query完全一致assertを追加したnativeも4 pass / 3.83sで確認。[証拠](verification/2026-10-07-linear-artifact-status-recovery/check.txt)。要件/README/MVPをfixtureで実証済みの回収と実認証未完了へ更新。独立最終review待ち。
+- 最終追加assertを含む実Jevもexit0、1931 subjects / 119 advisory warnings、missing/unsure/review0、errors/degradedなし。MVP表の「現在baseline」を過去の実機一周baselineと今回gateに分離し、古い成功件数を現在値と誤称しないよう訂正。nativeキー存在確認のみ: LINEAR_API_KEY/NOTION_API_KEY=false、値は出力/記録しない。
+- 独立最終review: Critical 0 / Important 0 / Minor 1。DI16成功、native4成功 / 3.83s再実行。初回sandbox listen制限はowned fixture権限付き再実行で成功。正しさ/安全性は承認/claim/known原本、唯一完全page、HTTP後再照合、再mutation禁止を確認。Ponytail: Lean already. Ship.
+- Final: minor (deferred): Artifactのwinner UTは保存後例外fixtureによる同一原本再利用の検査で、Artifact apply/observeの実並走証拠ではない。共有保存処理の実並走は既存commentで検証済み、実装不具合なし。Artifact固有の実並走検証は追加余地として残す。今回の「並行winner」はhelperの保存契約の範囲として扱う。
+- Final Ruling: 実Linear認証/サーバー挙動はfixtureと分離して未完了を維持。判断が誤れば実API固有の違いを見逃すため、資格情報設定後に実測する。
+- Final Ruling: human文字列照合を本人認証やDB所有者の直接改竄耐性と扱わない。既存ローカル権限境界と未完了要件を維持。判断が誤れば別人/DB管理者操作を同一承認と扱うため、本人認証は別途実装/受け入れる。
+- Final Ruling: 履歴回収は一致状態の観測証拠とし、継続監視/過去upsertの排他的起源証明は提供しない。判断が誤れば後の編集/削除や既存一致を実行結果保証と誤認するため、READMEに限界を明記。

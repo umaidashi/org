@@ -4,7 +4,7 @@
 
 [Notion MVP](https://app.notion.com/p/3ef8a4020cb68173a20be8c050bec268)の6 Phaseと、[全体要件](requirements.md)を維持する。MVPの一周が動くことと、全体の未完了がなくなることは別に照合する。本書は完了宣言ではない。
 
-現在のcode baselineはmain `1501862100378cb974fa00e14aa2694f0d49cae6`。通常gateは356成功・12skip・0失敗（368tests/176files）。12skipを実機成功に読み替えない。[通常gate記録](verification/2026-10-07-runtime-room-artifact-content/check.txt)と、以下の実機記録の日時・対象を区別する。
+以下の実機一周のcode baselineはmain `1501862100378cb974fa00e14aa2694f0d49cae6`。当時の通常gateは356成功・12skip・0失敗（368tests/176files）。現在のArtifact読取回収sliceでは384成功・12skip・0失敗（396tests/180files）を確認した（[記録](verification/2026-10-07-linear-artifact-status-recovery/check.txt)）。12skipを実機成功に読み替えず、[当時の通常gate記録](verification/2026-10-07-runtime-room-artifact-content/check.txt)と実機記録の日時・対象を区別する。
 
 ## Phaseごとの追跡
 
