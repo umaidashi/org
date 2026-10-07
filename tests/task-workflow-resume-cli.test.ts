@@ -2,12 +2,12 @@ import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, unlinkSync } from 'node:fs';
 function record(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
 }
 
-async function proof(auto: boolean, crash: boolean): Promise<void> {
+async function proof(auto: boolean, crash: boolean, artifactFailure: boolean): Promise<void> {
   const home = mkdtempSync('/tmp/org-approved-task-'),
     db = home + '/org.db',
     config = home + '/workflow.json',
@@ -321,8 +321,42 @@ async function proof(auto: boolean, crash: boolean): Promise<void> {
         await Bun.sleep(10);
       }
     }
+    if (artifactFailure) {
+      writeFileSync(db + '.artifacts', 'owned-storage-blocker');
+      const pending = await raw([
+        'task',
+        'resume-workflow',
+        taskId,
+        '--approval',
+        approval,
+        '--expected-version',
+        String(waitingVersion),
+      ]);
+      assert.equal(pending.code, 1);
+      await stop();
+      const blocked = await entity(['--direct', 'task', 'get', taskId]);
+      assert.equal(blocked.status, 'blocked');
+      assert.match(pending.err, /Artifact.*pending/);
+      assert.deepEqual(blocked.outputArtifacts, []);
+      assert.equal(invokes, 1);
+      unlinkSync(db + '.artifacts');
+      await start();
+      if (!auto)
+        await entity([
+          'task',
+          'observe-workflow',
+          taskId,
+          '--expected-version',
+          String(blocked.version),
+        ]);
+      const deadline = Date.now() + 3000;
+      while ((await entity(['task', 'get', taskId])).status !== 'waiting_approval') {
+        assert.ok(Date.now() < deadline, 'Artifact retry did not complete');
+        await Bun.sleep(10);
+      }
+    }
     const resumed = await entity(
-      crash
+      crash || artifactFailure
         ? ['task', 'get', taskId]
         : [
             'task',
@@ -524,12 +558,14 @@ async function proof(auto: boolean, crash: boolean): Promise<void> {
   }
 }
 test.each([
-  [false, false],
-  [true, false],
-  [false, true],
-  [true, true],
+  [false, false, false],
+  [true, false, false],
+  [false, true, false],
+  [true, true, false],
+  [false, false, true],
+  [true, false, true],
 ])(
-  'native daemon approves once then observes delayed Workflow auto=%s crash=%s across restart without reinvoking',
+  'native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s without reinvoking',
   proof,
   20000,
 );

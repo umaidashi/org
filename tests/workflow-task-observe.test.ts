@@ -163,6 +163,9 @@ test('pending Workflow observation validates execution chain before key lookup a
       () => '4',
       () => 'artifact',
     );
+  events.delete(uncertain.id);
+  await assert.rejects(run);
+  assert.equal(resolutions, 0);
   events.set(uncertain.id, {
     ...uncertain,
     payload: { ...uncertain.payload, executionId: 'different' },
@@ -232,13 +235,14 @@ test('pending Workflow observation validates execution chain before key lookup a
     { id: requestId + ':status:terminal', createdAt: 'previous' },
   );
   events.set(terminal.id, terminal);
+  events.delete(uncertain.id);
   const result = await run();
   assert.equal(result.status, 'waiting_approval');
   assert.equal(result.outputArtifacts.length, 1);
   assert.equal(reads, 1);
   assert.equal(events.get(claim.id), claim);
   assert.equal(events.get(started.id), started);
-  assert.equal(events.get(uncertain.id), uncertain);
+  assert.equal(events.get(uncertain.id), undefined);
   assert.equal(events.get(terminal.id), terminal);
   await assert.rejects(run);
   assert.equal(reads, 1);

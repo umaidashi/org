@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createTask, changeTask } from '../src/tasks/domain.js';
 import { createEvent } from '../src/events/domain.js';
 import { pollTaskWorkflowObservations } from '../src/workflows/task-observe.js';
-test('Workflow poll selects only blocked executions with prior observation receipt and propagates error without invoking', async () => {
+test('Workflow poll selects blocked executions with observation or successful terminal receipt and propagates errors without invoking', async () => {
   const running = changeTask(
     changeTask(
       createTask(
@@ -101,4 +101,30 @@ test('Workflow poll selects only blocked executions with prior observation recei
     },
   );
   assert.equal(calls, 1);
+  const claim = createEvent(
+    { type: 'workflow.requested', source: 'workflow:n8n', payload: { taskId: 't' } },
+    { id: 'request', createdAt: '2' },
+  );
+  const terminal = createEvent(
+    {
+      type: 'workflow.status_observed',
+      source: 'workflow:n8n',
+      payload: { requestId: 'request', status: 'success' },
+    },
+    { id: 'request:status:terminal', createdAt: '3' },
+  );
+  await pollTaskWorkflowObservations(tasks, { list: () => [claim, terminal] }, async () => {
+    calls++;
+    return blocked;
+  });
+  assert.equal(calls, 2);
+  for (const event of [
+    { ...terminal, payload: { ...terminal.payload, status: 'error' } },
+    { ...terminal, id: 'manual-observation' },
+    { ...terminal, source: 'foreign' },
+  ]) {
+    await pollTaskWorkflowObservations(tasks, { list: () => [claim, event] }, async () => {
+      throw new Error('Unexpected artifact retry');
+    });
+  }
 });

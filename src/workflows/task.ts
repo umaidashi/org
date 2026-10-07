@@ -220,17 +220,22 @@ export async function collectTaskWorkflowArtifact(
     throw error;
   }
   authorize();
-  const uri = await save(
-    Buffer.from(
-      JSON.stringify({
-        proposalRef,
-        requestId,
-        taskId: running.id,
-        workflowId: finalWorkflowId,
-        executionId,
-        status: finalStatus,
-      }),
-    ),
-  );
+  let uri: string;
+  try {
+    uri = await save(
+      Buffer.from(
+        JSON.stringify({
+          proposalRef,
+          requestId,
+          taskId: running.id,
+          workflowId: finalWorkflowId,
+          executionId,
+          status: finalStatus,
+        }),
+      ),
+    );
+  } catch (error) {
+    throw new TaskResultPendingError('Workflow Artifact remains pending', { cause: error });
+  }
   return { id: id(), uri, createdAt: now() };
 }

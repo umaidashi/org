@@ -1,0 +1,9 @@
+Workflow Artifact save recovery — 2026-10-07
+Native RED: 4pass2fail12.18s, failed != blocked after owned Artifact directory was blocked with a regular file, exit1. Initial RED12.64s reached EEXIST before the state assertion; state assertion moved first.
+DI RED: 1pass2fail37ms; successful terminal receipt not polled; missing receipt rejected before terminal-positive test. Generic negative rejection retained without coupling to Port error wording.
+DI final GREEN: 4pass0fail53ms. Native final GREEN: 6pass0fail13.56s, exit0.
+Native scenarios: normal manual/auto; SIGKILL manual/auto using same DB/socket; owned storage obstruction manual/auto. Original human Approval and extra capability checks retained; exactly one external invoke; repair/restart then status-only Artifact retrieval and human review.
+Final full check: 346pass12skip0fail358tests175files84.70s, exit0. Type/Oxlint/Oxfmt/AST and nonempty review plan passed.
+Actual Jev: subjects1779/reported112/missing0/unsure0/errors[]/degraded[], exit0. This is actual semantic review, separate from dry-run plan. Changed task/observe failure-path warnings remain advisory and are assessed with native/DI assertions and independent review.
+Limits: host poll interval controls storage retry; failed storage retries update Task history. General backoff and partial blob failure recovery remain unfinished. No new retry engine, Event type, Task state or Port.
+Independent review: Critical0/Important0/Minor0; DI3pass66ms and diff check passed. Native/full/actual Jev rely on author executed evidence, not reviewer reruns. Ponytail: Lean already. Ship. General backoff, partial blob failures and post-save DB staging failures are outside this slice.

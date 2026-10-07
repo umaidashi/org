@@ -1162,3 +1162,14 @@
 - 旧形式lock、record保存前の中断、復旧guard取得後の中断では所有を証明できず自動削除を拒否。PID再利用でliveなら保守的拒否。hostの同UIDによる意図的なfilesystem改変から物理隔離する保証ではない。README/requirementsへ成功範囲と限界を反映。[検証](verification/2026-10-07-daemon-stale-socket/check.txt)。
 - 最終check344成功12skip0失敗356tests175files76.37秒、型/Oxlint/Oxfmt/ASTと空でないreview plan成功、exit0。実jev1777対象113warning、missing/unsure0/errors/degraded空、exit0。processAliveの既存failure-path候補は実native live/deadと別途sourceレビューで判定し、全OSエラーを再現したとは扱わない。
 - Next: Workflowのterminal成功receiptはあるがArtifact保存だけが失敗する経路を、外部再invokeなしで復旧できるよう検証する。現在の保存例外はTask failedへ固定されるため、既存pending結果・receipt・status-only経路を使ってArtifact保存待ちを明示し、所有一時保存先の障害→復元を実CLIで確認する。実業務Issue/repo/API認証は引き続き指定待ち。
+
+## 2026-10-07 Workflow成功後のArtifact保存復旧
+
+- 前ターンは所有socket復旧の進捗。34551bcをmainへ通常push済み、main/origin一致・clean。pre-push全gate90.98秒で成功。
+- [計画](superpowers/plans/2026-10-07-workflow-artifact-recovery.md)。現在の保存例外がTaskを終端failedへ固定する経路を確認。成功terminal原本を再利用し、既存TaskResultPendingError/blocked/observe/pollを接続する。新Event・Task state・Port・retry frameworkは追加しない。所有保存先の障害・復元をnative e2eで検証する。一般backoff/部分blob障害/実業務対象/実API認証は未完了として維持する。
+
+- native RED4成功2失敗12.18秒、保存先を所有regular fileで塞ぐとfailed!=blocked。初回12.64秒のREDはEEXIST文言が先行したため状態assertを先にした。DI RED1成功2失敗37ms、terminalのpoll対象漏れとmissing receipt拒否を確認。Port固有error文言のassertは除去し、拒否とcredential解決ゼロを維持。
+- 保存例外だけ既存pending errorへ変換し、再認可例外はcatch外に保持。成功terminal receiptだけでも既存observeの元Task履歴/claim/started/Audit/Approval/権限と現在statusを再検証して保存を再開。auto pollもterminal成功+blockedを選ぶ。外部invokeは再試行しない。DI4成功53ms、native6成功13.56秒（通常/SIGKILL/保存先障害、各manual/auto、同DB/socket、外部invoke一回、人間review）。
+- 全check346成功12skip0失敗358tests175files84.70秒、型/Oxlint/Oxfmt/ASTと空でないreview plan成功。実jev1779対象112warning、missing/unsure0、errors/degraded空、exit0。[検証](verification/2026-10-07-workflow-artifact-recovery/check.txt)。task/observeのfailure-path補助候補は具体的DI/nativeのassertと独立レビューで判定する。
+- 共通Artifact保存callerを確認し、次の根本障害を所有子プロセスのulimit -f 1で再現。32KiB blobの書込みがexit1、最終hash名へ1024byteだけ残り、制限なしの再保存もintegrity mismatchでexit1。既存保存済みblobを上書きせず、同directoryの一時fileから完全書込み後に公開する最小stdlib修正を次に検証する。実業務対象/認証の指定待ちと区別し、全体達成とは主張しない。
+- 独立最終review Critical0/Important0/Minor0、DI3成功66ms/diff check成功。Ponytail: Lean already. Ship. terminal結合のMapは既存receiptを再利用するため必要、新framework/依存/Portなし。一般backoff・部分blob・保存後DB staging障害は保証対象外という判定を採用（範囲外障害は別途復旧の検証が必要）。一回のreviewで終了。Nextは共通Artifactの部分書込み時に最終hash名を残さない処理をTDDで実装する。

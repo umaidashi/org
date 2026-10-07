@@ -130,25 +130,27 @@ export async function observeTaskWorkflow(
       throw new Error('Workflow pending Task snapshot mismatch');
     const requestId = 'workflow:task:' + createHash('sha256').update(blocked.id).digest('hex');
     const claim = bus.get(requestId),
-      started = bus.get(requestId + ':started'),
-      uncertain = bus.get(requestId + ':unconfirmed');
+      started = bus.get(requestId + ':started');
+    const receipts = bus.list();
+    const uncertain = receipts.find((event) => event.id === requestId + ':unconfirmed');
+    const priorTerminal = receipts.find((event) => event.id === requestId + ':status:terminal');
     if (
       claim.id !== requestId ||
       claim.type !== 'workflow.requested' ||
       claim.source !== 'workflow:n8n' ||
       started.id !== requestId + ':started' ||
       started.type !== 'workflow.started' ||
-      uncertain.id !== requestId + ':unconfirmed' ||
-      uncertain.type !== 'workflow.unconfirmed' ||
       started.payload.requestId !== requestId ||
-      uncertain.payload.requestId !== requestId ||
-      uncertain.payload.phase !== 'observation' ||
       typeof started.payload.executionId !== 'string' ||
-      uncertain.payload.executionId !== started.payload.executionId
+      (!uncertain && !priorTerminal) ||
+      (uncertain &&
+        (uncertain.type !== 'workflow.unconfirmed' ||
+          uncertain.payload.requestId !== requestId ||
+          uncertain.payload.phase !== 'observation' ||
+          uncertain.payload.executionId !== started.payload.executionId))
     )
       throw new Error('Workflow pending receipts missing');
-    const audit = buildWorkflowAudit([claim, started, uncertain]);
-    const priorTerminal = bus.list().find((event) => event.id === requestId + ':status:terminal');
+    const audit = buildWorkflowAudit([claim, started, ...(uncertain ? [uncertain] : [])]);
     if (priorTerminal) {
       if (
         priorTerminal.type !== 'workflow.status_observed' ||
@@ -160,7 +162,7 @@ export async function observeTaskWorkflow(
       buildWorkflowAudit([claim, started, priorTerminal]);
     }
     if (
-      audit.length !== 3 ||
+      audit.length !== (uncertain ? 3 : 2) ||
       claim.payload.host !== configured.host ||
       claim.payload.taskId !== blocked.id ||
       claim.payload.actorKind !== 'agent' ||
@@ -259,7 +261,17 @@ export async function observeTaskWorkflow(
         throw new Error('Original Workflow Approval changed');
     } else if (claim.payload.approvalId !== null)
       throw new Error('Unexpected read-only Workflow Approval');
-    return { blocked, started, message, room, owner, workflow, approval, priorTerminal };
+    return {
+      blocked,
+      started,
+      message,
+      room,
+      owner,
+      workflow,
+      approval,
+      priorTerminal,
+      priorUnconfirmed: uncertain !== undefined,
+    };
   };
   const first = authorize();
   const signal = AbortSignal.any([
@@ -333,7 +345,7 @@ export async function observeTaskWorkflow(
       save,
       now,
       id,
-      true,
+      verified.priorUnconfirmed,
       verified.priorTerminal,
     );
     return tasks.stageExecutionResult(running.id, artifact, running.version);
@@ -363,16 +375,27 @@ export async function pollTaskWorkflowObservations(
 ): Promise<void> {
   if (signal?.aborted) return;
   // ponytail: scan the local journal; use an indexed receipt query when history size matters.
+  const originals = bus.list();
+  const claims = new Map(originals.map((event) => [event.id, event]));
+  // ponytail: local Artifact retry follows host polling; add backoff if prolonged storage outages cause measured churn.
   const pending = new Set(
-    bus
-      .list()
+    originals
       .filter(
         (e) =>
-          e.type === 'workflow.unconfirmed' &&
           e.source === 'workflow:n8n' &&
-          e.payload.phase === 'observation',
+          ((e.type === 'workflow.unconfirmed' && e.payload.phase === 'observation') ||
+            (e.type === 'workflow.status_observed' &&
+              e.payload.status === 'success' &&
+              typeof e.payload.requestId === 'string' &&
+              e.id === e.payload.requestId + ':status:terminal')),
       )
-      .map((e) => e.payload.taskId),
+      .map((e) =>
+        e.type === 'workflow.unconfirmed'
+          ? e.payload.taskId
+          : typeof e.payload.requestId === 'string'
+            ? claims.get(e.payload.requestId)?.payload.taskId
+            : undefined,
+      ),
   );
   const errors: unknown[] = [];
   for (const candidate of tasks.list({ kind: 'execution_task', status: 'blocked' })) {
