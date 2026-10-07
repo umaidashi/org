@@ -1548,3 +1548,6 @@
 
 - 修正後全bun run check終了0:462成功/14skip/0失敗、476tests/197files/161.67秒。fast UT160成功/56files252ms。非空dry-run2191対象、未宣言/空rule/除外0。[証拠](verification/2026-10-07-async-task-provider/)にCLI RED、URL RED/GREEN、全check、実Jevを保存。opt-in skipを成功へ数えず、共通三操作と残三操作/他の全体残件を区別する。
 - 次の[承認付き共通write計画](superpowers/plans/2026-10-07-core-provider-writes.md)を保存。既存field mask/digest/response/receipt全callerからpriority/contentの境界をTDDで整え、逆mappingの曖昧さを拒否し、Artifact原本stageを承認対象から隠さない。全体goalはactive。
+
+- main通常fast-forwardとorigin/main push終了0、公開commit af1cf33。push対象Lefthook全検査/実Jev成功180.74秒、再検査462成功/14skip/0失敗、476tests/197files/160.78秒。公開sourceのHEAD/origin/main一致を確認する。
+- 次の[Linear priority write計画](superpowers/plans/2026-10-07-linear-priority-write.md)を保存。共有field/mask/parser/responseとTask-bound/CLI/Core projectionの46参照を照合。公式SDK schema/GraphQL説明を確認し、既存fields native fixtureのsuccess/unknown/staleへpriorityを追加してREDから進める。公式生成documentのweb取得はサイズ上限で失敗したため、取得成功や実API確認の証拠に数えない。Ponytail:既存engine/fixtureを拡張し、新mutation engine/SDK依存なし。全体goalはactive。
