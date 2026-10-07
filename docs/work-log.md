@@ -1114,3 +1114,12 @@
 - Ponytail review: GitHubの既存JSON正規化手法を共通queryLinearの一行で再利用。get/list/import/refreshの個別guard、新helper/依存/設定なし。全checkと実jevを実行中、独立最終reviewを一回行う。
 - 最終全check336成功12skip0fail348tests174files107.56秒、exit0、型/lint/format/AST/dry-run非空。実jev1755対象warning112/missing・unsure0/errors・degraded空、exit0。Linearの既存import失敗経路候補のみで今回の新指摘なし。独立最終review Critical/Important/Minor0、独立get/list UT4成功42ms。Ponytail独立review Lean already. Ship. 再reviewなし。[証拠](verification/2026-10-07-linear-credential-reflection/check.txt)。
 - Next: Notion SecurityのAgentごとのworking directory/credential分離可能という要件に対し、Runtime configは現在providerごとにcwd/envを共有している。既存DriverConfigの検証を使う明示Agent別host profileを接続し、選択Actor以外のenv非注入と明示profileでのruntime未設定拒否を実CLIで検証する。物理filesystem隔離の完了とは主張しない。実API認証/業務Issue/Draft PR等の全体未完了も保持。
+
+### 2026-10-07 — Agent別Runtime working directory/credential profile
+- Linear反射111cb1aはmain通常push成功136.76秒、pre-push全検査/実jev/公開履歴検査成功。Notion Security/Agentを再取得して永続Identityとruntimeの分離・Actor別working directory/credential要件を照合。[設計・計画](superpowers/plans/2026-10-07-agent-runtime-profiles.md)。
+- Ruling: 既存DriverConfigをAgent IDで選択し、明示profileはfull config・missing runtimeは拒否する。旧provider既定値は未指定Actorだけに使う。env mapはchild名→host変数名、literal値は置かない。共通envをmergeしないためmapped Actorのexecutable/envも明示が必要。物理FS/Keychain/IPC隔離は完了と主張しない。
+- RED: DB不要parse1成功2fail122ms（Agent profile未許可/継承envを受入）、native0成功1fail5.62秒（startup時に未対応root field拒否）。既存parserを一段再利用し、profileをfull DriverConfigで選択。env aliasはown string値だけを解決しObject.fromEntriesでコピーする。
+- 初回targetedは10成功2fail：explicit env:nullを旧??既定値が空指定として受入したため、未指定だけ既定値にする。native fixtureはmacOS /tmp→/private/tmpのcwd正規化を期待しておらず不一致、owned rootをstdlib realpathSyncでcanonical化する。Session resumeではID/provider ID継続を照合し、更新されるversion/時刻の全object一致は要求しない。
+- GREEN: targeted12成功0fail1.55秒、2Agent別cwd/HOME/env alias/同Kernel・provider ID resume、共通Claude既定値、明示profileのmissing Claude→起動拒否/driver count不変を実CLIで確認。未選択host source変数/他Actor変数はchildに存在しない。高速UT103成功0fail43files241ms。
+- 全check339成功12skip0fail351tests175files75.94秒、exit0、型/lint/format/AST/dry-run非空。実jev1761対象warning112/missing・unsure0/errors・degraded空。configuredDriversの失敗経路候補は既存parse UT・missing runtime native未起動へ照合する。独立最終reviewと共有配線の実Claude Max回帰を進める。
+- Ponytail review: parseRuntimeConfigの既存Driver検証をprofileにも再利用し、configuredDriversのActor ID選択だけに接続。新runtime manager/Port/DI container/依存なし。env aliasは同child変数名にActor別sourceを選ぶ実要件のため追加、共通credentialの暗黙mergeはしない。

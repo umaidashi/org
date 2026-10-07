@@ -1,6 +1,6 @@
 # org — AI Company Kernel
 
-Agent・Task・Room・Memory・Event・Runtimeを組み合わせ、AIの組織と実務をローカルで動かすTypeScriptプロジェクトです。現在はAgent registry、ローカルTaskProvider、Room・Message、Event・Subscription、EventからTaskを作る常駐daemonとローカルsocketが動きます。Sessionの永続化とCodex/Claude Runtimeへの接続も実装しています。Messageを根拠とするTyped Memoryとscope付きContextを実装しています。公開GitHub Eventの明示取込も接続しています。LinearやNotionの外部Adapterは後続です。[要件と進捗](docs/requirements.md)を参照してください。
+Agent・Task・Room・Memory・Event・Runtimeを組み合わせ、AIの組織と実務をローカルで動かすTypeScriptプロジェクトです。現在はAgent registry、ローカルTaskProvider、Room・Message、Event・Subscription、EventからTaskを作る常駐daemonとローカルsocketが動きます。Sessionの永続化とCodex/Claude Runtimeへの接続も実装しています。Messageを根拠とするTyped Memoryとscope付きContextを実装しています。公開GitHub Eventの明示取込も接続しています。Linear/Notionの明示読取Adapterも実装しています。実API認証と外部への書込みは未完了です。[要件と進捗](docs/requirements.md)を参照してください。
 
 ## セットアップ
 
@@ -201,7 +201,7 @@ Bun向けにCLIをbundleします。リポジトリとパッケージは公開�
 
 ## SessionとRuntime
 
-Sessionはdaemon経由で実行します。使用するRuntimeだけを設定してください。起動時の `--runtime-config PATH` に次のJSONを渡します。executable/cwdは絶対パス、envはdaemonの環境から渡す変数名だけを指定します。設定ファイルに秘密値は書きません。Claude Maxにはログイン済みのClaude Codeを使い、OS識別情報も明示して渡します。
+Sessionはdaemon経由で実行します。使用するRuntimeだけを設定してください。起動時の `--runtime-config PATH` に次のJSONを渡します。executable/cwdは絶対パスです。envはdaemonの環境から渡す変数名の配列、またはchild変数名→host変数名のmapを指定します。設定ファイルに秘密値は書きません。Claude Maxにはログイン済みのClaude Codeを使い、OS識別情報も明示して渡します。
 
 ```json
 {
@@ -209,6 +209,14 @@ Sessionはdaemon経由で実行します。使用するRuntimeだけを設定し
   "claude": {"executable":"/absolute/path/to/claude","cwd":"/absolute/path/to/workspace","env":["PATH","HOME","USER","LOGNAME"],"timeoutMs":120000,"maxOutputBytes":1048576}
 }
 ```
+
+Agent別設定は`agents`に登録済みAgent IDを指定します。既存DriverConfigと同じ形式で、共通env/cwdとmergeしません。明示profileに対象runtimeがない場合は起動を拒否します。profileのないAgentだけが共通provider設定を使い、共通設定を省略すれば未指定Agentは起動できません。
+
+```json
+{"agents":{"AGENT_ID":{"claude":{"executable":"/absolute/path/to/claude","cwd":"/absolute/path/to/agent-workspace","env":{"PATH":"PATH","HOME":"ORG_AGENT_HOME","USER":"USER","LOGNAME":"LOGNAME"},"timeoutMs":120000,"maxOutputBytes":1048576}}}}
+```
+
+`ORG_AGENT_HOME`等のsourceはdaemon環境のown string値だけを解決します。別Agentのcredentialを同じchild変数名へ割り当てる場合もenv mapを使い、source変数名や未選択envはchildへ渡しません。HOMEを分けるだけではOSのKeychainや他ディレクトリへのアクセスを隔離しません。これはhostによる実行設定であり、AgentのMessageから変更できません。
 
 ```sh
 bun run start daemon --runtime-config ./runtime.local.json

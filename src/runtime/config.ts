@@ -11,6 +11,9 @@ export interface DriverConfig {
   readonly timeoutMs: number;
   readonly maxOutputBytes: number;
 }
+type RuntimeConfiguration = Partial<Record<'codex' | 'claude', DriverConfig>> & {
+  readonly agents?: Readonly<Record<string, Partial<Record<'codex' | 'claude', DriverConfig>>>>;
+};
 type Driver = (input: RuntimeTurnInput, signal?: AbortSignal) => Promise<RuntimeTurnResult>;
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -18,8 +21,11 @@ function record(value: unknown): value is Record<string, unknown> {
 export function parseRuntimeConfig(
   value: unknown,
   environment: Readonly<Record<string, string | undefined>>,
-): Partial<Record<'codex' | 'claude', DriverConfig>> {
-  if (!record(value) || Object.keys(value).some((key) => key !== 'codex' && key !== 'claude'))
+): RuntimeConfiguration {
+  if (
+    !record(value) ||
+    Object.keys(value).some((key) => key !== 'codex' && key !== 'claude' && key !== 'agents')
+  )
     throw new Error('Invalid runtime configuration');
   const result: Partial<Record<'codex' | 'claude', DriverConfig>> = {};
   for (const kind of ['codex', 'claude'] as const) {
@@ -38,21 +44,26 @@ export function parseRuntimeConfig(
       entry.cwd.includes('\0')
     )
       throw new Error('Runtime executable/cwd must be absolute paths');
-    const names = entry.env ?? [];
-    if (
-      !Array.isArray(names) ||
-      !names.every(
-        (name: unknown) => typeof name === 'string' && /^[A-Za-z_][A-Za-z0-9_]*$/.test(name),
-      )
-    )
-      throw new Error('Runtime env must contain environment variable names');
-    const env: Record<string, string> = {};
-    for (const name of names) {
-      if (typeof name !== 'string') throw new Error('Invalid runtime env name');
-      const secret = environment[name];
-      if (secret === undefined) throw new Error(`Runtime environment variable not set: ${name}`);
-      env[name] = secret;
-    }
+    const names = entry.env === undefined ? [] : entry.env;
+    if (!Array.isArray(names) && !record(names))
+      throw new Error('Runtime env must select host environment variable names');
+    const selections = Array.isArray(names)
+      ? names.map((name: unknown) => [name, name] as const)
+      : Object.entries(names);
+    const env = Object.fromEntries<string>(
+      selections.map(([name, source]) => {
+        if (
+          typeof name !== 'string' ||
+          !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) ||
+          typeof source !== 'string' ||
+          !/^[A-Za-z_][A-Za-z0-9_]*$/.test(source)
+        )
+          throw new Error('Runtime env must select host environment variable names');
+        const secret = Object.hasOwn(environment, source) ? environment[source] : undefined;
+        if (typeof secret !== 'string') throw new Error('Runtime environment variable not set');
+        return [name, secret];
+      }),
+    );
     const timeoutMs = entry.timeoutMs ?? 120000;
     const maxOutputBytes = entry.maxOutputBytes ?? 1048576;
     if (
@@ -67,7 +78,23 @@ export function parseRuntimeConfig(
       throw new Error('Invalid runtime limits');
     result[kind] = { executable: entry.executable, cwd: entry.cwd, env, timeoutMs, maxOutputBytes };
   }
-  return result;
+  if (value.agents === undefined) return result;
+  if (!record(value.agents)) throw new Error('Invalid Agent runtime profiles');
+  const agents = Object.fromEntries<Partial<Record<'codex' | 'claude', DriverConfig>>>(
+    Object.entries(value.agents).map(([id, profile]) => {
+      if (
+        !id.trim() ||
+        id.length > 128 ||
+        id.includes('\0') ||
+        !record(profile) ||
+        Object.keys(profile).some((key) => key !== 'codex' && key !== 'claude') ||
+        (profile.codex === undefined && profile.claude === undefined)
+      )
+        throw new Error('Invalid Agent runtime profile');
+      return [id, parseRuntimeConfig(profile, environment)];
+    }),
+  );
+  return { ...result, agents };
 }
 export function configuredDrivers(path?: string): Readonly<Record<'codex' | 'claude', Driver>> {
   const value: unknown = path === undefined ? {} : JSON.parse(readFileSync(path, 'utf8'));
@@ -75,7 +102,11 @@ export function configuredDrivers(path?: string): Readonly<Record<'codex' | 'cla
   const driver =
     (kind: 'codex' | 'claude'): Driver =>
     async (input, signal) => {
-      const config = configuration[kind];
+      const profiles = configuration.agents;
+      const config =
+        profiles && Object.hasOwn(profiles, input.agent.id)
+          ? profiles[input.agent.id]?.[kind]
+          : configuration[kind];
       if (!config)
         throw new Error(`Runtime ${kind} is not configured; use daemon --runtime-config`);
       const run = kind === 'codex' ? runCodexTurn : runClaudeTurn;
