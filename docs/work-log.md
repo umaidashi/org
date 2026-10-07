@@ -1371,3 +1371,5 @@
 - Final minor (deferred): baseline await中のcaller fields変更と、外部未選択fieldだけの変更を直接扱う回帰caseは未追加。canonical copyと送信前target再照合は正しいと評価。既存DIの変更入力/読取中Local version競合とnative全選択fieldのproofから、全ケース網羅へ拡大して主張しない。
 - Final Ruling: 実Linear認証/Team/参照のサーバ適用はfixtureから判断しない。誤ると実参照の拒否・異なる適用を見逃す。human文字列は本人認証ではない。誤るとなりすましを権限と誤認する。全MVP/実業務Issue→Draft PRの完了をslice公開から主張しない。誤ると業務の未納品を見逃す。原子的な外部競合排除は保証せずselected baseline preflightに限定する。誤ると読取後の選択field編集を上書きし得る。
 - Ruling: labelsは100個まで、照合は完全pageを要求する。続きの無視によるfalse successを避ける。誤ると100個超の正当なlabels更新をこの経路で扱えなくなるため境界をREADMEへ明記。
+- mainへ通常fast-forwardし`8d7ca0d`をorigin/mainへpush成功（終了0）。公開時点のHEAD/origin/main完全一致を確認。Lefthook push対象treeの全検査/実Jevは124.31秒で成功。秘密値・raw Notionを新規公開/意味レビュー送信していない。
+- 次の照合としてNotion 08 Securityを再取得（編集2026-10-04、欠損/切詰め警告なし）。Agent毎のcredential/tool/network/external scopeと、Promptだけに依存しない実行制約を維持。現在のLinear writeは明示human承認経路でありAgent操作とは扱わない。既存Task owner Message検証・Workflowのcapability/Agent別scope/credential機構を参照し、Agentからの外部操作へ再利用できる境界を次に詰める。TaskProvider全交換/Core対応/実API/実業務Draft PRなどの全体残件は維持する。
