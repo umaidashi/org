@@ -216,3 +216,5 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 2026-10-07追記: Codexのshared start/resumeからhost shell toolを外し、実0.160.1 baselineとの差と同provider resumeを観測。[証拠](verification/2026-10-07-codex-shell-boundary/)。全体のcredential injection/permission inventory/実業務受入は未完了。
 
 2026-10-07限定Sandbox credential追記: [実Dockerとdirect/RPC/continuous Runtime e2e](verification/2026-10-07-sandbox-credential-injection/)でfinite Agent/Task env注入を確認。Notion06のこの実行経路は検証済み。任意credential/network/同UID隔離/全体は認定せず、重要操作inventoryはAgent Linear読取から続ける。
+
+2026-10-07 Agent外部読取Audit追記: shared scoped Linear読取の開始/終端・保存失敗・結果8fieldを原本に接続。[証拠](verification/2026-10-07-agent-linear-read-audit/)。重要操作inventoryのこのgapは検証済み。Native tool/resource permissions/実業務APIと全体は未達。

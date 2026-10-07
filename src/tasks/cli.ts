@@ -1014,14 +1014,27 @@ export async function runTaskCommand(
       })),
     );
     const agents = new SqliteAgentRepository(command.db);
+    let events: SqliteEventBus | undefined;
     try {
-      const result = await readAgentLinearIssue(agents, scopes, secrets, fetch, {
-        agentId: command.action.agentId,
-        issueId: command.action.id,
-      });
+      events = new SqliteEventBus(command.db);
+      const result = await readAgentLinearIssue(
+        agents,
+        scopes,
+        secrets,
+        fetch,
+        {
+          agentId: command.action.agentId,
+          issueId: command.action.id,
+        },
+        { events, now: () => new Date().toISOString(), id: randomUUID },
+      );
       output(JSON.stringify(result, null, command.json ? undefined : 2));
     } finally {
-      agents.close();
+      try {
+        events?.close();
+      } finally {
+        agents.close();
+      }
     }
     return;
   }

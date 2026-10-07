@@ -1906,3 +1906,15 @@
 - 全localcheck terminal0: 511成功18skip0失敗529tests208files183.12秒。最後のtest追加後staticを再実行して非空format/ASTまで成功。実Jev2371subjects143warnings、missing/unsure/review/errors/degraded0。抽象failure-path warningsは具体native拒否/DI/既存検査と照合、未校正warningだけから新実装はしない。
 - Fresh reviewer C0/I0/M1、独立5成功35ms。Deferred Minor/Ponytail: single callerが常に渡すdaemon configのoptional/fake SecretStore fallback、net約-5行。正しさ変更なしのdefault defer。既知reference一意制約のsynthetic再現を了承。fresh reviewerはnative/full/Jev/外部auth/push/全体完了を認定しない。fix必須なし、再レビューなし。
 - [証拠](verification/2026-10-07-sandbox-credential-injection/)、README/監査更新。重複監査ファイルを既存completion-auditへ統合。全体は未達。次の[Agent Linear読取Audit](superpowers/plans/2026-10-07-agent-linear-read-audit.md)は実callerに原本記録がない具体gapとして進む。
+
+## 2026-10-07 — Agent Linear外部読取Audit
+
+- 全体達成へ継続。前Sandbox unit66668fd main push terminal0/localgate206.93秒、local/remote exact head一致を確認。
+- [計画](superpowers/plans/2026-10-07-agent-linear-read-audit.md): shared readAgentLinearIssueへEventBus/clock/IDをmandatory DI。scope拒否は開始/secret/HTTPゼロ、開始保存後のみ外部読取。read/reflection/late revoke失敗はfailed原本、成功結果の保存前は成功を返さない。秘密/Issue本文をEvent/Auditへコピーしない。
+- 既存buildLinearAudit/Task CLI EventBusへ配線。原本context/ID/closed終端とcanonical Issue UUIDを照合。output URLは既存parseLinearIssueを再利用。read actor/task/event/tool/input-output/time/result/approvalを表現、単独読取のTask/Event/Approvalはnull。
+- 初回REDは成功readのAuditゼロ→期待2。追加projection query URL拒否fixtureは既存URL契約（query許可）と不一致でfull510成功18skip1失敗182.09秒。Ruling: query URLを許す既存product契約を維持し、foreign-host拒否へfixture修正。機械編集scriptのsubstring不一致も記録し、sourceを読んで修正後の検査をやり直した。
+- Fresh reviewer C0/I0/M1: projectionがidentifier ORG-1を許す。一方producerはUUID限定。Ruling: closed Audit resource referenceとproducerの契約不一致としてImportantへ再grade — 不正参照の原本を正しい記録として表示しない — one-line UUID guardの費用で修正。synthetic started/failed identifier RED一件→GREEN、onefixpass/no rereview。deferred Minorなし、Ponytail Lean/net0。
+- 独立unit成功。独立CLIはdefault5秒と20秒再試験のdaemon not readyを報告、原因未確定。親native direct/daemon/reopenの8entries（4started/3succeeded/1failed）/拒否/API key非記録は3成功0失敗569ms。独立環境失敗を親成功で隠さず、実Linear認証/TCP配送の証拠としない（preload transport fixture）。
+- 最終全gate terminal0: 512成功18skip0失敗530tests208files183.40秒、type/Oxlint/Oxfmt/非空AST/dry-run成功。実Jev2376subjects145warnings、missing/unsure/review/errors/degraded0。abstract failure-path warningsにはAudit start/complete保存障害、外部失敗、revoke/反射/偽造孤立terminal/context/result/foreign-host/extra fieldの実際のcheckを対応させ、具体反例なし。
+- Ruling: 終端保存失敗のstartedだけは正しい未完了表示。trusted hostが原本と終端の両方を捏造/DB改変できる場合の本人認証や真のHTTP attestationは保証しない。単一Agent readで重要操作全件を充足と主張しない。
+- [証拠](verification/2026-10-07-agent-linear-read-audit/)とREADME更新。次の[Codex native tool境界](superpowers/plans/2026-10-07-codex-native-tool-boundary.md): installed0.160.1 view_image/apps/plugins/multi_agent/hooksが既定true、native false overrideは各falseを実表示。ViewImageの別登録guardとhooks keyは公式対応版sourceで確認。flag受理だけで実禁止と認定せず小さな対照e2eへ進む。resource permissions/重要操作inventory/実業務IssueとAPI/全体は未達。

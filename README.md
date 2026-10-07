@@ -940,3 +940,7 @@ org daemon --runtime-config ./runtime.local.json --sandbox-config ./sandbox.loca
 `--credential-config`はdirectとdaemon RPCの明示Sandbox runで使えます。`--sandbox-credentials`はcontinuous daemonのRuntime Sandbox提案へ適用します。Task owner/versionとcan_run_shell（repo読取/書込は対応capabilityも）を秘密取得前後に照合し、異なるownerのgrantは拒否します。grantのないTaskへ秘密は注入しません。
 
 target名は大文字の`_TOKEN`/`_KEY`/`_SECRET`/`_PASSWORD`末尾に限定し、最大16値/合計64KiB。stdinで実行childの環境だけへ渡し、Docker argv/inspect可能なcontainer設定/秘密ファイルへ保存しません。既知の値がstdout/stderr/収集fileへ反射すると成果物保存を拒否します。network-none/read-only/non-root/timeout/cancel/cleanupは継続します。符号化・変換された秘密や同UIDのhost隔離を保証する機能ではありません。
+
+## AgentによるLinear読取のAudit
+
+`task linear-get ISSUE_UUID --agent AGENT_ID`は既存scope/credential/capability検査に加え、原本Eventへ開始と成功/失敗を保存します。`audit list`/`agent tail`からactor・tool・Issue参照・時刻・resultを取得できます。Task/Event/Approvalに属さない単独読取では該当referenceはnullです。Issue本文やcredentialをAuditへコピーしません。開始保存に失敗すれば外部読取せず、結果保存に失敗すれば成功を返しません。startedだけの記録は未完了であり、外部読取が起きなかった証拠ではありません。

@@ -1,3 +1,5 @@
+import { createEvent } from '../events/domain.js';
+import type { EventBus } from '../events/port.js';
 import { requireCapability } from '../agents/domain.js';
 import type { AgentRepository } from '../agents/port.js';
 import type { SecretStore } from '../secrets/port.js';
@@ -76,24 +78,66 @@ export async function readAgentLinearIssue(
   secrets: Pick<SecretStore, 'getSecret'>,
   request: (url: string, init: RequestInit) => Promise<Response>,
   input: { readonly agentId: string; readonly issueId: string },
+  audit: {
+    readonly events: Pick<EventBus, 'publish'>;
+    readonly now: () => string;
+    readonly id: () => string;
+  },
 ) {
   const agentId = input.agentId,
     issueId = input.issueId;
   const configured = parseLinearAgentScopes(scopes);
   const authorize = () => requireAgentLinearScope(agents, configured, { agentId, issueId });
   authorize();
-  const issue = await readLinearIssue(
-    request,
-    {
-      getSecret: (actor, reference) => {
-        if (actor !== 'linear:host' || reference !== 'linear:read')
-          throw new Error('Secret access denied');
-        authorize();
-        return secrets.getSecret(agentId, 'linear:read');
-      },
-    },
-    issueId,
+  const requestId = 'linear-read:' + audit.id();
+  const context = { actorId: agentId, issueId, requestId };
+  audit.events.publish(
+    createEvent(
+      { type: 'linear.read.started', source: 'linear:agent', payload: context },
+      { id: requestId, createdAt: audit.now() },
+    ),
   );
-  authorize();
+  let issue: Awaited<ReturnType<typeof readLinearIssue>>;
+  try {
+    issue = await readLinearIssue(
+      request,
+      {
+        getSecret: (actor, reference) => {
+          if (actor !== 'linear:host' || reference !== 'linear:read')
+            throw new Error('Secret access denied');
+          authorize();
+          return secrets.getSecret(agentId, 'linear:read');
+        },
+      },
+      issueId,
+    );
+    authorize();
+  } catch (error) {
+    try {
+      audit.events.publish(
+        createEvent(
+          {
+            type: 'linear.read.completed',
+            source: 'linear:agent',
+            payload: { ...context, result: 'failed', outputRef: null },
+          },
+          { id: requestId + ':completed', createdAt: audit.now() },
+        ),
+      );
+    } catch (failure) {
+      throw new AggregateError([error, failure], 'Linear read failed and Audit could not be saved');
+    }
+    throw error;
+  }
+  audit.events.publish(
+    createEvent(
+      {
+        type: 'linear.read.completed',
+        source: 'linear:agent',
+        payload: { ...context, result: 'succeeded', outputRef: issue.url },
+      },
+      { id: requestId + ':completed', createdAt: audit.now() },
+    ),
+  );
   return issue;
 }

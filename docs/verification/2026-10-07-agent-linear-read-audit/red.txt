@@ -1,0 +1,27 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-agent-read.test.ts:
+60 |     if (fault) await assert.rejects(run);
+61 |     else assert.equal((await run()).id, id);
+62 |     assert.equal(calls, ['agent', 'scope', 'capability', 'start-audit'].includes(fault) ? 0 : 1);
+63 |     assert.equal(lookups, calls);
+64 |     const audit = buildLinearAudit(events, []);
+65 |     assert.equal(audit.length, ['agent','scope','capability','start-audit'].includes(fault) ? 0 : fault==='complete-audit' ? 1 : 2);
+                ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 2
+
+ generatedMessage: true,
+     actual: 0,
+   expected: 2,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/linear-agent-read.test.ts:65:12
+      at processTicksAndRejections (native:7:39)
+(fail) Agent Linear read checks scoped credentials and live capabilities without host fallback [5.39ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [36.00ms]

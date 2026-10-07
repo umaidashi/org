@@ -166,3 +166,7 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 ### 2026-10-07 限定Sandbox credential注入
 
 Host finite Agent/Task grant・Environment SecretStore・前後owner/version/capability再照合・Docker child stdinだけのenvを接続。既知反射をstdout/stderr/例外/decoded fileで拒否。direct/RPC/continuous Runtime autoの実CLIと実Docker全6成功41.27秒、通常full511成功18skip0失敗529tests208files183.12秒、実Jev2371subjects/欠損・エラー・劣化0。[証拠](verification/2026-10-07-sandbox-credential-injection/)。Networkなし/値をargv・container config・Artifactへ保存しない。限定Environment経路の証拠であり、未知/変換/部分秘密・同UID本人隔離・全credential backendを保証しない。Agent内reference一意制約。重要操作inventory/resource permissions/実業務API/全体は未達、[Agent外部読取Audit](superpowers/plans/2026-10-07-agent-linear-read-audit.md)へ続行。
+
+### 2026-10-07 Agent Linear読取Audit
+
+共有Agent scoped readの開始・終端を保存し、scope/開始保存障害前HTTPゼロ、成功返却前の終端保存、late revoke/外部失敗のfailed、秘密/本文非記録を検証。原本/closed終端/canonical UUIDと既存URL parserを再利用し、direct/daemon/reopen Audit8entriesを観測。[証拠](verification/2026-10-07-agent-linear-read-audit/) full512成功18skip0失敗530tests208files183.40秒、実Jev2376subjects/欠損・エラー・劣化0。preload fixtureであり実Linear認証/TCP配送は未証明。全重要操作/本人認証/resource permissions/実業務受入は未達。[Codex native tool境界](superpowers/plans/2026-10-07-codex-native-tool-boundary.md)へ継続。

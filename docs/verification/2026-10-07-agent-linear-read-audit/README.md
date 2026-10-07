@@ -1,0 +1,7 @@
+# Agent Linear read Audit verification
+
+- Initial RED: successful read has zero Audit instead of2. Canonical RED: synthetic started/failed with identifier is incorrectly accepted. Corrected with canonical UUID guard at projection boundary.
+- Focused final3 pass/0 fail/569ms; native direct/daemon/reopen fixture verifies8 entries (4starts/3success/1failed) and no credential/body copy. External request uses preload fixture; not real Linear API authentication or TCP delivery proof.
+- Final full localcheck512 pass/18skip/0fail,530tests208files183.40s; nonempty static/AST/dryrun; actualJev2376subjects, no missing/errors/degraded. Initial full510pass/18skip/1fail182.09s was wrong query URL fixture: existing parser allows query, corrected to foreign-host input rather than tightening product contract.
+- Fresh reviewer C0/I0/M1; canonical projection contract regradedImportant, one RED/GREEN fixpass, no rereview. Independent unit pass; independent daemon readiness timed out twice, no independently established cause; parent native pass is separate evidence. Ponytail Lean/net0.
+- Host able to fabricate both full original and terminal or editDB is outside trusted-local-host model; not authenticated-read attestation. Terminal persistence failure leaves started and fails caller; it does not certify API read never happened. All important operations/resource permissions/business acceptance remain incomplete.

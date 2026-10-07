@@ -4,6 +4,8 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
 import { cli } from './cli-path.js';
 import { SqliteAgentRepository } from '../src/agents/sqlite.js';
+import { SqliteEventBus } from '../src/events/sqlite.js';
+import { buildLinearAudit } from '../src/audit/linear.js';
 import { createAgent } from '../src/agents/domain.js';
 
 test('Agent scoped Linear read uses its dedicated credential and rejects unscoped issue and host fallback through direct daemon and reopen', async () => {
@@ -113,6 +115,28 @@ test('Agent scoped Linear read uses its dedicated credential and rejects unscope
     );
     assert.equal(denied.status, 1);
     assert.equal(denied.stdout, '');
+    const events = new SqliteEventBus(db);
+    try {
+      const records = buildLinearAudit(events.list(), []);
+      assert.equal(records.length, 8);
+      assert.equal(records.filter((record) => record.result === 'started').length, 4);
+      assert.equal(records.filter((record) => record.result === 'succeeded').length, 3);
+      assert.equal(records.filter((record) => record.result === 'failed').length, 1);
+      for (const record of records) {
+        assert.deepEqual(record.actor, { kind: 'agent', id: 'reader' });
+        assert.equal(record.tool, 'linear.read');
+        assert.equal(record.taskId, null);
+        assert.equal(record.eventId, null);
+        assert.equal(record.approvalId, null);
+        assert.equal(record.inputRef, 'org://linear/issues/' + id);
+        assert.ok(record.outputRef);
+        assert.ok(record.at);
+      }
+      assert.ok(!JSON.stringify(events.list()).includes('fixture-scoped-key'));
+      assert.ok(!JSON.stringify(events.list()).includes('fixture-host-key'));
+    } finally {
+      events.close();
+    }
   } finally {
     if (daemon) {
       daemon.kill('SIGTERM');

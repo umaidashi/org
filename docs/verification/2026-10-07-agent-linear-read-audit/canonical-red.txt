@@ -1,0 +1,21 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-agent-read.test.ts:
+134 |   const context={actorId:'agent',issueId:'ORG-1',requestId:'linear-read:invalid'};
+135 |   const events:Event[]=[
+136 |     {id:context.requestId,type:'linear.read.started',source:'linear:agent',payload:context,createdAt:'now'},
+137 |     {id:context.requestId+':completed',type:'linear.read.completed',source:'linear:agent',payload:{...context,result:'failed',outputRef:null},createdAt:'later'},
+138 |   ];
+139 |   assert.throws(()=>buildLinearAudit(events,[]),/context/);
+               ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/linear-agent-read.test.ts:139:10)
+(fail) Agent Linear read Audit rejects identifier references because scoped producer requires canonical UUID [1.07ms]
+
+ 0 pass
+ 1 filtered out
+ 1 fail
+Ran 1 test across 1 file. [65.00ms]
