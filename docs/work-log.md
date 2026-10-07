@@ -1418,3 +1418,6 @@
 - 全`bun run check`終了0: 415成功/12skip/0失敗、427tests/188files/112.38秒。static335files・AST fixture・非空dry-run2070対象。[証拠](verification/2026-10-07-task-bound-linear-update-execution/check.txt)。12skipは実機opt-inで今回実行したとは扱わない。
 - standalone dry-runを送信前に確認し、実Jev終了0: 2070subjects/126warning/missing0/unsure0/review0/errors[]/degraded[]。変更箇所の名前候補0.63/0.60と失敗経路候補0.80/0.70/0.69は、canonical承認検証とDI23ケース/native6ケースの具体証拠で判断し、自動renameや全経路網羅の主張はしない。
 - 独立最終review: Critical0/Important0/Minor0。CLI/daemon再解析からTask-bound resolver/既存update engineまで確認し、trusted callbackを引数から渡せないこと、旧human制限、承認/原本/owner/digest/mask/capability/専用credential/claim/receiptを検証。git diff --check成功。Ponytail: Lean already. Ship. full/Jevは親側の実行証拠に基づき、reviewerの独立再実行ではない。実API/本人認証/runtime/跨process原子性/外部CASと全体goalは未完了。
+- main通常fast-forwardとorigin/main push終了0。公開commit `44e615d`、公開時点HEAD/origin/main一致。Lefthook push対象treeの全検査/実Jev成功129.66秒。秘密/raw Notionを追加公開しない。
+- 次の照合でNotion 06 Runtimeを再取得（編集2026-10-04、欠損/切詰め警告なし）。Control/Execution Plane分離とRuntime非依存を維持する。既存runExecutionTaskのartifactなしwaiting_approvalとWorkflowの原本running snapshot/再開照合を確認。次はLinear提案をRuntimeからhuman操作承認待ちへ接続する小さなe2e。assigned管理操作を無条件runningへ広げず、host制約と原本実行version・履歴の一致を先に設計する。
+- .envは値を出さず設定有無だけ再確認: LINEAR_API_KEY=false/NOTION_API_KEY=false。実認証と対象未指定の実業務Draft PRは引き続き未完了、他のローカル作業は進める。全体goalはactive。
