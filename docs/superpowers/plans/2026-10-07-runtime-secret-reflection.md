@@ -1,0 +1,10 @@
+# Runtimeの既知環境値反射を保存前に拒否する
+
+Notion08のsecret redactionとユーザーの公開repo情報保護。既存configuredDriversは選択envを子processへ渡すが、返ったtext/sessionId/errorにその値が含まれる場合も保存できる。config wrapperを両driver共通の修正点とし、Session/Room/Memoryで個別置換しない。
+
+1. 既存Process関数PortをconfiguredDriversへDIできるようにして最小UTを実行。Codex/Claudeの正常JSONに選択private env値をtext/sessionIdとして含めるケースと、非zero stderr/Process例外に含めるケースをREDで確認。public process設定以外の選択env値を既知保護値とし、全Agent profileとdefaultの値をSetで共有して別Agent値の反射も拒否する。生のキー値をログへ出さない。
+2. PATH/HOME/TMPDIR/LANG/LC_ALL/TZ/NO_COLOR/FORCE_COLORはpublic process設定として扱い、他の選択envはprivateとする。空値をmatcherに使わない。privateな短い通常設定値は誤検出し得る制約を明記し、credentialなのか名前から推測するregexやmin-lengthによる短いsecretの除外はしない。
+3. actual stdout由来のtext/provider sessionIdはliteral値を検査して一致なら全応答を拒否し、架空のredacted回答をMessage/Memoryへ保存しない。エラーに反射している場合はcredentialを含まない定型Errorへ置換し、raw causeを保持しない。通常のtimeout/cancel/parser/非反射エラーの伝播を維持する。独自provider/redaction engine/新依存は不要。
+4. 既存native per-Agent profile fixtureはcredential値を返す検査から、fixtureだけのprivate side-channelで実際の注入/隔離を確認する方式に変える。Runtime応答はboolean等の非機密結果だけ返す。公開検証にactual keyや生responseを残さない。
+5. 実daemon CLIの両provider fixtureで拒否・failed Session・Room返信/Memory保存ゼロ・再起動原本保持を確認。text/ID/errorの具体的な反射をassertし、解析前のstderrにも適用する。実モデル/auth cacheの新しいsecretやエンコード/変換された未知secret、同UID物理隔離の全保証とは区別する。
+6. RED/GREEN/全gate/実Jev/fresh whole-unit reviewer一回/Ponytail、証拠・ログ・Gitとmain通常push。can_read/resource permissions/限定Sandbox credential/Webhook/実業務納品は別残件として進める。

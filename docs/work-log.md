@@ -1799,3 +1799,18 @@
 - Jev failure-path候補を確認: shared producerにはrun/save/開始・結果保存障害/キャンセル/不正digest/再実行の直接assert、decoderにはcompleted結果偽装の拒否assertがある。個別の全破損field・複合storage障害の全組合せ網羅は主張しない。warningだけで機能の正しさを自動判定しない。
 - 一回fix pass後の全gate/実Jev/native終了0、rereviewなし。今回の指摘2件は受け入れ/正しさとして処理済み、この単位の未解消Critical/Important/Minorなし。README/要件/監査を結果へ更新、全体未達は維持する。
 - Next: [全体ゴール再照合計画](superpowers/plans/2026-10-07-goal-reassessment.md)。古い監査の将来拡張まで無条件に必須化せず、原文と明示合意・実caller・検証・未回答情報を根拠に残件を判定する。再照合は未実行。
+
+### 2026-10-07 全体ゴール再照合（進行中）
+- `9df2eb4` Sandbox Audit main pushは全pre-push検査/実Jev198.19秒、終了0、main/origin/main一致。再照合は `docs/goal-reassessment` に分離した。
+- [計画](superpowers/plans/2026-10-07-goal-reassessment.md)を実行し、root/00–10の12ページを再取得・全件タイトル/内容を読んだ。全件成功、切詰め/未知block警告なし。本文as-ofは編集日時やNotion verification成功とは扱わない。保存snapshotの例示名一般化も維持し、raw原文を新公開証拠/Jevへ追加しない。
+- [再照合](goal-reassessment.md)で明示要求/現在の実callerと証拠/制約/候補/必要情報依存を分類。本文に列挙した4 Rulings（全自動化等の無条件必須化抑止、具体的permission/credential/Webhook/secret不足の維持、OS socketとprincipal認証の区別、fixtureと実サービス認証/業務納品の区別）を判断記録とする。全体未達は維持。
+- `.env`は設定有無だけ再確認: LINEAR_API_KEY/NOTION_API_KEYなし、TYPESAFE_API_KEYあり、TYPESAFEAI_API_KEY/ANTHROPIC_API_KEYなし。Claude MaxはAPI key必須ではない。実業務Issue/repoの既存質問へ未回答で、任意Issueを作成したり外部writeを推測しない。
+- source追跡でconfiguredDriversが選択envを渡す一方、Runtime text/sessionId/errorの既知private値反射を保存前に拒否しないことを確認。これは現在の具体的なsecret redaction不足として [次のTDD計画](superpowers/plans/2026-10-07-runtime-secret-reflection.md) へ進める。fieldだけのpermission・独自provider・意味推定engineを増やして完了にしない。
+- 今単位はsource/testを変更していない。前単位の最終gate/実Jev/nativeを再実行したとは扱わず、文書分類のfresh review/Ponytailとリンク整合を確認してGitへ残す。
+- 文書fresh review: Critical0/Important0/Minor1、Ponytail Lean already、git diff --check成功。再照合の分類は保存済みauthorityと整合、現sourceのpermissions/can_read/Runtime反射/Sandbox/Webhook不足を独立確認。source/test変更・独立全gate/外部API実行はしていない。
+- Final minor (deferred): 次のsecret-reflection計画の非zero stderrを一律REDとする表現。現在の両driverはstderr本文を破棄するため、そのケースは既存回帰のGREENであり、新しい欠落のREDとは区別する。次単位の実行記録で結果を偽らない。
+- Final Ruling: public process env名の除外はtrusted hostがその値を公開設定として選んだ契約で、alias名だけから値の非機密性を証明しない — 現行configuration authorityを維持 — public名へcredentialを割り当てる誤設定はこの除外で保護できない。次単位に制約を明記する。
+- Final Ruling: reviewer判断対象外のfresh Notion12件/完全性・10再取得、現在key有無、最新gate/Docker/Jev/pushは親の観測で判断し、編集日時/verification成功や今回のClaudeログイン再検証は主張しない — 取得・設定有無と過去実機証拠を区別 — 混同すると古いauthや取得statusが現在も成立したと過大評価する。
+- Final Ruling: reviewer判断対象外の全permission境界/全Audit inventoryと未実装secret実効性・未知/変換secret/auth cache/同UID隔離は未完了/未証明のまま — 現source不足の確認は修正の成功ではない — この区別を失うと秘密/権限保護を誤って完了扱いする。
+- Final Ruling: reviewer判断対象外の実Linear/Notion CLI/実Webhook/指定業務納品・全体は未達のまま — 保留情報と未実装の独立必須作業を分ける — fixtureや文書整理だけで達成にはしない。
+- 文書3filesの相対link2件の実在とgit diff --checkを確認。code/testは `9df2eb4` と同一で、Agent全gate/実Jevの追加重複実行は行わず、ステージ済み/push対象hookは現行規則のまま。次単位の実装前REDへ継続する。
