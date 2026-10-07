@@ -1173,3 +1173,13 @@
 - 全check346成功12skip0失敗358tests175files84.70秒、型/Oxlint/Oxfmt/ASTと空でないreview plan成功。実jev1779対象112warning、missing/unsure0、errors/degraded空、exit0。[検証](verification/2026-10-07-workflow-artifact-recovery/check.txt)。task/observeのfailure-path補助候補は具体的DI/nativeのassertと独立レビューで判定する。
 - 共通Artifact保存callerを確認し、次の根本障害を所有子プロセスのulimit -f 1で再現。32KiB blobの書込みがexit1、最終hash名へ1024byteだけ残り、制限なしの再保存もintegrity mismatchでexit1。既存保存済みblobを上書きせず、同directoryの一時fileから完全書込み後に公開する最小stdlib修正を次に検証する。実業務対象/認証の指定待ちと区別し、全体達成とは主張しない。
 - 独立最終review Critical0/Important0/Minor0、DI3成功66ms/diff check成功。Ponytail: Lean already. Ship. terminal結合のMapは既存receiptを再利用するため必要、新framework/依存/Portなし。一般backoff・部分blob・保存後DB staging障害は保証対象外という判定を採用（範囲外障害は別途復旧の検証が必要）。一回のreviewで終了。Nextは共通Artifactの部分書込み時に最終hash名を残さない処理をTDDで実装する。
+
+## 2026-10-07 共通Artifactの完全書込み後公開
+
+- 前変更91bac2bはmain/origin一致。通常pushのpre-push全gate106.41秒で成功。全体ゴールは引き続きactive。Notion Securityを再取得し、Coreのidempotency/retry/cancellation責務を再照合（編集日2026-10-04、原文は新規保存/jev送信しない）。
+- [計画](superpowers/plans/2026-10-07-artifact-atomic-publication.md)。指針/referenceを確認。共通saveSandboxArtifactとdaemonのWorkflow/Sandbox/observe/resume、直接Sandbox CLI、Task Artifact読取りの全callerを確認。所有file-size制限で壊れた最終hash名が残る根本原因を修正する。
+- native RED1成功1失敗99ms、32KiB書込み失敗後に最終digest fileが残る。共通保存を排他private一時fileへ書込み/close→stdlib linkで上書きなし公開→finally自己temp削除へ変更。EEXISTの既存hash検証とsymlink拒否を維持。新Port/FS mock/依存/retry frameworkなし。対象GREEN3成功94ms、失敗後cleanup/再保存/同内容同時保存/Task attachment境界を確認。
+- 実Docker→実CLI→Artifact→明示人間reviewの既存最小e2e1成功1.77秒、exit0。実jev1780対象112warning、missing/unsure0/errors/degraded空、exit0。read/saveのfailure-path候補は全障害を証明するものではなく、具体的file-size障害と既存symlink/Task境界および独立source reviewを併用。
+- 独立review Critical0/Important0、Ponytail: Lean already. Ship. 対象3成功96ms。Minor deferred: 新fixtureのURL.pathnameは空白/日本語checkoutでpercent-encoded importとなる可能性。現在のcheckoutは影響なし、他pathへの移動時にfileURLToPathで対応する。
+- Ruling: SIGKILL時temp回収・停電耐久性・同UIDの意図的directory置換・Windows/hardlink非対応FSは今回保証しない。既存private directory/POSIX環境の正常失敗cleanupと完全書込み後公開を検証対象とする。コストは対象外条件で手動cleanup/別durability・隔離方式/互換Adapterが必要。既存破損blobは安全上自動上書きしない。
+- 全check347成功12skip0失敗359tests175files89.29秒、型/Oxlint/Oxfmt/ASTと非空review plan成功、exit0。[検証](verification/2026-10-07-artifact-atomic-publication/check.txt)。新規の部分blob公開を防ぐ範囲をrequirementsへ反映。全体ゴールの実業務Issue/repo→Draft PR、実Notion/Linear認証、一般tool loop/cron/calendar/意味Memory・他scope処理などは未完了として維持する。

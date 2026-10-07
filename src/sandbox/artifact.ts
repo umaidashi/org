@@ -1,7 +1,7 @@
 import { constants } from 'node:fs';
-import { open, mkdir, lstat } from 'node:fs/promises';
+import { open, mkdir, lstat, link, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 function hash(bytes: Uint8Array): string {
   return createHash('sha256').update(bytes).digest('hex');
 }
@@ -32,21 +32,27 @@ export async function saveSandboxArtifact(directory: string, bytes: Uint8Array):
     throw new Error('Artifact directory must not be a symlink');
   const digest = hash(bytes);
   const uri = `org://artifacts/${digest}`;
+  const temporary = join(directory, '.tmp-' + randomUUID());
+  const file = await open(temporary, 'wx', 0o400);
   try {
-    const file = await open(join(directory, digest), 'wx', 0o400);
     try {
       await file.writeFile(bytes);
     } finally {
       await file.close();
     }
-  } catch (error) {
-    if (
-      error === null ||
-      typeof error !== 'object' ||
-      !('code' in error) ||
-      error.code !== 'EEXIST'
-    )
-      throw error;
+    try {
+      await link(temporary, join(directory, digest));
+    } catch (error) {
+      if (
+        error === null ||
+        typeof error !== 'object' ||
+        !('code' in error) ||
+        error.code !== 'EEXIST'
+      )
+        throw error;
+    }
+  } finally {
+    await unlink(temporary);
   }
   await readSandboxArtifact(directory, uri);
   return uri;

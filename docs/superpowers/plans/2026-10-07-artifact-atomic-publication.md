@@ -1,0 +1,8 @@
+# Artifactの完全書込み後の公開
+
+1. 共通saveSandboxArtifactの全callerを確認。所有子プロセスへPOSIX file-size limitを設定し、32KiB blobの書込み失敗後に通常の再保存が成功するテストを追加してREDを確認する。
+2. 同じprivate directoryの排他的な一時fileへ書込み、close後にstdlib linkで最終hash名へ上書きなしで公開する。EEXISTは既存blobの検証を維持し、通常失敗時は自分の一時fileだけを削除する。
+3. 同内容の同時保存、既存不変blob・symlink拒否・失敗後の再保存を確認。新PortやFS mock、一般retry frameworkは作らない。
+4. 全check、実jev、独立/Ponytailレビューとmain反映を記録する。
+
+既存の破損blobを自動上書きせず、新しい部分書込みを最終名に公開しない。SIGKILL時の一時file回収とpower-loss durabilityは保証しない。Workflow保存先障害のstatus-only復旧とは別の共通保存契約を検証する。

@@ -1,0 +1,9 @@
+Artifact complete-write publication — 2026-10-07
+Native RED: 1pass1fail99ms, limited owned child left final digest filename after failed32KiB write; exit1.
+Targeted GREEN: 3pass0fail94ms. Controlled file-size write failure leaves no blobs/temp, normal retry succeeds, same-content concurrent publication returns identical URI/content, existing symlink and Task attachment checks retained.
+Actual Docker/Sandbox CLI: 1pass0fail1.77s, Artifact persisted and explicit human review completed, exit0.
+Full check: 347pass12skip0fail359tests175files89.29s, exit0. Type/Oxlint/Oxfmt/AST and nonempty dry-run review plan passed.
+Actual Jev: subjects1780/reported112/missing0/unsure0/errors[]/degraded[], exit0. Shared read/save failure-path candidates remain advisory; controlled native fault and independent source review assess the change.
+Independent review: Critical0/Important0; targeted3pass96ms. Ponytail: Lean already. Ship.
+Deferred Minor: test fixture uses URL.pathname, percent-encoding may break import in a checkout path containing spaces/non-ASCII; current checkout unaffected.
+Ruling/limits: no SIGKILL orphan-temp collection, power-loss durability, physical isolation from same-UID directory mutation, Windows/non-hardlink-FS guarantee. POSIX private-directory behavior is the verified scope; outside it requires manual cleanup, durability/isolation/compatibility work. Existing corrupt digest blobs are not overwritten automatically.
