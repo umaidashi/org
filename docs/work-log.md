@@ -1126,3 +1126,13 @@
 - 共有配線の実Claude Max回帰3成功0fail51.31秒（実Claude48.34秒）、既存provider設定でMemory自動採用・直近30件外からfresh Session引継ぎ・原本再起動不変を確認。新Agent profileの別credential値は公開fixtureでの選択検証であり、別Maxアカウント認証の成功とは扱わない。
 - 独立最終review Critical/Important/Minor0、独立config/Codex/Claude/Session service14成功36ms。明示profile missing runtime拒否・own string env・registered Session Actor選択・cancel継続・物理隔離との区別を照合。Ponytail独立review Lean already. Ship. 再reviewなし。[証拠](verification/2026-10-07-agent-runtime-profiles/check.txt)。全体未完了は要件表に保持。
 - Next: 重要操作の権限制御を、既存Workflow host契約・Approval binding・実行前再照合へ接続する。publish/spend等の宣言済み操作に対する追加capabilityをhostが指定できる経路を、現在のPort/validatorを再利用して検証する。実業務Issue/変更先repo・実Notion/Linear認証の回答待ちだけでローカル実装を停止しない。
+
+## 2026-10-07 Workflow追加Capabilityの着手
+
+- Agent runtime profilesのmain pushは成功（`111cb1a..5adb3f5`）。pre-pushのcommit対象検査も85.94秒で成功し、working treeはclean。
+- 全体目標は未達成。次のローカル課題として重要操作の権限を既存Workflow host契約・Task Approval bindingへ接続する。[実装計画](superpowers/plans/2026-10-07-workflow-required-capabilities.md)。指針とreferenceを再読し、Task実行・承認要求・再開・観測・daemon callbackを追跡した。
+- hostの任意追加Capabilityを既存validatorで検証し、承認後の契約変更も拒否する。ノード解析や別permission frameworkは導入しない。業務Issue/repo・実API認証は回答待ちであり、今回の検証とは区別する。
+- RED UTは1成功1失敗29ms（can_publish不足で例外なし）。native REDもbase5adb3f5の所有temp snapshotへ新e2eを適用して0成功2失敗313ms、旧allowlist parserが追加契約を拒否することを確認しtempを削除した。
+- Workflow host任意requiredCapabilitiesを既存validateCapabilitiesで検証。publish/spendをread_onlyに宣言する設定はcredential lookup前に拒否。Task ownerへ全追加権限を要求し、既存Task Approval bindingへコピー保存、再開・継続観測の原本再構築にも反映。daemon callbackはhost契約を渡す。新Port/DB/dependencyなし。
+- 初回型検査でexactOptionalPropertyTypesのundefined渡しが失敗し、配列fallbackへ修正。既存DI4成功41ms、設定境界3成功29ms。全check初回339成功12skip0失敗72.34秒、追加設定境界込み最終340成功12skip0失敗352tests175files73.37秒。nativeのmanual/auto両経路も成功。実jev1762対象113warning、missing/unsure0/errors/degraded空、exit0。意味警告は補助候補であり、自動的な合格/業務承認と扱わない。
+- [検証](verification/2026-10-07-workflow-required-capabilities/check.txt)。独立最終reviewを依頼済み。実業務publish/spendの実行・業務Issue/repo・実Notion/Linear認証は未完了。

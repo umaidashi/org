@@ -1,7 +1,7 @@
 import { TaskResultPendingError } from '../tasks/execution.js';
 import { createEvent, type Event } from '../events/domain.js';
 import { createHash } from 'node:crypto';
-import { requireCapability } from '../agents/domain.js';
+import { requireCapability, validateCapabilities, type Capability } from '../agents/domain.js';
 import type { AgentRepository } from '../agents/port.js';
 import type { Task, TaskArtifact } from '../tasks/domain.js';
 import type { TaskProvider } from '../tasks/port.js';
@@ -26,11 +26,13 @@ export async function produceTaskWorkflowArtifact(
     readonly workflows?: readonly {
       readonly id: string;
       readonly effect: 'read_only' | 'write' | 'irreversible';
+      readonly requiredCapabilities?: readonly Capability[];
     }[];
     readonly requestApproval?: (
       running: Task,
       message: Message,
       effect: 'write' | 'irreversible',
+      requiredCapabilities: readonly Capability[],
     ) => void;
     readonly approved?: { readonly approvalId: string };
     agentRuntime(
@@ -54,6 +56,7 @@ export async function produceTaskWorkflowArtifact(
     ...(cancellation ? [cancellation] : []),
   ]);
   let writeEffect = false;
+  let requiredCapabilities: readonly Capability[] = [];
   const authorize = () => {
     if (signal.aborted) throw new Error('Workflow Task cancelled or timed out');
     const task = tasks.get(running.id);
@@ -74,19 +77,21 @@ export async function produceTaskWorkflowArtifact(
     ] as const)
       requireCapability(owner, capability);
     if (writeEffect) requireCapability(owner, 'can_write');
+    for (const capability of requiredCapabilities) requireCapability(owner, capability);
     return owner;
   };
   const owner = authorize();
   const proposal = parseWorkflowProposal(message.content);
-  const effect =
-    configured.workflows?.find((workflow) => workflow.id === proposal.workflowId)?.effect ??
-    'read_only';
+  const workflow = configured.workflows?.find((workflow) => workflow.id === proposal.workflowId);
+  const effect = workflow?.effect ?? 'read_only';
+  requiredCapabilities = validateCapabilities(workflow?.requiredCapabilities ?? []);
+  authorize();
   if (effect !== 'read_only') {
     writeEffect = true;
     requireCapability(owner, 'can_write');
     if (configured.approved === undefined) {
       if (!configured.requestApproval) throw new Error('Workflow operation Approval unavailable');
-      configured.requestApproval(running, message, effect);
+      configured.requestApproval(running, message, effect, requiredCapabilities);
       return null;
     }
   }

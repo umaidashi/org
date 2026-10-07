@@ -22,6 +22,7 @@ test('resume rechecks native Approval and latest Task before resolving credentia
         'can_access_network',
         'can_contact_external',
         'can_write',
+        'can_publish',
       ],
     },
     { id: 'a', createdAt: '0' },
@@ -70,6 +71,7 @@ test('resume rechecks native Approval and latest Task before resolving credentia
       host: 'https://n8n.example',
       effect: 'write',
       phase: 'running',
+      requiredCapabilities: ['can_publish'],
     },
     { id: 'approval', createdAt: '3' },
   );
@@ -82,6 +84,7 @@ test('resume rechecks native Approval and latest Task before resolving credentia
     cancelDuringStatus = false;
   let controller = new AbortController();
   const events = new Map<string, Event>();
+  let requiredCapabilities: readonly ('can_publish' | 'can_spend')[] = ['can_publish'];
   const run = () =>
     resumeTaskWorkflow(
       {
@@ -114,7 +117,7 @@ test('resume rechecks native Approval and latest Task before resolving credentia
       },
       {
         host: 'https://n8n.example',
-        workflows: [{ id: 'flow', effect: 'write' }],
+        workflows: [{ id: 'flow', effect: 'write', requiredCapabilities }],
         approvedAgentRuntime: async () => {
           resolutions++;
           if (retarget) current = changeTask(waiting, { title: 'changed' }, '4');
@@ -170,6 +173,13 @@ test('resume rechecks native Approval and latest Task before resolving credentia
   await assert.rejects(run);
   assert.equal(resolutions, 0);
   owner = agent;
+  requiredCapabilities = [];
+  await assert.rejects(run, /does not match original proposal/);
+  assert.equal(resolutions, 0);
+  requiredCapabilities = ['can_publish', 'can_spend'];
+  await assert.rejects(run, /can_spend/);
+  assert.equal(resolutions, 0);
+  requiredCapabilities = ['can_publish'];
   activeRoom = { ...room, archivedAt: 'closed' };
   await assert.rejects(run);
   assert.equal(resolutions, 0);

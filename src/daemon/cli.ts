@@ -427,7 +427,7 @@ function openOperations(
                 message,
                 {
                   ...workflow,
-                  requestApproval: (running, message, effect) => {
+                  requestApproval: (running, message, effect, requiredCapabilities) => {
                     requestTaskWorkflowApproval(
                       taskProvider,
                       agentRepository,
@@ -440,6 +440,7 @@ function openOperations(
                         expectedVersion: running.version,
                         host: workflow.host,
                         effect,
+                        requiredCapabilities,
                         phase: 'running',
                       },
                       { id: randomUUID(), createdAt: new Date().toISOString() },

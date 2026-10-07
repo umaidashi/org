@@ -154,6 +154,8 @@ async function proof(auto: boolean): Promise<void> {
         'can_access_network',
         'can_contact_external',
         'can_write',
+        'can_publish',
+        'can_spend',
       ].flatMap((c) => ['--capability', c]),
     ]);
     assert.equal(created.code, 0, created.err);
@@ -166,7 +168,14 @@ async function proof(auto: boolean): Promise<void> {
         baseUrl: `http://127.0.0.1:${server.port}`,
         apiKeyEnv: 'ORG_HOST_KEY',
         taskWaitTimeoutMs: 200,
-        workflows: [{ id: 'flow', path: 'check', effect: 'write' }],
+        workflows: [
+          {
+            id: 'flow',
+            path: 'check',
+            effect: 'write',
+            requiredCapabilities: ['can_publish', 'can_spend'],
+          },
+        ],
         agentScopes: [
           { agentId: owner, workflowIds: ['flow'], apiKeyEnv: 'ORG_AGENT_KEY', effect: 'write' },
         ],
@@ -207,6 +216,13 @@ async function proof(auto: boolean): Promise<void> {
         typeof approvals[0].request.id === 'string',
     );
     const approval = approvals[0].request.id;
+    assert.ok(
+      record(approvals[0].request.operation) && record(approvals[0].request.operation.binding),
+    );
+    assert.deepEqual(approvals[0].request.operation.binding.requiredCapabilities, [
+      'can_publish',
+      'can_spend',
+    ]);
     assert.equal(
       (
         await raw([

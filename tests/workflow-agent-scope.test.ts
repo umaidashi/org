@@ -3,6 +3,68 @@ import { test } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { configuredWorkflowRuntime } from '../src/workflows/cli.js';
 
+test('Workflow required capabilities reject invalid or read-only publish/spend contracts before credentials', async () => {
+  const home = mkdtempSync('/tmp/org-workflow-capabilities-'),
+    path = home + '/config.json';
+  let reads = 0;
+  const secrets = {
+    getSecret: () => {
+      reads++;
+      return 'fixture-key';
+    },
+  };
+  try {
+    for (const requiredCapabilities of [
+      null,
+      'can_publish',
+      ['unknown'],
+      ['can_publish', 'can_publish'],
+    ]) {
+      writeFileSync(
+        path,
+        JSON.stringify({
+          baseUrl: 'http://127.0.0.1:1',
+          apiKeyEnv: 'ORG_KEY',
+          workflows: [{ id: 'flow', path: 'check', effect: 'write', requiredCapabilities }],
+        }),
+      );
+      await assert.rejects(configuredWorkflowRuntime(path, secrets), /capabilities/);
+    }
+    for (const capability of ['can_publish', 'can_spend']) {
+      writeFileSync(
+        path,
+        JSON.stringify({
+          baseUrl: 'http://127.0.0.1:1',
+          apiKeyEnv: 'ORG_KEY',
+          workflows: [{ id: 'flow', path: 'check', requiredCapabilities: [capability] }],
+        }),
+      );
+      await assert.rejects(configuredWorkflowRuntime(path, secrets), /operation Approval/);
+    }
+    assert.equal(reads, 0);
+    writeFileSync(
+      path,
+      JSON.stringify({
+        baseUrl: 'http://127.0.0.1:1',
+        apiKeyEnv: 'ORG_KEY',
+        workflows: [
+          {
+            id: 'flow',
+            path: 'check',
+            effect: 'irreversible',
+            requiredCapabilities: ['can_publish', 'can_spend'],
+          },
+        ],
+      }),
+    );
+    const configured = await configuredWorkflowRuntime(path, secrets);
+    assert.deepEqual(configured.workflows[0]?.requiredCapabilities, ['can_publish', 'can_spend']);
+    assert.equal(reads, 1);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test('Agent Workflow scope rejects unapproved targets before reading its own native-only credential', async () => {
   const home = mkdtempSync('/tmp/org-workflow-agent-scope-'),
     path = home + '/config.json';

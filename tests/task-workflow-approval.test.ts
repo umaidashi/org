@@ -51,6 +51,7 @@ test('native Task Workflow approval binds current owner version and immutable pr
   let owner = agent;
   let latestRoom = room;
   let latestMessage = message;
+  let requiredCapabilities: readonly ('can_publish' | 'can_spend')[] = [];
   const request = () =>
     requestTaskWorkflowApproval(
       { get: () => current },
@@ -69,6 +70,7 @@ test('native Task Workflow approval binds current owner version and immutable pr
         expectedVersion: task.version,
         host: 'https://n8n.example',
         effect: 'write',
+        requiredCapabilities,
       },
       { id: 'approval', createdAt: '3' },
     );
@@ -84,6 +86,15 @@ test('native Task Workflow approval binds current owner version and immutable pr
   assert.equal(result.operation.workflowId, 'flow');
   assert.match(result.operation.inputDigest, /^[a-f0-9]{64}$/);
   assert.equal(writes, 1);
+  requiredCapabilities = ['can_publish', 'can_spend'];
+  assert.throws(request, /can_publish/);
+  assert.equal(writes, 1);
+  owner = { ...agent, capabilities: [...(agent.capabilities ?? []), 'can_publish', 'can_spend'] };
+  const scoped = request();
+  assert.deepEqual(scoped.operation.binding?.requiredCapabilities, requiredCapabilities);
+  requiredCapabilities = [];
+  owner = agent;
+  writes = 1;
   current = { ...task, version: task.version + 1 };
   assert.throws(request);
   assert.equal(writes, 1);

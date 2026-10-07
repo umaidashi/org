@@ -4,7 +4,7 @@ import { changeTask, type Task } from '../tasks/domain.js';
 import { TaskResultPendingError } from '../tasks/execution.js';
 import type { TaskProvider, ExecutionResultWriter } from '../tasks/port.js';
 import type { AgentRepository } from '../agents/port.js';
-import { requireCapability } from '../agents/domain.js';
+import { requireCapability, type Capability } from '../agents/domain.js';
 import type { RoomRepository } from '../rooms/port.js';
 import { requireTaskOwnerMessage } from '../tasks/proposal.js';
 import type { ApprovalStore } from '../approvals/port.js';
@@ -32,6 +32,7 @@ export async function observeTaskWorkflow(
     readonly workflows: readonly {
       readonly id: string;
       readonly effect: 'read_only' | 'write' | 'irreversible';
+      readonly requiredCapabilities?: readonly Capability[];
     }[];
     agentRuntime(
       agentId: string,
@@ -143,6 +144,8 @@ export async function observeTaskWorkflow(
       requireCapability(owner, capability);
     if (blocked.dependencies.some((dep) => tasks.get(dep).status !== 'completed'))
       throw new Error('Task dependencies not complete');
+    for (const capability of workflow.requiredCapabilities ?? [])
+      requireCapability(owner, capability);
     let approval: Approval | undefined;
     if (workflow.effect !== 'read_only') {
       if (typeof claim.payload.approvalId !== 'string')
@@ -187,6 +190,7 @@ export async function observeTaskWorkflow(
           expectedVersion: original.version,
           host: configured.host,
           effect: workflow.effect,
+          requiredCapabilities: workflow.requiredCapabilities ?? [],
           phase: 'running',
         },
         { id: request.id, createdAt: request.createdAt },
@@ -256,6 +260,8 @@ export async function observeTaskWorkflow(
     ] as const)
       requireCapability(owner, capability);
     if (verified.workflow.effect !== 'read_only') requireCapability(owner, 'can_write');
+    for (const capability of verified.workflow.requiredCapabilities ?? [])
+      requireCapability(owner, capability);
   };
   try {
     const artifact = await collectTaskWorkflowArtifact(

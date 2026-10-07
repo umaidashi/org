@@ -1,4 +1,5 @@
 import { createApprovalDecision } from '../approvals/domain.js';
+import { validateCapabilities, type Capability } from '../agents/domain.js';
 import type { Approval } from '../approvals/domain.js';
 import { createApprovalRequest } from '../approvals/domain.js';
 import { SqliteApprovalStore } from '../approvals/sqlite.js';
@@ -174,10 +175,17 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
   const workflows = value.workflows.map(
     (
       workflow: unknown,
-    ): { id: string; path: string; effect: 'read_only' | 'write' | 'irreversible' } => {
+    ): {
+      id: string;
+      path: string;
+      effect: 'read_only' | 'write' | 'irreversible';
+      requiredCapabilities?: readonly Capability[];
+    } => {
       if (
         !record(workflow) ||
-        Object.keys(workflow).some((key) => !['id', 'path', 'effect'].includes(key)) ||
+        Object.keys(workflow).some(
+          (key) => !['id', 'path', 'effect', 'requiredCapabilities'].includes(key),
+        ) ||
         typeof workflow.id !== 'string' ||
         typeof workflow.path !== 'string'
       )
@@ -185,7 +193,21 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
       const effect: unknown = workflow.effect ?? 'read_only';
       if (effect !== 'read_only' && effect !== 'write' && effect !== 'irreversible')
         throw new Error('Invalid Workflow effect');
-      return { id: workflow.id, path: workflow.path, effect };
+      const requiredCapabilities =
+        workflow.requiredCapabilities === undefined
+          ? []
+          : validateCapabilities(workflow.requiredCapabilities);
+      if (
+        effect === 'read_only' &&
+        requiredCapabilities.some((c) => c === 'can_publish' || c === 'can_spend')
+      )
+        throw new Error('Publish and spend Workflows require operation Approval');
+      return {
+        id: workflow.id,
+        path: workflow.path,
+        effect,
+        ...(requiredCapabilities.length ? { requiredCapabilities } : {}),
+      };
     },
   );
   const rawScopes: unknown = value.agentScopes ?? [];
@@ -271,6 +293,8 @@ export async function configuredWorkflowRuntime(path: string, secrets?: SecretSt
         request.operation.host !== host ||
         request.operation.workflowId !== workflowId ||
         request.operation.effect !== workflow.effect ||
+        JSON.stringify(request.operation.binding.requiredCapabilities ?? []) !==
+          JSON.stringify(workflow.requiredCapabilities ?? []) ||
         scope.effect !== workflow.effect
       )
         throw new Error('Approved Agent Workflow scope denied');

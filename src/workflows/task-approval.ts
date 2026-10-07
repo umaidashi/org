@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { requireCapability } from '../agents/domain.js';
+import { requireCapability, validateCapabilities, type Capability } from '../agents/domain.js';
 import type { AgentRepository } from '../agents/port.js';
 import type { TaskProvider } from '../tasks/port.js';
 import type { RoomRepository } from '../rooms/port.js';
@@ -16,6 +16,7 @@ export interface TaskWorkflowApprovalInput {
   readonly host: string;
   readonly effect: 'write' | 'irreversible';
   readonly phase?: 'running';
+  readonly requiredCapabilities?: readonly Capability[];
 }
 export function requestTaskWorkflowApproval(
   tasks: Pick<TaskProvider, 'get'>,
@@ -51,6 +52,8 @@ export function requestTaskWorkflowApproval(
   ] as const)
     requireCapability(owner, capability);
   const proposal = parseWorkflowProposal(message.content);
+  const requiredCapabilities = validateCapabilities(input.requiredCapabilities ?? []);
+  for (const capability of requiredCapabilities) requireCapability(owner, capability);
   const requestId = 'workflow:task:' + createHash('sha256').update(task.id).digest('hex');
   const request = createApprovalRequest(
     {
@@ -69,6 +72,7 @@ export function requestTaskWorkflowApproval(
         effect: input.effect,
         binding: {
           taskVersion: task.version,
+          ...(requiredCapabilities.length ? { requiredCapabilities } : {}),
           proposalRef: `org://rooms/${encodeURIComponent(room.id)}/messages/${encodeURIComponent(message.id)}`,
         },
       },

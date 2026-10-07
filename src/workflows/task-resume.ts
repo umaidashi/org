@@ -3,6 +3,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { changeTask, type Task } from '../tasks/domain.js';
 import type { TaskProvider, ExecutionResultWriter } from '../tasks/port.js';
 import type { AgentRepository } from '../agents/port.js';
+import type { Capability } from '../agents/domain.js';
 import type { RoomRepository } from '../rooms/port.js';
 import type { ApprovalStore } from '../approvals/port.js';
 import type { Approval } from '../approvals/domain.js';
@@ -23,6 +24,7 @@ export async function resumeTaskWorkflow(
     readonly workflows: readonly {
       readonly id: string;
       readonly effect: 'read_only' | 'write' | 'irreversible';
+      readonly requiredCapabilities?: readonly Capability[];
     }[];
     approvedAgentRuntime(
       agentId: string,
@@ -98,6 +100,7 @@ export async function resumeTaskWorkflow(
         expectedVersion: original.version,
         host: configured.host,
         effect: workflow.effect,
+        requiredCapabilities: workflow.requiredCapabilities ?? [],
         phase: 'running',
       },
       { id: request.id, createdAt: request.createdAt },

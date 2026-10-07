@@ -1,0 +1,9 @@
+Workflow追加Capability — 2026-10-07
+RED UT: 1 pass / 1 fail, 29ms; Missing expected exception at can_publish denial.
+RED native: baseline5adb3f5 + new native test, 0 pass / 2 fail, 313ms; Invalid Workflow allowlist. Owned temp snapshot removed.
+Initial typecheck failed: exactOptionalPropertyTypes disallows passing undefined; explicit [] fallback fixed.
+Initial check: 339 pass / 12 skip / 0 fail, 351tests175files72.34s, exit0.
+Final check incl input-boundary tests: 340 pass / 12 skip / 0 fail, 352tests175files73.37s, exit0. type/oxlint/oxfmt/AST + nonempty review:plan passed.
+Real Jev: subjects1762 / reported113 / missing0 / unsure0 / errors[] / degraded[], exit0. Dry-run is separate.
+Native fixture covers host publish/spend declaration, immutable Approval binding, pending no invocation, human decision, daemon restart, one invocation, delayed status-only manual/automatic observation.
+Independent review pending. No actual business publish/spend claimed; existing business Issue/repository and actual Linear/Notion credentials still pending.

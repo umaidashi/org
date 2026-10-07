@@ -9,13 +9,16 @@ export interface PermissionOperation {
 export interface TaskWorkflowBinding {
   readonly taskVersion: number;
   readonly proposalRef: string;
+  readonly requiredCapabilities?: readonly Capability[];
 }
 export function parseTaskWorkflowBinding(value: unknown): TaskWorkflowBinding {
   if (
     !value ||
     typeof value !== 'object' ||
     Array.isArray(value) ||
-    Object.keys(value).some((key) => !['taskVersion', 'proposalRef'].includes(key)) ||
+    Object.keys(value).some(
+      (key) => !['taskVersion', 'proposalRef', 'requiredCapabilities'].includes(key),
+    ) ||
     !('taskVersion' in value) ||
     typeof value.taskVersion !== 'number' ||
     !Number.isSafeInteger(value.taskVersion) ||
@@ -40,7 +43,13 @@ export function parseTaskWorkflowBinding(value: unknown): TaskWorkflowBinding {
   } catch {
     throw new Error('Invalid Task Workflow proposal reference');
   }
-  return { taskVersion: value.taskVersion, proposalRef: value.proposalRef };
+  const required =
+    'requiredCapabilities' in value ? validateCapabilities(value.requiredCapabilities) : [];
+  return {
+    taskVersion: value.taskVersion,
+    proposalRef: value.proposalRef,
+    ...(required.length ? { requiredCapabilities: required } : {}),
+  };
 }
 export interface WorkflowOperation {
   readonly kind: 'workflow_invocation';

@@ -561,6 +561,8 @@ assigned ExecutionTaskの最新version、owner Agent、active Task Roomの原本
 
 hostの`workflows`とAgentの`agentScopes`で同じ`effect: "write"`または`"irreversible"`を明示すると、Runtime提案を操作Approvalへ固定してTaskが`waiting_approval`に止まります。この時点ではAgent credentialを読まず、外部Workflowを呼びません。outputArtifactがないため結果レビューもできません。
 
+hostの各Workflowには任意の`requiredCapabilities`（例：`["can_publish", "can_spend"]`）を指定できます。Task ownerに全権限が必要で、承認要求・実行前・継続観測で再照合します。要求する権限はTask Approvalにも固定され、承認後に契約が変わった場合は再開を拒否します。`can_publish` / `can_spend`を要求するWorkflowに`read_only`は指定できません。省略時は既存の権限条件を維持します。副作用の種類は信頼されたホスト設定者が宣言し、n8nのノード内容から推測しません。
+
 ```sh
 bun run start approval list --json
 bun run start approval decide APPROVAL_ID --actor founder --decision approve --reason '対象と入力を確認' --json
@@ -676,4 +678,3 @@ WorkItemをCoordinator Roomへ渡すには、`room create TITLE --type task --ta
 `event import-github-webhook OWNER/REPO --payload RAW_JSON --signature sha256=HEX --delivery UUID --json`は、hostの`GITHUB_WEBHOOK_SECRET`でraw UTF-8 bodyのHMAC-SHA256を検証し、既存EventBusへ一度だけ保存します。公開repoのissues opened/edited/closed/reopenedだけが対象です。payloadは64KiBまで、repo/Issue URL/日時も照合します。
 
 同じbodyはdelivery headerが変わっても初回Eventを返し、既存Subscriptionから重複Taskを作りません。新Issueや外部APIへの書込みは行いません。これは署名済みpayloadのCLI取込境界で、公開HTTP endpoint・GitHubからの実配送・REST pollingとの横断dedupは未実装です。署名は配送の鮮度を証明しません。
-
