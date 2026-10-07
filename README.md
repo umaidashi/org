@@ -673,6 +673,8 @@ Notion文書をRoomの不変原本へ取り込む場合は `knowledge notion PAG
 
 `bun --env-file=.env src/cli.ts --direct task linear-get ORG-1 --json` は既存Issueを読み取ります。`LINEAR_API_KEY`はPersonal API keyを設定し、daemon経由はdaemon起動時に設定します。UUIDまたはTEAM番号を指定でき、固定GraphQL queryのみで新Issue・mutation・local WorkItem同期は行いません。HTTP fixtureのCLI検証と実Linear APIの認証成功は区別します。
 
+Agentの読取制約を使う管理操作は `task linear-get ISSUE_UUID --agent AGENT_ID --json`。host側の`ORG_LINEAR_AGENT_SCOPES`に設定JSONのpathを指定します。設定は `[ { "agentId": "AGENT_ID", "issueIds": ["ISSUE_UUID"], "apiKeyEnv": "AGENT_LINEAR_KEY" } ]` の形式で、値そのものを設定ファイルへ書きません。登録済みAgentの`can_read`・`can_access_network`・`can_contact_external`、canonical UUID allowlist、明示した専用環境変数を照合し、`LINEAR_API_KEY`へのfallbackは行いません。daemon経由はdaemon hostの設定とキーを使います。読取後にも権限を再照合します。設定はcommand開始時のsnapshotです。これはAgent本人認証やruntime tool接続ではなく、管理者によるAgent制約付き読取です。Agentからの更新提案・承認付きwriteは引き続き未完了です。
+
 `task linear-list --team ORG --limit 20 --json`は指定チームの一ページだけを読み、`nodes`と`pageInfo`を返します。上限50、次ページは返されたcursorを`--after CURSOR`へ明示入力します。全件自動取得・DB保存・外部書込みは行いません。
 
 `task import-linear ORG-1 --json` は既存Issueの初回snapshotをlocal WorkItemへ保存します。同じ内容の再取込は現在のlocal進捗を返し、外部本文変更はconflictを返します。内部作業は `task create TITLE --objective OBJECTIVE --kind execution_task --parent WORK_ITEM_ID` で分離できます。双方向同期は未実装です。

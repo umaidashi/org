@@ -34,6 +34,8 @@ import {
 } from '../linear/read.js';
 import type { LinearIssueListInput } from '../linear/read.js';
 import { EnvironmentSecretStore } from '../secrets/environment.js';
+import { readFileSync } from 'node:fs';
+import { parseLinearAgentScopes, readAgentLinearIssue } from '../linear/agent-read.js';
 import { readSandboxArtifact } from '../sandbox/artifact.js';
 import { randomUUID } from 'node:crypto';
 import { reviewTaskResult } from './review.js';
@@ -77,7 +79,7 @@ type TaskAction =
   | { kind: 'request-linear-comment'; input: LinearCommentInput & { readonly key: string } }
   | { kind: 'apply-linear-comment'; input: LinearCommentInput & { readonly approvalId: string } }
   | { kind: 'linear-list'; input: LinearIssueListInput }
-  | { kind: 'linear-get'; id: string }
+  | { kind: 'linear-get'; id: string; agentId?: string }
   | { kind: 'import-linear'; id: string }
   | { kind: 'refresh-linear'; id: string; expectedVersion: number }
   | { kind: 'review'; id: string; input: TaskReviewInput }
@@ -145,6 +147,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       body: { type: 'string' },
       key: { type: 'string' },
       actor: { type: 'string' },
+      agent: { type: 'string' },
       decision: { type: 'string' },
       reason: { type: 'string' },
       'expected-version': { type: 'string' },
@@ -180,7 +183,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     'apply-linear-comment': ['expected-version', 'actor', 'body', 'approval'],
     'observe-linear-comment': ['actor', 'approval'],
     'linear-list': ['team', 'limit', 'after'],
-    'linear-get': [],
+    'linear-get': ['agent'],
     'import-linear': [],
     'refresh-linear': ['expected-version'],
     review: ['actor', 'reason', 'decision', 'expected-version'],
@@ -329,6 +332,14 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     };
     validateLinearIssueListInput(input);
     return { ...common, action: { kind: 'linear-list', input } };
+  }
+  if (action === 'linear-get' && values.agent !== undefined) {
+    const issueId = validateLinearIssueId(required(id, 'Issue ID'));
+    if (!/^[a-f0-9-]{36}$/.test(issueId)) throw new Error('Agent read requires Issue UUID');
+    return {
+      ...common,
+      action: { kind: 'linear-get', id: issueId, agentId: required(values.agent, '--agent') },
+    };
   }
   if (action === 'linear-get' || action === 'import-linear')
     return {
@@ -509,6 +520,35 @@ export async function runTaskCommand(
   command: TaskCommand,
   output: (line: string) => void = console.log,
 ): Promise<void> {
+  if (command.action.kind === 'linear-get' && command.action.agentId !== undefined) {
+    let value: unknown;
+    try {
+      const path = process.env.ORG_LINEAR_AGENT_SCOPES;
+      if (!path) throw new Error('Missing scope configuration');
+      value = JSON.parse(readFileSync(path, 'utf8'));
+    } catch {
+      throw new Error('Agent Linear scope configuration unavailable');
+    }
+    const scopes = parseLinearAgentScopes(value);
+    const secrets = new EnvironmentSecretStore(
+      scopes.map((scope) => ({
+        actorId: scope.agentId,
+        reference: 'linear:read',
+        environmentVariable: scope.apiKeyEnv,
+      })),
+    );
+    const agents = new SqliteAgentRepository(command.db);
+    try {
+      const result = await readAgentLinearIssue(agents, scopes, secrets, fetch, {
+        agentId: command.action.agentId,
+        issueId: command.action.id,
+      });
+      output(JSON.stringify(result, null, command.json ? undefined : 2));
+    } finally {
+      agents.close();
+    }
+    return;
+  }
   if (command.action.kind === 'linear-get' || command.action.kind === 'linear-list') {
     const secrets = new EnvironmentSecretStore([
       { actorId: 'linear:host', reference: 'linear:read', environmentVariable: 'LINEAR_API_KEY' },

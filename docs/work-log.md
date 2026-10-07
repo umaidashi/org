@@ -1373,3 +1373,16 @@
 - Ruling: labelsは100個まで、照合は完全pageを要求する。続きの無視によるfalse successを避ける。誤ると100個超の正当なlabels更新をこの経路で扱えなくなるため境界をREADMEへ明記。
 - mainへ通常fast-forwardし`8d7ca0d`をorigin/mainへpush成功（終了0）。公開時点のHEAD/origin/main完全一致を確認。Lefthook push対象treeの全検査/実Jevは124.31秒で成功。秘密値・raw Notionを新規公開/意味レビュー送信していない。
 - 次の照合としてNotion 08 Securityを再取得（編集2026-10-04、欠損/切詰め警告なし）。Agent毎のcredential/tool/network/external scopeと、Promptだけに依存しない実行制約を維持。現在のLinear writeは明示human承認経路でありAgent操作とは扱わない。既存Task owner Message検証・Workflowのcapability/Agent別scope/credential機構を参照し、Agentからの外部操作へ再利用できる境界を次に詰める。TaskProvider全交換/Core対応/実API/実業務Draft PRなどの全体残件は維持する。
+
+## 2026-10-07 Agent別Linear読取scope
+
+- ユーザーの「達成してください」に従い全体goalをactiveのまま継続。[計画](superpowers/plans/2026-10-07-linear-agent-read-scope.md)。既存human更新をAgent名で迂回せず、まず専用credential/Issue scopeによる読取の小さなe2eへ分割。実装前に指針・リファレンス・既存Workflow scope・Task owner Message・Linear HTTP境界を確認。
+- 新service未存在のUT RED（0成功/1失敗/1 import error、33ms）と実CLI未対応`--agent` RED（0成功/1失敗、117ms）を確認。UUID allowlist・closed設定・Agent read/network/contact_external・専用SecretStore actor/referenceを実装。既存readLinearIssueの固定query、timeout、bounded response、資格情報反射拒否を再利用。秘密はRuntimeへ渡さずhostで解決する。
+- DIで未知Agent/scope外/権限不足の秘密取得・HTTPゼロ、読取中権限撤回で出力拒否、secret反射、設定の未知field/重複Agent/Issue/不正UUID/環境変数名を検証。direct/daemon/reopen e2eは専用キー不足で共通host keyへfallbackしないことを確認。初回daemon fixtureはRPCまで横取りして失敗したため、固定Linear endpointだけをfixture化しRPCは元fetchへ通した。製品障害とは扱わない。最終focused3成功/0失敗2.07秒、旧human read/list/import/refresh経路も維持。
+- Ponytail review: Lean already. Ship. 既存HTTP境界/環境SecretStoreを再利用し、依存・table・retry・新permission frameworkは追加しない。正しさ・安全性を別途レビューする。
+- Ruling: これは管理CLIがAgentの制約を使う読取であり本人認証・実runtime toolではない。誤るとAgent名指定を本人認証と誤認する。host設定はcommand snapshot、途中の設定file変更は監視しない。誤るとin-flight scope撤回を即時停止と誤認する。live Agent capabilityは読取後に再照合する。
+- Agent提案/Task binding/承認write、実API認証、TaskProvider交換、実業務Draft PR等は未完了。fixture成功から全体達成とは主張しない。
+- 全`bun run check`終了0: 404成功/12skip/0失敗、416tests/184files/106.99秒。static330files・AST fixture・非空dry-run2024対象。[証拠](verification/2026-10-07-linear-agent-read-scope/check.txt)。fast UTへ新テストを追加し140成功/49files/187ms。
+- 実Jev終了0: 2024subjects/125reported warning、missing0/unsure0/review0、errors[]/degraded[]。新parser/readの失敗経路候補0.76/0.72と旧CLI候補0.81/0.79を具体DI/native proofと独立reviewで評価。全失敗経路網羅の主張や警告閾値による自動renameはしない。
+- 独立最終review: Critical0/Important0/Minor0。閉じたparser、host/RPC設定境界、暗黙fallbackなし、snapshotと旧human互換を確認。独立検証は不正parser入力6件とHTTP中caller入力/scope変更のsnapshot保持が終了0。Ponytail: Lean already. Ship. full/Jevは親Agentの実行証拠であり独立再実行ではない。
+- Final Ruling: 実Linear認証はfixtureから保証しない（誤ると実サービスでの拒否を見逃す）。本人認証/runtime接続と全体goal完了も保証しない（誤るとなりすまし/未納品を見逃す）。host管理者が専用env名に共通キーを明示設定することは禁止せず、暗黙fallbackなしに限定する（誤ると物理credential分離を保証したと誤認する）。DI SecretStore内部の悪意ある同期変更はtrusted port境界外、通常EnvironmentSecretStoreにawaitはない（誤るとtrusted Adapterが破られた時の送信を見逃す）。deferred minorなし。
