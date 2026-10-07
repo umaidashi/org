@@ -1,0 +1,9 @@
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+$ bun --no-env-file node_modules/oxfmt/bin/oxfmt --check src tests scripts package.json tsconfig.json .oxlintrc.json .oxfmtrc.json
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 23ms on 366 files using 8 threads.
+$ ast-grep scan src --report-style short --color never

@@ -239,7 +239,7 @@ bun run start session history SESSION_ID --json
 bun run start session stop SESSION_ID --json
 ```
 
-Agentはactive Roomの参加者で、明示`can_read`を持つ必要があります。作成時は`--capability can_read`を指定し、既存Agentへの付与/失効は後述のhuman Approvalとrevision CASを使います。legacy/権限省略は既定拒否です。Runtime送信前と完了保存前に登録/runtime/Room参加/権限を再照合し、実行中の失効後は新provider ID・返信・成果物を保存しません。既存provider IDは保持します。Sessionの開始・送信はRuntimeの完了まで待機し、別のterminalからstopできます。待機時間はRuntime設定で制限します。daemon停止時は実行中のturnを中止して終了を待ち、再起動時に残ったrunning状態はfailedへ復旧します。provider Session IDを維持してresumeします。Codexはread-only/approval neverと`features.shell_tool=false`でhost shell toolを外し、ClaudeはMaxのログインを使えるsafe-modeで起動し、tools・custom hooks・MCP・slash commandsを無効にします。管理policyはClaude Codeの優先規則に従います。自動e2eは実subprocessのfixtureを使用します。実Codexでも開始→同じprovider IDで再開→停止を別途確認済みです。実Claude MaxでもAPIキーなしで開始→同じprovider IDで再開→Task実行→承認待ち→停止を確認済みです。
+Agentはactive Roomの参加者で、明示`can_read`を持つ必要があります。作成時は`--capability can_read`を指定し、既存Agentへの付与/失効は後述のhuman Approvalとrevision CASを使います。legacy/権限省略は既定拒否です。Runtime送信前と完了保存前に登録/runtime/Room参加/権限を再照合し、実行中の失効後は新provider ID・返信・成果物を保存しません。既存provider IDは保持します。Sessionの開始・送信はRuntimeの完了まで待機し、別のterminalからstopできます。待機時間はRuntime設定で制限します。daemon停止時は実行中のturnを中止して終了を待ち、再起動時に残ったrunning状態はfailedへ復旧します。provider Session IDを維持してresumeします。Codexはread-only/approval neverに加え、native shell・view_image・hooks/legacy notify・apps・plugins・native委譲・web_searchを無効化する固定設定を渡し、ClaudeはMaxのログインを使えるsafe-modeで起動し、tools・custom hooks・MCP・slash commandsを無効にします。管理policyはClaude Codeの優先規則に従います。自動e2eは実subprocessのfixtureを使用します。実Codexでも開始→同じprovider IDで再開→停止を別途確認済みです。実Claude MaxでもAPIキーなしで開始→同じprovider IDで再開→Task実行→承認待ち→停止を確認済みです。
 
 RoomのMessageに応答を残す場合は、保存済みのMessage IDを指定します。
 

@@ -170,3 +170,5 @@ Host finite Agent/Task grant・Environment SecretStore・前後owner/version/cap
 ### 2026-10-07 Agent Linear読取Audit
 
 共有Agent scoped readの開始・終端を保存し、scope/開始保存障害前HTTPゼロ、成功返却前の終端保存、late revoke/外部失敗のfailed、秘密/本文非記録を検証。原本/closed終端/canonical UUIDと既存URL parserを再利用し、direct/daemon/reopen Audit8entriesを観測。[証拠](verification/2026-10-07-agent-linear-read-audit/) full512成功18skip0失敗530tests208files183.40秒、実Jev2376subjects/欠損・エラー・劣化0。preload fixtureであり実Linear認証/TCP配送は未証明。全重要操作/本人認証/resource permissions/実業務受入は未達。[Codex native tool境界](superpowers/plans/2026-10-07-codex-native-tool-boundary.md)へ継続。
+
+2026-10-07 Codex native境界: shared start/resumeのoperative設定と独立legacy notify抑止を実Codexで確認。[証拠](verification/2026-10-07-codex-native-tool-boundary/)。imageはsource/設定以上の実読取証明なし。全tool/任意版/本人認証/全体は未達、[Sandbox完了後権限](superpowers/plans/2026-10-07-sandbox-completion-authority.md)へ続行。

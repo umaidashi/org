@@ -1918,3 +1918,12 @@
 - 最終全gate terminal0: 512成功18skip0失敗530tests208files183.40秒、type/Oxlint/Oxfmt/非空AST/dry-run成功。実Jev2376subjects145warnings、missing/unsure/review/errors/degraded0。abstract failure-path warningsにはAudit start/complete保存障害、外部失敗、revoke/反射/偽造孤立terminal/context/result/foreign-host/extra fieldの実際のcheckを対応させ、具体反例なし。
 - Ruling: 終端保存失敗のstartedだけは正しい未完了表示。trusted hostが原本と終端の両方を捏造/DB改変できる場合の本人認証や真のHTTP attestationは保証しない。単一Agent readで重要操作全件を充足と主張しない。
 - [証拠](verification/2026-10-07-agent-linear-read-audit/)とREADME更新。次の[Codex native tool境界](superpowers/plans/2026-10-07-codex-native-tool-boundary.md): installed0.160.1 view_image/apps/plugins/multi_agent/hooksが既定true、native false overrideは各falseを実表示。ViewImageの別登録guardとhooks keyは公式対応版sourceで確認。flag受理だけで実禁止と認定せず小さな対照e2eへ進む。resource permissions/重要操作inventory/実業務IssueとAPI/全体は未達。
+
+## 2026-10-07 — Codex native tool境界
+
+- 前unit57cd857 main通常push terminal0/localgate207.19秒。進行中の全体達成を継続。
+- [計画](superpowers/plans/2026-10-07-codex-native-tool-boundary.md)を実行しshared start/resumeへinstalled0.160.1のoperative設定を固定。Ruling: legacy notifyはhooks=falseと独立して発火する実対照があるためnotify=[]も必要。新provider/toolengineは不要。
+- 追加flag/notify assert RED→focused8成功。実notify baseline発火・disable未発火・同provider resume成功。image対照はassistant応答とsource guardまで、tool item欠如だけを実file読取不存在と扱わない。初回image stderrあり、後続有効PNGでも独立read証明なし。
+- Fresh reviewer C0/I0/M1: marker未quote。親は空白path実検証とowned tempdir境界の堅牢性としてImportantへ再grade、RED→shell位置引数一fixpass、native1成功24.01秒、再レビューなし。Ponytail Lean/net0、image_generationは注入executor条件のため既定迂回反例なし、推測実装をskip。
+- fixture修正前full512成功19skip0失敗531tests209files183.61秒。修正後static366files/type/Oxlint/Oxfmt/非空ASTと実Jev2378subjects/missing・unsure・review・errors・degraded0、terminal0。最終commit treeの全回帰は必須pre-pushで確認する。abstract warningだけから追加実装しない。
+- [証拠](verification/2026-10-07-codex-native-tool-boundary/)。任意版/managed config/MCP/全native tool/本人認証の保証には広げない。resource permissions/重要操作inventory/実業務API/全体は未達。[Sandbox完了権限再照合](superpowers/plans/2026-10-07-sandbox-completion-authority.md)へ続行。

@@ -1,0 +1,53 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/codex-turn.test.ts:
+(pass) Codex command injects role and instructions via stdin and resumes only the requested session [1.44ms]
+(pass) Codex response requires a completed turn and rejects protocol failures or inconsistent sessions
+(pass) Codex turn runner uses the injected process boundary and never accepts failed process output [1.29ms]
+(pass) Codex resumed response cannot succeed without a completed assistant reply
+106 |           'features.plugins=false',
+107 |           'features.multi_agent=false',
+108 |           'web_search="disabled"',
+109 |         ]) {
+110 |           const index = processInput.argv.indexOf(flag);
+111 |           assert.ok(index > 0);
+                       ^
+AssertionError: false == true
+ generatedMessage: true,
+     actual: false,
+   expected: true,
+   operator: "==",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:111:18
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:99:14
+      at runCodexTurn (/Users/umaidashi/Documents/git/org/src/runtime/codex.ts:90:24)
+      at runCodexTurn (/Users/umaidashi/Documents/git/org/src/runtime/codex.ts:85:3)
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:98:11
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:91:131
+(fail) Codex start disables native shell execution before handing off to the process [0.87ms]
+106 |           'features.plugins=false',
+107 |           'features.multi_agent=false',
+108 |           'web_search="disabled"',
+109 |         ]) {
+110 |           const index = processInput.argv.indexOf(flag);
+111 |           assert.ok(index > 0);
+                       ^
+AssertionError: false == true
+ generatedMessage: true,
+     actual: false,
+   expected: true,
+   operator: "==",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:111:18
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:99:14
+      at runCodexTurn (/Users/umaidashi/Documents/git/org/src/runtime/codex.ts:90:24)
+      at runCodexTurn (/Users/umaidashi/Documents/git/org/src/runtime/codex.ts:85:3)
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:98:11
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:91:131
+(fail) Codex resume disables native shell execution before handing off to the process [0.03ms]
+
+ 4 pass
+ 2 fail
+Ran 6 tests across 1 file. [53.00ms]

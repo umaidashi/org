@@ -1,0 +1,24 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/codex-native-tools-real.test.ts:
+50 |       await Bun.sleep(100);
+51 |       return turn;
+52 |     };
+53 |     try {
+54 |       await run(true);
+55 |       assert.ok(existsSync(marker));
+                  ^
+AssertionError: false == true
+ generatedMessage: true,
+     actual: false,
+   expected: true,
+   operator: "==",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/codex-native-tools-real.test.ts:55:14
+      at processTicksAndRejections (native:7:39)
+(fail) real Codex native overrides suppress legacy notify and preserve same-provider resume [7298.06ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [7.35s]

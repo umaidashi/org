@@ -97,7 +97,16 @@ for (const sessionId of [undefined, 'thread-1'])
     };
     await runCodexTurn(
       async (processInput) => {
-        for (const flag of ['features.shell_tool=false']) {
+        for (const flag of [
+          'features.shell_tool=false',
+          'features.view_image=false',
+          'features.hooks=false',
+          'notify=[]',
+          'features.apps=false',
+          'features.plugins=false',
+          'features.multi_agent=false',
+          'web_search="disabled"',
+        ]) {
           const index = processInput.argv.indexOf(flag);
           assert.ok(index > 0);
           assert.equal(processInput.argv[index - 1], '-c');

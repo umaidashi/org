@@ -20,6 +20,20 @@ export function codexCommand(
     'approval_policy="never"',
     '-c',
     'features.shell_tool=false',
+    '-c',
+    'features.view_image=false',
+    '-c',
+    'features.hooks=false',
+    '-c',
+    'notify=[]',
+    '-c',
+    'features.apps=false',
+    '-c',
+    'features.plugins=false',
+    '-c',
+    'features.multi_agent=false',
+    '-c',
+    'web_search="disabled"',
   );
   if (input.sessionId !== undefined) argv.push(input.sessionId);
   argv.push('-');

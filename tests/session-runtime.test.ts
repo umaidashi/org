@@ -42,7 +42,8 @@ for (const runtime of ['codex', 'claude'] as const) {
       const message = ${runtime === 'codex' ? 'JSON.parse(raw).message' : 'raw'};
       if (message === 'wait') setInterval(() => {}, 100);
       else if (${JSON.stringify(runtime)} === 'codex') {
-        for(const flag of ['features.shell_tool=false']) {
+        for(const flag of ['features.shell_tool=false', 'features.view_image=false', 'features.hooks=false',
+            'notify=[]', 'features.apps=false', 'features.plugins=false', 'features.multi_agent=false', 'web_search="disabled"']) {
           const index=process.argv.indexOf(flag);if(index<1||process.argv[index-1]!=='-c')throw new Error('Native shell boundary missing');
         }
         console.log(JSON.stringify({type:'thread.started',thread_id:'provider'}));
