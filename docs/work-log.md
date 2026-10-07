@@ -1183,3 +1183,15 @@
 - 独立review Critical0/Important0、Ponytail: Lean already. Ship. 対象3成功96ms。Minor deferred: 新fixtureのURL.pathnameは空白/日本語checkoutでpercent-encoded importとなる可能性。現在のcheckoutは影響なし、他pathへの移動時にfileURLToPathで対応する。
 - Ruling: SIGKILL時temp回収・停電耐久性・同UIDの意図的directory置換・Windows/hardlink非対応FSは今回保証しない。既存private directory/POSIX環境の正常失敗cleanupと完全書込み後公開を検証対象とする。コストは対象外条件で手動cleanup/別durability・隔離方式/互換Adapterが必要。既存破損blobは安全上自動上書きしない。
 - 全check347成功12skip0失敗359tests175files89.29秒、型/Oxlint/Oxfmt/ASTと非空review plan成功、exit0。[検証](verification/2026-10-07-artifact-atomic-publication/check.txt)。新規の部分blob公開を防ぐ範囲をrequirementsへ反映。全体ゴールの実業務Issue/repo→Draft PR、実Notion/Linear認証、一般tool loop/cron/calendar/意味Memory・他scope処理などは未完了として維持する。
+
+## 2026-10-07 保存済み成果物のTask関連付け復旧
+
+- 前ターンはWorkflow保存復旧と共通Artifact完全書込み後公開の進捗。9dfc349はmain/origin一致・clean、通常pushのpre-push全gate106.50秒で成功、347成功12skip0失敗89.18秒。
+- [計画](superpowers/plans/2026-10-07-task-result-staging-recovery.md)。指針/referenceと既存ExecutionResultWriterの全3caller・SQLite stageの原子transactionを確認。結果は既に存在するが関連付けだけ失敗するとfailedへ固定される経路を、既存pending/blocked/CASとWorkflow terminal観測へ接続する。新state/table/Port/retry frameworkなし。
+- DI初回RED3成功1失敗48ms、stage errorが既存pending型へ変換されない。nativeは所有SQLiteのArtifact INSERTだけを拒否するtriggerで検証する。
+- native RED6成功2失敗17.19秒、INSERT拒否後のfailed!=blocked。共有stagePendingExecutionResultを既存execution moduleへ追加し全3callerで再利用。成果物があるstage errorだけpendingへ変換し、producer errorは従来failed。状態記録は元version CASで、並行判断を上書きしない。DI7成功54ms、native8成功19.69秒、障害trigger解除/同DB/socket再起動/元Approvalと追加Capability/status-only成果物→人間review、外部invoke一回を確認。
+- Notion Task抽象化を再取得し、Local ExecutionとWorkItemの分離、TaskProviderのArtifact関連付けとblocked→waiting_approvalを再照合（編集日2026-10-04）。原文を新規保存/jev送信しない。一般Taskのstage失敗も保存待ちとし自動再実行しないが、Workflow以外の再関連付けCLIとDB全体停止時の復旧は未完了。
+- 独立最終review Critical0/Important0/Minor0、Ponytail: Lean already. Ship. Reviewerは全3caller・Runtime/Sandboxへの共有経路・SQLite原子rollback・元version CASをsource確認、独立テスト再実行なし。作者の実行結果を証拠とする。非Workflowの再関連付けとDB全体停止時の復旧は今回範囲外という判定を採用（対象外の障害には別の復旧経路が必要）。一回のreviewで終了。
+- 実jev1786対象113warning、missing/unsure0/errors/degraded空、exit0。既存authorizeの名前候補とexecute/resume/observeのfailure-path候補は具体的DI/native assertと独立source確認で判定し、未再現の全障害まで成功とは扱わない。
+- 最終check350成功12skip0失敗362tests175files91.85秒、型/Oxlint/Oxfmt/ASTと非空review plan成功、exit0。共有stageを通る実Docker/Sandbox CLI1成功1.63秒、成果物保存→明示人間review成功。[検証](verification/2026-10-07-task-result-staging-recovery/check.txt)。
+- Next: Workflow以外の保存済みRuntime結果を、原本Room/Message/SessionとTask履歴を照合して再関連付けする明示経路を検証する。一般retry・実務Issue/repo→Draft PR・実Notion/Linear認証など全体の未完了項目は維持する。

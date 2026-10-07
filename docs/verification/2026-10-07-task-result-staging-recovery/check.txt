@@ -1,0 +1,9 @@
+Task result staging recovery — 2026-10-07
+DI RED: 3pass1fail48ms; stage failure was not mapped to pending. Native RED: 6pass2fail17.19s, failed != blocked after owned SQLite trigger denied Artifact INSERT.
+DI GREEN: 7pass0fail54ms; producer failure remains failed, successful production followed by stage failure is pending/blocked, concurrent failure remains unchanged by original-version CAS.
+Native GREEN: 8pass0fail19.69s. Normal, SIGKILL, Artifact-directory failure and SQLite stage failure, each manual/auto. Same DB/socket, original human Approval and extra Capability checks, repair/restart/status-only/human review, exactly one external invocation.
+Final full check: 350pass12skip0fail362tests175files91.85s, exit0. Type/Oxlint/Oxfmt/AST and nonempty review plan passed.
+Real Docker/Sandbox CLI: 1pass0fail1.63s, persisted Artifact and explicit human review, exit0.
+Actual Jev: subjects1786/reported113/missing0/unsure0/errors[]/degraded[], exit0. Existing authorization-name and execution/resume/observe failure-path candidates assessed with concrete DI/native assertions plus independent source review; not proof of every possible fault.
+Independent whole-branch review Critical0/Important0/Minor0. All3 caller and Runtime/Sandbox paths, atomic SQLite rollback and original CAS checked. Reviewer did not rerun tests. Ponytail: Lean already. Ship.
+Limits: non-Workflow result reattachment and whole-database outage recovery remain unfinished. Generic produced results now wait blocked without automatic reexecution; producer failures still fail. No new Task state/table/Port/retry framework.

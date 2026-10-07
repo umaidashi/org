@@ -1,4 +1,4 @@
-import { TaskResultPendingError } from '../tasks/execution.js';
+import { TaskResultPendingError, stagePendingExecutionResult } from '../tasks/execution.js';
 import { isDeepStrictEqual } from 'node:util';
 import { changeTask, type Task } from '../tasks/domain.js';
 import type { TaskProvider, ExecutionResultWriter } from '../tasks/port.js';
@@ -146,7 +146,7 @@ export async function resumeTaskWorkflow(
       signal,
     );
     if (artifact === null) throw new Error('Approved Workflow result missing');
-    return tasks.stageExecutionResult(running.id, artifact, running.version);
+    return stagePendingExecutionResult(tasks, running, artifact);
   } catch (error) {
     try {
       tasks.update(

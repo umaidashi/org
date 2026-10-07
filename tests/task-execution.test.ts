@@ -1,9 +1,63 @@
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
-import { runExecutionTask } from '../src/tasks/execution.js';
+import {
+  runExecutionTask,
+  executeAssignedTask,
+  TaskResultPendingError,
+} from '../src/tasks/execution.js';
 import { createTask, changeTask } from '../src/tasks/domain.js';
 import { createRoom, createMessage } from '../src/rooms/domain.js';
 import { createSession } from '../src/sessions/domain.js';
+test('Produced Task result staging failure remains blocked and preserves concurrent decisions', async () => {
+  const initial = changeTask(
+    createTask(
+      { title: 'build', objective: 'check', kind: 'execution_task' },
+      { id: 't', createdAt: 'before' },
+    ),
+    { owner: 'a' },
+    'before',
+  );
+  let task = initial;
+  let concurrent = false;
+  let calls = 0;
+  const provider = {
+    update: (
+      _id: string,
+      patch: Parameters<typeof changeTask>[1],
+      at: string,
+      expected?: number,
+    ) => {
+      if (expected !== task.version) throw new Error('Version conflict');
+      task = changeTask(task, patch, at);
+      return task;
+    },
+    stageExecutionResult: () => {
+      if (concurrent) task = changeTask(task, { status: 'failed' }, 'later');
+      throw new Error('owned storage fault');
+    },
+  };
+  const run = () =>
+    executeAssignedTask(
+      provider,
+      initial,
+      () => 'later',
+      async () => {
+        calls++;
+        return {
+          result: 'complete',
+          artifact: { id: 'result', uri: 'org://artifacts/proof', createdAt: 'later' },
+        };
+      },
+    );
+  await assert.rejects(run(), TaskResultPendingError);
+  assert.equal(task.status, 'blocked');
+  assert.equal(calls, 1);
+  task = initial;
+  concurrent = true;
+  await assert.rejects(run(), AggregateError);
+  assert.equal(task.status, 'failed');
+  assert.equal(calls, 2);
+});
 test('ExecutionTask persists running before the runtime and stages its result for human review', async () => {
   let task = changeTask(
     createTask(

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { createEvent } from '../events/domain.js';
 import { isDeepStrictEqual } from 'node:util';
 import { changeTask, type Task } from '../tasks/domain.js';
-import { TaskResultPendingError } from '../tasks/execution.js';
+import { TaskResultPendingError, stagePendingExecutionResult } from '../tasks/execution.js';
 import type { TaskProvider, ExecutionResultWriter } from '../tasks/port.js';
 import type { AgentRepository } from '../agents/port.js';
 import { requireCapability, type Capability } from '../agents/domain.js';
@@ -348,7 +348,7 @@ export async function observeTaskWorkflow(
       verified.priorUnconfirmed,
       verified.priorTerminal,
     );
-    return tasks.stageExecutionResult(running.id, artifact, running.version);
+    return stagePendingExecutionResult(tasks, running, artifact);
   } catch (error) {
     try {
       tasks.update(

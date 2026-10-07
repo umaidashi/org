@@ -2,12 +2,18 @@ import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawn } from 'node:child_process';
+import { Database } from 'bun:sqlite';
 import { mkdtempSync, rmSync, writeFileSync, unlinkSync } from 'node:fs';
 function record(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
 }
 
-async function proof(auto: boolean, crash: boolean, artifactFailure: boolean): Promise<void> {
+async function proof(
+  auto: boolean,
+  crash: boolean,
+  artifactFailure: boolean,
+  stageFailure: boolean,
+): Promise<void> {
   const home = mkdtempSync('/tmp/org-approved-task-'),
     db = home + '/org.db',
     config = home + '/workflow.json',
@@ -321,8 +327,18 @@ async function proof(auto: boolean, crash: boolean, artifactFailure: boolean): P
         await Bun.sleep(10);
       }
     }
-    if (artifactFailure) {
-      writeFileSync(db + '.artifacts', 'owned-storage-blocker');
+    if (artifactFailure || stageFailure) {
+      if (artifactFailure) writeFileSync(db + '.artifacts', 'owned-storage-blocker');
+      if (stageFailure) {
+        const fault = new Database(db);
+        try {
+          fault.run(
+            "CREATE TRIGGER owned_stage_fault BEFORE INSERT ON task_artifacts BEGIN SELECT RAISE(ABORT, 'owned stage fault'); END",
+          );
+        } finally {
+          fault.close();
+        }
+      }
       const pending = await raw([
         'task',
         'resume-workflow',
@@ -336,10 +352,18 @@ async function proof(auto: boolean, crash: boolean, artifactFailure: boolean): P
       await stop();
       const blocked = await entity(['--direct', 'task', 'get', taskId]);
       assert.equal(blocked.status, 'blocked');
-      assert.match(pending.err, /Artifact.*pending/);
+      assert.match(pending.err, /(?:Artifact|result).*pending/);
       assert.deepEqual(blocked.outputArtifacts, []);
       assert.equal(invokes, 1);
-      unlinkSync(db + '.artifacts');
+      if (artifactFailure) unlinkSync(db + '.artifacts');
+      if (stageFailure) {
+        const fault = new Database(db);
+        try {
+          fault.run('DROP TRIGGER owned_stage_fault');
+        } finally {
+          fault.close();
+        }
+      }
       await start();
       if (!auto)
         await entity([
@@ -356,7 +380,7 @@ async function proof(auto: boolean, crash: boolean, artifactFailure: boolean): P
       }
     }
     const resumed = await entity(
-      crash || artifactFailure
+      crash || artifactFailure || stageFailure
         ? ['task', 'get', taskId]
         : [
             'task',
@@ -558,14 +582,16 @@ async function proof(auto: boolean, crash: boolean, artifactFailure: boolean): P
   }
 }
 test.each([
-  [false, false, false],
-  [true, false, false],
-  [false, true, false],
-  [true, true, false],
-  [false, false, true],
-  [true, false, true],
+  [false, false, false, false],
+  [true, false, false, false],
+  [false, true, false, false],
+  [true, true, false, false],
+  [false, false, true, false],
+  [true, false, true, false],
+  [false, false, false, true],
+  [true, false, false, true],
 ])(
-  'native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s without reinvoking',
+  'native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking',
   proof,
   20000,
 );

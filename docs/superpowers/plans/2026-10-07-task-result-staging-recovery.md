@@ -1,0 +1,8 @@
+# 成果物のTask関連付け失敗からの復旧
+
+1. 保存済み成果物のstageだけが失敗するDIテストと、所有SQLiteのArtifact INSERT拒否triggerを使うWorkflow native e2eを追加しfailed!=blockedのREDを確認する。
+2. 既存ExecutionResultWriterの呼出しを最小の共有関数で包み、結果があるstage例外を既存TaskResultPendingErrorへ変換する。通常Task実行・Workflow resume・observeの3callerへ適用する。produce失敗は従来failed、状態更新は元version CASを維持する。
+3. Workflow成功receiptを保持し、trigger削除/同DB/socket再起動後のmanual/auto status-only回復→人間reviewを検証する。外部再invokeせず、追加Capabilityと元Approvalを維持する。
+4. 全check/実jev/独立PonytailレビューとGit記録を完了する。
+
+一般Taskのstage失敗も結果保存待ちのblockedとし、自動再実行しない。Workflow以外の結果再関連付け、DB全体停止時の復旧、一般retry/backoffは別の未完了項目。新Task state/table/Port/retry frameworkは追加しない。

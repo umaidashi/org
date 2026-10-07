@@ -4,6 +4,17 @@ import type { TaskArtifact, Task } from './domain.js';
 import type { SessionStore } from '../sessions/port.js';
 import type { RoomRepository } from '../rooms/port.js';
 import type { Message } from '../rooms/domain.js';
+export function stagePendingExecutionResult(
+  provider: ExecutionResultWriter,
+  running: Task,
+  artifact: TaskArtifact,
+): Task {
+  try {
+    return provider.stageExecutionResult(running.id, artifact, running.version);
+  } catch (error) {
+    throw new TaskResultPendingError('Task result remains pending', { cause: error });
+  }
+}
 export async function runExecutionTask(
   provider: Pick<TaskProvider, 'get' | 'update'> & ExecutionResultWriter,
   sessions: Pick<SessionStore, 'get'>,
@@ -91,7 +102,7 @@ export async function executeAssignedTask<T>(
     const task =
       artifact === null
         ? provider.update(original.id, { status: 'waiting_approval' }, now(), running.version)
-        : provider.stageExecutionResult(original.id, artifact, running.version);
+        : stagePendingExecutionResult(provider, running, artifact);
     return { task, result };
   } catch (error) {
     try {
