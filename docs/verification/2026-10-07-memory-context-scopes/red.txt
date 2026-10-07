@@ -1,0 +1,62 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-context-scopes-cli.test.ts:
+47 |       await new Promise<void>((resolve, reject) => {
+48 |         const timer = setTimeout(() => reject(new Error('Daemon not ready')), 5000);
+49 |         let stderr = '';
+50 |         daemon?.stderr?.on('data', (v: Buffer) => { stderr += v.toString(); });
+51 |         daemon?.stdout?.on('data', (v: Buffer) => { if (v.toString().includes('"ready"')) { clearTimeout(timer); resolve(); } });
+52 |         daemon?.once('exit', () => { clearTimeout(timer); reject(new Error(stderr || 'Daemon exited before ready')); });
+                                                                          ^
+error: Error: Unknown option '--memory-context-config'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--memory-context-config"
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent send AGENT_ID MESSAGE --room ROOM_ID --human HUMAN_ID [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org tui [--socket PATH] [--room ID --human ID]
+       org room open ROOM_ID --human HUMAN_ID
+       org logs [--task ID] [--event ID] [--limit N] [--json]
+       org logs tail AGENT_ID [--limit N] [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org task create|get|list|update|comment|artifact [OPTIONS] --provider local|linear [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|import-github|import-github-webhook|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org sandbox list [--json]
+       org workflow run|status|cancel|list|history [OPTIONS]
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org knowledge notion PAGE_ID [--room ROOM --human HUMAN] [--json]
+       org a2a send|adopt|get|list [OPTIONS]
+       org memory capture|extract|consolidate|consolidations|get|list|search|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org task observe-workflow ID --expected-version N
+       org task resume-workflow ID --approval ID --expected-version N
+       org task resume-linear-task|observe-linear-task ID --approval ID --expected-version N
+       org task linear-get|import-linear ISSUE_ID [--json]
+       org task linear-list --team TEAM_KEY [--limit 1..50] [--after CURSOR] [--json]
+       org task refresh-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task sync-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task artifact-content ID --artifact ARTIFACT_ID [--json]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH] [--observe-workflows] [--linear-updates]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-context-scopes-cli.test.ts:52:70)
+      at emit (node:events:98:22)
+      at #handleOnExit (node:child_process:520:14)
+(fail) native Runtime selects host Room and Agent department/project scopes across restart without granting other memberships [354.71ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [410.00ms]

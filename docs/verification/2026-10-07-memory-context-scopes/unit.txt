@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-context-scopes.test.ts:
+(pass) host Memory context grants reject unsafe or duplicate pairs and allow only bounded department/project scopes [2.93ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [55.00ms]

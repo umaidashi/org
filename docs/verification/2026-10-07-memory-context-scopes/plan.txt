@@ -1,0 +1,204 @@
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 2258,
+  "cached": 2229,
+  "requests": 14,
+  "tokens": 65663,
+  "usd": 0.002757846,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "src/context/scopes.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 1898,
+      "degraded": null
+    },
+    {
+      "file": "src/context/scopes.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2676,
+      "degraded": null
+    },
+    {
+      "file": "src/context/scopes.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 2887,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/cli.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "located",
+      "tokens": 15249,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 13870,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 5790,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/cli.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "local",
+      "tokens": 5908,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/runtime.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1870,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/runtime.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2831,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/runtime.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 3190,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-context-scopes-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2525,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-context-scopes-cli.test.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4211,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-context-scopes-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 907,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-context-scopes.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 1851,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "fn-name-promises",
+      "subjects": 12,
+      "requests": 4,
+      "tokens": 23228,
+      "usd": 0.000975576,
+      "share": 0.35374564061952696
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 6,
+      "requests": 3,
+      "tokens": 19377,
+      "usd": 0.0008138339999999999,
+      "share": 0.29509769581042594
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 5,
+      "requests": 3,
+      "tokens": 11867,
+      "usd": 0.0004984140000000001,
+      "share": 0.18072582733046008
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 4,
+      "requests": 2,
+      "tokens": 6815,
+      "usd": 0.00028623,
+      "share": 0.10378752113062151
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 2,
+      "requests": 2,
+      "tokens": 4376,
+      "usd": 0.000183792,
+      "share": 0.06664331510896547
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 8,
+    "files": [
+      "src/audit/service.ts",
+      "src/linear/config.ts",
+      "src/runtime/guardian.ts",
+      "src/runtime/http.ts",
+      "src/tasks/proposal.ts",
+      "src/tui/room-chat.ts"
+    ]
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": []
+}

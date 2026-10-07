@@ -1,3 +1,4 @@
+import { parseMemoryContextGrants, type MemoryContextGrant } from '../context/scopes.js';
 import { validateRoomAllowlist } from '../rooms/domain.js';
 import { extractRoomReplyMemories } from '../memory/extraction.js';
 import { jsonMemoryExtractor } from '../memory/extractor.js';
@@ -76,6 +77,7 @@ export interface DaemonCommand {
   readonly socketClient: boolean;
   readonly interval: number;
   readonly runtimeConfig?: string;
+  readonly memoryContextConfig?: string;
   readonly sandboxConfig?: string;
   readonly workflowConfig?: string;
   readonly wakeUp: boolean;
@@ -97,6 +99,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       socket: { type: 'string' },
       'poll-interval': { type: 'string' },
       'runtime-config': { type: 'string' },
+      'memory-context-config': { type: 'string' },
       'sandbox-config': { type: 'string' },
       'workflow-config': { type: 'string' },
       'wake-up': { type: 'boolean' },
@@ -179,7 +182,18 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       !parsed.values['sandbox-config'].trim())
   )
     throw new Error('--sandbox-config requires continuous mode and --runtime-config');
+  if (
+    parsed.values['memory-context-config'] !== undefined &&
+    (action !== undefined ||
+      parsed.values.once ||
+      parsed.values['runtime-config'] === undefined ||
+      !parsed.values['memory-context-config'].trim())
+  )
+    throw new Error('--memory-context-config requires continuous mode and --runtime-config');
   const base = {
+    ...(parsed.values['memory-context-config'] === undefined
+      ? {}
+      : { memoryContextConfig: resolve(parsed.values['memory-context-config']) }),
     ...(delegationRooms === undefined ? {} : { delegationRooms }),
     ...(extractionRooms === undefined ? {} : { extractionRooms }),
     ...(consolidationRooms === undefined ? {} : { consolidationRooms }),
@@ -220,6 +234,7 @@ function openOperations(
   extractionRooms: readonly string[] = [],
   observeWorkflows = false,
   linearScopes: readonly LinearAgentScope[] = [],
+  memoryGrants: readonly MemoryContextGrant[] = [],
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -275,6 +290,30 @@ function openOperations(
       )
         throw new Error('Automatic delegation requires active Coordinator Room');
     }
+    for (const grant of memoryGrants) {
+      const room = roomRepository.get(grant.roomId);
+      if (
+        room.id !== grant.roomId ||
+        room.archivedAt !== null ||
+        !agentRepository.list().some((agent) => agent.id === grant.agentId) ||
+        !room.participants.some((p) => p.kind === 'agent' && p.id === grant.agentId)
+      )
+        throw new Error('Memory context grant requires active Room participant Agent');
+    }
+    const reply = (input: Parameters<typeof replyToRoomMessage>[3]) => {
+      const session = sessionStore.get(input.sessionId);
+      const grant = memoryGrants.find(
+        (g) => g.roomId === session.roomId && g.agentId === session.agentId,
+      );
+      return replyToRoomMessage(
+        roomRepository,
+        sessionStore,
+        runtime,
+        { ...input, memoryScopes: grant?.scopes ?? [] },
+        { id: randomUUID(), at: new Date().toISOString() },
+        memoryProvider,
+      );
+    };
     const wakeupJournal = new SqliteWakeupJournal(db);
     wakeups = wakeupJournal;
     const sandboxJobs = new SandboxJobs();
@@ -347,18 +386,11 @@ function openOperations(
                 }
               : {}),
           };
-          return replyToRoomMessage(
-            roomRepository,
-            sessionStore,
-            runtime,
-            {
-              sessionId,
-              messageId,
-              instruction: Object.keys(instruction).length ? JSON.stringify(instruction) : '',
-            },
-            { id: randomUUID(), at: new Date().toISOString() },
-            memoryProvider,
-          );
+          return reply({
+            sessionId,
+            messageId,
+            instruction: Object.keys(instruction).length ? JSON.stringify(instruction) : '',
+          });
         },
         roomId,
         messageId,
@@ -407,21 +439,14 @@ function openOperations(
         sessionStore,
         roomRepository,
         (id, source, instruction, running) =>
-          replyToRoomMessage(
-            roomRepository,
-            sessionStore,
-            runtime,
-            {
-              sessionId: id,
-              messageId: source,
-              instruction,
-              ...(!shellTask && !workflowScope
-                ? { taskExecution: { taskId: running.id, version: running.version } }
-                : {}),
-            },
-            { id: randomUUID(), at: new Date().toISOString() },
-            memoryProvider,
-          ),
+          reply({
+            sessionId: id,
+            messageId: source,
+            instruction,
+            ...(!shellTask && !workflowScope
+              ? { taskExecution: { taskId: running.id, version: running.version } }
+              : {}),
+          }),
         {
           taskId,
           sessionId,
@@ -756,15 +781,7 @@ function openOperations(
             if (output.length !== 1) throw new Error('Sandbox command output missing');
             return output[0] ?? '';
           },
-          reply: (id, messageId, instruction) =>
-            replyToRoomMessage(
-              roomRepository,
-              sessionStore,
-              runtime,
-              { sessionId: id, messageId, instruction },
-              { id: randomUUID(), at: new Date().toISOString() },
-              memoryProvider,
-            ),
+          reply: (id, messageId, instruction) => reply({ sessionId: id, messageId, instruction }),
         }),
       shutdown,
       close: async () => {
@@ -816,6 +833,13 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
         : await configuredWorkflowRuntime(command.workflowConfig);
     const drivers = configuredDrivers(command.runtimeConfig);
     const linearScopes = command.linearUpdates ? linearAgentScopes() : [];
+    let memoryGrants: readonly MemoryContextGrant[] = [];
+    if (command.memoryContextConfig !== undefined) {
+      const file = Bun.file(command.memoryContextConfig);
+      if (file.size > 65536) throw new Error('Memory context config too large');
+      const value: unknown = JSON.parse(await file.text());
+      memoryGrants = parseMemoryContextGrants(value);
+    }
     let sandboxPolicy: SandboxPolicy | undefined;
     if (command.sandboxConfig !== undefined) {
       const file = Bun.file(command.sandboxConfig);
@@ -843,6 +867,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
           command.extractionRooms,
           command.observeWorkflows,
           linearScopes,
+          memoryGrants,
         );
       });
     } finally {

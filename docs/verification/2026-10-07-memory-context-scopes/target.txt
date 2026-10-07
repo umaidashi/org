@@ -1,0 +1,15 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-runtime.test.ts:
+(pass) Task Runtime reply retains its execution version and rejects another execution or Room before runtime [1.64ms]
+(pass) Room runtime uses history through the source and persists an Agent reply only after success [0.51ms]
+(pass) Room context bounds UTF-8 bytes and reports omitted history, rejecting oversized sources before runtime [16.40ms]
+(pass) Room context includes only active current scopes and excludes another Agent or Room Memory [0.76ms]
+(pass) Room runtime accepts injected Retriever and ContextBuilder independently of storage and serialization [0.21ms]
+
+tests/memory-context-scopes-cli.test.ts:
+(pass) native Runtime selects host Room and Agent department/project scopes across restart without granting other memberships [3122.10ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 2 files. [3.18s]

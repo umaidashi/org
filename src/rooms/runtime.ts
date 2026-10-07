@@ -1,3 +1,4 @@
+import { memoryContextScopes } from '../context/scopes.js';
 import { createScopedMemoryRetriever, type MemoryRetriever } from '../memory/retriever.js';
 import { boundedContextBuilder } from '../context/builder.js';
 import type { ContextBuilder } from '../context/port.js';
@@ -14,6 +15,7 @@ export async function replyToRoomMessage(
     readonly sessionId: string;
     readonly messageId: string;
     readonly instruction: string;
+    readonly memoryScopes?: readonly string[];
     readonly taskExecution?: { readonly taskId: string; readonly version: number };
   },
   identity: { readonly id: string; readonly at: string },
@@ -66,6 +68,7 @@ export async function replyToRoomMessage(
     'room:' + room.id,
     'agent:' + session.agentId,
     ...(room.taskId === null ? [] : ['task:' + room.taskId]),
+    ...memoryContextScopes(input.memoryScopes ?? []),
     'company',
     'global',
   ];

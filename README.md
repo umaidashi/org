@@ -892,3 +892,5 @@ Linear成果物はLocalで明示stage済みのoutputが必要です。既存`tas
 `bun run start room open ROOM_ID --human HUMAN_ID`で既存Room chatを開きます。`tui --room ROOM_ID --human HUMAN_ID`と同じ処理です。interactive terminalとdaemon、active Roomの明示human参加者が必要です。`/refresh`で読み直し、`/quit`またはCtrl-Cで終了します。Room名をIDへ推測変換せず、human宣言を本人認証とは扱いません。
 
 Memoryは確定済みApproval Decisionを根拠として明示保存できます。`org memory capture --type episodic --scope company --content '判断を記録' --confidence 1 --source-decision APPROVAL_ID` はapprove/rejectの原本を照合し、pendingを拒否します。承認の実行・外部送信は行いません。本文の真偽、自動抽出、本人認証の保証とは区別します。
+
+department/projectのMemoryを現在Sessionへ関連付ける場合、ホストがJSON配列 `[{"roomId":"ROOM_ID","agentId":"AGENT_ID","scopes":["department:engineering","project:org"]}]` を用意し、daemonへ `--runtime-config PATH --memory-context-config PATH` を指定します。登録済みのactive Room参加Agentだけを受け付け、現在のRoomとAgentの組に一致するscopeを既存Contextへ追加します。設定なしでは従来のRoom/Agent/Task/company/globalだけを取得します。所属の自動推測や本人認証は行いません。

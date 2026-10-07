@@ -123,3 +123,7 @@ comment/artifactをLocal/Linear両Adapterと実await consumerへ接続。Local�
 ## 2026-10-07 Approval Decision根拠
 
 既存確定approve/rejectを`memory capture --source-decision APPROVAL_ID`へ接続し、request/decision ID一致・pending拒否・原本不変・CLI再読取とDI障害伝播を確認。[証拠](verification/2026-10-07-memory-approval-decision/)に最終全gateと実Jevを保存。新URIは128文字ID上限（Approval原本に同制約なし）で、通常UUIDは対応。一般Decision全種/自動抽出/本人認証/業務納品/全体は未達。
+
+## 2026-10-07 department/project Context関連付け
+
+ホスト明示Room/Agent pairを`daemon --memory-context-config PATH`へ接続し、manual Sessionでdepartment/projectだけの選択・別pair/別scope/失効済み除外・再起動/設定なし互換を確認。[証拠](verification/2026-10-07-memory-context-scopes/)に最終全gateと実Jevを保存。三reply経路を共通wrapperへ集約し旧回帰を維持するが、Task/自動wake-up/rebuildの追加scope直接実機受け入れは[次の計画](superpowers/plans/2026-10-07-memory-context-acceptance.md)に残す。本人認証/全permission/全Memory抽出/業務納品/全体は未達。

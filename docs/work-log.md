@@ -1704,3 +1704,20 @@
 
 - 最終全check終了0:477成功/14skip/0失敗491tests/198files167.21秒。static351files/AST成功、実Jev2245subjects/137warning/missing0/unsure0/review0/errors[]/degraded[]。fast UT167成功56files255ms。[証拠](verification/2026-10-07-memory-approval-decision/)保存。自動候補抽出/本人認証/実業務納品と全体未達を維持。
 - 証拠保存補助のregexがBun summaryの空行を扱えず失敗し、後続commitが先行した。製品/検査結果に影響なし。実数を再確認して証拠・進捗を保存し、未公開local commitへ統合する。未保存を成功に数えない。
+
+## 2026-10-07 department/project Contextの明示関連付け
+
+- [scope計画](superpowers/plans/2026-10-07-memory-context-scopes.md)に従い既存retriever/builderを再利用。前単位Decisionのpush対象a6ca7b3はcommitted tree検査中。native RED0成功/1失敗410ms（daemonの新option未対応で起動拒否）、GREEN6成功/2files3.18秒。host指定Room/Agent pairだけにdepartment/project、別Room/別Agent/別scopeとexpired/invalidated除外、再起動と設定なしの互換を確認。pure grant/parser UT1成功55ms。
+- 初回staticで機械置換がLinear呼出し二箇所にも追加引数を入れて型エラー。openOperationsだけへ残し訂正し、Runtime/nativeを再実行。全callerを追跡し、手動Session reply/Room activation/Task実行を同じlocal reply wrapperへ集約。
+- Ruling:department/project関連はhostが明示するRoom+Agent pair — model/RPCや名前から所属を推定せず、既存現在scope filterへ追加する — 誤るとAgentの他Roomへ同scopeを漏らす。本人認証/全組織permissionの保証ではない。
+- Ponytail review:同じreplyToRoomMessage三配線を一つのlocal wrapperへ集約。新DB/所属directory/Port/containerなし。設定の境界とcopyだけを追加、既存Memory validity/順位/boundsを再利用。正しさ/安全性のfresh全単位reviewと全gateへ続ける。
+- 前単位Decision Memory main通常ff/push終了0、公開a6ca7b3、公開時点main/origin/main一致。committed tree全gate/実Jev成功188.80秒、forceなし。その後scope差分を専用feat/memory-context-scopesへ移動。
+- 独立final review:Critical0/Important0/Minor1（直接受け入れ範囲の不足）、focused12成功4files77ms、git diff --check成功。Ponytail Lean already、三配線の実重複削減、新Port/DB/所属推定なし。
+- Final: minor (deferred):新nativeは再起動後に新Sessionを作り手動replyを検証。既存Session再構築/Task/自動wake-upのscope適用と不存在Agent/非参加Agent/archived Room起動拒否の直接証拠は別途必要。三経路wrapper/Task参照/activation instruction維持はcode reviewで確認したが実機受け入れの代用にしない。次の小さな受け入れ単位として追跡する。
+- Final: Ruling:現scopeの直接受け入れはmanual Session/restart/設定なし互換 — 全三経路はcode照合と旧回帰検査で保持し、追加scope実機全経路は未達 — 誤るとTask/自動wake-upをnative確認済みと誤認する。
+- Final: Ruling:native/fullcheck/実Jevの成否は親terminal実測 — reviewerのpure12件では代用しない — 誤ると未実行を成功へ数える。
+- Final: Ruling:Notion03は既取得原文と保存計画へ照合、reviewerは計画だけ確認 — 原文の独立再取得はない — 誤ると独立原文確認済みと誤認する。
+- Final: Ruling:本人認証/全permission/全自動Memory抽出/実業務納品/全体完成は未達 — host明示scope追加だけを成果とする — 誤ると組織全体の受け入れと誤認する。
+- [残るscope実CLI受け入れ計画](superpowers/plans/2026-10-07-memory-context-acceptance.md)を保存。新機能を増やす前にreviewの直接証拠不足を埋める。次単位は今回reviewの対象外、完了宣言なし。
+
+- 最終全check終了0:479 pass / 14 skip / 0 fail / Ran 493 tests across 200 files. [170.21s]。static354files/AST成功、実Jev2258subjects/137warning/missing0/unsure0/review0/errors[]/degraded[]。fast UT167成功56files263ms。[証拠](verification/2026-10-07-memory-context-scopes/)保存。manual以外の新scope実機受け入れを残し、全体goalはactive。
