@@ -87,3 +87,7 @@ MVPのPhaseごとの現在の実装・検査・実機証拠と未達は[受け�
 ## 2026-10-07 Linear Core snapshotの永続同期
 
 既存import済みWorkItemへtask sync-linearを追加。host明示mappingのCore state/owner/priority/labels/title/objectiveを、Local親・依存・成果物・初回時刻・元externalRefを保持して保存する。明示CASを取得前後/保存時に検証し、Taskと履歴を原子的に記録、無変更は履歴を増やさない。外部無担当・terminal再openと内部Executionの厳密な状態/依存完了・成果物受理を分離。DI/実SQLite rollback/実HTTP fixtureのdirect/daemon/reopen/旧refresh互換を含む[全gate](verification/2026-10-07-linear-core-sync/check.txt)で457成功/14skip/0失敗、471tests/195files/161.35秒。実Jev2158subjects/missing・errors・degraded0。共通非同期六操作、双方向Core mapping、背景sync、実API認証、全体goalは未達。
+
+## 2026-10-07 共通非同期TaskProvider三操作
+
+共通Core consumerのcreate/get/listをLocal/Linear両Adapterへ接続し、実CLI/direct/daemon/reopen、外部snapshotとLocal原本保持、完全page検証とCAS同期を確認。[全gate](verification/2026-10-07-async-task-provider/check.txt):462成功/14skip/0失敗。実Jev2191subjects/missing・errors・degraded0。Linear createは既存Issueのミラー作成で新Issueを作らない。残update/addComment/linkArtifact・双方向明示mapping・実API認証と他の全体残件は未達。[次の計画](superpowers/plans/2026-10-07-core-provider-writes.md)へ続く。

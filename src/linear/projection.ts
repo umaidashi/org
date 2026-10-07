@@ -2,7 +2,16 @@ import type { AgentRepository } from '../agents/port.js';
 import type { SecretStore } from '../secrets/port.js';
 import { createTask, isTaskStatus, type TaskStatus, type WorkItem } from '../tasks/domain.js';
 import { parseLinearIssueFields, parseLinearUpdateIssue } from './fields.js';
-import { queryLinear, validateLinearIssueId } from './read.js';
+import {
+  queryLinear,
+  validateLinearIssueId,
+  validateLinearIssueListInput,
+  parseLinearIssuePage,
+  type LinearIssueListInput,
+} from './read.js';
+
+const coreFields =
+  'id identifier title description url priority createdAt updatedAt state { id } assignee { id } labels(first: 100) { nodes { id name } pageInfo { hasNextPage } }';
 
 export interface LinearTaskMapping {
   readonly states: Readonly<Record<string, TaskStatus>>;
@@ -51,6 +60,11 @@ function timestamp(value: unknown): string {
     throw new Error('Invalid Linear timestamp');
   return value;
 }
+function validateOwners(agents: Pick<AgentRepository, 'list'>, mapping: LinearTaskMapping): void {
+  const registered = new Set(agents.list().map((agent) => agent.id));
+  if (Object.values(mapping.owners).some((agent) => !registered.has(agent)))
+    throw new Error('Mapped Agent unavailable');
+}
 export async function readLinearCoreWorkItem(
   request: (url: string, init: RequestInit) => Promise<Response>,
   secrets: Pick<SecretStore, 'getSecret'>,
@@ -60,22 +74,50 @@ export async function readLinearCoreWorkItem(
 ): Promise<WorkItem> {
   const id = validateLinearIssueId(inputId),
     mapping = parseLinearTaskMapping(inputMapping);
-  const validateOwners = () => {
-    const registered = new Set(agents.list().map((agent) => agent.id));
-    if (Object.values(mapping.owners).some((agent) => !registered.has(agent)))
-      throw new Error('Mapped Agent unavailable');
-  };
-  validateOwners();
+  validateOwners(agents, mapping);
   const data = await queryLinear(
     request,
     secrets,
-    'query KernelCoreWorkItem($id: String!) { issue(id: $id) { id identifier title description url priority createdAt updatedAt state { id } assignee { id } labels(first: 100) { nodes { id name } pageInfo { hasNextPage } } } }',
+    'query KernelCoreWorkItem($id: String!) { issue(id: $id) { ' + coreFields + ' } }',
     { id },
   );
-  validateOwners();
-  const value = data.issue;
+  validateOwners(agents, mapping);
+  return parseCoreWorkItem(data.issue, mapping, id);
+}
+export async function listLinearCoreWorkItems(
+  request: (url: string, init: RequestInit) => Promise<Response>,
+  secrets: Pick<SecretStore, 'getSecret'>,
+  agents: Pick<AgentRepository, 'list'>,
+  inputMapping: LinearTaskMapping,
+  input: LinearIssueListInput,
+) {
+  validateLinearIssueListInput(input);
+  const mapping = parseLinearTaskMapping(inputMapping);
+  validateOwners(agents, mapping);
+  const data = await queryLinear(
+    request,
+    secrets,
+    'query KernelCoreWorkItems($team: String!, $first: Int!, $after: String) { issues(first: $first, after: $after, filter: { team: { key: { eq: $team } } }) { nodes { ' +
+      coreFields +
+      ' } pageInfo { hasNextPage endCursor } } }',
+    { team: input.team, first: input.limit, after: input.after ?? null },
+  );
+  validateOwners(agents, mapping);
+  const page = parseLinearIssuePage(data.issues, input);
+  if (!record(data.issues) || !Array.isArray(data.issues.nodes))
+    throw new Error('Invalid Linear Core page');
+  return {
+    nodes: data.issues.nodes.map((value: unknown) => parseCoreWorkItem(value, mapping)),
+    pageInfo: page.pageInfo,
+  };
+}
+function parseCoreWorkItem(
+  value: unknown,
+  mapping: LinearTaskMapping,
+  expectedId?: string,
+): WorkItem {
   const issue = parseLinearUpdateIssue(value, ['stateId', 'assigneeId', 'labelIds']);
-  if (issue.id !== id && issue.identifier !== id)
+  if (expectedId !== undefined && issue.id !== expectedId && issue.identifier !== expectedId)
     throw new Error('Linear WorkItem identity conflict');
   const status =
     issue.fields?.stateId === undefined ? undefined : mapping.states[issue.fields.stateId];

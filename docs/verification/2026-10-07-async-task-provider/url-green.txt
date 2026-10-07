@@ -1,0 +1,11 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-provider.test.ts:
+(pass) same async Core consumer creates, gets and lists through both concrete adapters and propagates failures [6.11ms]
+(pass) Core consumer awaits the injected async result before reporting success [0.19ms]
+(pass) Linear client refuses invalid Core IDs and stored scope before credentials and rejects acquisition races [0.68ms]
+(pass) Linear list validates all pages before reconciliation and rejects duplicate IDs, cursor cycles, partial fields and page overflow [3.57ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 1 file. [38.00ms]

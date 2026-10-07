@@ -1,0 +1,14 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-provider-cli.test.ts:
+(pass) common async Task consumer uses Local and scoped Linear create/get/list with real HTTP pages and preserved Local originals [962.61ms]
+
+tests/linear-core-projection-cli.test.ts:
+(pass) mapped Linear CLI reads and explicitly syncs external WorkItems without altering internal ExecutionTasks [1219.68ms]
+
+tests/linear-issue-cli.test.ts:
+(pass) Linear CLI read preserves existing issue without creating database and rejects missing credentials [1569.21ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 3 files. [3.80s]

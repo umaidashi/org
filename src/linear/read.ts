@@ -182,7 +182,10 @@ export async function listLinearIssues(
     'query KernelIssues($team: String!, $first: Int!, $after: String) { issues(first: $first, after: $after, filter: { team: { key: { eq: $team } } }) { nodes { id identifier title description url } pageInfo { hasNextPage endCursor } } }',
     { team: input.team, first: input.limit, after: input.after ?? null },
   );
-  const connection = data.issues;
+  return parseLinearIssuePage(data.issues, input);
+}
+export function parseLinearIssuePage(connection: unknown, input: LinearIssueListInput) {
+  validateLinearIssueListInput(input);
   if (
     !connection ||
     typeof connection !== 'object' ||
@@ -214,7 +217,7 @@ export async function listLinearIssues(
   )
     throw new Error('Linear list scope or identity mismatch');
   return {
-    provider: 'linear',
+    provider: 'linear' as const,
     nodes,
     pageInfo: { hasNextPage: info.hasNextPage, endCursor: info.endCursor },
   };

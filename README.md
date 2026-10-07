@@ -613,6 +613,20 @@ daemon起動時にWorkflow claimを持つrunning Taskを検出すると、blocke
 
 ## Linear IssueをCore WorkItem形式で読む
 
+共通非同期consumerは既存`task create/get/list --provider local|linear`から使用できます。Localは既存SQLite store、Linearはhostの`ORG_LINEAR_TASK_MAPPING`と`ORG_LINEAR_TASK_TEAM`（Team key）を使います。CoreへGraphQLの応答形式を返しません。update/comment/artifactの共通非同期契約はまだ未完了です。
+
+```sh
+bun run start task create Local --objective Done --provider local --id local-task --json
+bun run start task get linear:issue:ISSUE_UUID --provider linear --json
+bun run start task list --provider linear --status running --json
+bun run start task create Mirror --objective Mirror --provider linear \
+  --id linear:issue:ISSUE_UUID --external-ref https://linear.app/WORKSPACE/issue/TEAM-1/SLUG --json
+```
+
+Linear createは既存IssueのCoreミラーをLocalへ作る操作です。title/objective/status/owner/priority/labelsはIssueの現在値を採用し、CLIのtitle/objective等はIssueへの変更要求になりません。Localの親・依存・初回時刻を保持し、新Issueやmutationを送信しません。重複createは拒否します。
+
+Linear get/listは既存ミラーがある場合、取得前のLocal versionを使ってCAS付き同期し、変更時だけTask/履歴を記録します。未作成なら外部snapshotを返すだけでミラーを自動作成しません。Local関係・成果物・元externalRefを保持します。listはCore fieldsをページごとに取得し、50件×10ページまでを完走し、切詰め・重複ID・cursor循環・不完全labels・scope外を拒否します。全ページの応答検証後にミラーを反映しますが、反映はWorkItem単位のtransactionであり、一覧全体の跨system原子性や継続的な鮮度は保証しません。
+
 host管理のJSONを`ORG_LINEAR_TASK_MAPPING`へ設定し、state UUIDをCore status、assignee UUIDを登録Agent IDへ明示対応します。JSONは`{"states":{"STATE_UUID":"running"},"owners":{"USER_UUID":"AGENT_ID"}}`形式です。
 
 ```sh

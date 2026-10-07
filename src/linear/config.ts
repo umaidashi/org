@@ -1,6 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { parseLinearAgentScopes } from './agent-read.js';
 import { parseLinearTaskMapping } from './projection.js';
+import { validateLinearIssueListInput } from './read.js';
+export function linearTaskTeam(): string {
+  const team = process.env.ORG_LINEAR_TASK_TEAM;
+  if (!team) throw new Error('Linear Task Team unavailable');
+  validateLinearIssueListInput({ team, limit: 50 });
+  return team;
+}
 export function linearTaskMapping() {
   let value: unknown;
   try {

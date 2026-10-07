@@ -1532,3 +1532,19 @@
 - native全bun run check終了0:457成功/14skip/0失敗、471tests/195files/161.35秒、static346files/AST成功。[全check/実Jev/RED/DI・SQLite/native証拠](verification/2026-10-07-linear-core-sync/)を保存。全体要件/監査へopt-in永続同期の成果と残件を追記。実機opt-in14skip、実API認証/単調鮮度/共通非同期六操作/全体goalは未達として維持。
 - main通常fast-forwardとorigin/main push終了0、公開commit72344ba、公開時点HEAD/origin/main一致。Lefthook push対象全検査/実Jev成功179.63秒（push対象treeの通常全検査457成功/14skip/0失敗471tests195files159.94秒）。全体goalはactive。
 - 次の[共通非同期TaskProvider/実consumer計画](superpowers/plans/2026-10-07-async-task-provider.md)を保存。既存sync Local storeを全面書換えず、get/list/createの両Adapterと実consumerから六操作へ進める。既存updateのcontent/UUID三field分離、Artifact writeのLocal output原本/Approval/claim/receipt境界を照合し、残writeは本当にCore契約へ接続するまで未達を維持する。Ponytail:空interface/throw-only stub/新mutation engine/自動background syncを先に増やさない。文書git diff --check成功。Final minorの要件progress記載は全gateの実測値で実施済み、初回importの古いponytail文言だけを保留する。
+
+## 2026-10-07 共通非同期TaskProviderのcreate/get/list
+
+- 前ターンは永続Core同期の実装/全gate/main公開によるprogress。全体goalはactive。main9289069（公開source72344ba）からfeatureを作り、非同期Provider計画/指針/リファレンス/旧sync store全caller/CLI direct・daemon配線/Linear read・page・Core mapping・sync・Approval engineを照合。Notion04再取得（編集2026-10-04、欠損/切詰めなし、verification unverified）。inline executing-plans/TDD/Ponytail-reviewを継続する。
+- Pre-flight:共通Core consumerのcreate/get/listを二Adapterへ渡し、CoreTask/CoreFilterだけを返す。sync Local storeは既存Execution/historyの所有者として維持し全面async化しない。残update/comment/artifactは同じ境界へ実装するまで未達とし、空interface/throw-only stubを作らない。
+- native RED:--provider未対応で終了2、0成功/1失敗114ms。共通AsyncTaskProvider/DI consumerをLocal/Linearの二実Adapterへ接続。最初のGREENはfixtureの既存artifact --direction欠落を拒否したためfixtureへ明示directionを補正。初回native GREEN1成功712ms。staticはliteral型の拡大/compound unionのnarrowing/JSON値anyとbody文字列化を拒否し、型を広げたりassertionで隠さずcontextual型・明示branch・unknown検証へ修正した。
+- Ruling:createはrootの新Issue禁止を守る既存IssueのCoreミラー作成。外部six fieldsは現在のIssueを採用し、Core入力のLocal関係/初回時刻を保持する。CLI title/objectiveは外部変更要求にならず、この違いをREADME/設計へ明示する（誤るとcreateがIssueを編集/新設する操作だと誤認する）。重複をcredential前に拒否。get/listは既存ミラーなら取得前versionのCAS同期を行い、未作成ならsnapshotを返すだけで自動importしない。旧mapped readはLocal不変のまま。
+- Ruling:listは最大50件×10ページまで全応答を検証し、不完全page/labels/重複ID/循環cursor/上限超過を成功にしない。API readは共通Core selection/page parserを再利用してN+1を避ける。全応答検証後の保存はWorkItem単位であり、後続CAS/保存障害時には先行更新が残り得る。filterは表示条件、host Teamがscope（誤ると一覧全体の原子性/filterによる認可/無制限listまで保証すると誤認する）。
+- native最終3成功/0失敗3files3.80秒:両Provider create/get/list、Core生値、二HTTPページだけで一覧完走、既存mirrorの外部状態/Local原本合成、duplicate先行拒否、実daemon経由get/Local create、再open、旧direct/daemon/sync/refresh互換を確認。DI関連7成功/0失敗56ms:両Adapter共通contract/async完了待ち/失敗伝播/Team・ID先行拒否/race/跨page重複・循環・partial fields・scope・上限拒否。fast UT160成功/56files236ms、static350files/AST成功。全gateと実Jev/独立reviewを続ける。
+- Ponytail review:共通Core field selectionとpage parserを共有し、Issueごとの追加読取を削除。getの重複decodeも共有parserへ一回に集約。二実装が使う三methodだけを公開し、新DDL/依存/汎用query engine/DI container/background import・retryを作らない。正しさ/安全性は独立最終reviewへ渡す。
+
+- 独立最終review:Critical0/Important1/Minor0。後続IssueのURL fragment/queryがcanonical scope検証まで遅延し、先行ミラーを保存してから拒否する不備を採用。保存ゼロの回帰fixtureを追加しRED（3成功/1失敗64ms、実保存1）を確認。既存scopeをsnapshot収集時に再利用する一回のTDD修正。GREEN4成功/0失敗38ms。再reviewは行わず全gateを再実行。Ponytail:Lean already、削減候補なし。Deferred minorなし。
+- 修正後実Jev終了0:2191subjects/133warning/missing0/unsure0/review0/errors[]/degraded[]。projection/CLIの失敗経路候補0.80/0.77/0.76/0.68は不完全page・mapping・identity・scope・race・parse先行拒否のDI/native証拠と独立reviewで判定し、モデル候補のみで追加frameworkや全分岐網羅を主張しない。全checkの終了解果を待つ。
+
+- 修正後全bun run check終了0:462成功/14skip/0失敗、476tests/197files/161.67秒。fast UT160成功/56files252ms。非空dry-run2191対象、未宣言/空rule/除外0。[証拠](verification/2026-10-07-async-task-provider/)にCLI RED、URL RED/GREEN、全check、実Jevを保存。opt-in skipを成功へ数えず、共通三操作と残三操作/他の全体残件を区別する。
+- 次の[承認付き共通write計画](superpowers/plans/2026-10-07-core-provider-writes.md)を保存。既存field mask/digest/response/receipt全callerからpriority/contentの境界をTDDで整え、逆mappingの曖昧さを拒否し、Artifact原本stageを承認対象から隠さない。全体goalはactive。

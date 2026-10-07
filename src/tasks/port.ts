@@ -32,6 +32,11 @@ export interface TaskProvider {
   linkArtifact(id: string, artifact: TaskArtifact, direction: 'input' | 'output'): Task;
   artifacts(id: string): readonly TaskArtifact[];
 }
+export interface AsyncTaskProvider {
+  create(task: Task): Promise<Task>;
+  get(id: string): Promise<Task>;
+  list(filter?: TaskFilter): Promise<readonly Task[]>;
+}
 
 export interface ExecutionResultWriter {
   stageExecutionResult(id: string, artifact: TaskArtifact, expectedVersion: number): Task;

@@ -1,0 +1,30 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-provider.test.ts:
+(pass) same async Core consumer creates, gets and lists through both concrete adapters and propagates failures [6.01ms]
+(pass) Core consumer awaits the injected async result before reporting success [0.48ms]
+(pass) Linear client refuses invalid Core IDs and stored scope before credentials and rejects acquisition races [0.46ms]
+245 |       mapping,
+246 |       'ORG',
+247 |       () => 'now',
+248 |     );
+249 |     await assert.rejects(() => provider.list());
+250 |     assert.equal(saved.writes(), 0);
+                 ^
+AssertionError: Expected values to be strictly equal:
+
+1 !== 0
+
+ generatedMessage: true,
+     actual: 1,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/task-provider.test.ts:250:12
+      at processTicksAndRejections (native:7:39)
+(fail) Linear list validates all pages before reconciliation and rejects duplicate IDs, cursor cycles, partial fields and page overflow [2.46ms]
+
+ 3 pass
+ 1 fail
+Ran 4 tests across 1 file. [64.00ms]

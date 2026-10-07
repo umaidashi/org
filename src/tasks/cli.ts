@@ -35,7 +35,9 @@ import {
 } from '../linear/read.js';
 import type { LinearIssueListInput } from '../linear/read.js';
 import { EnvironmentSecretStore } from '../secrets/environment.js';
-import { linearAgentScopes, linearTaskMapping } from '../linear/config.js';
+import { linearAgentScopes, linearTaskMapping, linearTaskTeam } from '../linear/config.js';
+import { linearTaskClient } from '../linear/provider.js';
+import { localTaskClient, runTaskClient, type TaskClientAction } from './client.js';
 import { readLinearCoreWorkItem } from '../linear/projection.js';
 import { readAgentLinearIssue } from '../linear/agent-read.js';
 import {
@@ -112,7 +114,7 @@ type TaskAction =
       messageId: string;
       expectedVersion: number;
     }
-  | { kind: 'create'; input: TaskInput }
+  | { kind: 'create'; input: TaskInput; id?: string; externalRef?: string }
   | { kind: 'get' | 'history' | 'comments' | 'artifacts' | 'reviews'; id: string }
   | { kind: 'comment'; id: string; body: string; actor: string }
   | { kind: 'artifact-content'; id: string; artifact: string }
@@ -124,6 +126,7 @@ export interface TaskCommand {
   readonly db: string;
   readonly json: boolean;
   readonly action: TaskAction;
+  readonly provider?: 'local' | 'linear';
 }
 function required(value: string | undefined, label: string): string {
   if (value === undefined || !value.trim()) throw new Error(`Missing ${label}`);
@@ -150,6 +153,9 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     options: {
       db: { type: 'string' },
       json: { type: 'boolean' },
+      provider: { type: 'string' },
+      id: { type: 'string' },
+      'external-ref': { type: 'string' },
       objective: { type: 'string' },
       session: { type: 'string' },
       'room-message': { type: 'string' },
@@ -244,13 +250,35 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   };
   const options = action === undefined ? undefined : allowed[action];
   if (!options) throw new Error('Expected task create/list/get/assign/update/history');
+  if (
+    values.provider !== undefined &&
+    (!['local', 'linear'].includes(values.provider) ||
+      !['create', 'get', 'list'].includes(action ?? ''))
+  )
+    throw new Error('Provider supports task create/get/list');
+  const providerOptions =
+    values.provider === undefined
+      ? []
+      : ['provider', ...(action === 'create' ? ['id', 'external-ref'] : [])];
+  if (values.provider === 'linear' && action === 'create') {
+    required(values.id, '--id');
+    required(values['external-ref'], '--external-ref');
+    if (values.kind === 'execution_task')
+      throw new Error('Linear provider supports WorkItems only');
+  }
   for (const option of Object.keys(values)) {
-    if (!['db', 'json', ...options].includes(option))
+    if (!['db', 'json', ...options, ...providerOptions].includes(option))
       throw new Error(`Unexpected --${option} for task ${action}`);
   }
   const db = values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('The database path must not be empty');
-  const common = { db, json: values.json ?? false };
+  const common: Omit<TaskCommand, 'action'> = {
+    db,
+    json: values.json ?? false,
+    ...(values.provider === 'local' || values.provider === 'linear'
+      ? { provider: values.provider }
+      : {}),
+  };
   if (action === 'apply-task-linear-update' || action === 'observe-task-linear-update')
     return {
       ...common,
@@ -412,6 +440,10 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       ...common,
       action: {
         kind: 'create',
+        ...(values.id === undefined ? {} : { id: required(values.id, '--id') }),
+        ...(values['external-ref'] === undefined
+          ? {}
+          : { externalRef: required(values['external-ref'], '--external-ref') }),
         input: {
           title: required(id, 'title'),
           objective: required(values.objective, '--objective'),
@@ -585,6 +617,74 @@ export async function runTaskCommand(
   command: TaskCommand,
   output: (line: string) => void = console.log,
 ): Promise<void> {
+  if (command.provider !== undefined) {
+    const action = command.action;
+    if (action.kind !== 'create' && action.kind !== 'get' && action.kind !== 'list')
+      throw new Error('Provider supports task create/get/list');
+    const coreAction: TaskClientAction =
+      action.kind === 'create'
+        ? {
+            kind: 'create',
+            task: {
+              ...createTask(action.input, {
+                id: action.id ?? randomUUID(),
+                createdAt: new Date().toISOString(),
+              }),
+              externalRef: action.externalRef ?? null,
+            },
+          }
+        : action.kind === 'list'
+          ? { kind: 'list', filter: action.filter }
+          : { kind: 'get', id: action.id };
+    const settings =
+      command.provider === 'linear'
+        ? { mapping: linearTaskMapping(), team: linearTaskTeam() }
+        : undefined;
+    const store = new SqliteTaskProvider(command.db);
+    try {
+      if (!settings) {
+        output(
+          JSON.stringify(
+            await runTaskClient(localTaskClient(store), coreAction),
+            null,
+            command.json ? undefined : 2,
+          ),
+        );
+        return;
+      }
+      const agents = new SqliteAgentRepository(command.db);
+      try {
+        const secrets = new EnvironmentSecretStore([
+          {
+            actorId: 'linear:host',
+            reference: 'linear:read',
+            environmentVariable: 'LINEAR_API_KEY',
+          },
+        ]);
+        const provider = linearTaskClient(
+          store,
+          fetch,
+          secrets,
+          agents,
+          settings.mapping,
+          settings.team,
+          () => new Date().toISOString(),
+        );
+        output(
+          JSON.stringify(
+            await runTaskClient(provider, coreAction),
+            null,
+            command.json ? undefined : 2,
+          ),
+        );
+      } finally {
+        agents.close();
+      }
+    } finally {
+      store.close();
+    }
+    return;
+  }
   if (
     command.action.kind === 'request-task-linear-update' ||
     command.action.kind === 'apply-task-linear-update' ||

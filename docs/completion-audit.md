@@ -161,3 +161,7 @@ CLIの原文は例示だが、例示した操作の提供有無を省略しな�
 ## 2026-10-07 Linear Coreの永続同期追加
 
 明示task sync-linearで外部Core snapshotを既存WorkItemへCAS/不変履歴付きで反映できる。外部six fieldsとLocal所有fieldsを分離し、内部ExecutionTaskと履歴の不変を実CLI/DI/実SQLiteで確認。[証拠](verification/2026-10-07-linear-core-sync/check.txt):457成功/14skip/0失敗。04の同期の一経路を満たしたが、共通非同期六操作/実consumerと両Adapter契約/双方向mapping/実API認証は未完了。その他Memory/permission/本人認証/Sandbox credential・Audit/安全retry/実業務納品/CLIの残件を維持。
+
+## 2026-10-07 共通非同期TaskProvider三操作
+
+共通Core consumerのcreate/get/listをLocal/Linear両Adapterへ接続し、実CLI/direct/daemon/reopen、外部snapshotとLocal原本保持、完全page検証とCAS同期を確認。[全gate](verification/2026-10-07-async-task-provider/check.txt):462成功/14skip/0失敗。実Jev2191subjects/missing・errors・degraded0。Linear createは既存Issueのミラー作成で新Issueを作らない。残update/addComment/linkArtifact・双方向明示mapping・実API認証と他の全体残件は未達。[次の計画](superpowers/plans/2026-10-07-core-provider-writes.md)へ続く。
