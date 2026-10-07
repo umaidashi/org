@@ -1,4 +1,18 @@
-import { chmodSync, lstatSync, mkdirSync, rmdirSync, unlinkSync } from 'node:fs';
+import {
+  chmodSync,
+  lstatSync,
+  mkdirSync,
+  rmdirSync,
+  unlinkSync,
+  openSync,
+  closeSync,
+  fstatSync,
+  readSync,
+  writeFileSync,
+  readdirSync,
+  constants,
+} from 'node:fs';
+import { processAlive } from './lease.js';
 import type { Stats } from 'node:fs';
 import { dirname } from 'node:path';
 import { pollDispatch } from './service.js';
@@ -22,6 +36,100 @@ function entry(path: string): Stats | undefined {
     throw error;
   }
 }
+function acquireSocketLock(socket: string): number {
+  const lock = socket + '.lock';
+  try {
+    mkdirSync(lock, { mode: 0o700 });
+    return lstatSync(lock).ino;
+  } catch (error) {
+    if (!error || typeof error !== 'object' || !('code' in error) || error.code !== 'EEXIST')
+      throw error;
+  }
+  // Exclusive recovery guard protects the check/delete/reacquire sequence across starters.
+  const recovery = lock + '.recovery';
+  mkdirSync(recovery, { mode: 0o700 });
+  const recoveryInode = lstatSync(recovery).ino;
+  try {
+    const ownedLock = lstatSync(lock),
+      ownedSocket = entry(socket),
+      uid = process.getuid?.();
+    if (
+      uid === undefined ||
+      !ownedLock.isDirectory() ||
+      ownedLock.uid !== uid ||
+      (ownedLock.mode & 0o777) !== 0o700 ||
+      !ownedSocket?.isSocket() ||
+      ownedSocket.uid !== uid ||
+      (ownedSocket.mode & 0o777) !== 0o600 ||
+      readdirSync(lock).length !== 1
+    )
+      throw new Error('Cannot verify stale daemon ownership');
+    const ownerPath = lock + '/owner.json';
+    const fd = openSync(
+      ownerPath,
+      constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
+    );
+    let owner: unknown;
+    let ownerInode: number;
+    try {
+      const stat = fstatSync(fd);
+      if (
+        !stat.isFile() ||
+        stat.uid !== uid ||
+        (stat.mode & 0o777) !== 0o600 ||
+        stat.nlink !== 1 ||
+        stat.size < 1 ||
+        stat.size > 1024
+      )
+        throw new Error('Invalid daemon ownership file');
+      ownerInode = stat.ino;
+      const bytes = Buffer.alloc(1025);
+      const count = readSync(fd, bytes, 0, bytes.length, 0);
+      if (count !== stat.size) throw new Error('Daemon ownership file changed');
+      try {
+        owner = JSON.parse(bytes.subarray(0, count).toString());
+      } catch {
+        throw new Error('Invalid daemon ownership record');
+      }
+    } finally {
+      closeSync(fd);
+    }
+    if (
+      !owner ||
+      typeof owner !== 'object' ||
+      Array.isArray(owner) ||
+      Object.keys(owner).some(
+        (key) => !['version', 'pid', 'lockInode', 'socketInode'].includes(key),
+      ) ||
+      !('version' in owner) ||
+      owner.version !== 1 ||
+      !('pid' in owner) ||
+      typeof owner.pid !== 'number' ||
+      !Number.isInteger(owner.pid) ||
+      owner.pid < 1 ||
+      owner.pid > 2147483647 ||
+      !('lockInode' in owner) ||
+      owner.lockInode !== ownedLock.ino ||
+      !('socketInode' in owner) ||
+      owner.socketInode !== ownedSocket.ino ||
+      processAlive(owner.pid)
+    )
+      throw new Error('Stale daemon ownership not verified or owner is alive');
+    if (
+      entry(lock)?.ino !== ownedLock.ino ||
+      entry(socket)?.ino !== ownedSocket.ino ||
+      entry(ownerPath)?.ino !== ownerInode
+    )
+      throw new Error('Daemon ownership changed during recovery');
+    unlinkSync(socket);
+    unlinkSync(ownerPath);
+    rmdirSync(lock);
+    mkdirSync(lock, { mode: 0o700 });
+    return lstatSync(lock).ino;
+  } finally {
+    if (entry(recovery)?.ino === recoveryInode) rmdirSync(recovery);
+  }
+}
 export async function runLocalDaemon(
   socket: string,
   interval: number,
@@ -32,6 +140,8 @@ export async function runLocalDaemon(
   const lock = `${socket}.lock`;
   let lockInode: number | undefined;
   let socketInode: number | undefined;
+  const ownerPath = lock + '/owner.json';
+  let ownerInode: number | undefined;
   let operations: DaemonOperations | undefined;
   let server: ReturnType<typeof Bun.serve> | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -41,8 +151,7 @@ export async function runLocalDaemon(
   let wakeError: string | null = null;
   let onSignal: (() => void) | undefined;
   try {
-    mkdirSync(lock, { mode: 0o700 });
-    lockInode = lstatSync(lock).ino;
+    lockInode = acquireSocketLock(socket);
     if (entry(socket)) throw new Error('Socket path already exists; refusing to replace it');
     const activeOperations = createOperations();
     operations = activeOperations;
@@ -159,6 +268,12 @@ export async function runLocalDaemon(
     });
     socketInode = lstatSync(socket).ino;
     chmodSync(socket, 0o600);
+    writeFileSync(
+      ownerPath,
+      JSON.stringify({ version: 1, pid: process.pid, lockInode, socketInode }),
+      { flag: 'wx', mode: 0o600 },
+    );
+    ownerInode = lstatSync(ownerPath).ino;
     timer = setInterval(() => {
       status = pollDispatch(() => activeOperations.dispatch());
       wake();
@@ -197,7 +312,13 @@ export async function runLocalDaemon(
           if (socketInode !== undefined && entry(socket)?.ino === socketInode) unlinkSync(socket);
         } finally {
           try {
-            if (lockInode !== undefined && entry(lock)?.ino === lockInode) rmdirSync(lock);
+            if (lockInode !== undefined && entry(lock)?.ino === lockInode) {
+              if (ownerInode === undefined) rmdirSync(lock);
+              else if (entry(ownerPath)?.ino === ownerInode) {
+                unlinkSync(ownerPath);
+                rmdirSync(lock);
+              }
+            }
           } finally {
             process.umask(previousMask);
           }

@@ -1151,3 +1151,14 @@
 - 最終check343成功12skip0失敗355tests175files73.66秒、型/Oxlint/Oxfmt314files/ASTと空でないreview plan成功。実jev1768対象112warning、missing/unsure0/errors/degraded空、exit0。[検証](verification/2026-10-07-workflow-crash-recovery/check.txt)。補助のfailure-path/name候補は既存DI/nativeの具体的assertと別途独立レビューを併用し、実レビューをdry-runと混同しない。
 - 独立最終review Critical0/Important0/Minor0、DI2成功32ms。Reviewer native再実行は4件ともport0のHTTP fixture起動時EADDRINUSEとなりアプリ検証前に停止した環境制限。作者native/full成功を保持。Ponytail: Lean already. Ship. 新retry engine/Port/table/dependencyは追加せず、既存観測・Audit・Event/Task Portを再利用。一回のreviewで終了。
 - 未完了: 同じsocketへSIGKILL後再起動するstale endpoint回復、実行ID不明時の業務照合、一般retry、通常Artifact保存errorからの復旧、実業務対象/実API認証。Nextは旧socketを無条件に削除せず、所有者と終了を検証して回復できる最小経路を実CLIで確認する。
+
+## 2026-10-07 所有daemonのstale socket回復
+
+- 前ターンはWorkflow復旧の進捗。7d06c46をmainへ通常push済み、main/origin一致・clean。pre-push全検査343成功12skip0失敗73.85秒、全gate89.14秒で成功。
+- [計画](superpowers/plans/2026-10-07-daemon-stale-socket.md)。既存serverのmkdir lock/inode cleanupとDatabase leaseのprocessAliveを確認し、同socketのSIGKILL復旧へ進める。所有PID/inode記録と排他的復旧guardで既知の死んだdaemonのみ回復し、未知ファイルやliveプロセスは維持する。新lock framework/依存/CLI commandは追加しない。
+- 同socket native REDは2成功2失敗5.98秒、SIGKILL後のstale lock EEXIST。既存processAliveを共有し、ready前にprivate owner.jsonへPID/lock/socket inodeを保存。起動時は排他的復旧directoryを取得し、UID/private mode/socket type/通常owner file/nlink1/1024byte上限/O_NOFOLLOW・NONBLOCK/型・未知field/一致inode/PID終了を確認後、既知socket・record・空lockのみ再取得する。終了時もrecordのinode一致だけを削除。再帰的cleanup、新framework/dependency/commandなし。
+- 初回対象12成功9.77秒、改変・live/PID/inode・permission・symlink/別file・同時起動のnative追加後13成功10.26秒。最終fixtureにはhardlinkと既存復旧guardの保護も追加した。所有daemon SIGKILL後は同DB・同socket、manual/autoともinvoke一回のまま結果を観測。既存置換socket/lock保護、同DB別socketの二重所有拒否を維持。
+- 初回全checkは追加fixtureのmkdirSync import不足で型検査失敗し修正。独立最終review Critical0/Important0/Minor0、Ponytail: Lean already. Ship. Reviewer自身のnative実行はUnix socket EPERM制限で1成功7失敗1errorとなりアプリ動作の合否には使わない。作者の許可済みnative/fullを証拠とする。一回のレビューで終了。
+- 旧形式lock、record保存前の中断、復旧guard取得後の中断では所有を証明できず自動削除を拒否。PID再利用でliveなら保守的拒否。hostの同UIDによる意図的なfilesystem改変から物理隔離する保証ではない。README/requirementsへ成功範囲と限界を反映。[検証](verification/2026-10-07-daemon-stale-socket/check.txt)。
+- 最終check344成功12skip0失敗356tests175files76.37秒、型/Oxlint/Oxfmt/ASTと空でないreview plan成功、exit0。実jev1777対象113warning、missing/unsure0/errors/degraded空、exit0。processAliveの既存failure-path候補は実native live/deadと別途sourceレビューで判定し、全OSエラーを再現したとは扱わない。
+- Next: Workflowのterminal成功receiptはあるがArtifact保存だけが失敗する経路を、外部再invokeなしで復旧できるよう検証する。現在の保存例外はTask failedへ固定されるため、既存pending結果・receipt・status-only経路を使ってArtifact保存待ちを明示し、所有一時保存先の障害→復元を実CLIで確認する。実業務Issue/repo/API認証は引き続き指定待ち。

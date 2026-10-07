@@ -13,7 +13,7 @@ async function proof(auto: boolean, crash: boolean): Promise<void> {
     config = home + '/workflow.json',
     runtime = home + '/runtime.json',
     driver = home + '/driver.ts';
-  let socket = home + '/org.sock';
+  const socket = home + '/org.sock';
   let invokes = 0,
     reads = 0,
     delayed = false,
@@ -296,7 +296,6 @@ async function proof(auto: boolean, crash: boolean): Promise<void> {
       daemon?.kill('SIGKILL');
       await exited;
       daemon = undefined;
-      socket = home + '/recovered.sock';
       assert.notEqual((await pending).code, 0);
       releaseStatus?.();
       const configured: unknown = JSON.parse(await Bun.file(config).text());

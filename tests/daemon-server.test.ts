@@ -6,6 +6,7 @@ import {
   existsSync,
   lstatSync,
   mkdtempSync,
+  mkdirSync,
   readFileSync,
   rmdirSync,
   rmSync,
@@ -13,10 +14,126 @@ import {
   symlinkSync,
   unlinkSync,
   writeFileSync,
+  chmodSync,
+  renameSync,
+  linkSync,
 } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'bun:test';
 import { runLocalDaemon } from '../src/daemon/server.js';
+
+test('stale daemon ownership refuses live, modified and substituted entries before exactly one concurrent restart', async () => {
+  const home = mkdtempSync('/tmp/org-stale-daemon-'),
+    socket = join(home, 'org.sock'),
+    lock = socket + '.lock',
+    ownerPath = lock + '/owner.json';
+  const args = ['--no-env-file', cli, '--db', join(home, 'org.db'), 'daemon', '--socket', socket];
+  const children: ChildProcess[] = [];
+  const launch = () => {
+    const child = spawn(process.execPath, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    children.push(child);
+    return child;
+  };
+  const refuse = () => {
+    const before = lstatSync(socket),
+      metadata = readFileSync(ownerPath, 'utf8');
+    const result = spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 5000 });
+    assert.equal(result.status, 1, result.stderr);
+    assert.equal(lstatSync(socket).ino, before.ino);
+    assert.equal(readFileSync(ownerPath, 'utf8'), metadata);
+    assert.equal(existsSync(lock + '.recovery'), false);
+  };
+  try {
+    const original = launch();
+    await ready(original);
+    const metadata = readFileSync(ownerPath, 'utf8');
+    const value: unknown = JSON.parse(metadata);
+    assert.ok(value && typeof value === 'object' && 'pid' in value);
+    assert.equal(value.pid, original.pid);
+    assert.equal(lstatSync(ownerPath).mode & 0o777, 0o600);
+    refuse();
+    const terminated = exit(original);
+    original.kill('SIGKILL');
+    await terminated;
+    for (const changed of [
+      'PUBLIC_INVALID_JSON',
+      'x'.repeat(1025),
+      JSON.stringify({ ...value, pid: process.pid }),
+      JSON.stringify({ ...value, socketInode: -1 }),
+      JSON.stringify({ ...value, lockInode: -1 }),
+      JSON.stringify({ ...value, extra: true }),
+    ]) {
+      writeFileSync(ownerPath, changed);
+      refuse();
+    }
+    writeFileSync(ownerPath, metadata);
+    linkSync(ownerPath, home + '/linked-owner');
+    refuse();
+    unlinkSync(home + '/linked-owner');
+    mkdirSync(lock + '.recovery', { mode: 0o700 });
+    const recoveryInode = lstatSync(lock + '.recovery').ino;
+    assert.equal(spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 5000 }).status, 1);
+    assert.equal(lstatSync(lock + '.recovery').ino, recoveryInode);
+    assert.equal(readFileSync(ownerPath, 'utf8'), metadata);
+    rmdirSync(lock + '.recovery');
+    for (const [path, mode] of [
+      [ownerPath, 0o600],
+      [socket, 0o600],
+      [lock, 0o700],
+    ] as const) {
+      chmodSync(path, 0o777);
+      refuse();
+      chmodSync(path, mode);
+    }
+    writeFileSync(lock + '/unrelated', 'keep');
+    refuse();
+    assert.equal(readFileSync(lock + '/unrelated', 'utf8'), 'keep');
+    unlinkSync(lock + '/unrelated');
+    renameSync(ownerPath, home + '/saved-owner');
+    symlinkSync(home + '/saved-owner', ownerPath);
+    const denied = spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 5000 });
+    assert.equal(denied.status, 1);
+    assert.equal(lstatSync(ownerPath).isSymbolicLink(), true);
+    assert.equal(readFileSync(home + '/saved-owner', 'utf8'), metadata);
+    unlinkSync(ownerPath);
+    renameSync(home + '/saved-owner', ownerPath);
+    renameSync(socket, home + '/saved-socket');
+    writeFileSync(socket, 'replacement');
+    refuse();
+    assert.equal(readFileSync(socket, 'utf8'), 'replacement');
+    unlinkSync(socket);
+    symlinkSync(home + '/saved-socket', socket);
+    refuse();
+    assert.equal(lstatSync(socket).isSymbolicLink(), true);
+    unlinkSync(socket);
+    renameSync(home + '/saved-socket', socket);
+    const first = launch(),
+      second = launch();
+    const outcomes = await Promise.allSettled([ready(first), ready(second)]);
+    assert.equal(outcomes.filter((outcome) => outcome.status === 'fulfilled').length, 1);
+    const winner = outcomes[0]?.status === 'fulfilled' ? first : second;
+    const current: unknown = JSON.parse(readFileSync(ownerPath, 'utf8'));
+    assert.ok(
+      current && typeof current === 'object' && 'pid' in current && 'socketInode' in current,
+    );
+    assert.equal(current.pid, winner.pid);
+    assert.equal(current.socketInode, lstatSync(socket).ino);
+    assert.equal(existsSync(lock + '.recovery'), false);
+    const stopped = exit(winner);
+    winner.kill('SIGTERM');
+    assert.equal(await stopped, 0);
+    assert.equal(existsSync(socket), false);
+    assert.equal(existsSync(lock), false);
+  } finally {
+    for (const child of children)
+      if (child.exitCode === null && child.signalCode === null) {
+        const stopped = exit(child);
+        child.kill('SIGTERM');
+        await stopped;
+      }
+    rmSync(home, { recursive: true, force: true });
+  }
+}, 20000);
 test('SIGINT releases the daemon while preserving replacement socket and lock entries', async () => {
   const home = mkdtempSync('/tmp/org-server-replaced-');
   const socket = join(home, 'org.sock');
@@ -29,6 +146,7 @@ test('SIGINT releases the daemon while preserving replacement socket and lock en
     await ready(child);
     unlinkSync(socket);
     writeFileSync(socket, 'replacement socket');
+    unlinkSync(`${socket}.lock/owner.json`);
     rmdirSync(`${socket}.lock`);
     writeFileSync(`${socket}.lock`, 'replacement lock');
     child.kill('SIGINT');

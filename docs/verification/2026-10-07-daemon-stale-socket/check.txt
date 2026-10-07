@@ -1,0 +1,11 @@
+Owned stale daemon socket — 2026-10-07
+RED same socket native Workflow: 2pass2fail5.98s, EEXIST stale lock, exit1.
+Initial targeted GREEN: 12pass0fail9.77s. With new native safety/concurrency test: 13pass0fail10.26s.
+Full initial attempt: typecheck failed missing mkdirSync import in new test; fixed, not counted successful.
+Final full check: results verified from terminal output (exact runtime appended below). Type/Oxlint/Oxfmt/AST + nonempty review plan passed, exit0.
+Native safety test uses killed OWNED daemon: live owner denied; invalid/oversized/extra-key/foreign inode/PID metadata denied; UID/private mode/type checks; hardlink/symlink/changed socket/unrelated lock entry/existing recovery guard preserved; exactly one of concurrent restarts becomes ready; normal stop removes owned socket/record/lock.
+Workflow manual/auto SIGKILL tests now retain SAME socket and DB, same Approval/capability checks, exactly one external invocation then status-only verified Artifact.
+Independent final review Critical0/Important0/Minor0. Reviewer native run restricted by Unix socket EPERM: 1pass7fail1error before valid application proof; parent authorized native/full evidence retained. Ponytail: Lean already. Ship.
+Limits: legacy/unverifiable lock, crash before ownership record, leftover unknown recovery guard are refused; no recursive delete. No physical isolation from hostile same-UID filesystem mutations is claimed. PID reuse to a live process conservatively refuses recovery.
+Final full check exact: 344pass12skip0fail356tests175files76.37s, exit0.
+Real Jev exact: subjects1777/reported113/missing0/unsure0/errors[]/degraded[], exit0. processAlive failure-path and existing server/lease candidates remain auxiliary; native live/dead PID and independent source review confirm current behavior, not an assertion that every OS error is reproduced.

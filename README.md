@@ -152,7 +152,7 @@ bun run start daemon stop --json
 
 既定socketはDBの絶対パスに`.sock`を付けたものです（既定DBでは`~/.local/share/org/org.db.sock`）。起動側とclient側に同じ`--socket PATH`を指定すれば変更できます。`daemon deliveries --socket PATH`はdaemon経由で取得し、socket指定なしの`deliveries`と`--once`はDBを直接操作する管理コマンドです。通常clientの接続は5秒でtimeoutします。RuntimeとSandbox実行は設定された実行期限まで待ちます。同じディレクトリの別DBも異なる既定socketを使います。
 
-TCP listenerは開かず、Unix socketを0600で作成します。同socketの2重起動や既存file/symlinkの置換を拒否します。stop・SIGTERM・SIGINTで終了し、自分が作成したsocket/lockを解放します。`--wake-up`はRoomの未処理Messageを既存履歴も含めて選択し、起動intentを保存してから実行します。停止時は進行中turnを中止してdrainし、未実行Messageは次の起動へ残します。
+TCP listenerは開かず、Unix socketを0600で作成します。同socketの2重起動や既存file/symlinkの置換を拒否します。ready前にprivate lockへPID・socket/lock inodeの所有記録を保存します。SIGKILL後の再起動は所有UID・permission・通常ファイル・inode・PID終了を照合し、排他的な復旧guardの下で確認できたsocketと空lockだけを回復します。live PID・不明な記録・置換file/symlink・hardlinkは拒否します。旧lock、所有記録保存前の中断、復旧guard取得後の中断で残る記録不明のguardは自動削除しません。これらは停止と所有者の確認後に管理者による整理が必要です。stop・SIGTERM・SIGINTで終了し、自分が作成したsocket/lockを解放します。`--wake-up`はRoomの未処理Messageを既存履歴も含めて選択し、起動intentを保存してから実行します。停止時は進行中turnを中止してdrainし、未実行Messageは次の起動へ残します。
 
 SIGKILL等で残ったsocket/lockは自動削除しません。稼働中プロセスがないことを確認してから手動で整理してください。
 
@@ -584,7 +584,7 @@ bun run start task get TASK_ID --json
 bun run start task observe-workflow TASK_ID --expected-version VERSION --json
 ```
 
-daemon起動時にWorkflow claimを持つrunning Taskを検出すると、blockedへ回復します。started receiptがあれば観測不明receiptを先に保存し、既存のstatus-only経路へ接続します。Task更新に失敗しても次の起動で保存済みreceiptを再利用します。terminal receipt保存後に中断した場合も、同じstatusを照合して原本を保持します。claimだけで実行IDが不明な場合はblockedのまま自動再invokeせず、外部での結果照合が必要です。SIGKILL後の実CLI検証は同じDB・新しいsocketを使用しており、残った古いsocket/lockの再利用は未完了です。
+daemon起動時にWorkflow claimを持つrunning Taskを検出すると、blockedへ回復します。started receiptがあれば観測不明receiptを先に保存し、既存のstatus-only経路へ接続します。Task更新に失敗しても次の起動で保存済みreceiptを再利用します。terminal receipt保存後に中断した場合も、同じstatusを照合して原本を保持します。claimだけで実行IDが不明な場合はblockedのまま自動再invokeせず、外部での結果照合が必要です。SIGKILL後の実CLI検証は同じDB・同じsocketで再開し、所有確認後のstatus-only観測をmanual/auto両方で確認しています。
 
 観測再開はdaemon専用で、保存済みexecutionのstatusだけを読み、invokeしません。現在のTask/version/owner/capability/dependency、原本Messageとreceipt、host/Agent scopeを照合し、write/irreversibleは元のhuman Approvalも再確認します。成功を検証するとArtifactを保存して結果レビュー待ちへ戻り、まだ不明ならblockedを保持します。daemon再起動でも自動再送しません。`daemon --workflow-config PATH --observe-workflows`を明示すると、起動済み・観測不確定のblocked Executionだけをstatus-onlyで自動観測します。pendingはTask/historyを増やさず、完了後は同じ再認可とArtifact保存を通します。未起動Approval待ちは対象外です。一件の観測エラーでも他Taskを観測し、最後にpoll失敗を報告します。一般retry・Artifact保存失敗からの復旧は未完了です。
 
