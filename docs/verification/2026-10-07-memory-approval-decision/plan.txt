@@ -1,0 +1,196 @@
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 2245,
+  "cached": 2227,
+  "requests": 13,
+  "tokens": 47249,
+  "usd": 0.001984458,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "src/memory/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 5561,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 6348,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 5034,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/domain.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 4374,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/domain.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 5160,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/domain.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 3750,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1418,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2383,
+      "degraded": null
+    },
+    {
+      "file": "src/memory/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2447,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-decision-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2316,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-decision-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1902,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-service.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2258,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-service.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 4298,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "fn-name-promises",
+      "subjects": 7,
+      "requests": 5,
+      "tokens": 17553,
+      "usd": 0.000737226,
+      "share": 0.3714999259243582
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 5,
+      "requests": 3,
+      "tokens": 13891,
+      "usd": 0.0005834220000000001,
+      "share": 0.29399564011936763
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 4,
+      "requests": 3,
+      "tokens": 11231,
+      "usd": 0.000471702,
+      "share": 0.23769815234184852
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 2,
+      "requests": 2,
+      "tokens": 4574,
+      "usd": 0.000192108,
+      "share": 0.0968062816144257
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 8,
+    "files": [
+      "src/audit/service.ts",
+      "src/linear/config.ts",
+      "src/runtime/guardian.ts",
+      "src/runtime/http.ts",
+      "src/tasks/proposal.ts",
+      "src/tui/room-chat.ts"
+    ]
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": []
+}

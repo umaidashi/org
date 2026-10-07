@@ -1,3 +1,4 @@
+import { SqliteApprovalStore } from '../approvals/sqlite.js';
 import { parseArgs } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
@@ -86,6 +87,7 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       importance: { type: 'string' },
       'source-review': { type: 'string' },
       'source-event': { type: 'string' },
+      'source-decision': { type: 'string' },
       'source-artifact': { type: 'string' },
     },
   });
@@ -120,6 +122,7 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
                 'importance',
                 'source-review',
                 'source-event',
+                'source-decision',
                 'source-artifact',
               ]
             : action === 'list' || action === 'search'
@@ -162,6 +165,7 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       [
         parsed.values['source-review'] !== undefined,
         parsed.values['source-event'] !== undefined,
+        parsed.values['source-decision'] !== undefined,
         parsed.values['source-artifact'] !== undefined,
         parsed.values.room !== undefined || parsed.values.message !== undefined,
       ].filter(Boolean).length > 1
@@ -182,24 +186,35 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       content: required(parsed.values.content, 'content'),
       confidence: Number(required(parsed.values.confidence, 'confidence')),
       sourceRefs:
-        parsed.values['source-artifact'] !== undefined
-          ? [{ uri: required(parsed.values['source-artifact'], 'source-artifact') }]
-          : parsed.values['source-event'] !== undefined
-            ? [
-                {
-                  uri:
-                    'org://events/' +
-                    encodeURIComponent(required(parsed.values['source-event'], 'source-event')),
-                },
-              ]
-            : parsed.values['source-review'] !== undefined
-              ? [{ uri: required(parsed.values['source-review'], 'source-review') }]
-              : [
+        parsed.values['source-decision'] !== undefined
+          ? [
+              {
+                uri:
+                  'org://approvals/' +
+                  encodeURIComponent(
+                    required(parsed.values['source-decision'], 'source-decision'),
+                  ) +
+                  '/decision',
+              },
+            ]
+          : parsed.values['source-artifact'] !== undefined
+            ? [{ uri: required(parsed.values['source-artifact'], 'source-artifact') }]
+            : parsed.values['source-event'] !== undefined
+              ? [
                   {
-                    roomId: required(parsed.values.room, 'room'),
-                    messageId: required(parsed.values.message, 'message'),
+                    uri:
+                      'org://events/' +
+                      encodeURIComponent(required(parsed.values['source-event'], 'source-event')),
                   },
-                ],
+                ]
+              : parsed.values['source-review'] !== undefined
+                ? [{ uri: required(parsed.values['source-review'], 'source-review') }]
+                : [
+                    {
+                      roomId: required(parsed.values.room, 'room'),
+                      messageId: required(parsed.values.message, 'message'),
+                    },
+                  ],
       ...(parsed.values['valid-from'] === undefined
         ? {}
         : { validFrom: memoryTime(parsed.values['valid-from']) }),
@@ -284,6 +299,7 @@ export async function runMemoryCommand(
         let rooms: SqliteRoomRepository | undefined;
         let tasks: SqliteTaskProvider | undefined;
         let events: SqliteEventBus | undefined;
+        let approvals: SqliteApprovalStore | undefined;
         try {
           if (command.input.sourceRefs.some((ref) => 'roomId' in ref))
             rooms = new SqliteRoomRepository(command.db);
@@ -299,6 +315,12 @@ export async function runMemoryCommand(
             )
           )
             events = new SqliteEventBus(command.db);
+          if (
+            command.input.sourceRefs.some(
+              (ref) => 'uri' in ref && ref.uri.startsWith('org://approvals/'),
+            )
+          )
+            approvals = new SqliteApprovalStore(command.db);
           result = await captureMemory(
             provider,
             rooms,
@@ -310,6 +332,7 @@ export async function runMemoryCommand(
             tasks,
             events,
             (uri) => readSandboxArtifact(command.db + '.artifacts', uri),
+            approvals,
           );
         } finally {
           try {
@@ -318,7 +341,11 @@ export async function runMemoryCommand(
             try {
               tasks?.close();
             } finally {
-              events?.close();
+              try {
+                events?.close();
+              } finally {
+                approvals?.close();
+              }
             }
           }
         }

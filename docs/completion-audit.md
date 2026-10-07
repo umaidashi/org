@@ -72,8 +72,8 @@ hash Artifact追加進捗: `--source-artifact org://artifacts/HASH`を既存capt
 | global/company/department/project/agent/room/task scope | domain validation、capture/list/search CLI | 保存・明示検索は検証あり。Runtimeへのdepartment/projectの関連付けは未達 |
 | 現在scopeに関係するMemoryだけretrieve | `src/rooms/runtime.ts`、retriever、Context DI/SQLite/native tests | Room/Agent/Task/company/globalで検証。全scopeの関連付けとは区別 |
 | Message原本から候補抽出 | `memory/extraction.ts`、strict JSON Extractor、`memory-extraction-runtime-cli.test.ts` | 同Roomで検証あり。他scope/sourceの候補抽出は未達 |
-| Task executions / Decisionsから候補抽出 | approved TaskReview+前後Task履歴、`memory/reviews.ts` | TaskReview由来で検証あり。一般Decision全種は未達 |
-| Workflow executions / Events / Artifactsから候補抽出 | `memory/service.ts`にEvent/Artifact原本Reader、CLI capture/実DB/blob検証あり | Event/Artifactの原本付き明示captureは検証済み。Workflowと一般自動抽出は未達 |
+| Task executions / Decisionsから候補抽出 | approved TaskReview+前後Task履歴、`memory/reviews.ts`、確定Approval Decision reader | TaskReview投影とapprove/reject Decision原本付き明示captureを検証。一般Decision全種/自動抽出は未達 |
+| Workflow executions / Events / Artifactsから候補抽出 | `memory/service.ts`にEvent/Artifact原本Reader、CLI capture/実DB/blob検証あり | Event/Artifactの原本付き明示captureは検証済み。Workflow履歴は既存不変Eventに保存され同じReaderを使用、専用自動抽出/実業務Workflowは未達 |
 | Deduplicate / Conflict detection | 同値content dedup、metadata不一致先行拒否、明示supersedes、Room夜間同値整理 | 完全同値/metadata衝突は検証あり。意味conflictの自動推定は未達 |
 | 旧Memory削除/上書き禁止、明示supersede/invalidate | immutable SQLiteとstatus projection、原本/REPLACE拒否/reopen tests | 検証あり |
 | retrieval優先:scope/type/tags/entity/recency/importance/full-text | `memory/retrieval.ts`のfilter/sort、SQLite FTS、retrieverとContext tests | 選択/順位・bounds・DI交換に検証あり。typeは選択filter。Vector/rerankは必要時のみ |
@@ -86,7 +86,7 @@ hash Artifact追加進捗: `--source-artifact org://artifacts/HASH`を既存capt
 | Task id/title/objective/status/priority/owner/parent/dependencies/labels/inputArtifacts/outputArtifacts/externalRef | `src/tasks/domain.ts`、SQLite、Task domain/CLI tests | Local modelは検証あり |
 | pending/assigned/running/blocked/waiting_approval/completed/failed | domain transitions、SQLite原子history、Execution/Approval/復旧tests | 検証あり。図の一本道に限定せずblock/review復旧を扱う |
 | WorkItemと内部ExecutionTaskの分離 / 外部Taskを汚さない | kind/parent、Event/A2A生成、Linear import、内部Task原本 | 検証あり。内部Executionで新Issueを作らない |
-| WorkItem↔既存Linear Issue同期 | `linear/import.ts`のsnapshot/refresh、承認write/observe、専用scope | title/objective/選択fieldの明示操作あり。Core status/ownerの明示読取は検証済み。明示write共通updateも両Adapterで検証済み。自動双方向同期/残comment/artifact/実APIは未達 |
+| WorkItem↔既存Linear Issue同期 | `linear/import.ts`のsnapshot/refresh、承認write/observe、専用scope | title/objective/選択fieldの明示操作あり。Core status/ownerの明示読取は検証済み。明示write共通updateも両Adapterで検証済み。共通comment/artifactも両Adapterで検証済み。自動双方向同期/実APIは未達 |
 | TaskProvider create | Local create/SQLite tests | 外部新Issue作成をこの実務で行わない。既存Issueへのprojection/取込との意味を接続時に明示する |
 | TaskProvider get/list | Local tests、Linear get/listの固定GraphQL一ページ/UUID/Team/cursor tests | 共通AsyncTaskProviderと実await consumerで両Adapterを検証済み。実APIは未達 |
 | TaskProvider update | Local CAS/history、Linear content/fieldsの承認/claim/observe | 共通Port/明示Core patch/逆mapping/承認付きwriteはDI・実CLI・全gateで検証済み。外部writeは明示承認が必要 |

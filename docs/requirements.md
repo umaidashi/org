@@ -119,3 +119,7 @@ comment/artifactをLocal/Linear両Adapterと実await consumerへ接続。Local�
 ## 2026-10-07 Room open alias受け入れ
 
 `org room open ROOM_ID --human HUMAN_ID`を既存Chatへ接続。実PTYのMonitor四領域描画・Room送信一回・refresh・再open・quit/Ctrl-C端末復元を確認。[証拠](verification/2026-10-07-room-open-tty/)全gate475成功/14skip/0失敗、実Jev2238subjects/欠損・エラー・劣化0。安定IDと参加者宣言を使用し、名前検索/本人認証/実モデル対話/業務納品/全体未達を維持。
+
+## 2026-10-07 Approval Decision根拠
+
+既存確定approve/rejectを`memory capture --source-decision APPROVAL_ID`へ接続し、request/decision ID一致・pending拒否・原本不変・CLI再読取とDI障害伝播を確認。[証拠](verification/2026-10-07-memory-approval-decision/)に最終全gateと実Jevを保存。新URIは128文字ID上限（Approval原本に同制約なし）で、通常UUIDは対応。一般Decision全種/自動抽出/本人認証/業務納品/全体は未達。

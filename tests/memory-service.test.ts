@@ -317,3 +317,129 @@ test('Memory capture validates immutable Task review evidence through injected r
   );
   assert.equal(saved, 1);
 });
+
+test('Memory Decision capture validates injected immutable identity and confirmation before any write', async () => {
+  const input = {
+    type: 'episodic' as const,
+    scope: 'company',
+    content: 'Decision observed',
+    confidence: 1,
+    sourceRefs: [{ uri: 'org://approvals/decision%3A%E6%97%A5%E6%9C%AC/decision' }],
+  };
+  const request = {
+    id: 'decision:日本',
+    key: 'decision',
+    actor: { kind: 'human' as const, id: 'founder' },
+    taskId: null,
+    eventId: null,
+    operation: {
+      kind: 'agent_capabilities' as const,
+      agentId: 'worker',
+      expectedRevision: 0,
+      capabilities: [],
+    },
+    createdAt: 'before',
+  };
+  const decision = {
+    approvalId: request.id,
+    actor: request.actor,
+    decision: 'reject' as const,
+    reason: 'Observed',
+    createdAt: 'now',
+  };
+  let saved = 0;
+  const provider = {
+    create: (memory: Memory) => {
+      saved++;
+      return memory;
+    },
+  };
+  const capture = (reader?: {
+    get(id: string): { request: typeof request; decision: typeof decision | null };
+  }) =>
+    captureMemory(
+      provider,
+      undefined,
+      input,
+      { id: 'memory', at: 'now' },
+      undefined,
+      undefined,
+      undefined,
+      reader,
+    );
+  await assert.rejects(() => capture(), /Decision reader required/);
+  await assert.rejects(
+    () => capture({ get: () => ({ request, decision: null }) }),
+    /confirmed Decision/,
+  );
+  await assert.rejects(
+    () => capture({ get: () => ({ request: { ...request, id: 'foreign' }, decision }) }),
+    /confirmed Decision/,
+  );
+  await assert.rejects(
+    () => capture({ get: () => ({ request, decision: { ...decision, approvalId: 'foreign' } }) }),
+    /confirmed Decision/,
+  );
+  await assert.rejects(
+    () =>
+      capture({
+        get: () => {
+          throw new Error('read failed');
+        },
+      }),
+    /read failed/,
+  );
+  assert.equal(saved, 0);
+  assert.deepEqual(
+    (
+      await capture({
+        get: (id) => {
+          assert.equal(id, request.id);
+          return { request, decision };
+        },
+      })
+    ).sourceRefs,
+    input.sourceRefs,
+  );
+  assert.equal(saved, 1);
+  await assert.rejects(
+    () =>
+      captureMemory(
+        {
+          create: () => {
+            throw new Error('write failed');
+          },
+        },
+        undefined,
+        input,
+        { id: 'memory', at: 'now' },
+        undefined,
+        undefined,
+        undefined,
+        { get: () => ({ request, decision }) },
+      ),
+    /write failed/,
+  );
+  for (const uri of [
+    'org://approvals//decision',
+    'org://approvals/%20/decision',
+    'org://approvals/%00/decision',
+    'org://approvals/%/decision',
+    'org://approvals/decision%3a%E6%97%A5%E6%9C%AC/decision',
+    'org://approvals/d/decision?query',
+    'org://approvals/' + 'a'.repeat(129) + '/decision',
+  ])
+    await assert.rejects(() =>
+      captureMemory(
+        provider,
+        undefined,
+        { ...input, sourceRefs: [{ uri }] },
+        { id: 'invalid', at: 'now' },
+        undefined,
+        undefined,
+        undefined,
+        { get: () => ({ request, decision }) },
+      ),
+    );
+  assert.equal(saved, 1);
+});

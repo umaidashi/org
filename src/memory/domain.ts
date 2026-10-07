@@ -21,6 +21,14 @@ export function eventSource(uri: string): string {
     throw new Error('Invalid Memory Event source');
   return id;
 }
+export function approvalDecisionSource(uri: string): string {
+  const match = /^org:\/\/approvals\/([^/]+)\/decision$/.exec(uri);
+  if (!match?.[1]) throw new Error('Invalid Memory Decision source');
+  const id = decodeURIComponent(match[1]);
+  if (!id.trim() || id.includes('\0') || id.length > 128 || encodeURIComponent(id) !== match[1])
+    throw new Error('Invalid Memory Decision source');
+  return id;
+}
 export function taskReviewSource(uri: string): {
   readonly taskId: string;
   readonly reviewId: string;
@@ -43,7 +51,8 @@ function memorySource(value: unknown): SourceRef {
     throw new Error('Invalid Memory source');
   const keys = Object.keys(value);
   if ('uri' in value && typeof value.uri === 'string' && keys.length === 1) {
-    if (value.uri.startsWith('org://events/')) eventSource(value.uri);
+    if (value.uri.startsWith('org://approvals/')) approvalDecisionSource(value.uri);
+    else if (value.uri.startsWith('org://events/')) eventSource(value.uri);
     else if (value.uri.startsWith('org://artifacts/')) artifactSource(value.uri);
     else taskReviewSource(value.uri);
     return { uri: value.uri };

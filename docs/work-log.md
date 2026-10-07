@@ -1686,3 +1686,21 @@
 - Final: Ruling:fullgate/実Jevは親terminal実測で判定 — reviewerのfocused結果では代用しない — 誤ると未実行を成功へ数える。
 - Final: Ruling:Notion07は既取得原文と保存計画へ照合 — reviewerは原文再取得を重複しない — 誤ると独立原文確認済みと誤認する。
 - Final: Ruling:本人認証/全重要Audit・Memory/実API/業務納品/全体完成は未達 — 現TTY経路だけを受け入れる — 誤ると未納品業務を完成と誤認する。completion-auditの旧alias/TTY baselineを現証拠へ更新。
+
+## 2026-10-07 Approval Decision由来Memory
+
+- Notion03を原文再取得成功（編集2026-10-04/verification unverified/切詰めなし）。[Decision根拠計画](superpowers/plans/2026-10-07-memory-approval-decision.md)を保存。既存Workflow requested/started/status_observedは不変Eventで記録され、source-eventで明示capture可能。新Workflow execution store/URIは重複するため追加しない。
+- Ruling:Decisionの最小対象は既存Approvalの確定approve/reject — immutable原本/公開Portを再利用し未確定requestを根拠にしない — 誤ると全組織Decision/自動抽出まで達成と誤認する。全体goalはactive。
+- 前単位Room alias main通常ff/push終了0、公開d75f50f、公開時点main/origin/main一致。Lefthook committed tree全gate/実Jev成功188.30秒、forceなし。その後Decision Memory差分をfeat/memory-approval-decisionへ移動。
+- native RED0成功/1失敗110ms（未知source-decision option、終了2）。GREEN6成功/0失敗2files561ms。pending/不存在/相互排他DB前拒否、approve/reject原本照合・別プロセス再読取・原Decision不変、DI reader欠落/別request/別decision/read/write failure/NUL/非canonical URI/ID上限拒否を確認。static351files/AST終了0。実Jev直前dry-run2245subjects、excluded/undeclared/idleLanguages/silentRules0。
+- Ponytail review:既存captureMemory/ApprovalStore.getとimmutable原本を再利用、新Decision table/Port/engineなし。optional readerを末尾に追加し既存caller互換を維持。source selectorの既存条件に一項追加、削減候補なし。正しさ/安全性は別fresh全単位reviewへ。
+- 独立final review:Critical0/Important0/Minor1、DI5成功37ms、git diff --check成功。Ponytail既存Reader/capture/保存の再利用、新Port/table/engineなし。
+- Final: minor (deferred):Decision URIの128文字ID上限はApproval原本側にはない追加制約。通常UUID経路は通るが129文字以上の既存Approvalを根拠にできない。制約除去/根拠明記の候補を保留。
+- Final: Ruling:新Decision URIのIDは今回128文字上限を維持 — 明示URI境界として固定し通常UUIDの実CLIを検証、互換拡張候補を残す — 誤ると長い手動Approval IDのcaptureを拒否する。全Approval ID互換とは主張しない。
+- Final: Ruling:fullcheck/実Jev/native結果は親terminalの実測 — reviewerのDIだけで代用しない — 誤ると未実行経路を成功に数える。
+- Final: Ruling:Notion03は親が再取得して計画へ照合、reviewerは保存計画と原本責任境界を確認 — 重複取得なし — 誤ると独立原文確認済みと誤認する。
+- Final: Ruling:一般認証/自動抽出/全Decision種別/全体完成は未達 — 既存確定Approval Decisionの明示根拠だけを受け入れる — 誤ると自動Memory/本人認証まで完成と誤認する。
+- [次のscope関連付け計画](superpowers/plans/2026-10-07-memory-context-scopes.md)を保存。Notion03の現在scope要件へhost明示Room/Agent pairからdepartment/projectを渡す。新しい所属directoryを推定せず、既存retrieverへ配線する。次単位の詳細契約は今回review対象ではない。
+
+- 最終全check終了0:477成功/14skip/0失敗491tests/198files167.21秒。static351files/AST成功、実Jev2245subjects/137warning/missing0/unsure0/review0/errors[]/degraded[]。fast UT167成功56files255ms。[証拠](verification/2026-10-07-memory-approval-decision/)保存。自動候補抽出/本人認証/実業務納品と全体未達を維持。
+- 証拠保存補助のregexがBun summaryの空行を扱えず失敗し、後続commitが先行した。製品/検査結果に影響なし。実数を再確認して証拠・進捗を保存し、未公開local commitへ統合する。未保存を成功に数えない。

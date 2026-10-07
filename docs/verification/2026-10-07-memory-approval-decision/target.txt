@@ -1,0 +1,15 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-service.test.ts:
+(pass) Memory Artifact capture awaits its injected verified reader and refuses missing or failed evidence [2.05ms]
+(pass) Memory capture verifies original Message references through injected ports before saving [0.44ms]
+(pass) Memory Event evidence requires a canonical existing original before writing [0.58ms]
+(pass) Memory capture validates immutable Task review evidence through injected readers before saving [0.50ms]
+(pass) Memory Decision capture validates injected immutable identity and confirmation before any write [0.30ms]
+
+tests/memory-decision-cli.test.ts:
+(pass) native Memory captures confirmed approve and reject Decision originals across reopen but refuses pending evidence [516.03ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 2 files. [561.00ms]

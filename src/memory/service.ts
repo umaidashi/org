@@ -1,5 +1,6 @@
+import type { ApprovalStore } from '../approvals/port.js';
 import type { RoomRepository } from '../rooms/port.js';
-import { createMemory, eventSource, taskReviewSource } from './domain.js';
+import { approvalDecisionSource, createMemory, eventSource, taskReviewSource } from './domain.js';
 import type { EventBus } from '../events/port.js';
 import type { Memory, MemoryInput } from './domain.js';
 import type { MemoryProvider } from './port.js';
@@ -13,10 +14,19 @@ export async function captureMemory(
   tasks?: Pick<TaskProvider, 'get'> & TaskReviewReader,
   events?: Pick<EventBus, 'get'>,
   readArtifact?: (uri: string) => Promise<string>,
+  approvals?: Pick<ApprovalStore, 'get'>,
 ): Promise<Memory> {
   const memory = createMemory(input, identity);
   for (const ref of memory.sourceRefs) {
     if ('uri' in ref) {
+      if (ref.uri.startsWith('org://approvals/')) {
+        if (!approvals) throw new Error('Memory Decision reader required');
+        const id = approvalDecisionSource(ref.uri);
+        const approval = approvals.get(id);
+        if (approval.request.id !== id || approval.decision?.approvalId !== id)
+          throw new Error('Memory source requires confirmed Decision');
+        continue;
+      }
       if (ref.uri.startsWith('org://artifacts/')) {
         if (!readArtifact) throw new Error('Memory Artifact reader required');
         await readArtifact(ref.uri);
