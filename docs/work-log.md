@@ -1336,3 +1336,9 @@
 - Final Ruling: 外部read→write間の排他は今回のbaseline拒否とは区別し保証しない。判断が誤ればread後の他writerの変更を上書きするため、上記の非原子的RulingとREADMEの境界を維持する。
 - Final Ruling: human文字列照合は本人認証と扱わない。判断が誤れば他人のactorを本人として扱うため、本人認証の要件を別途満たす。
 - Final Ruling: 全体MVP/構想の完了は主張しない。実業務Issue→Draft PR、実認証、Agent操作、全体Provider交換等の残件を維持。判断が誤れば業務固有の不足を見逃すため、対象指定後の実業務一周と全体要件の照合を続ける。
+
+## 2026-10-07 承認付きLinear更新の公開と次の読取確認
+
+- 通常fast-forwardでmainを`f61d5d0`へ反映し、origin/mainへpush成功。push終了0、HEAD/origin/mainの一致を確認。Lefthookのpush対象tree検査は121.84秒で成功。秘密値は記録しない。
+- 全体目標はactiveのまま。次は[更新不明結果の読取確認計画](superpowers/plans/2026-10-07-linear-update-status-recovery.md)を進める。実装は`feat/linear-update-status-recovery`で分離する。
+- 判断：通常のIssue更新には、この送信固有の結果UUIDがない。現在のtitle/descriptionが承認digestと一致しても送信主体・継続的な成功は証明できないため、読取確認はobserved原本/Auditとし、updated成功原本を捏造しない。誤ると別writerの更新を当該送信の成功として扱う。
