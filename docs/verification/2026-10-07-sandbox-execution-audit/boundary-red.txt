@@ -1,0 +1,38 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-execution-audit.test.ts:
+(pass) Sandbox preserves actor/version-linked execution receipts without copying code or output for success and failures [52.28ms]
+(pass) Sandbox refuses to run when initial immutable Audit claim cannot be saved [12.52ms]
+175 |   const { buildSandboxAudit } = await import('../src/audit/sandbox.js');
+176 |   const { createEvent } = await import('../src/events/domain.js');
+177 |   const payload = {actorKind:'agent',actorId:'a',taskId:'t',taskVersion:2,eventId:null,inputDigest:'a'.repeat(64),proposalRef:null,approvalId:null};
+178 |   const request = createEvent({type:'sandbox.started',source:'sandbox:docker',payload},{id:'sandbox:t:2',createdAt:'0'});
+179 |   const receipt = createEvent({type:'sandbox.completed',source:'sandbox:docker',payload:{...payload,requestId:request.id,result:'started',outputRef:null}},{id:request.id+':completed',createdAt:'1'});
+180 |   assert.throws(()=>buildSandboxAudit([request,receipt]),/result/);
+               ^
+AssertionError: Missing expected exception.
+ generatedMessage: false,
+     actual: undefined,
+   expected: /result/,
+   operator: "throws",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/sandbox-execution-audit.test.ts:180:10
+      at processTicksAndRejections (native:7:39)
+(fail) Sandbox Audit decoder rejects completed receipts that claim another started result [0.40ms]
+AssertionError: Missing expected rejection.
+ generatedMessage: false,
+     actual: undefined,
+   expected: /digest/,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at innerFail (node:assert:36:27)
+      at expectsError (node:assert:425:14)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+(fail) Sandbox rejects an invalid injected input digest before runner and Audit writes
+
+ 2 pass
+ 2 fail
+Ran 4 tests across 1 file. [141.00ms]

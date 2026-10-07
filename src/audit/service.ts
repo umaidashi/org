@@ -1,3 +1,4 @@
+import { buildSandboxAudit } from './sandbox.js';
 import { buildLinearAudit } from './linear.js';
 import type { ApprovalStore } from '../approvals/port.js';
 import type { TaskProvider } from '../tasks/port.js';
@@ -17,6 +18,7 @@ export function collectAudit(
   return buildAudit(decisions, agents.capabilityHistory(), [
     ...tasks.list().flatMap((task) => buildTaskExecutionAudit(tasks.history(task.id))),
     ...buildWorkflowAudit(originals),
+    ...buildSandboxAudit(originals),
     ...buildLinearAudit(originals, decisions),
   ]);
 }

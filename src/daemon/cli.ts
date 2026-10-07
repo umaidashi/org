@@ -55,7 +55,7 @@ import {
   validateNightlyScopes,
 } from '../memory/nightly.js';
 import { replyToRoomMessage } from '../rooms/runtime.js';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
 import { SqliteSessionStore } from '../sessions/sqlite.js';
 import { LocalAgentRuntime } from '../runtime/manager.js';
@@ -607,6 +607,11 @@ function openOperations(
                       (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
                       () => new Date().toISOString(),
                       randomUUID,
+                      {
+                        events: eventBus,
+                        digest: (input) =>
+                          createHash('sha256').update(JSON.stringify(input)).digest('hex'),
+                      },
                     );
                   });
                   if (!artifact) throw new Error('Sandbox artifact missing');

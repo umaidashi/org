@@ -9,6 +9,9 @@ import { createTask } from '../src/tasks/domain.js';
 import { SqliteRoomRepository } from '../src/rooms/sqlite.js';
 import { createRoom } from '../src/rooms/domain.js';
 import { createAgent } from '../src/agents/domain.js';
+function record(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
 test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
   'real Sandbox CLI executes a Task, persists an artifact and requires explicit review',
   () => {
@@ -178,6 +181,26 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
         assert.equal(provider.get('task').status, 'completed');
         const audit = run(['audit', 'list', '--json']);
         assert.equal(audit.status, 0, audit.stderr);
+        const auditEntries: unknown = JSON.parse(audit.stdout);
+        assert.ok(Array.isArray(auditEntries));
+        const sandboxEntries = auditEntries.filter(
+          (entry: unknown): entry is Record<string, unknown> =>
+            record(entry) && entry.tool === 'sandbox.run',
+        );
+        assert.equal(sandboxEntries.length, 2);
+        assert.deepEqual(
+          sandboxEntries.map((entry) => entry.result),
+          ['started', 'succeeded'],
+        );
+        const sandboxResult = sandboxEntries[1];
+        assert.ok(sandboxResult);
+        assert.deepEqual(sandboxResult.actor, { kind: 'agent', id: 'worker' });
+        assert.equal(sandboxResult.outputRef, artifact.uri);
+        assert.equal(sandboxResult.inputRef, 'org://rooms/room/messages/proposal');
+        const rawEvents = run(['event', 'list', '--json']);
+        assert.equal(rawEvents.status, 0, rawEvents.stderr);
+        assert.equal(rawEvents.stdout.includes('fixture-secret'), false);
+        assert.equal(rawEvents.stdout.includes(home), false);
         const history = provider.history('task');
         for (const entry of history.filter((x) => x.status === 'waiting_approval')) {
           assert.ok(audit.stdout.includes(`org://tasks/task/versions/${entry.version}`));

@@ -1,8 +1,9 @@
+import { SqliteEventBus } from '../events/sqlite.js';
 import { releaseResources } from '../daemon/service.js';
 import { parseArgs } from 'node:util';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { SqliteTaskProvider } from '../tasks/sqlite.js';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
 import { runProcess } from '../runtime/process.js';
@@ -107,6 +108,7 @@ export async function runSandboxCommand(
     process.once('SIGINT', interrupt);
     process.once('SIGTERM', interrupt);
   }
+  let events: SqliteEventBus | undefined;
   let tasks: SqliteTaskProvider | undefined;
   let agents: SqliteAgentRepository | undefined;
   let rooms: SqliteRoomRepository | undefined;
@@ -139,6 +141,7 @@ export async function runSandboxCommand(
       });
       proposalRef = `org://rooms/${encodeURIComponent(room.id)}/messages/${encodeURIComponent(message.id)}`;
     } else input = command.input;
+    events = new SqliteEventBus(command.db);
     const result = await runSandboxTask(
       tasks,
       agent,
@@ -161,11 +164,17 @@ export async function runSandboxCommand(
       () => new Date().toISOString(),
       randomUUID,
       proposalRef,
+      {
+        events,
+        digest: (input) => createHash('sha256').update(JSON.stringify(input)).digest('hex'),
+      },
     );
     output(JSON.stringify(result, null, command.json ? undefined : 2));
   } finally {
     try {
-      releaseResources([rooms, agents, tasks].flatMap((resource) => (resource ? [resource] : [])));
+      releaseResources(
+        [events, rooms, agents, tasks].flatMap((resource) => (resource ? [resource] : [])),
+      );
     } finally {
       if (controller) {
         process.removeListener('SIGINT', interrupt);

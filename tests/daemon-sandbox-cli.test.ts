@@ -152,6 +152,37 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
       assert.equal((await stop.done).code, 1);
       assert.equal(tasks.get('stop').status, 'failed');
       assert.equal(tasks.get('busy').status, 'assigned');
+      const audited = spawnSync(
+        process.execPath,
+        ['--no-env-file', cli, '--direct', '--db', db, 'audit', 'list', '--json'],
+        { encoding: 'utf8', timeout: 10000 },
+      );
+      assert.equal(audited.status, 0, audited.stderr);
+      const entries: unknown = JSON.parse(audited.stdout);
+      assert.ok(Array.isArray(entries));
+      const sandbox = Array.from(entries, (entry: unknown) => {
+        assert.ok(
+          entry !== null &&
+            typeof entry === 'object' &&
+            'tool' in entry &&
+            'taskId' in entry &&
+            'result' in entry,
+        );
+        return entry;
+      }).filter((entry) => entry.tool === 'sandbox.run');
+      assert.deepEqual(
+        sandbox.filter((entry) => entry.taskId === 'long').map((entry) => entry.result),
+        ['started', 'succeeded'],
+      );
+      for (const id of ['cancel', 'stop'])
+        assert.deepEqual(
+          sandbox.filter((entry) => entry.taskId === id).map((entry) => entry.result),
+          ['started', 'canceled'],
+        );
+      assert.deepEqual(
+        sandbox.filter((entry) => entry.taskId === 'busy'),
+        [],
+      );
       assert.deepEqual(dockerIds(), containersBefore);
     } finally {
       daemon.kill('SIGTERM');
@@ -216,6 +247,23 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
       assert.equal(await exited, 1, stderr);
       assert.equal(tasks.get('task').status, 'failed');
       assert.match(stderr, /cancelled/);
+      const audited = spawnSync(
+        process.execPath,
+        ['--no-env-file', cli, '--direct', '--db', db, 'audit', 'list', '--json'],
+        { encoding: 'utf8', timeout: 10000 },
+      );
+      assert.equal(audited.status, 0, audited.stderr);
+      const entries: unknown = JSON.parse(audited.stdout);
+      assert.ok(Array.isArray(entries));
+      const results = Array.from(entries, (entry: unknown) => {
+        assert.ok(
+          entry !== null && typeof entry === 'object' && 'tool' in entry && 'result' in entry,
+        );
+        return entry;
+      })
+        .filter((entry) => entry.tool === 'sandbox.run')
+        .map((entry) => entry.result);
+      assert.deepEqual(results, ['started', 'canceled']);
     } finally {
       child.kill('SIGKILL');
       await exited;

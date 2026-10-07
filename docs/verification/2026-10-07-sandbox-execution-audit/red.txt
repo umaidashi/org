@@ -1,0 +1,39 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-execution-audit.test.ts:
+26 |       },async ()=>{if(outcome==='save')throw new Error('synthetic-save-sentinel');return artifact;},{code:'console.log("synthetic-code-sentinel")',writable:false,files:[],timeoutMs:1000,maxOutputBytes:4096},outcome,()=> '2026-10-07T00:00:00.000Z',()=> 'artifact:' + outcome,undefined,events);
+27 |       if(outcome==='success') assert.equal((await execution).status,'waiting_approval');
+28 |       else await assert.rejects(execution);
+29 |       assert.equal(calls,1);
+30 |       const receipts = events.list().filter(e=>e.payload.taskId===outcome);
+31 |       assert.equal(receipts.length,2);
+                  ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 2
+
+ generatedMessage: true,
+     actual: 0,
+   expected: 2,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/sandbox-execution-audit.test.ts:31:14
+      at processTicksAndRejections (native:7:39)
+(fail) Sandbox preserves actor/version-linked execution receipts without copying code or output for success and failures [21.14ms]
+AssertionError: Missing expected rejection.
+ generatedMessage: false,
+     actual: undefined,
+   expected: /audit unavailable/,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at innerFail (node:assert:36:27)
+      at expectsError (node:assert:425:14)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+(fail) Sandbox refuses to run when initial immutable Audit claim cannot be saved [13.51ms]
+
+ 0 pass
+ 2 fail
+Ran 2 tests across 1 file. [102.00ms]

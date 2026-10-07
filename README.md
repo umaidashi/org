@@ -896,3 +896,9 @@ Memoryは確定済みApproval Decisionを根拠として明示保存できます
 department/projectのMemoryを現在Sessionへ関連付ける場合、ホストがJSON配列 `[{"roomId":"ROOM_ID","agentId":"AGENT_ID","scopes":["department:engineering","project:org"]}]` を用意し、daemonへ `--runtime-config PATH --memory-context-config PATH` を指定します。登録済みのactive Room参加Agentだけを受け付け、現在のRoomとAgentの組に一致するscopeを既存Contextへ追加します。設定なしでは従来のRoom/Agent/Task/company/globalだけを取得します。所属の自動推測や本人認証は行いません。
 
 Roomのtyped Memory候補は、必須の過去同Room `sourceMessageIds` に加えてoptional `sourceUris` を持てます。既存Event（Workflow receiptを含む）、hash Artifact、TaskReview、確定Approval Decisionのcanonical URIだけを採用前に照合します。Artifact読取はawaitし、全候補の根拠が確認できるまで保存しません。読取中のRoom・capability・Memory snapshot変更を拒否します。scopeは同Roomに固定し、URI存在の照合を本文の真偽や本人認証の保証とは扱いません。
+
+## Sandbox execution Audit
+
+明示direct/daemon実行とRuntime提案は、Task実行versionごとの不変Event claimをrunner前に保存し、結果とArtifact URIを記録します。`audit list`と`logs tail AGENT_ID`で当時のowner・Task/Event・入力digest/提案原本ref・時刻・結果・approval ref（現在はnull）を確認できます。code/stdout/stderr/repo path/例外本文は新Auditへコピーしません。
+
+開始Auditを保存できなければ実行せず、結果Auditの保存障害は開始記録だけを残して失敗を伝えます。同じ実行versionを再実行しません。`succeeded`はSandbox成果物の保存完了で、Task stage・人間reviewとは別です。startedだけの記録から成功や未実行を推測しないでください。Task/Event/Artifact全体の一括transactionや本人認証、network/credential注入を追加したものではありません。

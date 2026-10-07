@@ -181,6 +181,33 @@ dockerTest(
       assert.deepEqual(manifest.files, [
         { path: 'result.txt', base64: Buffer.from('checked').toString('base64') },
       ]);
+      const auditBefore = json(['audit', 'list']);
+      assert.ok(Array.isArray(auditBefore));
+      const sandboxAudit = auditBefore.filter(
+        (entry: unknown): entry is Record<string, unknown> =>
+          record(entry) && entry.tool === 'sandbox.run',
+      );
+      assert.equal(sandboxAudit.length, 2);
+      assert.deepEqual(
+        sandboxAudit.map((entry) => entry.result),
+        ['started', 'succeeded'],
+      );
+      const sandboxResult = sandboxAudit[1];
+      assert.ok(sandboxResult);
+      assert.deepEqual(sandboxResult.actor, { kind: 'agent', id: agent });
+      assert.equal(sandboxResult.taskId, staged.id);
+      assert.equal(sandboxResult.eventId, event.id);
+      assert.equal(sandboxResult.inputRef, manifest.proposalRef);
+      assert.equal(sandboxResult.outputRef, artifacts[0].uri);
+      const tail = json(['logs', 'tail', agent]);
+      assert.ok(Array.isArray(tail));
+      assert.deepEqual(
+        tail.filter((entry: unknown) => record(entry) && entry.tool === 'sandbox.run'),
+        sandboxAudit,
+      );
+      const originalReceipts = json(['event', 'list']);
+      assert.equal(JSON.stringify(originalReceipts).includes(code), false);
+      assert.equal(JSON.stringify(originalReceipts).includes('CHECK_OK'), false);
       const reviewed = entity([
         'task',
         'review',
@@ -205,6 +232,16 @@ dockerTest(
       await launch();
       assert.equal(entity(['task', 'get', staged.id]).version, reviewed.version);
       assert.deepEqual(json(['memory', 'list']), memory);
+      assert.deepEqual(json(['event', 'list']), originalReceipts);
+      const auditAfter = json(['audit', 'list']);
+      assert.ok(Array.isArray(auditAfter));
+      assert.deepEqual(
+        auditAfter.filter(
+          (entry: unknown): entry is Record<string, unknown> =>
+            record(entry) && entry.tool === 'sandbox.run',
+        ),
+        sandboxAudit,
+      );
       assert.equal(run(['daemon', 'stop']).status, 0);
       await exited;
       child = undefined;

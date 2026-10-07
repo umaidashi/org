@@ -1,0 +1,251 @@
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 2303,
+  "cached": 2269,
+  "requests": 20,
+  "tokens": 74893,
+  "usd": 0.003145506,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "src/audit/sandbox.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1709,
+      "degraded": null
+    },
+    {
+      "file": "src/audit/sandbox.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2671,
+      "degraded": null
+    },
+    {
+      "file": "src/audit/sandbox.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 3831,
+      "degraded": null
+    },
+    {
+      "file": "src/audit/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 1156,
+      "degraded": null
+    },
+    {
+      "file": "src/audit/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2123,
+      "degraded": null
+    },
+    {
+      "file": "src/audit/service.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2331,
+      "degraded": null
+    },
+    {
+      "file": "src/daemon/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 4178,
+      "degraded": null
+    },
+    {
+      "file": "src/rooms/sqlite.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 3712,
+      "degraded": null
+    },
+    {
+      "file": "src/sandbox/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 2820,
+      "degraded": null
+    },
+    {
+      "file": "src/sandbox/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 3781,
+      "degraded": null
+    },
+    {
+      "file": "src/sandbox/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "paired",
+      "tokens": 2949,
+      "degraded": null
+    },
+    {
+      "file": "src/sandbox/service.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 4752,
+      "degraded": null
+    },
+    {
+      "file": "src/sandbox/service.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 4597,
+      "degraded": null
+    },
+    {
+      "file": "src/sandbox/service.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "paired",
+      "tokens": 6376,
+      "degraded": null
+    },
+    {
+      "file": "src/sandbox/service.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "local",
+      "tokens": 3671,
+      "degraded": null
+    },
+    {
+      "file": "tests/daemon-sandbox-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2039,
+      "degraded": null
+    },
+    {
+      "file": "tests/sandbox-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 3011,
+      "degraded": null
+    },
+    {
+      "file": "tests/sandbox-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 3982,
+      "degraded": null
+    },
+    {
+      "file": "tests/sandbox-execution-audit.test.ts",
+      "rule": null,
+      "subjects": 6,
+      "arm": "bare",
+      "tokens": 10748,
+      "degraded": null
+    },
+    {
+      "file": "tests/sandbox-execution-audit.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 4456,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 7,
+      "requests": 5,
+      "tokens": 19199,
+      "usd": 0.0008063580000000001,
+      "share": 0.25635239608508137
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 9,
+      "requests": 6,
+      "tokens": 17904,
+      "usd": 0.000751968,
+      "share": 0.23906106044623662
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 7,
+      "requests": 5,
+      "tokens": 17154,
+      "usd": 0.000720468,
+      "share": 0.22904677339671264
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 7,
+      "requests": 2,
+      "tokens": 12787,
+      "usd": 0.000537054,
+      "share": 0.17073691800301763
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 4,
+      "requests": 2,
+      "tokens": 7849,
+      "usd": 0.00032965800000000003,
+      "share": 0.10480285206895171
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 7,
+    "files": [
+      "src/linear/config.ts",
+      "src/runtime/guardian.ts",
+      "src/runtime/http.ts",
+      "src/tasks/proposal.ts",
+      "src/tui/room-chat.ts"
+    ]
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": []
+}

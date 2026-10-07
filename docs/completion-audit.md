@@ -129,7 +129,7 @@ CLIの原文は例示だが、例示した操作の提供有無を省略しな�
 | Agent別sandbox / tool access / network / external service scope | Task owner+capability、Docker network none、Claude tools/MCP/hooks off、Workflow/Linear host allowlist | 現在の制約を検証。許可network/限定credentialをSandboxへ注入する契約は未達 |
 | 万能credential共有禁止 | Environment/Keychain explicit actor/reference grant、Agent専用Linear/Workflow keys、env allowlist | 暗黙共有なしを検証。hostが明示的に同じcredentialを与えることの強制禁止ではない |
 | 外部影響/不可逆操作のApproval | Workflow write/irreversible、Linear update/comment/Artifact、capability変更 | pending/reject/no effect/完全一致/一回claim/receiptを検証。外部メール/deploy/削除/契約/支出は例示で、そのAdapterを実装済みとはしない |
-| Audit actor/task/event/tool/input-output ref/time/result/approval ref | `src/audit/`、Approval/TaskReview/外部Event receipts、audit/native/rollback tests | 既存重要操作で検証。Sandbox各コマンドの詳細監査は未達 |
+| Audit actor/task/event/tool/input-output ref/time/result/approval ref | `src/audit/`、Approval/TaskReview/外部Event receipts、audit/native/rollback tests | 既存重要操作で検証。Sandbox tool実行の開始/結果をdirect/daemon/Runtimeで検証。本人認証/全重要Auditの網羅は別判定 |
 | idempotency key/concurrency/timeout/cancel/redaction | durable claim/CAS、Runtime group/pipe監督、HTTP bounds/timeout、cancel/drain、credential反射拒否 | 現在の経路で検証。任意将来toolの保証や外部CASは含まない |
 | retry | 不確定claimのno replay、status-only観測、保存障害修復 | 安全性を保つ限定処理。一般Task retryは未達 |
 
@@ -193,3 +193,7 @@ Local/Linearの実AsyncTaskProvider.updateを同じawait consumerとCLI/direct/d
 ### 2026-10-07 全scope保守的整理
 
 global/company/department/project/agent/room/taskを既存exact planner/transactionへ接続。公開Readerでactive Room/Agent・Task実在をreceipt前・transaction内照合、旧Room key互換、combined allowlist最大32・重複拒否、非Room別namespace、UTC coalesce/巻戻り/再起動no replayを確認。[証拠](verification/2026-10-07-memory-scoped-consolidation/)全gate484成功/14skip/0失敗498tests200files174.31秒、実Jev2287subjects/欠損・エラー・劣化0。全scope期間外同値グループのmutation RED→GREEN、実CLI7scope/実daemonRoom+department/SQLite rollbackも確認。意味conflict/全source・scope自動抽出/本人認証/全resource permission/実業務納品/全体は未達。[次の計画](superpowers/plans/2026-10-07-sandbox-execution-audit.md)へ進む。
+
+### 2026-10-07 Sandbox詳細execution Audit
+
+既存immutable Event/共有Artifact producer/collectAuditへ実行claim・結果receiptを接続。actor/Task実行version/元Event/入力digest/proposal ref/時刻/Artifact URIを保存し、本文・出力・repo path・例外本文を追加保存しない。開始保存前runnerゼロ、結果保存障害は開始のみ/同version再実行禁止を実SQLiteで確認。[証拠](verification/2026-10-07-sandbox-execution-audit/)全gate490成功/14skip/0失敗504tests201files175.40秒、実Jev2303subjects/欠損・エラー・劣化0。実Docker4成功3files12.02秒でdirect/daemon/Runtime、cancel/drain/SIGINT/Agent tail/再起動原本保持を確認。成果物生成とTask stage/review、同DB操作と跨操作全原子性は区別する。全体は未達、[次の要件再照合](superpowers/plans/2026-10-07-goal-reassessment.md)で必須残件と将来候補を整理する。

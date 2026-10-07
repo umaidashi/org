@@ -1779,3 +1779,23 @@
 - Jev warning判定: consolidation/nightlyのfailure-path候補は、CLI不存在/不正allowlist/Room archive/公開Reader・callback障害/SQLite storage・snapshot rollback/malformed receiptの直接assertと照合。plannerの重複IDや不正clock等、全個別branchの網羅は主張しない。fixtureのroom helper naming候補は実際にRoomを作るhelperで、正しさの新findingではない。既存warningを含め141件で、モデルだけの自動マージ判定にしない。
 - Final review補足後のsourceはreview済みのままで、test-only検出力を補足し全gate/実Jev終了0、rereviewなし。未解消のCritical/Important/この単位のMinorなし。README/要件/監査を観測結果へ更新、全体未達を維持。
 - Next: Notion08を再取得し、[Sandbox execution Audit計画](superpowers/plans/2026-10-07-sandbox-execution-audit.md) を保存。generic Task状態Auditを詳細Sandbox command Auditと混同せず、既存Event/collectAudit/共有Artifact経路を再利用する。新単位はまだ実装・検証していない。
+
+### 2026-10-07 Sandbox詳細execution Audit（進行中）
+- 前単位 `14e6e5c` 全scope整理main通常pushはpre-push全検査/実Jev197.72秒、終了0。main/origin/main一致。次単位は `feat/sandbox-execution-audit` に分離。
+- [計画](superpowers/plans/2026-10-07-sandbox-execution-audit.md)の共有Artifact producer→direct run/Runtime Task proposal→collectAuditの全callerを確認。Notion08は前単位終盤に再取得済み。TDD/実SQLite/native/独立review/Ponytailを継続。
+- RED: 実SQLiteの開始/結果receiptなし、開始Audit storage障害でも実行される期待違反を0成功/2失敗102msで確認。共有producerへEventPortとdigest callbackをDI。Task実行versionで一意の開始claimを実行前に保存し、成功成果物またはfailed/canceled receiptを記録する。direct/daemon手動runとRuntime producerの両callerへ配線、collectAuditに既存Event原本のpure projectionを追加。
+- static gateでserviceのnode:crypto import禁止を観測し、digestはCLI/daemonの起動点で計算してDIする規則へ修正。機械的置換でtestのcollectAudit引数までdigest configにした型エラー、native fixtureのany returnと配列存在未確認も型/lintで検出し、対象引数の復元とunknown record/存在assertで修正。これらをproduct REDや検査成功に読み替えない。
+- 境界RED2成功/2失敗141ms: completed receiptのstarted偽装と不正DI digestを新testで検出。completedの結果enumを限定し、digestを実行/保存前に検証してGREEN。基本focused7成功3files86ms、初回実Docker direct+Runtime native2成功2files3.86秒。
+- Ruling: Auditは入力digest/proposal原本ref/Task実行version/当時owner/元Event/結果/Artifact URIを保存し、code・stdout・stderr・repo path・例外本文をpayloadへコピーしない — 新しい秘密漏洩を増やさず既存Artifact原本を使う — digestは内容の識別であり本文を復元できる入力storeではない。
+- Ruling: Task CAS/claim/Event/result保存/Artifact保存は各既存操作の境界であり全体一transactionではない — 開始保存前の障害はrunnerゼロ、結果保存障害はstarted原本だけを残し同version再実行拒否 — unknownをsucceededへ推定すると外部実行を重複させる。成果物生成succeededとTask stage/review成功は別。
+- 追加focusedはSQLite結果receipt保存障害→開始のみ/同version再実行拒否を確認。実Dockerのdaemon長時間実行/cancel/drain/拒否busy/direct SIGINT原本Auditを追加した。最終native/全gate/実Jev/reviewはまだ未完了。
+- 最終fresh review: Critical0/Important0/Minor2、独立focused7成功2files133ms、Ponytail Lean already。元Task updatedAtをSandbox開始時刻に流用する時系列誤認と、計画のagent tail受け入れ漏れを指摘。
+- Final Ruling: 開始時刻の誤りは重要操作Auditの正しさとしてImportantへ再grade — Runtime提案生成前のTask時刻とSandbox claim保存時刻を分離する — 間違うと長いモデル応答時間を実行時間に算入し操作の時系列を誤る。時計を一時間ずらすtestでRED5成功/1失敗119msを観測後、claim時刻をDI now()へ変更してGREEN。
+- Final Ruling: agent tailは明示計画の直接受け入れ条件なのでImportantな検証不足へ再grade — 既存logs filterを再実装せず同native fixtureで生成済みSandbox entriesを比較する — testを省くと集約だけ成功してAgent閲覧経路が欠けても見逃す。test-only補足でありproduct bugのREDとは主張しない。
+- 一回のfix passで上記を処理し、rereviewしない。親の最終native/fullgate/実Jevを終了値まで確認する。
+- Final Ruling: reviewerが判断対象外にした認証/resource permission/跨操作transaction/一般retry/実業務納品・全体は未達のまま — current Auditは元claim因果・snapshot・保存結果を表すだけ — これを越える完了主張は権限・再実行安全性を過大評価する。
+- Final Ruling: 独立Docker/fullgate/Jev/Notion再取得はreviewerが実行せず、親の観測で判定 — focused独立reviewと実環境証拠を分ける — 区別しなければ未実行検査が成功扱いになる。
+- 最終結果: focused9成功3files109ms。実Docker4成功3files12.02秒（direct/daemon手動/Runtime提案、cancel/stop/drain/拒否busy/direct SIGINT、Agent tail、再起動不変）。全gate490成功/14skip/0失敗504tests201files175.40秒、static356files/AST終了0。実Jev2303subjects/142warning、missing/unsure/review0、errors/degraded空、終了0。dry-run2303対象/除外0/未宣言・idle・silent空。fast UT167成功56files260ms（新Auditはfocused/all suiteで実行）。[証拠](verification/2026-10-07-sandbox-execution-audit/)保存。
+- Jev failure-path候補を確認: shared producerにはrun/save/開始・結果保存障害/キャンセル/不正digest/再実行の直接assert、decoderにはcompleted結果偽装の拒否assertがある。個別の全破損field・複合storage障害の全組合せ網羅は主張しない。warningだけで機能の正しさを自動判定しない。
+- 一回fix pass後の全gate/実Jev/native終了0、rereviewなし。今回の指摘2件は受け入れ/正しさとして処理済み、この単位の未解消Critical/Important/Minorなし。README/要件/監査を結果へ更新、全体未達は維持する。
+- Next: [全体ゴール再照合計画](superpowers/plans/2026-10-07-goal-reassessment.md)。古い監査の将来拡張まで無条件に必須化せず、原文と明示合意・実caller・検証・未回答情報を根拠に残件を判定する。再照合は未実行。

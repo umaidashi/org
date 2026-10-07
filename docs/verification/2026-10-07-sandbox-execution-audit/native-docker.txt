@@ -1,0 +1,15 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/runtime-sandbox-cli.test.ts:
+(pass) Runtime proposal executes in Docker then human review projects one Memory without replay [2112.25ms]
+
+tests/daemon-sandbox-cli.test.ts:
+(pass) daemon Sandbox waits beyond five seconds, cancels and drains before DB close [8180.66ms]
+(pass) direct Sandbox SIGINT records failed and waits for cleanup [494.55ms]
+
+tests/sandbox-cli.test.ts:
+(pass) real Sandbox CLI executes a Task, persists an artifact and requires explicit review [1169.19ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 3 files. [12.02s]

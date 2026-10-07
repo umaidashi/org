@@ -139,3 +139,7 @@ comment/artifactをLocal/Linear両Adapterと実await consumerへ接続。Local�
 ### 2026-10-07 全scope保守的整理
 
 global/company/department/project/agent/room/taskを既存exact planner/transactionへ接続。公開Readerでactive Room/Agent・Task実在をreceipt前・transaction内照合、旧Room key互換、combined allowlist最大32・重複拒否、非Room別namespace、UTC coalesce/巻戻り/再起動no replayを確認。[証拠](verification/2026-10-07-memory-scoped-consolidation/)全gate484成功/14skip/0失敗498tests200files174.31秒、実Jev2287subjects/欠損・エラー・劣化0。全scope期間外同値グループのmutation RED→GREEN、実CLI7scope/実daemonRoom+department/SQLite rollbackも確認。意味conflict/全source・scope自動抽出/本人認証/全resource permission/実業務納品/全体は未達。[次の計画](superpowers/plans/2026-10-07-sandbox-execution-audit.md)へ進む。
+
+### 2026-10-07 Sandbox詳細execution Audit
+
+既存immutable Event/共有Artifact producer/collectAuditへ実行claim・結果receiptを接続。actor/Task実行version/元Event/入力digest/proposal ref/時刻/Artifact URIを保存し、本文・出力・repo path・例外本文を追加保存しない。開始保存前runnerゼロ、結果保存障害は開始のみ/同version再実行禁止を実SQLiteで確認。[証拠](verification/2026-10-07-sandbox-execution-audit/)全gate490成功/14skip/0失敗504tests201files175.40秒、実Jev2303subjects/欠損・エラー・劣化0。実Docker4成功3files12.02秒でdirect/daemon/Runtime、cancel/drain/SIGINT/Agent tail/再起動原本保持を確認。成果物生成とTask stage/review、同DB操作と跨操作全原子性は区別する。全体は未達、[次の要件再照合](superpowers/plans/2026-10-07-goal-reassessment.md)で必須残件と将来候補を整理する。

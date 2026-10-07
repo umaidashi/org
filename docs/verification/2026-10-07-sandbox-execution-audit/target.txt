@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-audit.test.ts:
+(pass) Task execution Audit preserves original actor, Event and result refs without treating review as execution [1.29ms]
+
+tests/sandbox-task.test.ts:
+(pass) Sandbox Task stages successful stdout for review and never executes a denied capability [1.98ms]
+(pass) Runtime Sandbox rechecks current owner, version, permission and Room before producing an artifact [1.69ms]
+
+tests/sandbox-execution-audit.test.ts:
+(pass) Sandbox preserves actor/version-linked execution receipts without copying code or output for success and failures [39.38ms]
+(pass) Sandbox refuses to run when initial immutable Audit claim cannot be saved [14.95ms]
+(pass) Sandbox Audit decoder rejects completed receipts that claim another started result [0.30ms]
+(pass) Sandbox rejects an invalid injected input digest before runner and Audit writes [0.14ms]
+(pass) Sandbox result Audit storage failure retains started receipt and rejects replay of that execution version [15.81ms]
+(pass) Sandbox started Audit records claim time independently of earlier Runtime Task start [0.32ms]
+
+ 9 pass
+ 0 fail
+Ran 9 tests across 3 files. [109.00ms]
