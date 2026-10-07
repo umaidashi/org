@@ -48,6 +48,18 @@ bun run start agent list --json
 
 AgentはUUID・name・role・runtime・UTC作成時刻をSQLiteへ永続化します。既存のPython版DBも読めます。重複名は拒否し、登録済みAgentを置き換えません。JSONの作成時刻は初期契約の`created_at`を維持しています。runtimeは識別情報として保存し、この操作ではプロセスを起動しません。
 
+### Agentへ依頼して返信を受け取る
+
+Runtime設定済みdaemonで、既存Roomの参加Agentとhumanを明示します。
+
+```sh
+bun run start agent send AGENT_ID '今週の優先順位を整理して' --room ROOM_ID --human founder --json
+```
+
+human原本MessageをRoomへ保存し、指定Agentだけを直接mention/activateして`message`と`replies`を返します。既存Sessionを再利用し、Context/Memoryとhostの後続委譲policyは既存activation経路を使います。名前やRoomを推測せず、Agentは一覧のIDを指定します。参加者不一致・archive・未知Agentは送信前に拒否し、`--direct`では実行できません。human IDはローカル管理者の宣言であり本人認証ではありません。
+
+Runtime失敗は終了1となり、保存済みMessage IDを表示します。修復後は`room activate ROOM_ID --message MESSAGE_ID --json`で元Messageを使って再開できます。既に成功した元Messageの再activationは保存済み返信を返します。`agent send`をもう一度実行すると新しい依頼Messageになるため、障害復旧では元IDを使います。
+
 ## Task
 
 ```sh

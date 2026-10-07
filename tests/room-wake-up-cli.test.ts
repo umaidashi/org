@@ -2,10 +2,47 @@ import { cli } from './cli-path.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
+test('Agent send CLI rejects malformed requests and direct execution before creating storage', () => {
+  const home = mkdtempSync('/tmp/org-agent-send-parser-');
+  const db = home + '/not-created.db';
+  try {
+    for (const [expected, args] of [
+      [2, ['agent', 'send', 'agent', 'Message']],
+      [2, ['agent', 'send', 'agent', ' ', '--room', 'room', '--human', 'human']],
+      [
+        2,
+        [
+          'agent',
+          'send',
+          'agent',
+          'Message',
+          '--room',
+          'room',
+          '--human',
+          'human',
+          '--role',
+          'worker',
+        ],
+      ],
+      [1, ['agent', 'send', 'agent', 'Message', '--room', 'room', '--human', 'human']],
+    ] as const) {
+      const result = spawnSync(
+        process.execPath,
+        ['--no-env-file', cli, '--db', db, '--direct', ...args],
+        { encoding: 'utf8', timeout: 5000 },
+      );
+      assert.equal(result.status, expected, result.stderr);
+      assert.equal(result.stdout, '');
+      assert.equal(existsSync(db), false);
+    }
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
 test('Room activation runs only the coordinator or explicit Agent, reuses provider Session and persists replies without duplicate turns', async () => {
   const home = mkdtempSync('/tmp/org-room-wake-'),
     db = home + '/org.db',
@@ -169,9 +206,104 @@ test('Room activation runs only the coordinator or explicit Agent, reuses provid
     assert.ok(Array.isArray(messages));
     assert.equal(messages.filter((m: unknown) => record(m) && m.replyTo === failing.id).length, 0);
     assert.equal(run(['--direct', 'room', 'activate', room.id, '--message', source.id]).status, 1);
+    const sent = json([
+      'agent',
+      'send',
+      cto,
+      'Direct request',
+      '--room',
+      room.id,
+      '--human',
+      'founder',
+    ]);
+    assert.ok(
+      record(sent) &&
+        record(sent.message) &&
+        typeof sent.message.id === 'string' &&
+        Array.isArray(sent.replies),
+    );
+    assert.equal(sent.replies.length, 1);
+    assert.ok(record(sent.replies[0]) && record(sent.replies[0].sender));
+    assert.equal(sent.replies[0].sender.id, cto);
+    assert.equal(sent.replies[0].content, 'Answer:Direct request');
+    assert.equal(sent.replies[0].replyTo, sent.message.id);
+    assert.equal(turns(), 6);
+    assert.deepEqual(activate(sent.message.id), sent.replies);
+    assert.equal(turns(), 6);
+    assert.deepEqual(json(['session', 'get', session.id]), failed);
+    const ctoSessions = json(['session', 'list']);
+    assert.ok(Array.isArray(ctoSessions));
+    const ctoSession: unknown = ctoSessions.find(
+      (value: unknown) => record(value) && value.agentId === cto,
+    );
+    assert.ok(record(ctoSession) && typeof ctoSession.id === 'string');
+    const again = json([
+      'agent',
+      'send',
+      cto,
+      'Follow up',
+      '--room',
+      room.id,
+      '--human',
+      'founder',
+    ]);
+    assert.ok(
+      record(again) &&
+        Array.isArray(again.replies) &&
+        record(again.replies[0]) &&
+        record(again.replies[0].metadata),
+    );
+    assert.equal(again.replies[0].metadata.sessionId, ctoSession.id);
+    assert.equal(turns(), 7);
+    const beforeInvalid = json(['room', 'messages', room.id]);
+    for (const args of [
+      ['agent', 'send', 'missing', 'No', '--room', room.id, '--human', 'founder'],
+      ['agent', 'send', cto, 'No', '--room', room.id, '--human', 'outsider'],
+      ['--direct', 'agent', 'send', cto, 'No', '--room', room.id, '--human', 'founder'],
+    ])
+      assert.equal(run(args).status, 1);
+    assert.deepEqual(json(['room', 'messages', room.id]), beforeInvalid);
+    assert.equal(turns(), 7);
+    const sendFailure = run([
+      'agent',
+      'send',
+      cto,
+      'fail',
+      '--room',
+      room.id,
+      '--human',
+      'founder',
+    ]);
+    assert.equal(sendFailure.status, 1);
+    const stored = json(['--direct', 'room', 'messages', room.id]);
+    assert.ok(Array.isArray(stored));
+    const failedSource: unknown = stored.find(
+      (value: unknown) => record(value) && value.content === 'fail' && value.id !== failing.id,
+    );
+    assert.ok(record(failedSource) && typeof failedSource.id === 'string');
+    assert.ok(sendFailure.stderr.includes(failedSource.id));
+    assert.equal(turns(), 8);
+    writeFileSync(
+      driver,
+      readFileSync(driver, 'utf8').replace("if(input.message==='fail') process.exit(1);", ''),
+    );
+    const recovered = activate(failedSource.id);
+    assert.ok(Array.isArray(recovered) && recovered.length === 1);
+    assert.deepEqual(activate(failedSource.id), recovered);
+    assert.equal(turns(), 9);
+    assert.deepEqual(
+      json(['--direct', 'room', 'messages', room.id]),
+      json(['room', 'messages', room.id]),
+    );
     assert.equal(run(['room', 'archive', room.id]).status, 0);
     assert.equal(run(['room', 'activate', room.id, '--message', source.id]).status, 1);
-    assert.equal(turns(), 5);
+    const archived = json(['room', 'messages', room.id]);
+    assert.equal(
+      run(['agent', 'send', cto, 'No', '--room', room.id, '--human', 'founder']).status,
+      1,
+    );
+    assert.deepEqual(json(['room', 'messages', room.id]), archived);
+    assert.equal(turns(), 9);
   } finally {
     spawnSync(process.execPath, ['--no-env-file', cli, 'daemon', 'stop', '--socket', socket], {
       timeout: 5000,

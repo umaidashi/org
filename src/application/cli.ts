@@ -27,7 +27,10 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { validateCapabilities, validateMemoryPolicy, type AgentInput } from '../agents/domain.js';
 import { registerAgent, setReportingLine } from '../agents/service.js';
+import { sendAgentMessage, type AgentSendInput } from '../agents/send.js';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
+import { SqliteRoomRepository } from '../rooms/sqlite.js';
+import type { Message } from '../rooms/domain.js';
 import { parseTaskCommand, runTaskCommand } from '../tasks/cli.js';
 import type { TaskCommand } from '../tasks/cli.js';
 import { parseRoomCommand, runRoomCommand } from '../rooms/cli.js';
@@ -39,6 +42,7 @@ import type { CommandResult } from './port.js';
 
 export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
        org [--db PATH] agent list [--json]
+       org agent send AGENT_ID MESSAGE --room ROOM_ID --human HUMAN_ID [--json]
        org agent report ID --to MANAGER_ID|--clear [--json]
        org approval request|get|list|decide|apply [OPTIONS]
        org audit list [--json]
@@ -101,6 +105,7 @@ export type ApplicationCommand =
   | { kind: 'room'; command: RoomCommand }
   | { kind: 'event'; command: EventCommand }
   | { kind: 'create'; db: string; input: AgentInput }
+  | { kind: 'agent-send'; db: string; input: AgentSendInput; json: boolean }
   | { kind: 'list'; db: string; json: boolean }
   | { kind: 'report'; db: string; json: boolean; id: string; manager: string | null }
   | { kind: 'reporting-history'; db: string; json: boolean; id: string };
@@ -143,6 +148,8 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
       'memory-policy': { type: 'string' },
       to: { type: 'string' },
       clear: { type: 'boolean' },
+      room: { type: 'string' },
+      human: { type: 'string' },
       json: { type: 'boolean' },
       help: { type: 'boolean', short: 'h' },
     },
@@ -153,20 +160,34 @@ export function parseApplicationCommand(argv: string[]): ApplicationCommand {
   const db = parsed.values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new UsageError('The database path must not be empty');
   const [command, action, name, ...extra] = parsed.positionals;
-  if (command !== 'agent' || extra.length > 0) throw new UsageError('Expected agent command');
+  if (command !== 'agent' || (action === 'send' ? extra.length !== 1 : extra.length > 0))
+    throw new UsageError('Expected agent command');
   const allowed: Record<string, readonly string[]> = {
     create: ['role', 'runtime', 'reports-to', 'capability', 'memory-policy'],
     list: [],
+    send: ['room', 'human'],
     capabilities: [],
     'capability-history': [],
     report: ['to', 'clear'],
     'reporting-history': [],
   };
   const actionOptions = action === undefined ? undefined : allowed[action];
-  if (!actionOptions) throw new UsageError('Expected agent create/list/report/reporting-history');
+  if (!actionOptions)
+    throw new UsageError('Expected agent create/list/send/report/reporting-history');
   for (const option of Object.keys(parsed.values))
     if (!['db', 'json', 'help', ...actionOptions].includes(option))
       throw new UsageError(`Unexpected --${option} for agent ${action}`);
+  if (action === 'send') {
+    const input = {
+      agentId: required(name, 'Agent ID'),
+      roomId: required(parsed.values.room, 'Room ID'),
+      humanId: required(parsed.values.human, 'Human ID'),
+      content: required(extra[0], 'Message'),
+    };
+    if (Object.values(input).some((value) => !value.trim()))
+      throw new UsageError('Agent send fields must not be empty');
+    return { kind: 'agent-send', db, input, json: parsed.values.json ?? false };
+  }
   if (action === 'capabilities' || action === 'capability-history')
     return { kind: action, db, json: parsed.values.json ?? false, id: required(name, 'agent id') };
   if (action === 'reporting-history')
@@ -248,6 +269,33 @@ async function runApplication(
   output: (line: string) => void,
   sessions?: ApplicationContext,
 ): Promise<void> {
+  if (command.kind === 'agent-send') {
+    if (!sessions?.activateRoom) throw new Error('Agent send requires daemon');
+    const agents = new SqliteAgentRepository(db);
+    let rooms: SqliteRoomRepository | undefined;
+    let message: Message;
+    try {
+      rooms = new SqliteRoomRepository(db);
+      message = sendAgentMessage(agents, rooms, command.input, {
+        id: randomUUID(),
+        createdAt: new Date().toISOString(),
+      });
+    } finally {
+      rooms?.close();
+      agents.close();
+    }
+    let replies: unknown;
+    try {
+      replies = await sessions.activateRoom(message.roomId, message.id);
+    } catch (error) {
+      throw new Error(
+        `Agent send stored Message ${message.id}; activation failed. Retry room activate with this Message ID.`,
+        { cause: error },
+      );
+    }
+    output(JSON.stringify({ message, replies }, null, command.json ? undefined : 2));
+    return;
+  }
   if (command.kind === 'workflow') {
     await runWorkflowCommand({ ...command.command, db }, output);
     return;

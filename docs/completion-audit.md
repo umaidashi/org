@@ -1,0 +1,151 @@
+# 全体目標の証拠監査（2026-10-07）
+
+## 判定と証拠の境界
+
+全体目標は未達。MVPの動作一周、通常gateの成功、実サービスへの納品、全明示要件の充足は別々に判定する。今回の監査は未達を取り除くための一覧であり、完了宣言ではない。
+
+調査HEADは`e801879`、製品/テストの受け入れbaselineは`22803f4`。両者の差分はwork-logと監査計画だけで、製品/テストは一致する。[実Claudeを含む全gate](verification/2026-10-07-runtime-linear-real-claude/check.txt)は447成功/12skip/0失敗、459tests/190files/214.87秒。実Jevは2107subjects、missing/unsure/review/errors/degradedなし、128warning。通常pre-pushは445成功/14skip/0失敗だった。今回、このgate自体を再実行したとは扱わない。
+
+以下の「検証あり」は該当する実装と、このbaselineで実行されたテストを確認した意味。外部HTTP fixtureや過去の実機記録は実APIの現在の認証・業務納品を証明しない。新しい変更ではTDDと全gateを改めて行う。
+
+監査後の進捗: `agent send`を既存Message/Room activationへ接続した。[計画](superpowers/plans/2026-10-07-agent-send.md)と[最終検査](verification/2026-10-07-agent-send/check.txt)を参照。448成功/14skip/0失敗、実Jevと独立review成功。以下のCLI欠落表は監査baselineの記録で、この一件は解消済み。他の未達と全体未完了の判定は維持する。
+
+## 取得した原文
+
+[root](https://app.notion.com/p/3ee8a4020cb681d18daacc1e0016d596)と00–10を全て再取得した。root/10は編集2026-10-07、00–09は2026-10-04。取得レスポンスに切詰め・未知block警告なし。Notion自身のverificationはunverifiedで、ユーザー指定の設計資料として照合した。raw本文・認証情報を新しい公開証拠やJev入力へ追加しない。
+
+| 番号 | 原文 |
+|---|---|
+| 00 | [概要・設計原則・Ports](https://app.notion.com/p/3ef8a4020cb681ab8129e9a952d854a2) |
+| 01 | [Agent・組織・A2A](https://app.notion.com/p/3ef8a4020cb6810a8b2df2617e3d41e9) |
+| 02 | [Room・Chat・Session](https://app.notion.com/p/3ef8a4020cb681e0801ed8cd22eba0cb) |
+| 03 | [Projected Typed Memory](https://app.notion.com/p/3ef8a4020cb6811eab2ffd06fc174a11) |
+| 04 | [Task抽象化](https://app.notion.com/p/3ef8a4020cb681b18ce9de552f36dd24) |
+| 05 | [Event・PubSub・Trigger](https://app.notion.com/p/3ef8a4020cb6810f940deeae34962eea) |
+| 06 | [Runtime Ports](https://app.notion.com/p/3ef8a4020cb681cda474cf6801b22706) |
+| 07 | [CLI/TUI・daemon](https://app.notion.com/p/3ef8a4020cb6813ea03bf25b87ede752) |
+| 08 | [Security・Permission・Approval](https://app.notion.com/p/3ef8a4020cb6815f9afdeaef5707f50d) |
+| 09 | [MVP・六Phase](https://app.notion.com/p/3ef8a4020cb68173a20be8c050bec268) |
+| 10 | [Org Desk](https://app.notion.com/p/3f28a4020cb6817ba677e241ac8b1a71) |
+
+## CoreとPorts
+
+| 要求 | 現在の直接証拠 | 判定・不足 |
+|---|---|---|
+| 00 Runtime agnostic / local first / deterministic core | `src/runtime/manager.ts`、`config.ts`、両driver、`src/daemon/`、各domainのAST fixture | 両CLI Runtimeとローカルdaemonは検証あり。全外部Port交換を証明するものではない |
+| 00 persistent identity / ephemeral execution / immutable history | Agent/Sessionを分離したdomain・SQLite、不変Message/Event/history、Docker finally destroy | 検証あり。停電耐久・全環境の物理隔離は未証明 |
+| 00 AgentRuntime start/send/resume/stop | `src/runtime/manager.ts`、`tests/session-runtime.test.ts`、Claude/Codex実機記録 | 検証あり。API-model/Remoteは将来候補 |
+| 00 MemoryProvider / Extractor / Retriever / Consolidator / ContextBuilder | `src/memory/port.ts`、`extractor.ts`、`retriever.ts`、`consolidation.ts`、`src/context/port.ts`、DI/SQLite/native tests | 各既存処理に差し替え境界あり。残るsource/policyは下記 |
+| 00 TaskProvider create/get/update/list/addComment/linkArtifact | `src/tasks/port.ts`、`sqlite.ts`、`tests/task-cli.test.ts` | Localは検証あり。Linearの同一契約への非同期交換は未実装 |
+| 00 WorkflowRuntime invoke/status/cancel | `src/workflows/port.ts`、`n8n.ts`、公式ローカルn8n記録、native tests | 検証あり。業務Workflow/現在の遠隔認証は未証明 |
+| 00 EventBus publish/get/list/subscribe / Scheduler | `src/events/port.ts`、SQLite、`src/schedules/port.ts`と`service.ts`の注入clock/EventBus | Local/固定間隔は検証あり。別busは必要時の候補 |
+| 00/06 SandboxRuntime / SecretStore | `src/sandbox/service.ts`のrun/save関数Port、`docker.ts`、`src/secrets/port.ts`、Environment/Keychain Adapter | DI境界あり。名前だけの空interfaceを追加しない。限定credential注入は未実装 |
+| 00 Core Domain全項目 | `src/agents`、`rooms`、`sessions`、`memory`、`tasks`、`events`、`workflows`、`sandbox`、`approvals`、`audit` | ExecutionはTask/Session/Workflow実行記録で表現。別の空domainは作らない。permissionは部分実装 |
+
+## Agent・Room・Session（01/02）
+
+| 明示項目 | 現在の直接証拠 | 判定・不足 |
+|---|---|---|
+| Agent id/name/role/reportsTo/runtime/capabilities/memoryPolicy | `src/agents/domain.ts`、SQLite、`agent-domain`/`agent-reporting-cli`/`agent-permission` tests | 検証あり。roleとRuntimeを分離。memoryPolicyはnone/reviewed-tasks |
+| Agent permissions | Agent domainにこのfieldなし。host Runtime/Workflow/Linear scopeとcapabilityを別々に照合 | resource permissionの共通契約・本人認証は未達。capabilitiesの存在だけで代替完了にしない |
+| Chief of Staff→専門Agent | `src/agents/service.ts`、A2A delegate、`coordinator-claude-real.test.ts` | fixture/実Claudeの委譲一周あり。任意業務の実装/納品は未証明 |
+| Coordinatorのみ起動 / mention例外 / 一斉起動抑止 | `src/activation/domain.ts`、`room-runtime`/`activation-cli`/`automatic-wake-up-cli` tests | 検証あり |
+| A2A id/from/to/type/taskId/payload/correlationId | `src/a2a/domain.ts`、service、`a2a-cli.test.ts` | 検証あり。delegate/request/result/question/decision/blocker/cancelの型あり |
+| typed request/result/decisionと冪等委譲 | A2A adoption/reporting、Task review、不変Room原本、Coordinator実機記録 | 検証あり。全typeが汎用自律tool loopで処理されるとは主張しない |
+| Direct/Group/Agent/Task、同Agentの複数Room | `src/rooms/domain.ts`、SQLite、`room-domain`/`room-cli` tests | 検証あり |
+| Room id/title/type/activationPolicy/participants/createdAt/archivedAt | 同domain、SQLite・CLI tests | 検証あり |
+| Message id/roomId/sender/content/replyTo/metadata/createdAt | 同domain、追記専用SQLite・Room CLI/rollback tests | 検証あり。sender文字列は本人認証とは別 |
+| mention_only/coordinator/all/rule_based、coordinator既定 | activation domain、Room metadata rules、native restart tests | 検証あり |
+| Agent/Room/Session/Memoryの分離 | Session domain、Task/Room関連、Memory source、Context | 検証あり |
+| 壊れたSessionをRoom messages+summary+Agent Memoryから再構築 | `sessions/rebuild`契約、`session-cli.test.ts`、実Max Memory引継ぎ記録 | 明示rebuild/要約Memoryで検証あり。常時自動要約は別残件 |
+
+## Memory（03）
+
+| 明示項目 | 現在の直接証拠 | 判定・不足 |
+|---|---|---|
+| semantic/episodic/procedural/relational | `src/memory/domain.ts`、Memory domain/SQLite/CLI tests | 検証あり |
+| id/type/scope/content/status/confidence/validFrom/validUntil/sourceRefs/supersedes | 同domain、validity/SQLite/service tests | 検証あり。active/superseded/invalidatedを原本+projectionで管理 |
+| global/company/department/project/agent/room/task scope | domain validation、capture/list/search CLI | 保存・明示検索は検証あり。Runtimeへのdepartment/projectの関連付けは未達 |
+| 現在scopeに関係するMemoryだけretrieve | `src/rooms/runtime.ts`、retriever、Context DI/SQLite/native tests | Room/Agent/Task/company/globalで検証。全scopeの関連付けとは区別 |
+| Message原本から候補抽出 | `memory/extraction.ts`、strict JSON Extractor、`memory-extraction-runtime-cli.test.ts` | 同Roomで検証あり。他scope/sourceの候補抽出は未達 |
+| Task executions / Decisionsから候補抽出 | approved TaskReview+前後Task履歴、`memory/reviews.ts` | TaskReview由来で検証あり。一般Decision全種は未達 |
+| Workflow executions / Events / Artifactsから候補抽出 | SourceRef URIは現状TaskReviewのみ、serviceにEvent/Workflow/Artifact Readerなし | 未達。原本を参照できる経路から小さく追加する |
+| Deduplicate / Conflict detection | 同値content dedup、metadata不一致先行拒否、明示supersedes、Room夜間同値整理 | 完全同値/metadata衝突は検証あり。意味conflictの自動推定は未達 |
+| 旧Memory削除/上書き禁止、明示supersede/invalidate | immutable SQLiteとstatus projection、原本/REPLACE拒否/reopen tests | 検証あり |
+| retrieval優先:scope/type/tags/entity/recency/importance/full-text | `memory/retrieval.ts`のfilter/sort、SQLite FTS、retrieverとContext tests | 選択/順位・bounds・DI交換に検証あり。typeは選択filter。Vector/rerankは必要時のみ |
+| providerとpolicy分離、conservative extraction/nightly consolidation/scoped relevance | Provider/Extractor/Consolidator/Contextの別境界、明示Room allowlistのdaemon設定 | 現在の限定policyで検証。全scope nightly/意味consolidationは未達 |
+
+## Task・Event・Runtime（04–06）
+
+| 明示項目 | 現在の直接証拠 | 判定・不足 |
+|---|---|---|
+| Task id/title/objective/status/priority/owner/parent/dependencies/labels/inputArtifacts/outputArtifacts/externalRef | `src/tasks/domain.ts`、SQLite、Task domain/CLI tests | Local modelは検証あり |
+| pending/assigned/running/blocked/waiting_approval/completed/failed | domain transitions、SQLite原子history、Execution/Approval/復旧tests | 検証あり。図の一本道に限定せずblock/review復旧を扱う |
+| WorkItemと内部ExecutionTaskの分離 / 外部Taskを汚さない | kind/parent、Event/A2A生成、Linear import、内部Task原本 | 検証あり。内部Executionで新Issueを作らない |
+| WorkItem↔既存Linear Issue同期 | `linear/import.ts`のsnapshot/refresh、承認write/observe、専用scope | title/objective/選択fieldの明示操作あり。Core status/owner対応、自動双方向同期、共通Provider交換は未達 |
+| TaskProvider create | Local create/SQLite tests | 外部新Issue作成をこの実務で行わない。既存Issueへのprojection/取込との意味を接続時に明示する |
+| TaskProvider get/list | Local tests、Linear get/listの固定GraphQL一ページ/UUID/Team/cursor tests | 二つの個別read経路あり。同一非同期Port交換は未達 |
+| TaskProvider update | Local CAS/history、Linear content/fieldsの承認/claim/observe | 共通Port交換は未達。外部writeをLocal patchとして暗黙送信しない |
+| TaskProvider addComment/linkArtifact | Local comments/artifacts、Linear approved comment/HTTPS attachment | 個別非同期操作で検証あり。共通Port交換/実APIは未達 |
+| Event≠Task、Publisherは受信者を知らない | `events/domain.ts`/port、`daemon/domain.ts`/service、native tests | 検証あり |
+| Subscription subscriberType/subscriberId/eventPattern/filter/enabled | domain、SQLite、pattern/filter/daemon tests | Agent/Workflowの検証あり |
+| Event→Subscription→Task/Workflow→Agent→新Event | dispatch/Workflow配送/Task wake-up、実Claude/ローカルn8n記録 | 動作一周あり。任意adapterの同等性や現在実サービス認証とは別 |
+| schedule/manual/event/internal event Trigger | Schedule Event、event publish、内部result/Audit Event、daemon polling | 内部Eventをpublishできる。internal専用APIは原文が要求する別Portではない |
+| webhook Trigger | GitHub署名payloadのCLI取込/native tests | payload contractは検証。常駐HTTP受信・実Webhook配送は未達 |
+| control/execution plane分離 | daemon composition、Runtime manager、Sandbox/Workflow関数Port | 検証あり |
+| Sandbox create→checkout/mount→credential注入→execute→Artifact→destroy | Docker create/start/exported HEAD/exec/copy/rm、resource/network制約、実Docker記録 | one-shotとArtifact回収は検証。限定credential注入は未達。host mountを使う必要はない |
+| Workflow invoke/status/cancel、初期n8n | `workflows/port.ts`、`n8n.ts`、native/公式ローカルn8n記録 | 検証あり。未来Workflow Adapterは対象外候補 |
+
+## CLI/TUIとdaemon（07）
+
+CLIの原文は例示だが、例示した操作の提供有無を省略しない。引数表記の差はREADMEへ明示し、未実装verbを同名で使えるとは主張しない。
+
+| 原文操作 | 実装/同等経路 | 判定 |
+|---|---|---|
+| org daemon / org agent list / agent create | application parser、daemon、`cli.test.ts` | 検証。createにはrole明示を要求 |
+| org agent send chief MESSAGE | room send+mention→activate/daemon wake-up、session sendはあるがagent send verbなし | CLI gap。既存Room/activationを再利用して接続する |
+| room list/create | Room parser/CLI tests | 検証。参加者は--human/--agentで指定 |
+| room open | `org tui --room ID --human ID`のRoom chat | 同等対話面あり。room open alias自体なし |
+| task list/assign | Task parser/CLI tests | 検証 |
+| workflow run --input | Workflow parserとJSON入力、Approval/native tests | 検証。任意業務Workflow実機は別 |
+| event publish --data | Event parser/CLI、JSON payload | 検証。必須sourceを追加指定 |
+| sandbox list | run/cancel/artifactはあるがlistなし | 実行中Sandbox一覧のCLI gap |
+| logs tail AGENT | logs/audit listのTask/Event filterはあるがAgent tailなし | filter/追従のCLI gap |
+| org tui:Agents/Rooms/Tasks/Events | `tui/monitor.ts`、Session状態別counts、monitor/CLI/Room chat tests | 監視と対話あり。対話TTYの全操作実機証拠は未確認 |
+| thin client/local API/socket | daemon client/server、0600、PID/lease/inode、client/native tests | 検証。RPC/人間本人認証は未達 |
+| scheduler/event polling/runtime管理/execution state/timeout/wake-up | 各daemon stages、Schedule/Runtime/Task/native tests | 検証 |
+| retry | delivery attempts/deferredの再処理、A2A通知/Artifact status-only再観測 | 限定retryのみ。Task実行の安全なretry方針/契約は未達。外部効果を無条件再送しない |
+
+## Security・Approval・Audit（08）
+
+| 明示項目 | 現在の直接証拠 | 判定・不足 |
+|---|---|---|
+| can_read/write/delegate/approve/spend/publish/contact_external/run_shell/access_network | Agent enum、Sandbox/Workflow/Linear実行境界、capability変更Approval/native/DI tests | enum全件あり。全tool境界への適用/本人認証は未達 |
+| Agent別working directory / credential | `runtime/config.ts`のagents profile、alias env、`runtime-agent-profiles-cli.test.ts` | 選択/継承抑止は検証。native同UIDプロセスの物理FS/Keychain/IPC隔離は未証明 |
+| Agent別sandbox / tool access / network / external service scope | Task owner+capability、Docker network none、Claude tools/MCP/hooks off、Workflow/Linear host allowlist | 現在の制約を検証。許可network/限定credentialをSandboxへ注入する契約は未達 |
+| 万能credential共有禁止 | Environment/Keychain explicit actor/reference grant、Agent専用Linear/Workflow keys、env allowlist | 暗黙共有なしを検証。hostが明示的に同じcredentialを与えることの強制禁止ではない |
+| 外部影響/不可逆操作のApproval | Workflow write/irreversible、Linear update/comment/Artifact、capability変更 | pending/reject/no effect/完全一致/一回claim/receiptを検証。外部メール/deploy/削除/契約/支出は例示で、そのAdapterを実装済みとはしない |
+| Audit actor/task/event/tool/input-output ref/time/result/approval ref | `src/audit/`、Approval/TaskReview/外部Event receipts、audit/native/rollback tests | 既存重要操作で検証。Sandbox各コマンドの詳細監査は未達 |
+| idempotency key/concurrency/timeout/cancel/redaction | durable claim/CAS、Runtime group/pipe監督、HTTP bounds/timeout、cancel/drain、credential反射拒否 | 現在の経路で検証。任意将来toolの保証や外部CASは含まない |
+| retry | 不確定claimのno replay、status-only観測、保存障害修復 | 安全性を保つ限定処理。一般Task retryは未達 |
+
+## MVP Phaseと残件の優先順
+
+| Phase | 判定 |
+|---|---|
+| 1 Kernel / SQLite / daemon / CLI | 現在の永続化・状態・実CLI検査あり。上記CLI gaps/本人認証まで完了したことにはしない |
+| 2 Claude/Codex / Session / role-instruction | 両driver、fixture、実Claude/過去Codex記録あり。現在の全provider再実行ではない |
+| 3 Typed Memory / scope / extraction / supersede / Context | 限定経路に検証あり。全source/scope/policyは未達 |
+| 4 Scheduler / bus / matching / wake-up / coordinator | 固定間隔/Local bus/実Claude wake-upに検証あり。cron/calendarは原文が指定していない拡張 |
+| 5 Docker / Artifact / n8n | 実機記録と現在native契約あり。credential注入/全詳細Audit/一般retryは未達 |
+| 6 Linear TaskProvider / GitHub events / Notion knowledge | 個別操作/HTTP contractあり。Linear共通契約と実Linear/Notion CLI認証は未達。NATS/Redisは必要時だけ |
+
+次は原文07の`agent send`を既存Room/activationへ接続し、Founderの主操作面の欠けを小さなCLI e2eから埋める。その後は、Memory Event等の根拠Reader、Linear共通TaskProviderとCore status/owner対応、安全なTask retry/限定Sandbox credential・permission/Auditを進める。優先順の変更は原文根拠と実際の不足に基づきログへ残す。
+
+現在の`.env`は値を出さず設定有無だけ確認し、LINEAR_API_KEY/NOTION_API_KEYなし、TYPESAFE API keyあり。実Claude Maxは既存ログインを使える。既存業務Issueと変更先repoの指定は未回答で、新Issue/任意業務writeは行わない。実API認証/本人認証/実業務Draft PRは、独立した実装可能な残件を止める理由にも全体完了へ読み替える理由にもしない。
+
+## 必須へ勝手に格上げしないもの
+
+00/04のAdapter候補（Postgres、GitHub Issues、Notion Task、API model、remote Sandbox、Mem0等）、06の将来Workflow、05の将来Event bus、03の必要時vector/rerankは全実装を要求していない。09はheavy GUI/独自LLM・Vector DB/Kafka/Workflow designer/完全A2Aを対象外とする。cron/calendar、汎用tool loop、常時自動Room summary、停電耐久/GC等は現行要件書に残る拡張・堅牢化で、原文が指定した個別実装方式と混同しない。未証明の現保証を完了扱いせず、候補も勝手に消去しない。
+
+10は「設計中」「実装・issue作成は対象外」と明記。現在/履歴/関連先/鮮度/粒度、read-only、元Task状態と不明鮮度の分離、複数Session、原本参照と権限/redaction、未観測終了を推測しないという設計を保持する。閾値/role権限/正式schema/UI範囲は未決定で、今回実装要件へ変更しない。
