@@ -1,0 +1,19 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-core-projection.test.ts:
+(pass) Core Linear projection rejects malformed mapping and incomplete or unknown remote fields without inventing authority [6.16ms]
+74 |   );
+75 |   validateOwners();
+76 |   const value = data.issue;
+77 |   const issue = parseLinearUpdateIssue(value, ['stateId', 'assigneeId', 'labelIds']);
+78 |   if (id.includes('-') && id.length === 36 ? issue.id !== id : issue.identifier !== id)
+79 |     throw new Error('Linear WorkItem identity conflict');
+                   ^
+error: Linear WorkItem identity conflict
+      at readLinearCoreWorkItem (/Users/umaidashi/Documents/git/org/src/linear/projection.ts:79:15)
+      at async <anonymous> (/Users/umaidashi/Documents/git/org/tests/linear-core-projection.test.ts:25:24)
+(fail) Core Linear projection accepts long identifier requests independently of UUID string length [0.53ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [41.00ms]

@@ -1,0 +1,28 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-issue-list.test.ts:
+(pass) Linear list validates one scoped page, preserves cursor and rejects invalid and partial responses without another request [5.29ms]
+
+tests/linear-issue.test.ts:
+(pass) Linear issue reader uses fixed query and personal-key authorization without creating issues [0.86ms]
+(pass) Linear reader rejects malformed inputs before secrets and sanitizes partial errors or invalid identities [0.87ms]
+(pass) Linear shared query rejects escaped credentials in get/list values, keys and cursors while preserving unrelated quoted text [2.09ms]
+(pass) Linear reader rejects URI-encoded credential reflections before returning external Issue data [0.35ms]
+
+tests/linear-core-projection.test.ts:
+(pass) Core Linear projection rejects malformed mapping and incomplete or unknown remote fields without inventing authority [2.38ms]
+(pass) Core Linear projection accepts long identifier requests independently of UUID string length
+
+tests/linear-update.test.ts:
+(pass) Linear Issue update refuses mismatched authority and input before credential lookup [2.16ms]
+(pass) Linear Issue update preserves baseline rejection, uncertainty and no replay across boundary faults [4.21ms]
+(pass) Linear Issue update success Audit binds output digest to immutable approval and claim [0.93ms]
+(pass) Linear update observation validates approval and claim before read and preserves known immutable success [0.92ms]
+(pass) Linear update observation rejects mismatched current contents and saves no proof on boundary failures [2.22ms]
+(pass) Linear update observation is distinct from mutation success, survives version progress and rejects forged receipts [1.50ms]
+(pass) Linear selected fields canonicalize nullable assignee and label sets and reject unknown or incomplete values [0.33ms]
+(pass) Linear field update reuses authority and claim while preserving omitted fields and rejecting returned mismatches [2.57ms]
+
+ 15 pass
+ 0 fail
+Ran 15 tests across 4 files. [68.00ms]

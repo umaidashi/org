@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-core-projection.test.ts:
+AssertionError: Missing expected rejection.
+ generatedMessage: false,
+     actual: undefined,
+   expected: undefined,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at innerFail (node:assert:36:27)
+      at expectsError (node:assert:425:14)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+(fail) Core Linear projection rejects malformed mapping and incomplete or unknown remote fields without inventing authority [4.83ms]
+(pass) Core Linear projection accepts long identifier requests independently of UUID string length [0.81ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [38.00ms]

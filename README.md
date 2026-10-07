@@ -611,6 +611,16 @@ daemon起動時にWorkflow claimを持つrunning Taskを検出すると、blocke
 観測再開はdaemon専用で、保存済みexecutionのstatusだけを読み、invokeしません。現在のTask/version/owner/capability/dependency、原本Messageとreceipt、host/Agent scopeを照合し、write/irreversibleは元のhuman Approvalも再確認します。成功を検証するとArtifactを保存して結果レビュー待ちへ戻り、まだ不明ならblockedを保持します。daemon再起動でも自動再送しません。`daemon --workflow-config PATH --observe-workflows`を明示すると、起動済み・観測不確定、または成功receiptがありArtifact保存待ちのblocked Executionをstatus-onlyで自動観測します。観測pendingはTask/historyを増やさず、完了後は同じ再認可とArtifact保存を通します。保存・Task関連付け例外はblockedへ戻し、保存先やDBの障害を修復後にmanual/autoで回復できます。未起動Approval待ちは対象外です。一件の観測エラーでも他Taskを観測し、最後にpoll失敗を報告します。保存再試行はhost poll間隔に従いTask/historyを更新します。一般retry/backoff・部分blob破損からの復旧は未完了です。
 
 
+## Linear IssueをCore WorkItem形式で読む
+
+host管理のJSONを`ORG_LINEAR_TASK_MAPPING`へ設定し、state UUIDをCore status、assignee UUIDを登録Agent IDへ明示対応します。JSONは`{"states":{"STATE_UUID":"running"},"owners":{"USER_UUID":"AGENT_ID"}}`形式です。
+
+```sh
+ORG_LINEAR_TASK_MAPPING=/path/to/mapping.json bun run start task linear-get ORG-1 --mapped --json
+```
+
+既存host読取credentialを使います。未知state/未mappingの担当/非登録Agent/不完全labelsを拒否し、無担当ならowner nullを返します。priority、全labels名、remote日時を保持します。`--agent`とは併用できず、RPCからmapping file pathは指定できません。結果は読取snapshotで、version0や空の関係fieldsはLocal履歴/CASを意味しません。Local Task・履歴を変更せず、永続同期・共通六操作は引き続き未完了です。
+
 ## 不変原本をMemoryの根拠にする
 
 hash Artifactも同じcapture経路で根拠にできます。

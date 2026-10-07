@@ -79,3 +79,7 @@ MVPのPhaseごとの現在の実装・検査・実機証拠と未達は[受け�
 ## 2026-10-07 実Claude Linear Task受け入れ
 
 既存Maxログインの実Claudeでcontent/fields提案を生成し、同provider Session/version4/5状態履歴と原本JSON完全一致、human操作承認、並行再開一回、receipt Artifactと人間結果review、再起動後のSession/履歴/Room Message原本不変を全gateで確認した。[証拠](verification/2026-10-07-runtime-linear-real-claude/check.txt)：447成功/12skip/0失敗、459tests/190files/214.87秒。Linear HTTPは固定fixtureであり実API認証・本人認証・業務Draft PRの証拠ではない。これらと他の全体残件は維持する。
+
+## 2026-10-07 Linear Core形式の読取
+
+既存linear-get --mappedへホスト明示state/owner対応を接続。登録Agent、不完全labels page、Issue同一性、priority、日時を検証し、内部ExecutionTaskと履歴を保持する。version0/空関係fieldsは未合成の読取snapshot。共通非同期六操作と永続同期・実API認証の完了とは扱わない。[責任境界](task-provider-design.md)を参照。

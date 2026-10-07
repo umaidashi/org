@@ -34,7 +34,8 @@ import {
 } from '../linear/read.js';
 import type { LinearIssueListInput } from '../linear/read.js';
 import { EnvironmentSecretStore } from '../secrets/environment.js';
-import { linearAgentScopes } from '../linear/config.js';
+import { linearAgentScopes, linearTaskMapping } from '../linear/config.js';
+import { readLinearCoreWorkItem } from '../linear/projection.js';
 import { readAgentLinearIssue } from '../linear/agent-read.js';
 import {
   requestTaskLinearUpdateApproval,
@@ -93,7 +94,7 @@ type TaskAction =
   | { kind: 'request-linear-comment'; input: LinearCommentInput & { readonly key: string } }
   | { kind: 'apply-linear-comment'; input: LinearCommentInput & { readonly approvalId: string } }
   | { kind: 'linear-list'; input: LinearIssueListInput }
-  | { kind: 'linear-get'; id: string; agentId?: string }
+  | { kind: 'linear-get'; id: string; agentId?: string; mapped?: boolean }
   | { kind: 'import-linear'; id: string }
   | { kind: 'refresh-linear'; id: string; expectedVersion: number }
   | { kind: 'review'; id: string; input: TaskReviewInput }
@@ -165,6 +166,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       key: { type: 'string' },
       actor: { type: 'string' },
       agent: { type: 'string' },
+      mapped: { type: 'boolean' },
       decision: { type: 'string' },
       reason: { type: 'string' },
       'expected-version': { type: 'string' },
@@ -203,7 +205,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     'apply-linear-comment': ['expected-version', 'actor', 'body', 'approval'],
     'observe-linear-comment': ['actor', 'approval'],
     'linear-list': ['team', 'limit', 'after'],
-    'linear-get': ['agent'],
+    'linear-get': ['agent', 'mapped'],
     'import-linear': [],
     'refresh-linear': ['expected-version'],
     review: ['actor', 'reason', 'decision', 'expected-version'],
@@ -385,6 +387,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     return { ...common, action: { kind: 'linear-list', input } };
   }
   if (action === 'linear-get' && values.agent !== undefined) {
+    if (values.mapped) throw new Error('Mapped host read cannot use --agent');
     const issueId = validateLinearIssueId(required(id, 'Issue ID'));
     if (!/^[a-f0-9-]{36}$/.test(issueId)) throw new Error('Agent read requires Issue UUID');
     return {
@@ -395,7 +398,11 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   if (action === 'linear-get' || action === 'import-linear')
     return {
       ...common,
-      action: { kind: action, id: validateLinearIssueId(required(id, 'Issue ID')) },
+      action: {
+        kind: action,
+        id: validateLinearIssueId(required(id, 'Issue ID')),
+        ...(values.mapped ? { mapped: true } : {}),
+      },
     };
   if (action === 'create')
     return {
@@ -668,6 +675,22 @@ export async function runTaskCommand(
     const secrets = new EnvironmentSecretStore([
       { actorId: 'linear:host', reference: 'linear:read', environmentVariable: 'LINEAR_API_KEY' },
     ]);
+    if (command.action.kind === 'linear-get' && command.action.mapped) {
+      const mapping = linearTaskMapping();
+      const agents = new SqliteAgentRepository(command.db);
+      try {
+        output(
+          JSON.stringify(
+            await readLinearCoreWorkItem(fetch, secrets, agents, mapping, command.action.id),
+            null,
+            command.json ? undefined : 2,
+          ),
+        );
+      } finally {
+        agents.close();
+      }
+      return;
+    }
     const result =
       command.action.kind === 'linear-list'
         ? await listLinearIssues(fetch, secrets, command.action.input)

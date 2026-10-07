@@ -1,9 +1,10 @@
 import { boundedJson } from '../runtime/http.js';
 import type { SecretStore } from '../secrets/port.js';
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+const identifier = /^[A-Z][A-Z0-9]{0,31}-[1-9][0-9]{0,15}$/;
 export function validateLinearIssueId(id: string): string {
   if (uuid.test(id)) return id.toLowerCase();
-  if (/^[A-Z][A-Z0-9]{0,31}-[1-9][0-9]{0,15}$/.test(id)) return id;
+  if (identifier.test(id)) return id;
   throw new Error('Invalid Linear Issue ID');
 }
 export interface LinearIssue {
@@ -102,8 +103,7 @@ export function parseLinearIssue(issue: unknown): LinearIssue {
     typeof issue.url !== 'string'
   )
     throw new Error('Invalid Linear Issue');
-  if (validateLinearIssueId(issue.identifier) !== issue.identifier)
-    throw new Error('Linear Issue identity mismatch');
+  if (!identifier.test(issue.identifier)) throw new Error('Linear Issue identity mismatch');
   let url: URL;
   try {
     url = new URL(issue.url);

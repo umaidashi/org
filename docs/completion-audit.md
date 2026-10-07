@@ -153,3 +153,7 @@ CLIの原文は例示だが、例示した操作の提供有無を省略しな�
 00/04のAdapter候補（Postgres、GitHub Issues、Notion Task、API model、remote Sandbox、Mem0等）、06の将来Workflow、05の将来Event bus、03の必要時vector/rerankは全実装を要求していない。09はheavy GUI/独自LLM・Vector DB/Kafka/Workflow designer/完全A2Aを対象外とする。cron/calendar、汎用tool loop、常時自動Room summary、停電耐久/GC等は現行要件書に残る拡張・堅牢化で、原文が指定した個別実装方式と混同しない。未証明の現保証を完了扱いせず、候補も勝手に消去しない。
 
 10は「設計中」「実装・issue作成は対象外」と明記。現在/履歴/関連先/鮮度/粒度、read-only、元Task状態と不明鮮度の分離、複数Session、原本参照と権限/redaction、未観測終了を推測しないという設計を保持する。閾値/role権限/正式schema/UI範囲は未決定で、今回実装要件へ変更しない。
+
+## 2026-10-07 Linear Core読取の追加
+
+ホスト明示mappingを使う既存linear-get --mappedで外部state/assignee/priority/labels/timestampsをCore WorkItemとして読み取る。Local ExecutionTaskと履歴は変更しない。共通非同期六操作、永続status/owner同期、実Linear認証は未達のまま。[設計](task-provider-design.md)と[計画](superpowers/plans/2026-10-07-common-linear-task-provider.md)に従い継続する。
