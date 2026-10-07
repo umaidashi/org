@@ -50,18 +50,10 @@ export function validateLinearUpdateInput(input: LinearUpdateInput): void {
     !input.actor.trim() ||
     input.actor.length > 128 ||
     input.actor.includes('\0') ||
-    (input.fields === undefined
-      ? typeof input.title !== 'string' ||
-        !input.title.trim() ||
-        Buffer.byteLength(input.title) > 512 ||
-        input.title.includes('\0') ||
-        typeof input.description !== 'string' ||
-        Buffer.byteLength(input.description) > 32768 ||
-        input.description.includes('\0')
-      : input.title !== undefined || input.description !== undefined)
+    (input.fields !== undefined && (input.title !== undefined || input.description !== undefined))
   )
     throw new Error('Invalid Linear Issue update input');
-  if (input.fields !== undefined) parseLinearIssueFields(input.fields);
+  parseLinearIssueFields(input.fields ?? { title: input.title, description: input.description });
 }
 function digest(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');

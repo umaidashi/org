@@ -13,6 +13,9 @@ test.each([
   ['success', 'fields'],
   ['unknown', 'fields'],
   ['stale', 'fields'],
+  ['success', 'combined'],
+  ['unknown', 'combined'],
+  ['stale', 'combined'],
 ] as const)(
   'native Linear Issue update freezes approved intent and baseline with fault=%s mode=%s',
   async (fault, mode) => {
@@ -37,6 +40,7 @@ test.each([
       assigneeId: null,
       labelIds: ['33333333-3333-4333-8333-333333333333', '44444444-4444-4444-8444-444444444444'],
       priority: 0,
+      ...(mode === 'combined' ? { title: 'approved title', description: '' } : {}),
     };
     let issue = { ...originalIssue },
       mutations = 0,
@@ -55,6 +59,11 @@ test.each([
           payload.query.startsWith('query KernelIssueFields(')
         ) {
           queries++;
+          if (payload.query.startsWith('query KernelIssueFields(')) {
+            assert.match(payload.query, /\bpriority\b/);
+            assert.equal(payload.query.match(/\btitle\b/g)?.length, 1);
+            assert.equal(payload.query.match(/\bdescription\b/g)?.length, 1);
+          }
           assert.deepEqual(payload.variables, { id: issue.id });
           return Response.json({ data: { issue } });
         }
@@ -76,9 +85,13 @@ test.each([
           };
         } else {
           assert.ok(payload.query.startsWith('mutation KernelIssueFieldsUpdate('));
+          assert.match(payload.query, /\bpriority\b/);
+          assert.equal(payload.query.match(/\btitle\b/g)?.length, 1);
+          assert.equal(payload.query.match(/\bdescription\b/g)?.length, 1);
           assert.deepEqual(payload.variables, { id: issue.id, input: fields });
           issue = {
             ...issue,
+            ...(mode === 'combined' ? { title: 'approved title', description: '' } : {}),
             priority: fields.priority,
             state: { id: fields.stateId },
             assignee: null,
@@ -87,8 +100,8 @@ test.each([
               pageInfo: { hasNextPage: false },
             },
           };
-          assert.equal(issue.title, originalIssue.title);
-          assert.equal(issue.description, originalIssue.description);
+          assert.equal(issue.title, mode === 'combined' ? 'approved title' : originalIssue.title);
+          assert.equal(issue.description, mode === 'combined' ? '' : originalIssue.description);
         }
         mutations++;
         if (fault === 'unknown') return new Response('owned uncertainty', { status: 503 });
@@ -288,9 +301,9 @@ test.each([
         assert.equal(refreshed.code, 0, refreshed.stderr);
         const current: unknown = JSON.parse(refreshed.stdout);
         assert.ok(record(current));
-        assert.equal(current.title, mode === 'content' ? 'approved title' : 'existing');
+        assert.equal(current.title, mode !== 'fields' ? 'approved title' : 'existing');
         assert.equal(current.externalRef, originalIssue.url);
-        assert.equal(current.version, mode === 'content' ? 1 : 0);
+        assert.equal(current.version, mode !== 'fields' ? 1 : 0);
       }
     } finally {
       await server.stop(true);

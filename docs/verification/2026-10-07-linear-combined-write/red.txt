@@ -1,0 +1,193 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-update-cli.test.ts:
+(pass) native Linear Issue update freezes approved intent and baseline with fault=success mode=content [688.81ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=unknown mode=content [580.84ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=stale mode=content [573.94ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=success mode=fields [748.09ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=unknown mode=fields [586.14ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=stale mode=fields [577.00ms]
+171 |         ...input,
+172 |         '--key',
+173 |         'update',
+174 |         '--json',
+175 |       ]);
+176 |       assert.equal(requested.code, 0, requested.stderr);
+                   ^
+AssertionError: Error: Invalid --fields JSON or values
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent send AGENT_ID MESSAGE --room ROOM_ID --human HUMAN_ID [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org tui [--socket PATH] [--room ID --human ID]
+       org logs [--task ID] [--event ID] [--limit N] [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org task create|get|list [OPTIONS] --provider local|linear [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|import-github|import-github-webhook|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org workflow run|status|cancel|list|history [OPTIONS]
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org knowledge notion PAGE_ID [--room ROOM --human HUMAN] [--json]
+       org a2a send|adopt|get|list [OPTIONS]
+       org memory capture|extract|consolidate|consolidations|get|list|search|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org task observe-workflow ID --expected-version N
+       org task resume-workflow ID --approval ID --expected-version N
+       org task resume-linear-task|observe-linear-task ID --approval ID --expected-version N
+       org task linear-get|import-linear ISSUE_ID [--json]
+       org task linear-list --team TEAM_KEY [--limit 1..50] [--after CURSOR] [--json]
+       org task refresh-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task sync-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task artifact-content ID --artifact ARTIFACT_ID [--json]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH] [--observe-workflows] [--linear-updates]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+ generatedMessage: false,
+     actual: 2,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/linear-update-cli.test.ts:176:14
+      at processTicksAndRejections (native:7:39)
+(fail) native Linear Issue update freezes approved intent and baseline with fault=success mode=combined [103.63ms]
+171 |         ...input,
+172 |         '--key',
+173 |         'update',
+174 |         '--json',
+175 |       ]);
+176 |       assert.equal(requested.code, 0, requested.stderr);
+                   ^
+AssertionError: Error: Invalid --fields JSON or values
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent send AGENT_ID MESSAGE --room ROOM_ID --human HUMAN_ID [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org tui [--socket PATH] [--room ID --human ID]
+       org logs [--task ID] [--event ID] [--limit N] [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org task create|get|list [OPTIONS] --provider local|linear [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|import-github|import-github-webhook|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org workflow run|status|cancel|list|history [OPTIONS]
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org knowledge notion PAGE_ID [--room ROOM --human HUMAN] [--json]
+       org a2a send|adopt|get|list [OPTIONS]
+       org memory capture|extract|consolidate|consolidations|get|list|search|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org task observe-workflow ID --expected-version N
+       org task resume-workflow ID --approval ID --expected-version N
+       org task resume-linear-task|observe-linear-task ID --approval ID --expected-version N
+       org task linear-get|import-linear ISSUE_ID [--json]
+       org task linear-list --team TEAM_KEY [--limit 1..50] [--after CURSOR] [--json]
+       org task refresh-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task sync-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task artifact-content ID --artifact ARTIFACT_ID [--json]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH] [--observe-workflows] [--linear-updates]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+ generatedMessage: false,
+     actual: 2,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/linear-update-cli.test.ts:176:14
+      at processTicksAndRejections (native:7:39)
+(fail) native Linear Issue update freezes approved intent and baseline with fault=unknown mode=combined [102.61ms]
+171 |         ...input,
+172 |         '--key',
+173 |         'update',
+174 |         '--json',
+175 |       ]);
+176 |       assert.equal(requested.code, 0, requested.stderr);
+                   ^
+AssertionError: Error: Invalid --fields JSON or values
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent send AGENT_ID MESSAGE --room ROOM_ID --human HUMAN_ID [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org tui [--socket PATH] [--room ID --human ID]
+       org logs [--task ID] [--event ID] [--limit N] [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org task create|get|list [OPTIONS] --provider local|linear [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|import-github|import-github-webhook|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org workflow run|status|cancel|list|history [OPTIONS]
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org knowledge notion PAGE_ID [--room ROOM --human HUMAN] [--json]
+       org a2a send|adopt|get|list [OPTIONS]
+       org memory capture|extract|consolidate|consolidations|get|list|search|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org task observe-workflow ID --expected-version N
+       org task resume-workflow ID --approval ID --expected-version N
+       org task resume-linear-task|observe-linear-task ID --approval ID --expected-version N
+       org task linear-get|import-linear ISSUE_ID [--json]
+       org task linear-list --team TEAM_KEY [--limit 1..50] [--after CURSOR] [--json]
+       org task refresh-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task sync-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task artifact-content ID --artifact ARTIFACT_ID [--json]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH] [--observe-workflows] [--linear-updates]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+ generatedMessage: false,
+     actual: 2,
+   expected: 0,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/linear-update-cli.test.ts:176:14
+      at processTicksAndRejections (native:7:39)
+(fail) native Linear Issue update freezes approved intent and baseline with fault=stale mode=combined [103.37ms]
+
+ 6 pass
+ 3 fail
+Ran 9 tests across 1 file. [4.11s]

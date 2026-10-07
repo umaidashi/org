@@ -808,7 +808,7 @@ bun --env-file=.env src/cli.ts --direct task observe-linear-update WORKITEM_ID -
 
 ### 承認付きLinear status・担当者・labels更新
 
-同じrequest/apply/observe操作へ`--fields`を指定できます。title/descriptionモードとは排他で、stateId・assigneeId・labelIds・priorityを許可します。IDはLinearのcanonical UUID、priorityは整数0–4（0は優先度なし）です。CoreのTask状態やAgent ownerとの自動対応付けは行いません。[公式APIのIssue更新](https://linear.app/developers/graphql)に渡す、選択fieldだけの入力です。
+同じrequest/apply/observe操作へ`--fields`を指定できます。stateId・assigneeId・labelIds・priority・title・descriptionを一回の承認で組み合わせられます。トップレベルの`--title/--description`とは排他です。IDはLinearのcanonical UUID、priorityは整数0–4（0は優先度なし）です。CoreのTask状態やAgent ownerとの自動対応付けは行いません。[公式APIのIssue更新](https://linear.app/developers/graphql)に渡す、選択fieldだけの入力です。
 
 ```sh
 bun --env-file=.env src/cli.ts --direct task request-linear-update WORKITEM_ID --fields '{"stateId":"STATE_UUID","assigneeId":null,"labelIds":[]}' --expected-version VERSION --actor HUMAN --key UPDATE_KEY --json
@@ -818,6 +818,8 @@ bun --env-file=.env src/cli.ts --direct task observe-linear-update WORKITEM_ID -
 ```
 
 stateIdは状態の変更、assigneeIdのnullは担当解除、labelIdsの空配列は全labels解除です。labelIdsは追加ではなく全置換です。省略したfieldは送信せず変更しません。labelsは重複を拒否して順序を正規化し、100個までに限定します。labelsを照合するときは取得pageの完全性も検査し、続きを暗黙に無視しません。部分更新のbaselineは選択fieldの現在値を固定し、入力値・選択fieldが変われば同じ承認では送信できません。
+
+fields内のtitleは空白だけを許さず最大512bytes、descriptionは最大32768bytesで空文字による本文解除を許します。どちらもNULを拒否します。fields modeのdescription応答はnullと空文字を空本文へ正規化して照合します。従来のトップレベルcontent modeの承認digest/照合契約は維持します。
 
 一回claim・応答照合・不明結果の再送禁止・Audit・読取後の観測はtitle/descriptionと共通です。Local Taskを変更せず、status/Agent owner/labelsの双方向同期も実装済みとは扱いません。要求と送信の間は非原子的で、他writerとの排他は保証しません。指定UUIDのTeam/参照に関する実Linear認証下での受け入れは未検証です。
 

@@ -95,3 +95,7 @@ MVPのPhaseごとの現在の実装・検査・実機証拠と未達は[受け�
 ## 2026-10-07 Linear priority承認付き更新
 
 既存selected-field updateへpriority整数0–4を追加。承認mask/input digest/baseline/返却値/不明結果観測に通し、priority0、priority-only競合、承認後変更、返却mismatch、並行一回/再送禁止/再openをDI・実CLI fixtureで確認。[全gate](verification/2026-10-07-linear-priority-write/check.txt):462成功/14skip/0失敗、実Jev2193subjects/missing・errors・degraded0。Core共通update・明示逆mapping・複合変更・残comment/artifact・実API/本人認証/実業務納品と他の全体残件は未達。
+
+## 2026-10-07 Linear複合変更の承認付きwrite
+
+selected fieldsへtitle/descriptionを追加し、状態・担当・labels・priorityと一回の承認/digest/返却照合/不明結果観測で更新できる。UTF8 byte上限/NUL/空title、選択contentの競合・入力変更・返却mismatch、未選択変更、本文解除のnull正規化とlegacy承認互換をDI/実CLIで確認。[全gate](verification/2026-10-07-linear-combined-write/check.txt):465成功/14skip/0失敗、実Jev2195subjects/missing・errors・degraded0。共通Core update/逆mapping/comment/artifact・実API/本人認証/実業務納品と他の全体残件は未達。

@@ -1,0 +1,26 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/approval-domain.test.ts:
+(pass) Linear Issue update approval freezes baseline and proposed input separately [0.88ms]
+(pass) Permission changes remain unavailable until a matching human approval
+(pass) Linear comment approval pins human, existing Issue, Task version and body digest [0.80ms]
+(pass) Linear Artifact approval pins existing WorkItem, output Artifact reference and input digest [0.22ms]
+(pass) Linear update approval freezes a closed canonical field mask while preserving legacy content approvals [0.10ms]
+
+tests/task-linear-approval.test.ts:
+(pass) Task Linear proposal validates closed modes and immutable Agent-only binding [1.09ms]
+(pass) Task Linear approval refuses source and capability changes during read without saving a request [8.04ms]
+
+tests/linear-update.test.ts:
+(pass) Linear Issue update refuses mismatched authority and input before credential lookup [2.38ms]
+(pass) Linear Issue update preserves baseline rejection, uncertainty and no replay across boundary faults [4.77ms]
+(pass) Linear Issue update success Audit binds output digest to immutable approval and claim [0.67ms]
+(pass) Linear update observation validates approval and claim before read and preserves known immutable success [0.99ms]
+(pass) Linear update observation rejects mismatched current contents and saves no proof on boundary failures [3.16ms]
+(pass) Linear update observation is distinct from mutation success, survives version progress and rejects forged receipts [1.04ms]
+(pass) Linear selected fields canonicalize nullable assignee and label sets and reject unknown or incomplete values [0.71ms]
+(pass) Linear field update reuses authority and claim while preserving omitted fields and rejecting returned mismatches [3.86ms]
+
+ 15 pass
+ 0 fail
+Ran 15 tests across 3 files. [72.00ms]

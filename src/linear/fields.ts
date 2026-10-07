@@ -10,6 +10,18 @@ export interface LinearIssueFields {
   readonly assigneeId?: string | null;
   readonly labelIds?: readonly string[];
   readonly priority?: number;
+  readonly title?: string;
+  readonly description?: string;
+}
+function content(value: unknown, field: 'title' | 'description'): string {
+  if (
+    typeof value !== 'string' ||
+    value.includes('\0') ||
+    Buffer.byteLength(value) > (field === 'title' ? 512 : 32768) ||
+    (field === 'title' && !value.trim())
+  )
+    throw new Error('Invalid Linear Issue content');
+  return value;
 }
 function parsePriority(value: unknown): number {
   if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > 4)
@@ -52,10 +64,13 @@ export function parseLinearIssueFields(value: unknown): LinearIssueFields {
     ...(assigneeId === undefined ? {} : { assigneeId }),
     ...(labelIds === undefined ? {} : { labelIds }),
     ...('priority' in value ? { priority: parsePriority(value.priority) } : {}),
+    ...('title' in value ? { title: content(value.title, 'title') } : {}),
+    ...('description' in value ? { description: content(value.description, 'description') } : {}),
   };
 }
 export function linearIssueFieldSelection(mask: readonly LinearIssueField[]): string {
   return parseLinearIssueFieldMask(mask)
+    .filter((name) => name !== 'title' && name !== 'description')
     .map((name) =>
       name === 'stateId'
         ? 'state { id }'
@@ -83,7 +98,9 @@ export function parseLinearUpdateIssue(
   let stateId: string | undefined,
     assigneeId: string | null | undefined,
     labelIds: string[] | undefined,
-    priority: number | undefined;
+    priority: number | undefined,
+    title: string | undefined,
+    description: string | undefined;
   for (const name of parseLinearIssueFieldMask(mask)) {
     if (name === 'stateId') {
       if (!('state' in value)) throw new Error('Missing Linear state');
@@ -93,6 +110,10 @@ export function parseLinearUpdateIssue(
       assigneeId = value.assignee === null ? null : relatedId(value.assignee);
     } else if (name === 'priority') {
       priority = parsePriority('priority' in value ? value.priority : undefined);
+    } else if (name === 'title') {
+      title = content(issue.title, 'title');
+    } else if (name === 'description') {
+      description = content(issue.description ?? '', 'description');
     } else {
       if (
         !('labels' in value) ||
@@ -117,6 +138,8 @@ export function parseLinearUpdateIssue(
       ...(assigneeId === undefined ? {} : { assigneeId }),
       ...(labelIds === undefined ? {} : { labelIds }),
       ...(priority === undefined ? {} : { priority }),
+      ...(title === undefined ? {} : { title }),
+      ...(description === undefined ? {} : { description }),
     }),
   };
 }

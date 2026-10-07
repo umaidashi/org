@@ -417,7 +417,9 @@ test('Linear selected fields canonicalize nullable assignee and label sets and r
     null,
     [],
     {},
-    { title: 'unapproved' },
+    { unknown: 'unapproved' },
+    ...[undefined, null, '', ' ', 'x\0', 'あ'.repeat(171)].map((title) => ({ title })),
+    ...[undefined, null, 1, 'x\0', 'あ'.repeat(10923)].map((description) => ({ description })),
     { stateId: 'ORG-1' },
     { assigneeId: undefined },
     { labelIds: [id, id] },
@@ -434,6 +436,15 @@ test('Linear selected fields canonicalize nullable assignee and label sets and r
     assignee: null,
     labels: { nodes: [{ id: other }, { id }], pageInfo: { hasNextPage: false } },
   };
+  assert.deepEqual(parseLinearIssueFields({ description: '', title: 'Title', priority: 0 }), {
+    priority: 0,
+    title: 'Title',
+    description: '',
+  });
+  assert.deepEqual(parseLinearUpdateIssue(issue, ['title', 'description']).fields, {
+    title: issue.title,
+    description: '',
+  });
   assert.deepEqual(parseLinearUpdateIssue(issue, ['priority']).fields, { priority: 0 });
   for (const priority of [undefined, null, -1, 5, 1.5, '2'])
     assert.throws(() => parseLinearUpdateIssue({ ...issue, priority }, ['priority']));
@@ -456,7 +467,10 @@ test('Linear field update reuses authority and claim while preserving omitted fi
   for (const fault of [
     '',
     'baseline',
+    'baseline-content',
     'returned',
+    'returned-content',
+    'unselected',
     'credential',
     'local-read',
     'local-write',
@@ -506,7 +520,7 @@ test('Linear field update reuses authority and claim while preserving omitted fi
       taskId: task.id,
       actor: 'operator',
       expectedVersion: 0,
-      fields: { stateId, priority: 0 },
+      fields: { stateId, priority: 0, title: 'Approved', description: '' },
     };
     const http = async (_url: string, init: RequestInit) => {
       calls++;
@@ -520,13 +534,19 @@ test('Linear field update reuses authority and claim while preserving omitted fi
         if (activeFault === 'local-read') task = { ...task, version: 1 };
         return Response.json({
           data: {
-            issue: { ...baseIssue, priority: activeFault === 'baseline' ? 4 : 2, state: { id } },
+            issue: {
+              ...baseIssue,
+              title: activeFault === 'baseline-content' ? 'Changed' : baseIssue.title,
+              assignee: activeFault === 'unselected' ? { id: stateId } : null,
+              priority: activeFault === 'baseline' ? 4 : 2,
+              state: { id },
+            },
           },
         });
       }
       writes++;
       assert.ok('variables' in body);
-      assert.deepEqual(body.variables, { id, input: { stateId, priority: 0 } });
+      assert.deepEqual(body.variables, { id, input: input.fields });
       assert.doesNotMatch(body.query, /assignee|labels/);
       return Response.json({
         data: {
@@ -534,6 +554,8 @@ test('Linear field update reuses authority and claim while preserving omitted fi
             success: true,
             issue: {
               ...baseIssue,
+              title: activeFault === 'returned-content' ? 'Wrong' : 'Approved',
+              description: null,
               priority: activeFault === 'returned' ? 4 : 0,
               state: { id: stateId },
             },
@@ -574,16 +596,20 @@ test('Linear field update reuses authority and claim while preserving omitted fi
         () => 'same',
       );
     const before = calls;
-    await assert.rejects(() => apply({ stateId, priority: 4 }));
+    await assert.rejects(() => apply({ ...input.fields, priority: 4 }));
+    await assert.rejects(() => apply({ ...input.fields, title: 'Changed' }));
     assert.equal(calls, before);
     activeFault = fault;
-    if (fault) await assert.rejects(apply);
+    if (fault && fault !== 'unselected') await assert.rejects(apply);
     else {
       assert.equal((await apply()).type, 'linear.update.updated');
       assert.equal(task.version, 0);
     }
     const claimed = records.some((e) => e.type === 'linear.update.claimed');
-    assert.equal(writes, ['', 'returned', 'save'].includes(fault) ? 1 : 0);
+    assert.equal(
+      writes,
+      ['', 'unselected', 'returned', 'returned-content', 'save'].includes(fault) ? 1 : 0,
+    );
     assert.equal(claimed, writes === 1);
     if (claimed) {
       const after = calls;

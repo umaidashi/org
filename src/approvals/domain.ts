@@ -109,7 +109,14 @@ export function parseLinearTaskBinding(value: unknown): LinearTaskBinding {
     proposalRef: binding.proposalRef,
   };
 }
-export const linearIssueFieldNames = ['stateId', 'assigneeId', 'labelIds', 'priority'] as const;
+export const linearIssueFieldNames = [
+  'stateId',
+  'assigneeId',
+  'labelIds',
+  'priority',
+  'title',
+  'description',
+] as const;
 export type LinearIssueField = (typeof linearIssueFieldNames)[number];
 export function parseLinearIssueFieldMask(value: unknown): readonly LinearIssueField[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > linearIssueFieldNames.length)

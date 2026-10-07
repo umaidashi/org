@@ -14,7 +14,10 @@ test('Task Linear proposal validates closed modes and immutable Agent-only bindi
   const base = { version: 1, tool: 'linear-update', workItemVersion: 0 };
   assert.deepEqual(
     parseTaskLinearProposal(
-      JSON.stringify({ ...base, fields: { assigneeId: null, labelIds: [], priority: 0 } }),
+      JSON.stringify({
+        ...base,
+        fields: { assigneeId: null, labelIds: [], priority: 0, title: 'Title', description: '' },
+      }),
       taskId,
       'owner',
     ),
@@ -22,7 +25,7 @@ test('Task Linear proposal validates closed modes and immutable Agent-only bindi
       taskId,
       actor: 'owner',
       expectedVersion: 0,
-      fields: { assigneeId: null, labelIds: [], priority: 0 },
+      fields: { assigneeId: null, labelIds: [], priority: 0, title: 'Title', description: '' },
     },
   );
   for (const value of [

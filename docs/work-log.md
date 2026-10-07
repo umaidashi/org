@@ -1574,3 +1574,20 @@
 
 - main通常fast-forwardとorigin/main push終了0、公開commit7f391f0、公開時点HEAD/origin/main一致。Lefthook push対象全検査/実Jev成功180.64秒。通常pushのみ、forceなし。
 - 次の[複合Linear write計画](superpowers/plans/2026-10-07-linear-combined-write.md)を保存。Core patchのcontent/status/owner/priority/labelsを一回の承認対象へ接続するため、既存shared fieldsと旧content approvalsを保持して進める。nullable descriptionのcanonical化は新fields modeに限定し、legacy digestは変更しない境界を計画に記載。共通update・全体goalはactive。
+
+## 2026-10-07 contentとfieldsの複合Linear write
+
+- 前ターンはpriorityの承認付きwrite/全gate/main公開によるprogress。全体goalはactive。main74bd6c5（公開source7f391f0）からfeatureを作り、[複合write計画](superpowers/plans/2026-10-07-linear-combined-write.md)、指針/リファレンス/shared fields全caller/Approval mask・baseline/input/output digest/claim/receipt/observe/Task-bound提案/daemon promptを照合。Notion04/08再取得（編集2026-10-04、欠損/切詰めなし、verification unverified）。inline executing-plans/TDD/Ponytail-reviewを継続し、公開work-logをledgerとする。
+- native RED6成功/3失敗4.11秒:combined success/unknown/staleの承認requestで終了2。共有mask末尾にtitle/descriptionを追加し、fields内の複合入力/応答をcanonical化。旧三・四field順序/legacy content modeは維持。最初のDIは旧title禁止fixtureが新contractと衝突して14成功/1失敗60ms、未知fieldと具体的content拒否fixtureへ更新。初回native GREEN9成功/0失敗5.66秒。
+- Ruling:新fields modeのdescription nullと空文字を空本文として正規化 — 本文解除の同じ意味を承認digest/応答/観測で一貫させ、旧content digestを変更しない — 誤るとnull/空文字の意味差を検出できない。入力description nullは許さず、title空白/NUL/UTF8 byte上限を旧contentと同じ共有guardで拒否する。
+- DI関連15成功/0失敗72ms:複合順序/本文解除/null応答、content-only baseline/input/返却mismatch、未選択assignee変更、credential/取得中Task変更/receipt保存障害、claim後再送拒否を確認。Task-bound提案も同じshared parserへ接続。nativeの追加selection assertでpriority取得とtitle/description非重複を確認する（前単位の保留候補を、今回の複合selection契約の検査へ組み込む）。
+- Ponytail review:legacy contentとfields内contentの重複guardを共有parserへ集約し削除。basic Issue selectionがcontentを含む既存二callerを照合し、追加selectionで重複させない。新mutation engine/DDL/依存/空Provider methodなし。Core明示逆mapping/共通updateと残comment/artifact・全体残件は未達。全gate/実Jev/独立reviewを続ける。
+
+- 独立最終review:Critical0/Important0/Minor0、focused DI10成功64ms/git diff --check成功。Ponytail:Lean already、削減候補なし、C/I fix pass・再reviewなし、Deferred minorなし。前単位のselection assert候補は今回の複合selection契約で検証済み。
+- Final Ruling:実Linear API認証/service制約は未達 — HTTP fixtureを実サービス受け入れに数えない — 誤るとAPI互換を誤認する。
+- Final Ruling:実モデルによる複合提案生成は未実行 — prompt/parser接続だけを成果とする — 誤るとRuntime実務受け入れを誤認する。
+- Final Ruling:共通Core update/逆mapping/comment/artifactは後続計画 — この前提変更だけで六操作完成にしない — 誤ると未接続consumerを完成と誤認する。
+- Final Ruling:跨system原子性/基準取得後の別writer変更/変更主体の帰属は保証しない — 既存非原子的更新と時点観測を保持する — 誤ると競合や他writerの更新を誤判定する。
+- Final Ruling:本人認証/実業務納品/全体goalは未達 — 今回の狭い差分では証明できない — 誤ると公開運営や納品を完成と誤認する。
+- Final Ruling:全check/実Jevは親のterminal実測だけ、opt-in skipは未実施 — 重複/推測で成功にしない — 誤ると未終了検査を成功に数える。
+- 最終native全check終了0:465成功/14skip/0失敗、479tests/197files/163.76秒。最終native9成功5.90秒。実Jev終了0:2195subjects/132warning/missing0/unsure0/review0/errors[]/degraded[]、dry-runの空rule/未宣言/除外0。旧observe名前候補0.63とshared readの失敗経路候補0.68は既存の時点観測契約/否定fixtureと独立reviewで判定し、モデルのみで改名/追加frameworkを行わない。LINEAR/NOTION API keyの設定なしを値を出さず再確認、TYPESAFEあり。既存Maxは別の実Runtime証拠であり実Linear/Notion CLI API認証の代用にしない。
