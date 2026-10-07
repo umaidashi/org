@@ -1,4 +1,4 @@
-import { buildLinearCommentAudit } from './linear-comments.js';
+import { buildLinearAudit } from './linear.js';
 import type { ApprovalStore } from '../approvals/port.js';
 import type { TaskProvider } from '../tasks/port.js';
 import type { EventBus } from '../events/port.js';
@@ -17,6 +17,6 @@ export function collectAudit(
   return buildAudit(decisions, agents.capabilityHistory(), [
     ...tasks.list().flatMap((task) => buildTaskExecutionAudit(tasks.history(task.id))),
     ...buildWorkflowAudit(originals),
-    ...buildLinearCommentAudit(originals, decisions),
+    ...buildLinearAudit(originals, decisions),
   ]);
 }

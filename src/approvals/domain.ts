@@ -60,33 +60,29 @@ export interface WorkflowOperation {
   readonly effect: 'write' | 'irreversible';
   readonly binding?: TaskWorkflowBinding;
 }
-export interface LinearCommentOperation {
-  readonly kind: 'linear_comment';
+export interface LinearTarget {
   readonly issueId: string;
   readonly issueUrl: string;
-  readonly commentId: string;
   readonly taskVersion: number;
   readonly inputDigest: string;
 }
-export function parseLinearCommentOperation(value: unknown): LinearCommentOperation {
+export interface LinearCommentOperation extends LinearTarget {
+  readonly kind: 'linear_comment';
+  readonly commentId: string;
+}
+export interface LinearArtifactLinkOperation extends LinearTarget {
+  readonly kind: 'linear_artifact_link';
+  readonly artifactId: string;
+  readonly artifactUriDigest: string;
+}
+function parseLinearTarget(value: unknown): LinearTarget {
   if (
     !value ||
     typeof value !== 'object' ||
     Array.isArray(value) ||
-    Object.keys(value).some(
-      (key) =>
-        !['kind', 'issueId', 'issueUrl', 'commentId', 'taskVersion', 'inputDigest'].includes(key),
-    ) ||
-    !('kind' in value) ||
-    value.kind !== 'linear_comment' ||
     !('issueId' in value) ||
     typeof value.issueId !== 'string' ||
     !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(value.issueId) ||
-    !('commentId' in value) ||
-    typeof value.commentId !== 'string' ||
-    !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(
-      value.commentId,
-    ) ||
     !('taskVersion' in value) ||
     typeof value.taskVersion !== 'number' ||
     !Number.isSafeInteger(value.taskVersion) ||
@@ -98,7 +94,7 @@ export function parseLinearCommentOperation(value: unknown): LinearCommentOperat
     typeof value.issueUrl !== 'string' ||
     value.issueUrl.length > 2048
   )
-    throw new Error('Invalid Linear comment operation');
+    throw new Error('Invalid Linear operation target');
   let url: URL;
   try {
     url = new URL(value.issueUrl);
@@ -118,13 +114,90 @@ export function parseLinearCommentOperation(value: unknown): LinearCommentOperat
   )
     throw new Error('Invalid Linear Issue URL');
   return {
-    kind: 'linear_comment',
     issueId: value.issueId,
     issueUrl: value.issueUrl,
-    commentId: value.commentId,
     taskVersion: value.taskVersion,
     inputDigest: value.inputDigest,
   };
+}
+export function parseLinearCommentOperation(value: unknown): LinearCommentOperation {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    Object.keys(value).some(
+      (key) =>
+        !['kind', 'issueId', 'issueUrl', 'commentId', 'taskVersion', 'inputDigest'].includes(key),
+    ) ||
+    !('kind' in value) ||
+    value.kind !== 'linear_comment' ||
+    !('commentId' in value) ||
+    typeof value.commentId !== 'string' ||
+    !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(value.commentId)
+  )
+    throw new Error('Invalid Linear comment operation');
+  return { kind: 'linear_comment', ...parseLinearTarget(value), commentId: value.commentId };
+}
+export function parseLinearArtifactLinkOperation(value: unknown): LinearArtifactLinkOperation {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    Object.keys(value).some(
+      (key) =>
+        ![
+          'kind',
+          'issueId',
+          'issueUrl',
+          'artifactId',
+          'artifactUriDigest',
+          'taskVersion',
+          'inputDigest',
+        ].includes(key),
+    ) ||
+    !('kind' in value) ||
+    value.kind !== 'linear_artifact_link' ||
+    !('artifactId' in value) ||
+    typeof value.artifactId !== 'string' ||
+    !value.artifactId.trim() ||
+    value.artifactId.length > 128 ||
+    value.artifactId.includes('\0') ||
+    !('artifactUriDigest' in value) ||
+    typeof value.artifactUriDigest !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(value.artifactUriDigest)
+  )
+    throw new Error('Invalid Linear Artifact operation');
+  return {
+    kind: 'linear_artifact_link',
+    ...parseLinearTarget(value),
+    artifactId: value.artifactId,
+    artifactUriDigest: value.artifactUriDigest,
+  };
+}
+export function validateLinearArtifactUri(value: unknown): string {
+  if (typeof value !== 'string' || value.length > 2048)
+    throw new Error('Invalid shared Artifact URI');
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error('Invalid shared Artifact URI');
+  }
+  if (
+    url.protocol !== 'https:' ||
+    url.username ||
+    url.password ||
+    url.port ||
+    value.includes('?') ||
+    value.includes('#') ||
+    url.toString() !== value ||
+    url.hostname === 'localhost' ||
+    url.hostname.endsWith('.localhost') ||
+    /^[0-9.]+$/.test(url.hostname) ||
+    url.hostname.includes(':')
+  )
+    throw new Error('Invalid shared Artifact URI');
+  return value;
 }
 export function validateLinearCommentUrl(
   operation: LinearCommentOperation,
@@ -160,7 +233,11 @@ export interface ApprovalRequestInput {
   readonly actor: Participant;
   readonly taskId: string | null;
   readonly eventId: string | null;
-  readonly operation: PermissionOperation | WorkflowOperation | LinearCommentOperation;
+  readonly operation:
+    | PermissionOperation
+    | WorkflowOperation
+    | LinearCommentOperation
+    | LinearArtifactLinkOperation;
 }
 export interface ApprovalRequest extends ApprovalRequestInput {
   readonly id: string;
@@ -202,7 +279,11 @@ export function createApprovalRequest(
 ): ApprovalRequest {
   for (const value of [input.key, identity.id, identity.createdAt]) text(value);
   for (const ref of [input.taskId, input.eventId]) if (ref !== null) text(ref);
-  let operation: PermissionOperation | WorkflowOperation | LinearCommentOperation;
+  let operation:
+    | PermissionOperation
+    | WorkflowOperation
+    | LinearCommentOperation
+    | LinearArtifactLinkOperation;
   if (input.operation.kind === 'agent_capabilities') {
     text(input.operation.agentId);
     if (
@@ -258,14 +339,20 @@ export function createApprovalRequest(
       requestId: value.requestId,
       effect: value.effect,
     };
-  } else if (input.operation.kind === 'linear_comment') {
-    operation = parseLinearCommentOperation(input.operation);
+  } else if (
+    input.operation.kind === 'linear_comment' ||
+    input.operation.kind === 'linear_artifact_link'
+  ) {
+    operation =
+      input.operation.kind === 'linear_comment'
+        ? parseLinearCommentOperation(input.operation)
+        : parseLinearArtifactLinkOperation(input.operation);
     if (
       input.actor.kind !== 'human' ||
       input.taskId !== `linear:issue:${operation.issueId}` ||
       input.eventId !== null
     )
-      throw new Error('Linear comment requires human and existing WorkItem');
+      throw new Error('Linear operation requires human and existing WorkItem');
   } else throw new Error('Invalid Approval operation');
   return { ...input, ...identity, actor: actor(input.actor), operation };
 }

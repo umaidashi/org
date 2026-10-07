@@ -14,6 +14,14 @@ export interface LinearIssue {
   readonly description: string | null;
   readonly url: string;
 }
+function containsCredential(value: object, credential: string): boolean {
+  const normalize = (text: string) =>
+    text.replace(/%[a-f0-9]{2}/gi, (escape) => escape.toUpperCase());
+  const data = normalize(JSON.stringify(value));
+  return [credential, encodeURI(credential), encodeURIComponent(credential)].some((encoded) =>
+    data.includes(normalize(JSON.stringify(encoded).slice(1, -1))),
+  );
+}
 export async function queryLinear(
   request: (url: string, init: RequestInit) => Promise<Response>,
   secrets: Pick<SecretStore, 'getSecret'>,
@@ -32,8 +40,7 @@ export async function queryLinear(
     throw new Error('Linear credential unavailable');
   }
   if (!/^[\x21-\x7e]{1,4096}$/.test(credential)) throw new Error('Linear credential unavailable');
-  if (JSON.stringify(variables).includes(JSON.stringify(credential).slice(1, -1)))
-    throw new Error('Invalid Linear input');
+  if (containsCredential(variables, credential)) throw new Error('Invalid Linear input');
   if (access.reference === 'linear:write') access.beforeRequest();
   let response: Response;
   try {
@@ -73,8 +80,7 @@ export async function queryLinear(
     Array.isArray(value.data)
   )
     throw new Error('Invalid or failed Linear response');
-  if (JSON.stringify(value.data).includes(JSON.stringify(credential).slice(1, -1)))
-    throw new Error('Invalid Linear response');
+  if (containsCredential(value.data, credential)) throw new Error('Invalid Linear response');
   return value.data as Record<string, unknown>;
 }
 function parseLinearIssue(issue: unknown): LinearIssue {

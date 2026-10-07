@@ -9,7 +9,7 @@ import {
 import type { Event } from '../src/events/domain.js';
 import { requestLinearCommentApproval, applyApprovedLinearComment } from '../src/linear/comment.js';
 import * as linearComment from '../src/linear/comment.js';
-import { buildLinearCommentAudit } from '../src/audit/linear-comments.js';
+import { buildLinearAudit } from '../src/audit/linear.js';
 import { buildAudit } from '../src/audit/domain.js';
 
 function fixture(body = 'private comment body') {
@@ -324,18 +324,18 @@ test('Linear comment success Audit requires exact approved claim and preserves s
   assert.ok(approval);
   const [claim, created] = f.state.events;
   assert.ok(claim && created);
-  const projected = buildLinearCommentAudit(f.state.events, [approval]);
+  const projected = buildLinearAudit(f.state.events, [approval]);
   const audit = buildAudit([approval], [], projected);
   assert.deepEqual(
     audit.map((entry) => entry.result),
     ['pending', 'approved', 'started', 'succeeded'],
   );
   assert.doesNotMatch(JSON.stringify(audit), /private comment body|fixture-key/);
-  assert.throws(() => buildLinearCommentAudit(f.state.events, []), /Approval/);
-  assert.throws(() => buildLinearCommentAudit([created], [approval]), /claim/);
+  assert.throws(() => buildLinearAudit(f.state.events, []), /Approval/);
+  assert.throws(() => buildLinearAudit([created], [approval]), /claim/);
   assert.throws(
     () =>
-      buildLinearCommentAudit(
+      buildLinearAudit(
         [claim, { ...created, payload: { ...created.payload, actorId: 'other' } }],
         [approval],
       ),
@@ -366,7 +366,7 @@ test('Linear comment status-only recovery accepts advanced Task versions and reu
   const audit = buildAudit(
     [f.state.approval],
     [],
-    buildLinearCommentAudit(f.state.events, [f.state.approval]),
+    buildLinearAudit(f.state.events, [f.state.approval]),
   );
   assert.deepEqual(
     audit.map((e) => e.result),

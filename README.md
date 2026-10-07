@@ -703,6 +703,21 @@ bun --env-file=.env src/cli.ts --direct task observe-linear-comment linear:issue
 
 WorkItem原本・versionは更新しません。Human本人認証やAgent自律投稿は未実装です。実Linear APIへの投稿は未検証で、所有HTTP/SQLite fixtureによる証拠と区別します。
 
+### 既存Linear Issueへの成果物リンク
+
+取込済みWorkItemのoutput Artifactに保存した、外部サービスへ共有を承認するHTTPS URLを関連付けます。`org://`や`file://`、資格情報・query・fragmentを含むURLは送りません。ファイル内容のuploadは行いません。
+
+```sh
+bun --no-env-file src/cli.ts --direct task artifact WORKITEM_ID --artifact ARTIFACT_ID --uri HTTPS_URL --direction output --json
+bun --no-env-file src/cli.ts --direct task request-linear-artifact WORKITEM_ID --artifact ARTIFACT_ID --title 'リンク表示タイトル' --expected-version VERSION --actor HUMAN --key LINK_KEY --json
+bun --no-env-file src/cli.ts --direct approval decide APPROVAL_ID --actor REVIEWER --decision approve --reason 'URLの共有と既存リンクのタイトル更新を確認'
+bun --env-file=.env src/cli.ts --direct task apply-linear-artifact WORKITEM_ID --artifact ARTIFACT_ID --title 'リンク表示タイトル' --expected-version VERSION --actor HUMAN --approval APPROVAL_ID --json
+```
+
+`VERSION`はローカルのArtifact関連付け後に返ったWorkItem versionです。対象Issue・output Artifact・URI/title digest・version・humanを照合し、既存claimで一回だけmutationします。同Issue・同URLにリンクがある場合は、[Linearの公式仕様](https://linear.app/developers/attachments)に従い既存リンクの表示タイトル更新になります。metadata/commentBody等は送信しません。
+
+外部送信ではWorkItem・Artifact原本を変更しません。HTTP不明や成功receipt保存障害では再mutationを拒否し、`logs --task WORKITEM_ID --json`へunconfirmedを残します。claim保存前なら投稿はなく、修復後に実行できます。Artifactリンクの不明結果status-only回収・Agent投稿・実Linear API認証は未完了です。
+
 ### 実Claude二Agentのコード生成
 
 実Claude二Agentのコード生成・生成Bunテスト・独立Docker検証・生成物の隔離 `bun run check`・review/Memory/restartは、`ORG_CLAUDE_CODE_TEST=1 bun test tests/coordinator-claude-real.test.ts` でopt-in実行します。DockerとClaude Maxログインが必要です。依存準備だけ公開package/lockでnetworkを使い、生成コード実行時はnetworkなし・host mountなしです。runtime-valid explicit-anyの拒否検証は `ORG_GENERATED_GATE_TEST=1`。業務IssueやDraft PRはこの専用fixtureとは別に検証します。

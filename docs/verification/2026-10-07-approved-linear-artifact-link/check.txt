@@ -1,0 +1,19 @@
+2026-10-07 Approved existing Linear Issue Artifact link
+Native CLI RED: 0 pass / 4 fail / 955ms (unsupported request action).
+Pure Approval RED: Invalid Approval operation; Artifact DI module initially absent, load error is not behavior proof.
+Initial targeted GREEN: 24 pass / 5 files / 6.03s, including existing comments.
+Audit RED: 0 pass / 4 fail / 2.91s, missing receipt projection / wrong request tool.
+URI credential regression RED: Artifact 5 pass / 1 fail / 61ms, read 3 pass / 1 fail / 57ms.
+URI guard GREEN: Artifact/read/pure Approval 13 pass / 47ms.
+Fast UT: 126 pass / 47 files / 158ms.
+Full bun run check: exit 0; 382 pass / 12 skip / 0 fail; 394 tests / 180 files / 102.40s.
+Typecheck, Oxlint, Oxfmt 323 files, AST: passed.
+Actual Jev: exit 0; 1918 subjects / 117 advisory warnings; missing/unsure/review 0; errors/degraded empty.
+Dry-run: 1918 subjects / 44 requests; not treated as actual review.
+Same-Issue/same-URL attachmentCreate can update an existing link title, per official Attachments contract.
+HTTP fixtures only: human Approval/digest/Artifact output/version, one concurrent mutation, unknown/claim/receipt faults, reopen no replay, immutable Task/Artifact, original Audit.
+Only title and existing HTTPS URI are sent; no content upload, commentBody/metadata/icon/subtitle inputs.
+Artifact URI digest independently binds Audit output; same-time causality and forged receipt rejection covered.
+Shared Linear input/response boundary rejects raw JSON and URI encodings (including percent hex case); not an arbitrary steganography detector.
+Independent final review pending.
+Actual Linear authentication, Agent operations, artifact unknown-status recovery, full asynchronous TaskProvider exchange and business Issue-to-Draft-PR acceptance remain incomplete.

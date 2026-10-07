@@ -93,3 +93,35 @@ test('Linear comment approval pins human, existing Issue, Task version and body 
   ])
     assert.throws(() => createApprovalRequest({ ...input, operation }, identity));
 });
+
+test('Linear Artifact approval pins existing WorkItem, output Artifact reference and input digest', () => {
+  const input = {
+    key: 'artifact',
+    actor: { kind: 'human' as const, id: 'operator' },
+    taskId: 'linear:issue:11111111-1111-4111-8111-111111111111',
+    eventId: null,
+    operation: {
+      kind: 'linear_artifact_link' as const,
+      issueId: '11111111-1111-4111-8111-111111111111',
+      issueUrl: 'https://linear.app/org/issue/ORG-1/existing',
+      taskVersion: 1,
+      artifactId: 'published',
+      artifactUriDigest: 'b'.repeat(64),
+      inputDigest: 'a'.repeat(64),
+    },
+  };
+  const identity = { id: 'approval', createdAt: 'same' };
+  assert.deepEqual(createApprovalRequest(input, identity).operation, input.operation);
+  for (const invalid of [
+    { ...input, actor: { kind: 'agent' as const, id: 'worker' } },
+    { ...input, taskId: 'other' },
+    { ...input, eventId: 'other' },
+    { ...input, operation: { ...input.operation, artifactId: '' } },
+    { ...input, operation: { ...input.operation, artifactId: 'x\0' } },
+    { ...input, operation: { ...input.operation, taskVersion: -1 } },
+    { ...input, operation: { ...input.operation, inputDigest: 'bad' } },
+    { ...input, operation: { ...input.operation, issueUrl: input.operation.issueUrl + '?key=x' } },
+    { ...input, operation: { ...input.operation, extra: true } },
+  ])
+    assert.throws(() => createApprovalRequest(invalid, identity));
+});

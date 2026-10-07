@@ -1279,3 +1279,16 @@
 - Final Ruling: 実業務Issue→Draft PRの受け入れは全体目標の残件とする — 対象Issue/repo未指定で任意業務writeはしない — 判断が誤れば業務対象に固有の不足が残るため、指定された対象での一周を別途完了する。
 - Nativeキー存在のみ再確認: NOTION_API_KEY/LINEAR_API_KEYはfalse。値の記録なし。Notion Security原則も再取得し、HTTPでの境界制御/不変Approval/Auditと全体の未完了を照合。
 - 公開結果: `804115c`実装＋`d470ca6`レビュー記録をmainへfast-forwardし通常push成功（exit0）。pre-push対象commitの全検査/実Jev115.43s成功。main/origin/main同一d470ca6、作業tree cleanを確認。当該planのscratchのみ削除。全体目標はactive、次は既存Issue更新・Artifact連携を外部API/Core境界と照合する。
+
+### 2026-10-07 承認済みLinear Artifactリンク
+
+- 前ターンはstatus-only回収の実装/検証/公開まで進捗あり。現在main 2a63ba7（公開d470ca6）、cleanからfeatureへ分離。Notion Task原則と実コード/指針/referenceを照合。
+- [設計/計画](superpowers/plans/2026-10-07-approved-linear-artifact-link.md)。Ruling: 同Issue/同URLは公式仕様で既存Attachment更新になるため、新規作成専用とは扱わない。URLリンク登録/表示title更新を承認対象へ固定。判断が誤れば既存titleへ意図しない変更があるため、契約を明示する。内容upload・任意URI差替え・新Issue作成は加えない。
+- Native RED 0 pass / 4 fail / 955ms（未対応CLI）。pure Approval RED（Invalid Approval operation）、DIファイルは未実装moduleのload errorであり振る舞いREDの証拠には含めない。実装後のDB不要Artifact/既存comment/pure Approval15 pass / 75ms。native request/apply成功後にAudit欠落/誤ラベルのRED 0 pass / 4 fail / 2.91sを確認。
+- 共有Linear targetのclosed parse、承認照合・claim payload・同一成功receipt保存を実際の二操作で再利用。output Artifact URIの独立digestをApprovalへ固定しAudit出力URLも原本と照合。未校正Jevに意味を委ねない。
+- Artifact/既存コメント対象24 pass / 6.03s。Audit原本URI digest/actor/参照欠落/UUID偽造のDB不要検証も追加。新Artifact APIと共有HTTPのcallerを照合した追加検証でURLエンコード資格情報漏洩のREDを確認（Artifact5 pass / 1 fail / 61ms、read3 pass / 1 fail / 57ms）。入力/応答の共通境界でJSON・encodeURI・encodeURIComponentとpercent hex大文字小文字を照合する。任意の再帰的エンコードや秘密分類の全面保証ではない。
+- URIエンコード反射修正GREEN: Artifact/read/pure Approval13 pass / 47ms。型検査で新Auditテストのmutable state closure narrowingが不足したため、原本Approvalをconstへ保持して修正。静的gateは修正後に再確認する。既存要件表のcomment/artifact未実装という古い行も、実証済み範囲と非同期全交換の残件へ訂正。
+- Static追加修正: native AuditのArray.isArray由来anyをOxlintが拒否したため、末尾entryをunknownで保持してrecord検証へ通す。前回コマンドは静的失敗後にUTも実行したので終了コードだけで全static成功とは扱わない。
+- 最終ローカルgate `bun run check` exit0、382 pass / 12 skip / 0 fail、394 tests / 180 files、102.40s。型・Oxlint/Oxfmt323 files・非空AST/fixture成功。高速UT126 pass / 47 files / 158ms。
+- 実Jev exit0、1918 subjects / 117 advisory warnings、missing/unsure/review 0、errors/degradedなし。dry-run1918 subjects / 44 requestsを先に確認。snapshot/承認helper/observeの命名候補は元状態の取得・承認照合・観測receipt保存という責務へ照合し、機械的renameはしない。Audit/parserの失敗経路advisoryは全入力/保存障害の網羅保証とは扱わず、独立reviewで確認する。
+- Ponytail自己点検: 共通target検証・承認照合・claim payload・success原本保存・Auditを二つの実操作で共有し、別projectionのコピーを作らない。新依存/table/frameworkなし。[検証証拠](verification/2026-10-07-approved-linear-artifact-link/check.txt)。全体目標は未達成、独立最終review待ち。

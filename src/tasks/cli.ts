@@ -1,4 +1,10 @@
 import {
+  requestLinearArtifactApproval,
+  applyApprovedLinearArtifact,
+  validateLinearArtifactInput,
+  type LinearArtifactInput,
+} from '../linear/artifact.js';
+import {
   requestLinearCommentApproval,
   applyApprovedLinearComment,
   observeApprovedLinearComment,
@@ -38,6 +44,8 @@ import { SqliteSessionStore } from '../sessions/sqlite.js';
 import { recoverExecutionTaskResult } from './execution.js';
 
 type TaskAction =
+  | { kind: 'request-linear-artifact'; input: LinearArtifactInput & { readonly key: string } }
+  | { kind: 'apply-linear-artifact'; input: LinearArtifactInput & { readonly approvalId: string } }
   | {
       kind: 'observe-linear-comment';
       input: { readonly taskId: string; readonly actor: string; readonly approvalId: string };
@@ -129,6 +137,8 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const [command, action, id, ...extra] = positionals;
   if (command !== 'task' || extra.length > 0) throw new Error('Unexpected task argument');
   const allowed: Record<string, readonly string[]> = {
+    'request-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'key'],
+    'apply-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'approval'],
     'request-linear-comment': ['expected-version', 'actor', 'body', 'key'],
     'apply-linear-comment': ['expected-version', 'actor', 'body', 'approval'],
     'observe-linear-comment': ['actor', 'approval'],
@@ -174,6 +184,26 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const db = values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('The database path must not be empty');
   const common = { db, json: values.json ?? false };
+  if (action === 'request-linear-artifact' || action === 'apply-linear-artifact') {
+    const input = {
+      taskId: required(id, 'WorkItem ID'),
+      artifactId: required(values.artifact, '--artifact'),
+      title: required(values.title, '--title'),
+      expectedVersion: priority(required(values['expected-version'], '--expected-version')),
+      actor: required(values.actor, '--actor'),
+    };
+    validateLinearArtifactInput(input);
+    return {
+      ...common,
+      action:
+        action === 'request-linear-artifact'
+          ? { kind: action, input: { ...input, key: required(values.key, '--key') } }
+          : {
+              kind: action,
+              input: { ...input, approvalId: required(values.approval, '--approval') },
+            },
+    };
+  }
   if (action === 'observe-linear-comment') {
     const taskId = required(id, 'WorkItem ID');
     linearWorkItemIssueId(taskId);
@@ -441,6 +471,8 @@ export async function runTaskCommand(
     const action = command.action;
     let result: unknown;
     switch (action.kind) {
+      case 'request-linear-artifact':
+      case 'apply-linear-artifact':
       case 'observe-linear-comment':
       case 'request-linear-comment':
       case 'apply-linear-comment': {
@@ -448,6 +480,11 @@ export async function runTaskCommand(
         try {
           if (action.kind === 'request-linear-comment')
             result = requestLinearCommentApproval(provider, approvals, action.input, {
+              id: randomUUID(),
+              createdAt: new Date().toISOString(),
+            });
+          else if (action.kind === 'request-linear-artifact')
+            result = requestLinearArtifactApproval(provider, approvals, action.input, {
               id: randomUUID(),
               createdAt: new Date().toISOString(),
             });
@@ -473,15 +510,25 @@ export async function runTaskCommand(
                       action.input,
                       () => new Date().toISOString(),
                     )
-                  : await applyApprovedLinearComment(
-                      provider,
-                      approvals,
-                      events,
-                      secrets,
-                      fetch,
-                      action.input,
-                      () => new Date().toISOString(),
-                    );
+                  : action.kind === 'apply-linear-artifact'
+                    ? await applyApprovedLinearArtifact(
+                        provider,
+                        approvals,
+                        events,
+                        secrets,
+                        fetch,
+                        action.input,
+                        () => new Date().toISOString(),
+                      )
+                    : await applyApprovedLinearComment(
+                        provider,
+                        approvals,
+                        events,
+                        secrets,
+                        fetch,
+                        action.input,
+                        () => new Date().toISOString(),
+                      );
             } finally {
               events.close();
             }

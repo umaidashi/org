@@ -1,4 +1,8 @@
-import { parseTaskWorkflowBinding, parseLinearCommentOperation } from './domain.js';
+import {
+  parseTaskWorkflowBinding,
+  parseLinearCommentOperation,
+  parseLinearArtifactLinkOperation,
+} from './domain.js';
 import { Database } from 'bun:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -12,6 +16,7 @@ import type {
   WorkflowOperation,
   PermissionOperation,
   LinearCommentOperation,
+  LinearArtifactLinkOperation,
 } from './domain.js';
 import type { ApprovalStore } from './port.js';
 import { validateCapabilities } from '../agents/domain.js';
@@ -39,7 +44,11 @@ function actor(value: unknown): Participant {
 function request(raw: unknown): ApprovalRequest {
   const row = object(JSON.parse(text(raw))),
     operation = object(row.operation);
-  let parsed: WorkflowOperation | PermissionOperation | LinearCommentOperation;
+  let parsed:
+    | WorkflowOperation
+    | PermissionOperation
+    | LinearCommentOperation
+    | LinearArtifactLinkOperation;
   if (operation.kind === 'agent_capabilities' && typeof operation.expectedRevision === 'number')
     parsed = {
       kind: operation.kind,
@@ -63,6 +72,8 @@ function request(raw: unknown): ApprovalRequest {
       effect: operation.effect,
     };
   else if (operation.kind === 'linear_comment') parsed = parseLinearCommentOperation(operation);
+  else if (operation.kind === 'linear_artifact_link')
+    parsed = parseLinearArtifactLinkOperation(operation);
   else throw new Error('Invalid stored Approval operation');
   return createApprovalRequest(
     {

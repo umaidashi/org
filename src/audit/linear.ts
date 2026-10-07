@@ -1,13 +1,16 @@
+import { createHash } from 'node:crypto';
+import { linearClaimPayload } from '../linear/operation.js';
 import { isDeepStrictEqual } from 'node:util';
 import {
   createApprovalRequest,
   createApprovalDecision,
   validateLinearCommentUrl,
+  validateLinearArtifactUri,
 } from '../approvals/domain.js';
 import type { Approval } from '../approvals/domain.js';
 import type { Event } from '../events/domain.js';
 import type { AuditEntry } from './domain.js';
-export function buildLinearCommentAudit(
+export function buildLinearAudit(
   events: readonly Event[],
   approvals: readonly Approval[],
 ): readonly AuditEntry[] {
@@ -17,9 +20,14 @@ export function buildLinearCommentAudit(
     .filter(
       (event) =>
         event.source === 'linear:host' &&
-        ['linear.comment.claimed', 'linear.comment.created', 'linear.comment.unconfirmed'].includes(
-          event.type,
-        ),
+        [
+          'linear.comment.claimed',
+          'linear.comment.created',
+          'linear.comment.unconfirmed',
+          'linear.artifact.claimed',
+          'linear.artifact.linked',
+          'linear.artifact.unconfirmed',
+        ].includes(event.type),
     )
     .map((event) => {
       const claimId = event.payload.claimId;
@@ -27,7 +35,7 @@ export function buildLinearCommentAudit(
       const claim = originals.get(claimId);
       if (
         !claim ||
-        claim.type !== 'linear.comment.claimed' ||
+        !['linear.comment.claimed', 'linear.artifact.claimed'].includes(claim.type) ||
         claim.source !== event.source ||
         typeof claim.payload.approvalId !== 'string'
       )
@@ -40,32 +48,43 @@ export function buildLinearCommentAudit(
       createApprovalDecision(request, decision, decision.createdAt);
       const operation = request.operation;
       if (
-        operation.kind !== 'linear_comment' ||
-        decision.approvalId !== request.id ||
-        claim.id !== `linear-comment:${operation.commentId}`
+        (operation.kind !== 'linear_comment' && operation.kind !== 'linear_artifact_link') ||
+        decision.approvalId !== request.id
       )
-        throw new Error('Linear comment Audit operation mismatch');
-      const payload = {
-        claimId,
-        approvalId: request.id,
-        actorKind: request.actor.kind,
-        actorId: request.actor.id,
-        taskId: request.taskId,
-        operation: { ...operation },
-      };
+        throw new Error('Linear Audit operation mismatch');
+      const payload = linearClaimPayload({ ...request, operation });
+      const prefix = operation.kind === 'linear_comment' ? 'linear.comment' : 'linear.artifact';
+      if (claim.id !== payload.claimId || claim.type !== prefix + '.claimed')
+        throw new Error('Linear Audit operation mismatch');
       if (!isDeepStrictEqual(claim.payload, payload))
         throw new Error('Linear comment Audit context mismatch');
       let result: AuditEntry['result'] = 'started';
       let outputRef = `org://events/${encodeURIComponent(event.id)}`;
       let expectedId = claimId;
       if (event.type === 'linear.comment.created') {
+        if (operation.kind !== 'linear_comment') throw new Error('Linear Audit operation mismatch');
         result = 'succeeded';
         expectedId += ':created';
         const commentUrl = validateLinearCommentUrl(operation, event.payload.commentUrl);
         if (!isDeepStrictEqual(event.payload, { ...payload, commentUrl }))
           throw new Error('Linear comment Audit success mismatch');
         outputRef = commentUrl;
-      } else if (event.type === 'linear.comment.unconfirmed') {
+      } else if (event.type === 'linear.artifact.linked') {
+        if (operation.kind !== 'linear_artifact_link')
+          throw new Error('Linear Audit operation mismatch');
+        result = 'succeeded';
+        expectedId += ':linked';
+        const artifactUri = validateLinearArtifactUri(event.payload.artifactUri),
+          attachmentId = event.payload.attachmentId;
+        if (
+          typeof attachmentId !== 'string' ||
+          !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(attachmentId) ||
+          createHash('sha256').update(artifactUri).digest('hex') !== operation.artifactUriDigest ||
+          !isDeepStrictEqual(event.payload, { ...payload, attachmentId, artifactUri })
+        )
+          throw new Error('Linear Audit Artifact mismatch');
+        outputRef = artifactUri;
+      } else if (event.type === prefix + '.unconfirmed') {
         result = 'unconfirmed';
         expectedId += ':unconfirmed';
         if (!isDeepStrictEqual(event.payload, payload))
@@ -73,15 +92,15 @@ export function buildLinearCommentAudit(
       }
       if (event.id !== expectedId) throw new Error('Linear comment Audit receipt ID mismatch');
       return {
-        id: 'linear-comment:' + event.id,
+        id: prefix + ':' + event.id,
         causalId: claimId,
         actor: request.actor,
         taskId: request.taskId,
         eventId: null,
-        tool: 'linear.comment',
+        tool: prefix,
         inputRef:
-          event.type === 'linear.comment.claimed'
-            ? `org://linear-comment-inputs/${operation.inputDigest}`
+          event.type === prefix + '.claimed'
+            ? `org://${operation.kind === 'linear_comment' ? 'linear-comment' : 'linear-artifact'}-inputs/${operation.inputDigest}`
             : `org://events/${encodeURIComponent(claimId)}`,
         outputRef,
         at: event.createdAt,

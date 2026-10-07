@@ -132,3 +132,33 @@ test('Linear shared query rejects escaped credentials in get/list values, keys a
     );
   }
 });
+
+test('Linear reader rejects URI-encoded credential reflections before returning external Issue data', async () => {
+  const credential = 'fixture-quote-"-slash-/-key';
+  for (const encoded of [
+    encodeURI(credential),
+    encodeURIComponent(credential),
+    encodeURIComponent(credential).replace(/%[a-f0-9]{2}/gi, (m) => m.toLowerCase()),
+  ]) {
+    await assert.rejects(
+      () =>
+        readLinearIssue(
+          async () =>
+            Response.json({
+              data: {
+                issue: {
+                  id: '11111111-1111-4111-8111-111111111111',
+                  identifier: 'ORG-1',
+                  title: encoded,
+                  description: null,
+                  url: 'https://linear.app/org/issue/ORG-1/existing',
+                },
+              },
+            }),
+          { getSecret: () => credential },
+          'ORG-1',
+        ),
+      /Invalid Linear response/,
+    );
+  }
+});
