@@ -1,6 +1,6 @@
 # 全体ゴール再照合（2026-10-08）
 
-全体は未達。現在product baselineはf2b6f04。532成功/21skip/0失敗、実Jev2439対象/不完全判定・エラー・劣化0、main反映済み。[最新DB監査証拠](verification/2026-10-08-event-schedule-operation-audit/)。初期のorg agent listから全体へ広げた目標を維持する。
+全体は未達。最新の実装・検証baselineは01f95da、記録を含むmainはb75b308。533成功/21skip/0失敗、repo実Jev2440対象/不完全判定・エラー・劣化0。[実生成Artifactの最新証拠](verification/2026-10-08-generated-artifact-semantic-review/)では生成code/test各fileの実Jevと実Claude一周も成功。DB監査baseline f2b6f04の[証拠](verification/2026-10-08-event-schedule-operation-audit/)はその時点の記録として保持する。初期のorg agent listから全体へ広げた目標を維持する。
 
 root/00–10を今回のAudit単位と再照合で取得・内容確認。取得成功とNotion編集日時/verification成功を混同しない。新raw本文・私有例示名・資格情報は公開記録/意味レビューへ出さない。以下は既存要件と現在の証拠の対応であり、候補の追加要求ではない。
 

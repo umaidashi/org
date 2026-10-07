@@ -1,5 +1,7 @@
 # MVP受け入れ証拠の照合（2026-10-07）
 
+最新の要件分類は[2026-10-08全体再照合](goal-reassessment-2026-10-08.md)、実生成コードとテストの意味レビューを含む現在の一周は[生成Artifact証拠](verification/2026-10-08-generated-artifact-semantic-review/)を参照。以下のPhase表と実機baselineは2026-10-07時点の記録であり、後続実装の未完了判定へ流用しない。実サービス受入は未達。
+
 ## 目標と判定
 
 [Notion MVP](https://app.notion.com/p/3ef8a4020cb68173a20be8c050bec268)の6 Phaseと、[全体要件](requirements.md)を維持する。MVPの一周が動くことと、全体の未完了がなくなることは別に照合する。本書は完了宣言ではない。

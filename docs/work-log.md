@@ -2100,3 +2100,10 @@
 - 再生成実一周terminal0: 7成功1skip0失敗116.37秒、code一周114.93秒/negative gate1.37秒。実Jev15subjects（domain2/test12）完全判定→local Git handoff→human review/Memory/same provider restart成功。owned Docker cleanup assertions/finally tmp削除まで完了。初回生成誤りも別保存。現在必須ローカルNextは未発見、外部認証/指定既存業務受入は未充足で全体未達。
 - 現在.envの設定有無だけ再確認: Linear false/Notion false/semantic true。全体実サービス受入の必要情報として既存Linear Issue URL/変更先GitHub repoと、両キー設定後の通知をasync質問した。値の送信は求めない。情報が揃うまで任意Issue作成/業務writeを実行しない。現在ローカル必須Nextは未発見、全体は未達。
 - 生成物意味レビュー01f95da commit/pre-commit terminal0（public1343files）。main ff/通常push terminal0、pre-push全gate189.50秒。main/origin main一致とclean code treeを確認後、必要情報質問とpush結果をログのみ追加記録する。
+
+## 2026-10-08 — 継続監査・最新証拠への案内修正
+
+- 前goal turnはprogress: 生成Artifact実Jevと必要file判定を実装/RED→GREEN/実Claude一周/全gate/mainへ反映した。前log b75b308通常push terminal0/pre-push188.16秒、533成功21skip0失敗165.57秒、local/remote一致/cleanを今回確認。
+- Notion root/09をMCP再取得して内容を再照合。MVP六Phase/default/exclusionsに対する実装と検証の分類は維持。取得レスポンスのas-ofは原文提供時点であり編集最新性の独立証明とはしない。新raw本文/秘密/私有例示をGit/Jevへ入れない。
+- current env設定有無だけ確認: LINEAR_API_KEY/NOTION_API_KEYなし。既存Issue/変更repoも回答未着。実サービス受入を達成へ格上げしない。
+- completion-auditの冒頭が旧再照合へリンク、MVP先頭は旧baselineのみ、最新再照合冒頭も旧DB gateを現在として案内していた。最新再照合/生成Artifact証拠へ案内を修正し、旧記録は時点証拠として保持。文書のみ、仕様/product/test変更なし。不要な文言一致UTは追加しない。Ponytail-review: 既存資料リンクを再利用、削減候補なし/net0。必要入力の質問は既にpendingなので繰り返さない。
