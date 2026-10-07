@@ -7,21 +7,23 @@ function record(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
 }
 
-async function proof(auto: boolean): Promise<void> {
+async function proof(auto: boolean, crash: boolean): Promise<void> {
   const home = mkdtempSync('/tmp/org-approved-task-'),
     db = home + '/org.db',
-    socket = home + '/org.sock',
     config = home + '/workflow.json',
     runtime = home + '/runtime.json',
     driver = home + '/driver.ts';
+  let socket = home + '/org.sock';
   let invokes = 0,
     reads = 0,
     delayed = false,
-    statusFailure = false;
+    statusFailure = false,
+    holdStatus = false;
+  let releaseStatus: (() => void) | undefined;
   const server = Bun.serve({
     hostname: '127.0.0.1',
     port: 0,
-    fetch: (request) => {
+    fetch: async (request) => {
       if (new URL(request.url).pathname === '/webhook/check') {
         assert.equal(request.headers.get('X-N8N-API-KEY'), null);
         invokes++;
@@ -29,6 +31,10 @@ async function proof(auto: boolean): Promise<void> {
       }
       assert.equal(request.headers.get('X-N8N-API-KEY'), 'agent-fixture-key');
       reads++;
+      if (holdStatus && reads >= 2)
+        await new Promise<void>((resolve) => {
+          releaseStatus = resolve;
+        });
       if (statusFailure) return new Response('fixture failure', { status: 500 });
       return Response.json({
         id: new URL(request.url).pathname.split('/').at(-1),
@@ -167,7 +173,7 @@ async function proof(auto: boolean): Promise<void> {
       JSON.stringify({
         baseUrl: `http://127.0.0.1:${server.port}`,
         apiKeyEnv: 'ORG_HOST_KEY',
-        taskWaitTimeoutMs: 200,
+        taskWaitTimeoutMs: crash ? 30000 : 200,
         workflows: [
           {
             id: 'flow',
@@ -271,15 +277,64 @@ async function proof(auto: boolean): Promise<void> {
     await start();
     assert.deepEqual(await entity(['task', 'get', taskId]), task);
     assert.equal(invokes, 0);
-    const resumed = await entity([
-      'task',
-      'resume-workflow',
-      taskId,
-      '--approval',
-      approval,
-      '--expected-version',
-      String(waitingVersion),
-    ]);
+    if (crash) {
+      holdStatus = true;
+      const pending = raw([
+        'task',
+        'resume-workflow',
+        taskId,
+        '--approval',
+        approval,
+        '--expected-version',
+        String(waitingVersion),
+      ]);
+      const deadline = Date.now() + 3000;
+      while (reads < 2) {
+        assert.ok(Date.now() < deadline, 'Workflow status not reached');
+        await Bun.sleep(10);
+      }
+      daemon?.kill('SIGKILL');
+      await exited;
+      daemon = undefined;
+      socket = home + '/recovered.sock';
+      assert.notEqual((await pending).code, 0);
+      releaseStatus?.();
+      const configured: unknown = JSON.parse(await Bun.file(config).text());
+      assert.ok(record(configured));
+      writeFileSync(config, JSON.stringify({ ...configured, taskWaitTimeoutMs: 200 }));
+      await start();
+      const recovered = await entity(['task', 'get', taskId]);
+      assert.equal(recovered.status, 'blocked');
+      assert.equal(invokes, 1);
+      holdStatus = false;
+      releaseStatus?.();
+      if (!auto)
+        await entity([
+          'task',
+          'observe-workflow',
+          taskId,
+          '--expected-version',
+          String(recovered.version),
+        ]);
+      const deadline2 = Date.now() + 3000;
+      while ((await entity(['task', 'get', taskId])).status !== 'waiting_approval') {
+        assert.ok(Date.now() < deadline2, 'Recovered result not observed');
+        await Bun.sleep(10);
+      }
+    }
+    const resumed = await entity(
+      crash
+        ? ['task', 'get', taskId]
+        : [
+            'task',
+            'resume-workflow',
+            taskId,
+            '--approval',
+            approval,
+            '--expected-version',
+            String(waitingVersion),
+          ],
+    );
     assert.equal(resumed.status, 'waiting_approval');
     assert.ok(Array.isArray(resumed.outputArtifacts) && resumed.outputArtifacts.length === 1);
     assert.equal(invokes, 1);
@@ -469,8 +524,13 @@ async function proof(auto: boolean): Promise<void> {
     rmSync(home, { recursive: true, force: true });
   }
 }
-test.each([false, true])(
-  'native daemon approves once then observes delayed Workflow auto=%s across restart without reinvoking',
+test.each([
+  [false, false],
+  [true, false],
+  [false, true],
+  [true, true],
+])(
+  'native daemon approves once then observes delayed Workflow auto=%s crash=%s across restart without reinvoking',
   proof,
-  15000,
+  20000,
 );

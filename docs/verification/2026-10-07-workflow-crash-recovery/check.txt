@@ -1,0 +1,12 @@
+Workflow crash recovery — 2026-10-07
+First native RED: 2pass2fail7.39s; stale socket lock EEXIST preceded Workflow assertion. Kept old endpoint protection; fixture uses same DB/new owned socket after SIGKILL.
+Workflow RED: 2pass2fail6.08s; recovered failed, expected blocked. Initial hold hit Adapter's first status validation before started receipt; final fixture holds second status.
+Final native baseline control f238291 + final test: 2pass2fail6.09s; failed != blocked, exit1.
+Terminal guard-off control in owned temp snapshot: 1pass1fail27ms; duplicate terminal receipt assertion, exit1. Temps removed.
+Targeted DI: 4pass0fail40ms. Receipt failure before Task CAS, durable receipt survives CAS conflict, no duplicate on repeat/restart, malformed foreign/context receipt denial, claim-only blocks with no fabricated execution ID.
+Native GREEN: 4pass0fail8.67s. Manual/auto both normal/crash cases. Approval unchanged, SIGKILL after known started, same DB/new socket, exactly one invoke, verified result Artifact after status-only observation.
+Full bun run check: 343pass12skip0fail355tests175files73.66s, exit0. Type/Oxlint/Oxfmt314files/AST and nonempty review plan passed.
+Real Jev: subjects1768/reported112/missing0/unsure0/errors[]/degraded[], exit0. Existing failure-path/name warnings remain auxiliary review candidates, no blocking defect found by independent review.
+Independent review: Critical0/Important0/Minor0; DI2pass32ms. Native independent rerun blocked at fixture Bun.serve port0 with EADDRINUSE under restricted reviewer environment (4 cases before application assertions); parent native/full evidence retained.
+Ponytail: Lean already. Ship.
+Not claimed: same-socket stale endpoint reuse, unknown execution ID reconciliation, external invocation retry, ordinary Artifact-save-error recovery, real business workflow.

@@ -1,0 +1,10 @@
+# 起動済みWorkflowのdaemon中断復旧
+
+現状は起動時に全running Executionをfailedへ固定する。外部Workflowのstarted receiptが保存された後のSIGKILLでは、既知の実行結果を読む既存observe経路へ戻れない。
+
+1. 実CLIのhuman Approval→Workflow起動→status待機中に所有daemonをSIGKILL→再起動を追加し、failedになるREDを確認する。manual/auto観測ともinvokeは一回に限る。
+2. 既存Task/不変Workflow receiptを照合し、claim済みrunning Taskはblockedへ回復する。既知startedには観測不明receiptを先行保存し、一般Taskの既存failed復旧を維持する。
+3. 既存observeを使い結果だけを確認する。terminal receipt保存後の中断も二重receiptを作らず回復する。実行ID不明のclaim-onlyはblockedを保ち、自動再invokeしない。
+4. DIで保存障害/競合/再起動冪等性を検証し、型・lint/AST・全テスト・実jev・一回の独立/Ponytailレビューを行う。
+
+新しいretry engine/外部invoke再試行/Task終端書換えは追加しない。Event先行保存→Task CASの復旧可能な順序を既存Portで実施する。保存失敗はstartup失敗として伝播し、command受付前に中断する。cross-module transactionを保証すると称さない。

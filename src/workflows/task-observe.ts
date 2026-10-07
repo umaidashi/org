@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { createEvent } from '../events/domain.js';
 import { isDeepStrictEqual } from 'node:util';
 import { changeTask, type Task } from '../tasks/domain.js';
 import { TaskResultPendingError } from '../tasks/execution.js';
@@ -20,12 +21,60 @@ import type { WorkflowRuntime } from './port.js';
 import { parseWorkflowProposal } from './proposal.js';
 import { requestTaskWorkflowApproval } from './task-approval.js';
 import { collectTaskWorkflowArtifact } from './task.js';
+
+export function recoverInterruptedTaskWorkflows(
+  tasks: Pick<TaskProvider, 'list' | 'update'>,
+  bus: Pick<EventBus, 'list' | 'publishOnce'>,
+  now: () => string,
+): void {
+  const originals = new Map(bus.list().map((event) => [event.id, event]));
+  for (const task of tasks.list({ kind: 'execution_task', status: 'running' })) {
+    if (task.kind !== 'execution_task' || task.status !== 'running') continue;
+    const requestId = 'workflow:task:' + createHash('sha256').update(task.id).digest('hex');
+    const claim = originals.get(requestId);
+    if (!claim) continue;
+    if (
+      claim.type !== 'workflow.requested' ||
+      claim.source !== 'workflow:n8n' ||
+      claim.payload.taskId !== task.id ||
+      claim.payload.actorKind !== 'agent' ||
+      claim.payload.actorId !== task.owner
+    )
+      throw new Error('Interrupted Workflow claim does not match Task');
+    const started = originals.get(requestId + ':started'),
+      uncertain = originals.get(requestId + ':unconfirmed');
+    const receipts = [claim, ...(started ? [started] : []), ...(uncertain ? [uncertain] : [])];
+    if (buildWorkflowAudit(receipts).length !== receipts.length)
+      throw new Error('Interrupted Workflow receipts invalid');
+    if (
+      started &&
+      (started.type !== 'workflow.started' ||
+        started.payload.requestId !== requestId ||
+        typeof started.payload.executionId !== 'string' ||
+        !started.payload.executionId.trim())
+    )
+      throw new Error('Interrupted Workflow execution receipt invalid');
+    // ponytail: durable receipt before Task CAS; startup retries this boundary, never external invocation.
+    if (started && !uncertain)
+      bus.publishOnce(
+        createEvent(
+          {
+            type: 'workflow.unconfirmed',
+            source: 'workflow:n8n',
+            payload: { ...started.payload, phase: 'observation' },
+          },
+          { id: requestId + ':unconfirmed', createdAt: now() },
+        ),
+      );
+    tasks.update(task.id, { status: 'blocked' }, now(), task.version);
+  }
+}
 export async function observeTaskWorkflow(
   tasks: Pick<TaskProvider, 'get' | 'history' | 'update'> & ExecutionResultWriter,
   agents: Pick<AgentRepository, 'list'>,
   rooms: Pick<RoomRepository, 'get' | 'messages'>,
   approvals: Pick<ApprovalStore, 'get'>,
-  bus: Pick<EventBus, 'get' | 'publish'>,
+  bus: Pick<EventBus, 'get' | 'publish' | 'list'>,
   configured: {
     readonly host: string;
     readonly taskWaitTimeoutMs?: number;
@@ -99,6 +148,17 @@ export async function observeTaskWorkflow(
     )
       throw new Error('Workflow pending receipts missing');
     const audit = buildWorkflowAudit([claim, started, uncertain]);
+    const priorTerminal = bus.list().find((event) => event.id === requestId + ':status:terminal');
+    if (priorTerminal) {
+      if (
+        priorTerminal.type !== 'workflow.status_observed' ||
+        priorTerminal.source !== claim.source ||
+        priorTerminal.payload.actorKind !== 'system' ||
+        priorTerminal.payload.actorId !== 'host:workflow'
+      )
+        throw new Error('Workflow terminal receipt invalid');
+      buildWorkflowAudit([claim, started, priorTerminal]);
+    }
     if (
       audit.length !== 3 ||
       claim.payload.host !== configured.host ||
@@ -199,7 +259,7 @@ export async function observeTaskWorkflow(
         throw new Error('Original Workflow Approval changed');
     } else if (claim.payload.approvalId !== null)
       throw new Error('Unexpected read-only Workflow Approval');
-    return { blocked, started, message, room, owner, workflow, approval };
+    return { blocked, started, message, room, owner, workflow, approval, priorTerminal };
   };
   const first = authorize();
   const signal = AbortSignal.any([
@@ -274,6 +334,7 @@ export async function observeTaskWorkflow(
       now,
       id,
       true,
+      verified.priorTerminal,
     );
     return tasks.stageExecutionResult(running.id, artifact, running.version);
   } catch (error) {

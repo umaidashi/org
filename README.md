@@ -262,7 +262,7 @@ bun run start task artifacts TASK_ID --json
 bun run start task history TASK_ID --json
 ```
 
-runningを先に保存し、Runtime返信をRoomに残します。結果Artifactの`org://rooms/.../messages/...`参照・Task履歴・waiting_approvalを原子的に保存します。結果は人間の確認待ちです。daemon起動時は中断されたrunning ExecutionTaskをfailedへ復旧し、履歴と承認待ちの結果を保持します。成果物の承認・却下は次の`task review`で記録します。`--wake-up`付きdaemonはEvent由来を含むassigned ExecutionTaskを自動実行します。完了済み依存を確認し、Task RoomとSessionを用意してMemory contextを渡します。WorkItemは実行せず、結果を自動承認しません。再起動後も承認済みTaskを再実行しません。外部操作の専用Approval APIと自動再試行は後続です。
+runningを先に保存し、Runtime返信をRoomに残します。結果Artifactの`org://rooms/.../messages/...`参照・Task履歴・waiting_approvalを原子的に保存します。結果は人間の確認待ちです。daemon起動時は中断されたrunning ExecutionTaskをfailedへ復旧し、履歴と承認待ちの結果を保持します。Workflow claimがある中断Taskはblockedへ分け、既知実行をstatus-onlyで観測できるようにします。成果物の承認・却下は次の`task review`で記録します。`--wake-up`付きdaemonはEvent由来を含むassigned ExecutionTaskを自動実行します。完了済み依存を確認し、Task RoomとSessionを用意してMemory contextを渡します。WorkItemは実行せず、結果を自動承認しません。再起動後も承認済みTaskを再実行しません。外部操作の専用Approval APIと自動再試行は後続です。
 
 同じDBのcontinuous daemonは一台だけ起動できます。socketを変えてもSQLiteのPID/token leaseで二重所有を拒否します。DB/親のsymlinkは実パスへ正規化し、新DBは0600で作成します。終了した所有PIDのleaseは起動時に取得し直し、解放時は自分のtokenだけを削除します。PID reuseは生存扱いで拒否します。continuousモードでin-memory DBは使用できません。
 
@@ -583,6 +583,8 @@ Workflow host設定の`taskWaitTimeoutMs`は50〜30000ms（既定30000ms）で�
 bun run start task get TASK_ID --json
 bun run start task observe-workflow TASK_ID --expected-version VERSION --json
 ```
+
+daemon起動時にWorkflow claimを持つrunning Taskを検出すると、blockedへ回復します。started receiptがあれば観測不明receiptを先に保存し、既存のstatus-only経路へ接続します。Task更新に失敗しても次の起動で保存済みreceiptを再利用します。terminal receipt保存後に中断した場合も、同じstatusを照合して原本を保持します。claimだけで実行IDが不明な場合はblockedのまま自動再invokeせず、外部での結果照合が必要です。SIGKILL後の実CLI検証は同じDB・新しいsocketを使用しており、残った古いsocket/lockの再利用は未完了です。
 
 観測再開はdaemon専用で、保存済みexecutionのstatusだけを読み、invokeしません。現在のTask/version/owner/capability/dependency、原本Messageとreceipt、host/Agent scopeを照合し、write/irreversibleは元のhuman Approvalも再確認します。成功を検証するとArtifactを保存して結果レビュー待ちへ戻り、まだ不明ならblockedを保持します。daemon再起動でも自動再送しません。`daemon --workflow-config PATH --observe-workflows`を明示すると、起動済み・観測不確定のblocked Executionだけをstatus-onlyで自動観測します。pendingはTask/historyを増やさず、完了後は同じ再認可とArtifact保存を通します。未起動Approval待ちは対象外です。一件の観測エラーでも他Taskを観測し、最後にpoll失敗を報告します。一般retry・Artifact保存失敗からの復旧は未完了です。
 

@@ -6,7 +6,10 @@ import { createTask, changeTask, attachArtifact } from '../src/tasks/domain.js';
 import { createRoom, createMessage } from '../src/rooms/domain.js';
 import { createEvent, type Event } from '../src/events/domain.js';
 import type { TaskHistory } from '../src/tasks/port.js';
-import { observeTaskWorkflow } from '../src/workflows/task-observe.js';
+import {
+  observeTaskWorkflow,
+  recoverInterruptedTaskWorkflows,
+} from '../src/workflows/task-observe.js';
 import type { WorkflowStatus } from '../src/workflows/port.js';
 
 test('pending Workflow observation validates execution chain before key lookup and uses status only after latest Task CAS', async () => {
@@ -120,6 +123,7 @@ test('pending Workflow observation validates execution chain before key lookup a
         },
       },
       {
+        list: () => [...events.values()],
         get: (id) => {
           const e = events.get(id);
           if (!e) throw new Error('Missing receipt');
@@ -211,6 +215,23 @@ test('pending Workflow observation validates execution chain before key lookup a
   assert.equal(history.length, 2);
   reads = 0;
   executionStatus = 'success';
+  const terminal = createEvent(
+    {
+      type: 'workflow.status_observed',
+      source: 'workflow:n8n',
+      payload: {
+        requestId,
+        host: context.host,
+        workflowId: 'flow',
+        executionId: '14',
+        status: 'success',
+        actorKind: 'system',
+        actorId: 'host:workflow',
+      },
+    },
+    { id: requestId + ':status:terminal', createdAt: 'previous' },
+  );
+  events.set(terminal.id, terminal);
   const result = await run();
   assert.equal(result.status, 'waiting_approval');
   assert.equal(result.outputArtifacts.length, 1);
@@ -218,6 +239,123 @@ test('pending Workflow observation validates execution chain before key lookup a
   assert.equal(events.get(claim.id), claim);
   assert.equal(events.get(started.id), started);
   assert.equal(events.get(uncertain.id), uncertain);
+  assert.equal(events.get(terminal.id), terminal);
   await assert.rejects(run);
   assert.equal(reads, 1);
+});
+
+test('interrupted Workflow recovery preserves durable receipts before Task CAS and never retries an unknown invocation', () => {
+  const task = changeTask(
+    changeTask(
+      createTask(
+        { title: 'recover', objective: 'observe', kind: 'execution_task' },
+        { id: 't', createdAt: '0' },
+      ),
+      { owner: 'a' },
+      '1',
+    ),
+    { status: 'running' },
+    '2',
+  );
+  const requestId = 'workflow:task:' + createHash('sha256').update(task.id).digest('hex');
+  const context = {
+    host: 'https://n8n.example',
+    workflowId: 'flow',
+    inputDigest: 'a'.repeat(64),
+    actorKind: 'agent',
+    actorId: 'a',
+    taskId: 't',
+    eventId: null,
+    proposalRef: 'org://rooms/r/messages/m',
+    approvalId: null,
+    effect: 'read_only',
+  };
+  const claim = createEvent(
+    { type: 'workflow.requested', source: 'workflow:n8n', payload: context },
+    { id: requestId, createdAt: '2' },
+  );
+  const started = createEvent(
+    {
+      type: 'workflow.started',
+      source: 'workflow:n8n',
+      payload: { ...context, requestId, executionId: '14' },
+    },
+    { id: requestId + ':started', createdAt: '2' },
+  );
+  const events = new Map([claim, started].map((event) => [event.id, event]));
+  let current = task,
+    writes = 0,
+    publications = 0,
+    failPublish = true,
+    failCas = false;
+  const recover = () =>
+    recoverInterruptedTaskWorkflows(
+      {
+        list: () => [current, { ...task, id: 'plain' }, { ...task, id: 'work', kind: 'work_item' }],
+        update: (id, patch, at, version) => {
+          assert.equal(id, 't');
+          assert.equal(version, task.version);
+          assert.ok(events.has(requestId + ':unconfirmed'));
+          if (failCas) throw new Error('fixture CAS conflict');
+          writes++;
+          current = changeTask(current, patch, at);
+          return current;
+        },
+      },
+      {
+        list: () => [...events.values()],
+        publishOnce: (event) => {
+          if (failPublish) throw new Error('fixture receipt failure');
+          assert.ok(!events.has(event.id));
+          publications++;
+          events.set(event.id, event);
+          return event;
+        },
+      },
+      () => '3',
+    );
+  assert.throws(recover, /receipt failure/);
+  assert.equal(writes, 0);
+  assert.equal(events.size, 2);
+  failPublish = false;
+  failCas = true;
+  assert.throws(recover, /CAS conflict/);
+  assert.equal(writes, 0);
+  assert.equal(publications, 1);
+  const uncertain = events.get(requestId + ':unconfirmed');
+  assert.equal(uncertain?.payload.phase, 'observation');
+  assert.equal(uncertain?.payload.executionId, '14');
+  failCas = false;
+  recover();
+  recover();
+  assert.equal(current.status, 'blocked');
+  assert.equal(writes, 1);
+  assert.equal(publications, 1);
+  assert.equal(events.get(requestId + ':unconfirmed'), uncertain);
+  current = task;
+  events.set(started.id, { ...started, source: 'foreign' });
+  assert.throws(recover, /receipts invalid/);
+  assert.equal(writes, 1);
+  events.set(started.id, { ...started, payload: { ...started.payload, actorId: 'foreign' } });
+  assert.throws(recover, /context/);
+  assert.equal(writes, 1);
+  events.delete(started.id);
+  events.delete(requestId + ':unconfirmed');
+  recoverInterruptedTaskWorkflows(
+    {
+      list: () => [task],
+      update: (_id, patch, at, version) => {
+        assert.equal(version, task.version);
+        assert.deepEqual(patch, { status: 'blocked' });
+        return changeTask(task, patch, at);
+      },
+    },
+    {
+      list: () => [claim],
+      publishOnce: () => {
+        throw new Error('Unknown execution must not fabricate a receipt');
+      },
+    },
+    () => '4',
+  );
 });

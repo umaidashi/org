@@ -1139,3 +1139,15 @@
 - 独立最終review: Critical0/Important0、Minor1（追加Capabilityだけを実行前/status待機中に取り消す負系は直接検証していない）。最新owner再取得と実装guard自体は適切との判定。既存全権限失効・Task変更・契約変更・native manual/auto検証を維持し、この補強候補はdeferred。独立DI8成功0fail59ms、作者再実行8成功0fail50ms。レビューは一回で終了。
 - Ponytail review: Lean already. Ship. validator/既存owner再照合/Approval bindingを再利用し、新framework・Port・tableなし。要求配列の順序変更も契約変更として拒否する保守的仕様を選択（誤った場合のコストは新しい承認要求）。host宣言の意味をノード解析で推測する実装は追加しない。
 - Next: 全体requirementsへ再照合し、実務のDraft PRに必要な既存Issue/repoの指定待ちと区別しながら、未完了のローカル実行・復旧経路を進める。今回のWorkflow fixtureを実業務publish/spend完了とは主張しない。
+
+## 2026-10-07 起動済みWorkflowの中断復旧
+
+- 前変更f238291はmain/originとも一致、working tree cleanを確認。通常pushのpre-push全検査は340成功12skip0失敗73.02秒、全gate88.47秒で成功。
+- 前ターンは実装・検証・main反映の進捗。今回は[計画](superpowers/plans/2026-10-07-workflow-crash-recovery.md)に従い、daemon起動時のrunning→failed一律復旧が既知外部Workflowを観測不能にする経路を検証する。Notion Securityページを再取得しCore側idempotency/retry/timeout/cancellationの責務を確認（編集日は2026-10-04、原文は新たに保存・API送信しない）。指針/reference/Task復旧/Workflow claim・started・observe/Auditの各callerを確認。
+- 新しい外部再invokeではなく、既存started receiptを使うstatus-only観測へ回復する。所有loopback server/daemonのみ使い、human Approvalと追加Capability条件を維持する。claim-onlyは自動再実行しない。
+- native初回REDは2成功2失敗7.39秒でSIGKILL後のstale lock EEXISTが先行。同DB・新所有socketで切り分けたREDは2成功2失敗6.08秒、failed!=blocked。最初のholdはAdapter内最初のstatus照合でstarted保存前だったため、既知started後である2回目statusへ変更。最終fixtureをbasef238291へ適用したcontrolも2成功2失敗6.09秒で同じ状態REDを確認。
+- 既存Workflow観測moduleに復旧を追加。startupで一般running→failedより前に実施し、claim/context/ownerと不変Auditを検証。startedが既知なら観測不明receiptを先行保存してTask CASでblocked。receipt障害・競合はstartupへ伝播し、再起動は既存receiptを再利用。claim-onlyもblockedへ分け、実行IDは捏造せず外部を再invokeしない。一般Executionの既存failed復旧は保持。
+- terminal receipt保存後の中断は既存observeのAudit照合とstatus一致を確認して原本を再利用。guardを外すtemp controlは1成功1失敗27ms（duplicate receipt）、変更後DI4成功40ms。native4成功8.67秒で通常/所有daemon SIGKILL、manual/auto、元Approval/追加Capability条件、同DB新socket、外部invoke一回、status-only成果物を確認。temp snapshotは削除。
+- 最終check343成功12skip0失敗355tests175files73.66秒、型/Oxlint/Oxfmt314files/ASTと空でないreview plan成功。実jev1768対象112warning、missing/unsure0/errors/degraded空、exit0。[検証](verification/2026-10-07-workflow-crash-recovery/check.txt)。補助のfailure-path/name候補は既存DI/nativeの具体的assertと別途独立レビューを併用し、実レビューをdry-runと混同しない。
+- 独立最終review Critical0/Important0/Minor0、DI2成功32ms。Reviewer native再実行は4件ともport0のHTTP fixture起動時EADDRINUSEとなりアプリ検証前に停止した環境制限。作者native/full成功を保持。Ponytail: Lean already. Ship. 新retry engine/Port/table/dependencyは追加せず、既存観測・Audit・Event/Task Portを再利用。一回のreviewで終了。
+- 未完了: 同じsocketへSIGKILL後再起動するstale endpoint回復、実行ID不明時の業務照合、一般retry、通常Artifact保存errorからの復旧、実業務対象/実API認証。Nextは旧socketを無条件に削除せず、所有者と終了を検証して回復できる最小経路を実CLIで確認する。

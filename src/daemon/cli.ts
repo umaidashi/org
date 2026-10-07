@@ -2,7 +2,11 @@ import { validateRoomAllowlist } from '../rooms/domain.js';
 import { extractRoomReplyMemories } from '../memory/extraction.js';
 import { jsonMemoryExtractor } from '../memory/extractor.js';
 import { adoptCoordinatorReply } from '../a2a/proposal.js';
-import { observeTaskWorkflow, pollTaskWorkflowObservations } from '../workflows/task-observe.js';
+import {
+  observeTaskWorkflow,
+  pollTaskWorkflowObservations,
+  recoverInterruptedTaskWorkflows,
+} from '../workflows/task-observe.js';
 import { SqliteApprovalStore } from '../approvals/sqlite.js';
 import { requestTaskWorkflowApproval } from '../workflows/task-approval.js';
 import { resumeTaskWorkflow } from '../workflows/task-resume.js';
@@ -271,6 +275,7 @@ function openOperations(
     };
     runtime.recover();
     recoverWakeups(wakeupJournal, () => new Date().toISOString());
+    recoverInterruptedTaskWorkflows(taskProvider, eventBus, () => new Date().toISOString());
     recoverInterruptedExecutionTasks(taskProvider, () => new Date().toISOString());
     const activate = async (roomId: string, messageId: string) => {
       const source = roomRepository.messages(roomId).find((m) => m.id === messageId);

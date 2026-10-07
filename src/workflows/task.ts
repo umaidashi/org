@@ -135,6 +135,7 @@ export async function collectTaskWorkflowArtifact(
   now: () => string,
   id: () => string,
   priorUnconfirmed = false,
+  priorTerminal?: Event,
 ): Promise<TaskArtifact> {
   const requestId = started.payload.requestId,
     workflowId = started.payload.workflowId,
@@ -159,24 +160,27 @@ export async function collectTaskWorkflowArtifact(
       if (execution.id !== executionId || execution.workflowId !== workflowId)
         throw new Error('Workflow execution does not match Task proposal');
       if (['success', 'error', 'crashed', 'canceled'].includes(execution.status)) {
-        bus.publish(
-          createEvent(
-            {
-              type: 'workflow.status_observed',
-              source: 'workflow:n8n',
-              payload: {
-                requestId,
-                host: host,
-                workflowId: execution.workflowId,
-                executionId,
-                status: execution.status,
-                actorKind: 'system',
-                actorId: 'host:workflow',
+        if (priorTerminal && priorTerminal.payload.status !== execution.status)
+          throw new Error('Workflow terminal receipt status changed');
+        if (!priorTerminal)
+          bus.publish(
+            createEvent(
+              {
+                type: 'workflow.status_observed',
+                source: 'workflow:n8n',
+                payload: {
+                  requestId,
+                  host: host,
+                  workflowId: execution.workflowId,
+                  executionId,
+                  status: execution.status,
+                  actorKind: 'system',
+                  actorId: 'host:workflow',
+                },
               },
-            },
-            { id: requestId + ':status:terminal', createdAt: now() },
-          ),
-        );
+              { id: requestId + ':status:terminal', createdAt: now() },
+            ),
+          );
         terminalObserved = true;
         if (execution.status !== 'success')
           throw new Error('Workflow did not complete successfully');
