@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-extraction.test.ts:
+(pass) Memory extraction anchors typed candidates to prior Room history, validates before writes, deduplicates and never revives invalidation [6.77ms]
+(pass) Memory JSON extractor bounds unknown input and accepts all four typed candidate kinds
+291 |     [7],
+292 |     'org://events/a',
+293 |     Array(21).fill('org://events/a'),
+294 |     ['x'.repeat(2049)],
+295 |   ])
+296 |     assert.throws(() => decode(uris));
+                 ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-extraction.test.ts:296:12)
+(fail) Memory URI candidates reject malformed or NUL-bearing canonical evidence before lookup [0.82ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [39.00ms]

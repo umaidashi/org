@@ -6,7 +6,7 @@ import { createRoom, createMessage } from '../src/rooms/domain.js';
 import { SqliteMemoryProvider } from '../src/memory/sqlite.js';
 import { jsonMemoryExtractor } from '../src/memory/extractor.js';
 import { extractRoomMemories } from '../src/memory/extraction.js';
-test('same-batch and cross-proposal exact dedup never resurrect invalidated Memory on extraction retry after SQLite reopen', () => {
+test('same-batch and cross-proposal exact dedup never resurrect invalidated Memory on extraction retry after SQLite reopen', async () => {
   const home = mkdtempSync('/tmp/org-memory-dedup-');
   const db = home + '/org.db';
   let provider = new SqliteMemoryProvider(db);
@@ -61,22 +61,22 @@ test('same-batch and cross-proposal exact dedup never resurrect invalidated Memo
       { roomId: 'r', messageId },
     );
   try {
-    const projected = run('first');
+    const projected = await run('first');
     assert.equal(projected.length, 2);
     assert.ok(projected[0]);
     assert.equal(projected[1]?.id, projected[0].id);
-    assert.equal(run('second')[0]?.id, projected[0].id);
+    assert.equal((await run('second'))[0]?.id, projected[0].id);
     provider.invalidate(projected[0].id, 'no longer valid', '4');
     provider.close();
     provider = new SqliteMemoryProvider(db);
     assert.deepEqual(
-      run('first').map((m) => [m.id, m.status]),
+      (await run('first')).map((m) => [m.id, m.status]),
       [
         [projected[0].id, 'invalidated'],
         [projected[0].id, 'invalidated'],
       ],
     );
-    assert.equal(run('second')[0]?.status, 'invalidated');
+    assert.equal((await run('second'))[0]?.status, 'invalidated');
     assert.equal(provider.list().length, 1);
   } finally {
     provider.close();

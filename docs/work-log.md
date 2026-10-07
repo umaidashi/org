@@ -1738,3 +1738,24 @@
 - [次の候補根拠接続計画](superpowers/plans/2026-10-07-memory-candidate-evidence.md)を保存。新source storeや抽出engineを作らず既存capture Readerを再利用し、同Roomのtyped候補へURI根拠を追加する。次単位の詳細契約は今回review対象外、実装済みとは扱わない。
 
 - 最終全check終了0:479 pass / 14 skip / 0 fail / Ran 493 tests across 200 files. [172.59s]、static354files/AST成功。実Jev2259subjects/137warning/missing0/unsure0/review0/errors[]/degraded[]。最終focused native1成功4.96秒。[証拠](verification/2026-10-07-memory-context-acceptance/)保存。製品source変更なし、前単位の全reply経路/登録guardの不足を補い、provider resume argv/本人認証/全体未達を維持。
+
+## 2026-10-07 Memory候補の原本URI根拠
+
+- 前単位scope受け入れmain通常ff/push終了0、公開eba8f9f、公開時点main/origin/main一致。committed tree全gate/実Jev成功193.86秒、forceなし。新差分をfeat/memory-candidate-evidenceへ移動。
+- [根拠接続計画](superpowers/plans/2026-10-07-memory-candidate-evidence.md)に従う実CLI RED0成功/1失敗365ms（sourceUris未知field）。既存captureの根拠検証を共有し、typed candidateのbounded/canonical URIとsame-Room scopeを維持。extractのArtifact awaitに合わせ実callerとDI/SQLite testをasyncへ変更し、daemonの自動採用もawait。
+- 初回staticで機械置換がA2A採用にも余分なReader引数を追加し型エラー。Memoryのcallerだけへ訂正し、全caller/typeを再確認。CLIはReaderをget/reviewsの最初の使用時だけ開き、他原本の不要テーブル/接続を作らずfinallyで閉じる。
+- URI NULのRED2成功/1失敗39ms。先行fixtureは新proposal IDを旧固定IDで検索して失敗したため、その検索だけ訂正して目的REDを再確認。共有Event/TaskReview decoderでencoded NULを拒否し、capture側の同じ穴も閉じる。新validatorを各callerへ複製しない。
+- native3成功/1skip/0失敗2files3.94秒:Event/hash Artifact/確定reject DecisionとWorkflow invoke/statusの既存不変Event receiptを候補根拠へ保存、CLI再open/原本不変・再採用/失効no revivalを確認。Workflow runtimeはDI fixtureで実外部APIではない。既存Room auto=true/false daemonのEvent URI採用/次Context/再起動も確認。実Claude opt-inはこの検査ではskip、実モデル受け入れへ数えない。
+- DIで後方候補の欠落根拠でも保存ゼロ、Artifact read待機中のarchive/capability revoke/Memory snapshot変更を拒否。source URIは同proposal内でSetによる一度の読取へ集約し、既に検証した過去Room MessageをReaderで重複全走査しない。旧Metadata conflict/dedup/supersedes/no revivalを維持。
+- Ruling:URIの証明は採用時のcanonical原本存在/整合性/確定Decision — 本文の真偽/本人認証/全resource permission/提案時点での外部原本観測を保証しない — 誤ると未検証の因果・帰属まで完成と誤認する。
+- Ruling:非同期read中のRoom/capability/scope Memory snapshot変更は採用前に拒否 — 元原本を消さず再実行可能な状態で失敗を伝播 — 誤ると同scopeの無関係な更新でも保守的に拒否し得る。複数候補の保存障害時のall-or-nothingは既存契約外で、新保証とは主張しない。
+- Ponytail review:既存Extractor/capture Reader/createOnce/同値整理を再利用、新engine/Workflow store/URI resolver依存なし。重複captureの検証loopを一箇所へ集約、同proposalのURI読取をSetで共有。正しさ/安全性はfresh全単位reviewへ。
+- 独立final review:Critical0/Important0/Minor1（後方Reader失敗・保存ゼロの実DB直接証拠不足）、focused11成功4files68ms、git diff --check成功。共有Reader/await/authority再検証/接続解放とPonytail Lean alreadyを確認。
+- Final: Ruling:計画step2の実DB否定受け入れは完了条件なのでcoverage指摘を受け入れ上Importantへ再分類し一回だけ補足 — 製品sourceの変更や新fixture engineは不要、同じ実CLIにvalid Artifact→missing Eventの二候補を追加 — 誤ると通常Minorのpolishへ時間を使うが、書込み順序を実DBで確認する必要を優先する。再reviewなし。
+- 補足native1成功/0失敗1.50秒。先頭候補は実hash Artifactのreadを成功し、後方候補の不存在Eventで終了1、別プロセスMemory listは保存前snapshotと一致、Event/Decision原本も一致。製品変更なしで必須受け入れ不足を解消した。
+- Final: Ruling:全文の真偽/人物認証/全resource permission/提案時点の因果/複数保存障害時の原子性は未保証 — 今回の根拠/authority検証だけを受け入れる — 誤ると未実装の安全性まで完了と誤認する。
+- Final: Ruling:Notion原文の独立再取得/実モデル受け入れは行わない — 既取得03と保存計画へ照合しnativeモデルfixtureを実Maxと混同しない — 誤ると独立原文・実モデルの実績を捏造する。
+- Final: Ruling:全gate/実Jev/native成否は親terminal実測 — reviewerのfocused結果で代用しない — 誤ると退行/通信失敗を成功へ数える。全体goalはactive。
+- [次の全scope整理計画](superpowers/plans/2026-10-07-memory-scoped-consolidation.md)を保存。既存exact conservative policy/不変receipt/transactionを再利用し、Room専用selectorを既に保存するscopeへ接続する。次単位の詳細契約は今回review対象外、未実装。
+
+- 補足後の最終全check終了0:480成功/14skip/0失敗494tests/200files173.20秒、static354files/AST成功。実Jev2265subjects/135warning/missing0/unsure0/review0/errors[]/degraded[]、直前dry-runの非空/除外・空実行なしも再確認。fast UT167成功56files265ms。[証拠](verification/2026-10-07-memory-candidate-evidence/)保存。前のgate結果だけで補足後のtreeを成功とせず、全gate/実Jevを再実行した。全体goalはactive。

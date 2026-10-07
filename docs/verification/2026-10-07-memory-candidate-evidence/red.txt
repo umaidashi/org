@@ -1,0 +1,24 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-extraction-cli.test.ts:
+10 |     const p = spawnSync(
+11 |       process.execPath,
+12 |       ['--no-env-file', cli, '--direct', '--db', home + '/org.db', ...args],
+13 |       { encoding: 'utf8', timeout: 10000 },
+14 |     );
+15 |     assert.equal(p.status, 0, p.stderr);
+                ^
+AssertionError: Error: Unknown Memory candidate field
+
+
+1 !== 0
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at run (/Users/umaidashi/Documents/git/org/tests/memory-extraction-cli.test.ts:15:12)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-extraction-cli.test.ts:106:19)
+(fail) native CLI extracts original Agent Memory proposal once and preserves Room evidence and invalidation across reopen [320.16ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [365.00ms]

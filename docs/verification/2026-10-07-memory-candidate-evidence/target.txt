@@ -1,0 +1,27 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-service.test.ts:
+(pass) Memory Artifact capture awaits its injected verified reader and refuses missing or failed evidence [2.53ms]
+(pass) Memory capture verifies original Message references through injected ports before saving [1.12ms]
+(pass) Memory Event evidence requires a canonical existing original before writing [0.64ms]
+(pass) Memory capture validates immutable Task review evidence through injected readers before saving [0.49ms]
+(pass) Memory Decision capture validates injected immutable identity and confirmation before any write [0.58ms]
+
+tests/memory-extraction.test.ts:
+(pass) Memory extraction anchors typed candidates to prior Room history, validates before writes, deduplicates and never revives invalidation [3.65ms]
+(pass) Memory JSON extractor bounds unknown input and accepts all four typed candidate kinds [0.38ms]
+(pass) Memory URI candidates reject malformed or NUL-bearing canonical evidence before lookup [0.20ms]
+
+tests/memory-auto-extraction.test.ts:
+(pass) automatic Memory adoption selects human-linked original only and reuses strict scoped evidence and replay [0.70ms]
+(pass) automatic Memory adoption refuses ambiguous proposals before any writes
+
+tests/memory-extraction-sqlite.test.ts:
+(pass) same-batch and cross-proposal exact dedup never resurrect invalidated Memory on extraction retry after SQLite reopen [12.44ms]
+
+tests/memory-extraction-cli.test.ts:
+(pass) native CLI extracts original Agent Memory proposal once and preserves Room evidence and invalidation across reopen [1128.85ms]
+
+ 12 pass
+ 0 fail
+Ran 12 tests across 5 files. [1197.00ms]

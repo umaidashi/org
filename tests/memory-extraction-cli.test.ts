@@ -1,10 +1,13 @@
+import { SqliteEventBus } from '../src/events/sqlite.js';
+import { invokeWorkflow, observeWorkflow } from '../src/workflows/service.js';
+import { saveSandboxArtifact } from '../src/sandbox/artifact.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { cli } from './cli-path.js';
 
-test('native CLI extracts original Agent Memory proposal once and preserves Room evidence and invalidation across reopen', () => {
+test('native CLI extracts original Agent Memory proposal once and preserves Room evidence and invalidation across reopen', async () => {
   const home = mkdtempSync('/tmp/org-memory-extract-cli-');
   const run = (args: string[]) => {
     const p = spawnSync(
@@ -73,6 +76,75 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
         '--json',
       ]),
     );
+    const eventId = id(
+      run(['event', 'publish', 'fixture.observed', '--source', 'fixture', '--json']),
+    );
+    const eventUri = 'org://events/' + encodeURIComponent(eventId);
+    const artifactUri = await saveSandboxArtifact(
+      home + '/org.db.artifacts',
+      Buffer.from('original evidence'),
+    );
+    const approvalId = id(
+      run([
+        'approval',
+        'request',
+        agentId,
+        '--key',
+        'evidence',
+        '--actor',
+        'founder',
+        '--expected-revision',
+        '0',
+        '--capability',
+        'can_read',
+        '--json',
+      ]),
+    );
+    run([
+      'approval',
+      'decide',
+      approvalId,
+      '--actor',
+      'founder',
+      '--decision',
+      'reject',
+      '--reason',
+      'Fixture decision',
+      '--json',
+    ]);
+    const originalDecision = run(['approval', 'get', approvalId, '--json']);
+    const decisionUri = 'org://approvals/' + encodeURIComponent(approvalId) + '/decision';
+    const bus = new SqliteEventBus(home + '/org.db');
+    let workflowUri: string;
+    try {
+      await invokeWorkflow(
+        bus,
+        { invoke: async () => 'execution' },
+        {
+          workflowId: 'workflow',
+          host: 'http://fixture.invalid',
+          input: {},
+          inputDigest: 'a'.repeat(64),
+        },
+        { id: 'workflow-request', createdAt: '2026-10-01T00:00:00.000Z' },
+        () => '2026-10-01T00:00:01.000Z',
+      );
+      const observed = await observeWorkflow(
+        bus,
+        {
+          status: async () => ({ id: 'execution', workflowId: 'workflow', status: 'success' }),
+          cancel: async () => 'canceled',
+        },
+        'workflow-request',
+        'http://fixture.invalid',
+        'status',
+        { id: 'workflow-observed', createdAt: '2026-10-01T00:00:02.000Z' },
+      );
+      workflowUri = 'org://events/' + encodeURIComponent(observed.id);
+    } finally {
+      bus.close();
+    }
+    const originalEvents = run(['event', 'list', '--json']);
     const proposalId = id(
       run([
         'room',
@@ -93,6 +165,7 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
               entities: ['org'],
               importance: 0.9,
               sourceMessageIds: [sourceId],
+              sourceUris: [eventUri, artifactUri, decisionUri, workflowUri],
             },
           ],
         }),
@@ -107,8 +180,18 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
     assert.deepEqual(first[0].tags, ['testing']);
     assert.deepEqual(first[0].entities, ['org']);
     assert.equal(first[0].importance, 0.9);
+    assert.deepEqual(first[0].sourceRefs, [
+      { roomId, messageId: sourceId },
+      { roomId, messageId: proposalId },
+      { uri: eventUri },
+      { uri: artifactUri },
+      { uri: decisionUri },
+      { uri: workflowUri },
+    ]);
     assert.deepEqual(run(['memory', 'get', memoryId, '--json']), first[0]);
     assert.deepEqual(run(args), first);
+    assert.deepEqual(run(['approval', 'get', approvalId, '--json']), originalDecision);
+    assert.deepEqual(run(['event', 'list', '--json']), originalEvents);
     const duplicateId = id(
       run([
         'room',
@@ -235,6 +318,61 @@ test('native CLI extracts original Agent Memory proposal once and preserves Room
     const previous = run(['memory', 'get', previousId, '--json']);
     assert.ok(previous && typeof previous === 'object' && 'status' in previous);
     assert.equal(previous.status, 'superseded');
+    const beforeFailure = run(['memory', 'list', '--scope', 'room:' + roomId, '--json']);
+    const badProposal = id(
+      run([
+        'room',
+        'send',
+        roomId,
+        '--agent',
+        agentId,
+        '--content',
+        JSON.stringify({
+          version: 1,
+          tool: 'memory',
+          candidates: [
+            {
+              type: 'episodic',
+              content: 'must not be saved',
+              confidence: 1,
+              sourceMessageIds: [sourceId],
+              sourceUris: [artifactUri],
+            },
+            {
+              type: 'episodic',
+              content: 'missing evidence',
+              confidence: 1,
+              sourceMessageIds: [sourceId],
+              sourceUris: ['org://events/absent'],
+            },
+          ],
+        }),
+        '--json',
+      ]),
+    );
+    const failed = spawnSync(
+      process.execPath,
+      [
+        '--no-env-file',
+        cli,
+        '--direct',
+        '--db',
+        home + '/org.db',
+        'memory',
+        'extract',
+        '--room',
+        roomId,
+        '--message',
+        badProposal,
+        '--json',
+      ],
+      { encoding: 'utf8', timeout: 10000 },
+    );
+    assert.equal(failed.status, 1, failed.stderr);
+    assert.match(failed.stderr, /Event.*not found/);
+    assert.deepEqual(run(['memory', 'list', '--scope', 'room:' + roomId, '--json']), beforeFailure);
+    assert.deepEqual(run(['event', 'list', '--json']), originalEvents);
+    assert.deepEqual(run(['approval', 'get', approvalId, '--json']), originalDecision);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

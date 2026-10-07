@@ -4,6 +4,7 @@ export interface MemoryCandidate extends Pick<
   'type' | 'content' | 'confidence' | 'tags' | 'entities' | 'importance'
 > {
   readonly sourceMessageIds: readonly string[];
+  readonly sourceUris?: readonly string[];
   readonly supersedes?: string;
 }
 export interface MemoryExtractor {
@@ -46,6 +47,7 @@ export const jsonMemoryExtractor: MemoryExtractor = {
         'content',
         'confidence',
         'sourceMessageIds',
+        'sourceUris',
         'supersedes',
         'tags',
         'entities',
@@ -74,7 +76,20 @@ export const jsonMemoryExtractor: MemoryExtractor = {
       });
       if (new Set(sourceMessageIds).size !== sourceMessageIds.length)
         throw new Error('Duplicate Memory candidate source');
+      let sourceUris: string[] | undefined;
+      if (c.sourceUris !== undefined) {
+        if (!Array.isArray(c.sourceUris) || c.sourceUris.length > 20)
+          throw new Error('Invalid Memory candidate source URIs');
+        sourceUris = c.sourceUris.map((uri: unknown) => {
+          if (typeof uri !== 'string' || uri.length > 2048)
+            throw new Error('Invalid Memory candidate source URI');
+          return uri;
+        });
+        if (new Set(sourceUris).size !== sourceUris.length)
+          throw new Error('Duplicate Memory candidate source URI');
+      }
       const candidate: MemoryCandidate = {
+        ...(sourceUris === undefined ? {} : { sourceUris }),
         ...(c.tags === undefined ? {} : { tags: memoryLabels(c.tags) }),
         ...(c.entities === undefined ? {} : { entities: memoryLabels(c.entities) }),
         ...(c.importance === undefined ? {} : { importance: c.importance }),
@@ -88,7 +103,10 @@ export const jsonMemoryExtractor: MemoryExtractor = {
         {
           ...candidate,
           scope: 'room:validation',
-          sourceRefs: [{ roomId: 'validation', messageId: 'validation' }],
+          sourceRefs: [
+            { roomId: 'validation', messageId: 'validation' },
+            ...(sourceUris ?? []).map((uri) => ({ uri })),
+          ],
         },
         { id: 'validation', at: 'validation' },
       );

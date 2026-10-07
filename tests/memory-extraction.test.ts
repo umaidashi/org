@@ -1,3 +1,4 @@
+import type { MemoryEvidenceReaders } from '../src/memory/service.js';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { createRoom, createMessage } from '../src/rooms/domain.js';
@@ -6,7 +7,7 @@ import type { Memory } from '../src/memory/domain.js';
 import { jsonMemoryExtractor } from '../src/memory/extractor.js';
 import { extractRoomMemories } from '../src/memory/extraction.js';
 
-test('Memory extraction anchors typed candidates to prior Room history, validates before writes, deduplicates and never revives invalidation', () => {
+test('Memory extraction anchors typed candidates to prior Room history, validates before writes, deduplicates and never revives invalidation', async () => {
   const agent = createAgent(
     { name: 'a', role: 'memory', runtime: 'claude', capabilities: ['can_read', 'can_write'] },
     { id: 'a', createdAt: '0' },
@@ -53,7 +54,7 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
   );
   const stored = new Map<string, Memory>();
   let writes = 0;
-  const run = () =>
+  const run = (evidence?: MemoryEvidenceReaders) =>
     extractRoomMemories(
       { get: () => active, messages: () => [source, proposal, later] },
       { list: () => [owner] },
@@ -68,7 +69,8 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
         },
       },
       jsonMemoryExtractor,
-      { roomId: 'r', messageId: 'proposal' },
+      { roomId: 'r', messageId: proposal.id },
+      evidence,
     );
   const valid = proposal;
   proposal = {
@@ -79,17 +81,17 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
       candidates: [candidate, { ...candidate, sourceMessageIds: ['future'] }],
     }),
   };
-  assert.throws(run);
+  await assert.rejects(run);
   assert.equal(writes, 0);
   proposal = valid;
   owner = { ...agent, capabilities: ['can_read'] };
-  assert.throws(run);
+  await assert.rejects(run);
   assert.equal(writes, 0);
   owner = agent;
   active = { ...room, archivedAt: 'closed' };
-  assert.throws(run);
+  await assert.rejects(run);
   active = room;
-  const first = run()[0];
+  const first = (await run())[0];
   assert.ok(first);
   assert.equal(first.scope, 'room:r');
   assert.deepEqual(first.tags, ['testing']);
@@ -99,10 +101,10 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
     { roomId: 'r', messageId: 'source' },
     { roomId: 'r', messageId: 'proposal' },
   ]);
-  assert.equal(run()[0]?.id, first.id);
+  assert.equal((await run())[0]?.id, first.id);
   assert.equal(stored.size, 1);
   stored.set(first.id, { ...first, status: 'invalidated' });
-  assert.equal(run()[0]?.status, 'invalidated');
+  assert.equal((await run())[0]?.status, 'invalidated');
   assert.equal(stored.size, 1);
   assert.equal(source.content, 'テストを小さくする');
   const beforeConflict = writes;
@@ -117,7 +119,7 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
       ],
     }),
   };
-  assert.throws(run, /metadata conflict/);
+  await assert.rejects(run, /metadata conflict/);
   assert.equal(writes, beforeConflict);
   assert.equal(stored.size, 1);
   proposal = {
@@ -131,7 +133,7 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
       ],
     }),
   };
-  assert.throws(run, /metadata conflict/);
+  await assert.rejects(run, /metadata conflict/);
   assert.equal(writes, beforeConflict);
   proposal = valid;
   for (const metadata of [
@@ -158,8 +160,68 @@ test('Memory extraction anchors typed candidates to prior Room history, validate
         ],
       }),
     };
-    assert.throws(run);
+    await assert.rejects(run);
     assert.equal(writes, beforeConflict);
+  }
+  const artifactUri = 'org://artifacts/' + 'a'.repeat(64);
+  proposal = {
+    ...valid,
+    id: 'evidence',
+    content: JSON.stringify({
+      version: 1,
+      tool: 'memory',
+      candidates: [
+        { ...candidate, content: 'external fact', sourceUris: [artifactUri] },
+        { ...candidate, content: 'missing fact', sourceUris: ['org://events/missing'] },
+      ],
+    }),
+  };
+  let reads = 0;
+  await assert.rejects(
+    () =>
+      run({
+        readArtifact: async () => {
+          reads++;
+          return 'bytes';
+        },
+        events: {
+          get: () => {
+            throw new Error('missing evidence');
+          },
+        },
+      }),
+    /missing evidence/,
+  );
+  assert.equal(reads, 1);
+  assert.equal(writes, beforeConflict);
+  proposal = {
+    ...proposal,
+    content: JSON.stringify({
+      version: 1,
+      tool: 'memory',
+      candidates: [{ ...candidate, content: 'external fact', sourceUris: [artifactUri] }],
+    }),
+  };
+  await assert.rejects(() => run(), /Artifact reader required/);
+  for (const change of ['archive', 'capability', 'snapshot']) {
+    const { promise, resolve } = Promise.withResolvers<string>();
+    const { promise: entered, resolve: mark } = Promise.withResolvers<void>();
+    const pending = run({
+      readArtifact: () => {
+        mark();
+        return promise;
+      },
+    });
+    await entered;
+    if (change === 'archive') active = { ...room, archivedAt: 'closed' };
+    else if (change === 'capability') owner = { ...agent, capabilities: [] };
+    else stored.set(first.id, { ...first, status: 'active' });
+    resolve('verified bytes');
+    await assert.rejects(() => pending);
+    assert.equal(writes, beforeConflict);
+    active = room;
+    owner = agent;
+    stored.set(first.id, { ...first, status: 'invalidated' });
   }
   proposal = valid;
   for (const value of [
@@ -205,4 +267,31 @@ test('Memory JSON extractor bounds unknown input and accepts all four typed cand
       .map((c) => c.type),
     ['semantic', 'episodic', 'procedural', 'relational'],
   );
+});
+
+test('Memory URI candidates reject malformed or NUL-bearing canonical evidence before lookup', () => {
+  const decode = (sourceUris: unknown) =>
+    jsonMemoryExtractor.extract(
+      JSON.stringify({
+        version: 1,
+        tool: 'memory',
+        candidates: [
+          { type: 'semantic', content: 'fact', confidence: 1, sourceMessageIds: ['m'], sourceUris },
+        ],
+      }),
+    );
+  for (const uris of [
+    ['org://events/%00'],
+    ['org://tasks/task/reviews/%00'],
+    ['https://example.invalid/evidence'],
+    ['org://approvals/pending'],
+    ['org://artifacts/' + 'A'.repeat(64)],
+    ['org://events/%'],
+    ['org://events/a', 'org://events/a'],
+    [7],
+    'org://events/a',
+    Array(21).fill('org://events/a'),
+    ['x'.repeat(2049)],
+  ])
+    assert.throws(() => decode(uris));
 });

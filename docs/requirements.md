@@ -131,3 +131,7 @@ comment/artifactをLocal/Linear両Adapterと実await consumerへ接続。Local�
 ## 2026-10-07 scope全reply経路の直接受け入れ
 
 前単位の残るscope経路を同じ実CLI fixtureで補足。保存Kernel Sessionでの再起動後reply、failed Session rebuild、TaskのContext/実行version参照、自動wake-up、無効grantの起動拒否・runtime未実行・socket cleanup・訂正後起動を確認。[証拠](verification/2026-10-07-memory-context-acceptance/)に最終全gateと実Jevを保存。provider resume argv自体は当fixtureで未検査。本人認証/全permission/全Memory抽出/実業務納品/全体は未達。
+
+## 2026-10-07 Memory候補URI原本根拠
+
+既存同Room strict candidateへoptional sourceUrisを追加し、Event/Workflow immutable receipt/hash Artifact/TaskReview/確定Approval Decision Readerを共有。全URI先行awaitとcanonical/NUL/欠落拒否、読取中のRoom/capability/Memory snapshot変更拒否、実CLI mixed根拠/自動採用/再open/no revival、後方根拠失敗時のDI・実DB保存ゼロを確認。[証拠](verification/2026-10-07-memory-candidate-evidence/)最終全gate480成功/14skip/0失敗、実Jev2265subjects/欠損・エラー・劣化0。本人認証/全resource permission/全scope抽出・夜間policy/実API・業務納品/全体は未達。複数保存障害時の原子性、本文真偽、提案時点の外部観測は新保証に含めない。

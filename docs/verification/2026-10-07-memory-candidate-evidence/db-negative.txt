@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-extraction-cli.test.ts:
+(pass) native CLI extracts original Agent Memory proposal once and preserves Room evidence and invalidation across reopen [1453.87ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [1.50s]

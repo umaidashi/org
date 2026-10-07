@@ -71,9 +71,9 @@ hash Artifact追加進捗: `--source-artifact org://artifacts/HASH`を既存capt
 | id/type/scope/content/status/confidence/validFrom/validUntil/sourceRefs/supersedes | 同domain、validity/SQLite/service tests | 検証あり。active/superseded/invalidatedを原本+projectionで管理 |
 | global/company/department/project/agent/room/task scope | domain validation、capture/list/search CLI | 保存・明示検索とhost明示Room/Agent pairのRuntime関連付けを検証。manual Session/保存Session再起動reply/rebuild/Task/自動wake-upに直接CLI証拠あり。不存在/非参加Agent・archiveの起動拒否も検証 |
 | 現在scopeに関係するMemoryだけretrieve | `src/rooms/runtime.ts`、retriever、Context DI/SQLite/native tests | Room/Agent/Task/company/globalで検証。host明示department/projectをmanual/Task/自動wake-up/rebuild/保存Session再起動replyで実CLI検証。本人認証/全scope自動抽出とは区別 |
-| Message原本から候補抽出 | `memory/extraction.ts`、strict JSON Extractor、`memory-extraction-runtime-cli.test.ts` | 同Roomで検証あり。他scope/sourceの候補抽出は未達 |
-| Task executions / Decisionsから候補抽出 | approved TaskReview+前後Task履歴、`memory/reviews.ts`、確定Approval Decision reader | TaskReview投影とapprove/reject Decision原本付き明示captureを検証。一般Decision全種/自動抽出は未達 |
-| Workflow executions / Events / Artifactsから候補抽出 | `memory/service.ts`にEvent/Artifact原本Reader、CLI capture/実DB/blob検証あり | Event/Artifactの原本付き明示captureは検証済み。Workflow履歴は既存不変Eventに保存され同じReaderを使用、専用自動抽出/実業務Workflowは未達 |
+| Message原本から候補抽出 | `memory/extraction.ts`、strict JSON Extractor、`memory-extraction-runtime-cli.test.ts` | 同Roomで検証あり。strict URI根拠としてEvent/Workflow receipt/hash Artifact/TaskReview/確定Approval Decisionを接続。全scope自動抽出は未達 |
+| Task executions / Decisionsから候補抽出 | approved TaskReview+前後Task履歴、`memory/reviews.ts`、確定Approval Decision reader | TaskReview投影とapprove/reject Decision原本付き明示capture/Room strict candidate URIを検証。一般Decision全種/全scope自動抽出は未達 |
+| Workflow executions / Events / Artifactsから候補抽出 | `memory/service.ts`にEvent/Artifact原本Reader、CLI capture/実DB/blob検証あり | Event/Artifactの明示captureとRoom strict candidate URIを検証。Workflow履歴は不変Event receiptを同じReaderで候補根拠に採用。opt-in Room自動採用/再起動と実DB後方根拠失敗の保存ゼロを検証。全scope自動抽出/実業務Workflowは未達 |
 | Deduplicate / Conflict detection | 同値content dedup、metadata不一致先行拒否、明示supersedes、Room夜間同値整理 | 完全同値/metadata衝突は検証あり。意味conflictの自動推定は未達 |
 | 旧Memory削除/上書き禁止、明示supersede/invalidate | immutable SQLiteとstatus projection、原本/REPLACE拒否/reopen tests | 検証あり |
 | retrieval優先:scope/type/tags/entity/recency/importance/full-text | `memory/retrieval.ts`のfilter/sort、SQLite FTS、retrieverとContext tests | 選択/順位・bounds・DI交換に検証あり。typeは選択filter。Vector/rerankは必要時のみ |

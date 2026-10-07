@@ -1,0 +1,14 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-extraction-cli.test.ts:
+(pass) native CLI extracts original Agent Memory proposal once and preserves Room evidence and invalidation across reopen [1208.36ms]
+
+tests/memory-auto-extraction-cli.test.ts:
+(pass) native Room Memory proposal auto=%s preserves Context evidence and no revival across restart [1037.25ms]
+(pass) native Room Memory proposal auto=%s preserves Context evidence and no revival across restart [1642.69ms]
+(skip) real Claude adopts Room Memory and restores generated summary into a fresh Session beyond the history window without rewriting originals
+
+ 3 pass
+ 1 skip
+ 0 fail
+Ran 4 tests across 2 files. [3.94s]

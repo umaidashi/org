@@ -1,0 +1,1028 @@
+$ bun --no-env-file run check:static && bun --no-env-file test ./tests && bun --no-env-file run review:plan
+$ bun --no-env-file run typecheck && bun --no-env-file run lint && bun --no-env-file run format:check && bun --no-env-file run lint:ast
+$ bun --no-env-file node_modules/@typescript/native-preview/bin/tsgo --noEmit
+$ bun --no-env-file node_modules/oxlint/bin/oxlint --type-aware src tests scripts --deny-warnings
+$ bun --no-env-file node_modules/oxfmt/bin/oxfmt --check src tests scripts package.json tsconfig.json .oxlintrc.json .oxfmtrc.json
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 22ms on 354 files using 8 threads.
+$ ast-grep scan src --report-style short --color never
+bun test v1.3.4 (5eb2145b)
+
+tests/automatic-wake-up-cli.test.ts:
+(pass) daemon automatic wake-up persists outcomes once, drains cancelled turns and does not replay after restart [2126.38ms]
+
+tests/semantic-runner.test.ts:
+invalid JSON
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":1},"errors":["network failure"],"degraded":[]}
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":0},"errors":[],"degraded":[]}
+(pass) semantic process runner rejects exit failures and incomplete or malformed output [56.75ms]
+
+tests/memory-nightly-cli.test.ts:
+(pass) opt-in native daemon consolidates allowed active Room once daily and restart preserves receipt and new same-day records [1830.08ms]
+
+tests/approved-workflow-cli.test.ts:
+(pass) native CLI invokes write Workflow only after exact human approval and never replays it [481.29ms]
+
+tests/runtime-process.test.ts:
+(pass) process runner passes explicit input/environment and captures exit without shell interpretation [29.28ms]
+(pass) process runner terminates timeout and cancellation and refuses oversized output [133.55ms]
+(pass) process limits reject timer overflow and retain a UTF-8 output prefix within the byte budget [70.69ms]
+
+tests/task-provider-cli.test.ts:
+(pass) common async Task consumer uses Local and scoped Linear create/get/list/update/comment/artifact with real HTTP pages and preserved Local originals [2405.03ms]
+
+tests/room-runtime.test.ts:
+(pass) Task Runtime reply retains its execution version and rejects another execution or Room before runtime [1.67ms]
+(pass) Room runtime uses history through the source and persists an Agent reply only after success [0.51ms]
+(pass) Room context bounds UTF-8 bytes and reports omitted history, rejecting oversized sources before runtime [15.81ms]
+(pass) Room context includes only active current scopes and excludes another Agent or Room Memory [1.31ms]
+(pass) Room runtime accepts injected Retriever and ContextBuilder independently of storage and serialization
+
+tests/semantic-review.test.ts:
+(pass) semantic review accepts complete warning-only results
+(pass) semantic review rejects incomplete results even when warnings exist [0.48ms]
+
+tests/workflow-cli.test.ts:
+(pass) Workflow CLI persists a one-shot receipt across processes, observes status and cancel, and never logs credentials or input [292.81ms]
+(pass) daemon Workflow subscription invokes once and preserves delivery after restart without waking an Agent [598.96ms]
+
+tests/tui-cli.test.ts:
+(pass) real TUI CLI requires a terminal and rejects direct or extra arguments without database creation [322.02ms]
+
+tests/runtime-sandbox-cli.test.ts:
+(skip) Runtime proposal executes in Docker then human review projects one Memory without replay
+
+tests/memory-search.test.ts:
+(pass) Memory FTS backfills legacy originals, indexes atomic inserts and preserves projections across adapters [16.19ms]
+
+tests/task-domain.test.ts:
+(pass) clearing an already unassigned pending owner does not invent an assignment
+(pass) pure task decisions preserve identity and reject illegal state changes [0.42ms]
+(pass) task domain rejects invalid values and snapshots do not alias input arrays [0.17ms]
+(pass) pure graph validation rejects parent cycles, dependency cycles and unfinished prerequisites [0.29ms]
+
+tests/memory-retrieval.test.ts:
+(pass) Memory retrieval preserves bounded metadata, scope isolation and literal relevance before recency [1.24ms]
+
+tests/approval-domain.test.ts:
+(pass) Linear Issue update approval freezes baseline and proposed input separately [0.85ms]
+(pass) Permission changes remain unavailable until a matching human approval
+(pass) Linear comment approval pins human, existing Issue, Task version and body digest [0.62ms]
+(pass) Linear Artifact approval pins existing WorkItem, output Artifact reference and input digest [0.19ms]
+(pass) Linear update approval freezes a closed canonical field mask while preserving legacy content approvals [0.29ms]
+
+tests/memory-context-scopes.test.ts:
+(pass) host Memory context grants reject unsafe or duplicate pairs and allow only bounded department/project scopes [0.77ms]
+
+tests/agent-domain.test.ts:
+(pass) agent construction preserves values and uses the supplied identity and timestamp
+(pass) agent construction rejects each missing textual value
+(pass) Agent capabilities reject unknown and duplicate grants and copy caller-owned values [0.36ms]
+
+tests/session-reconstruction.test.ts:
+(pass) Session reconstruction atomically retires a failed provider and creates fresh identity without replaying a turn [2.06ms]
+(pass) Session reconstruction validates current authority before the injected atomic store without a database
+
+tests/memory-consolidation-cli.test.ts:
+(pass) native CLI consolidates exact Room Memory with stable receipt, retains evidence and rejects invalid requests before DB creation [508.82ms]
+
+tests/session-sqlite.test.ts:
+(pass) Session state and immutable history persist atomically and reject stale writers [31.05ms]
+(pass) Session store refuses a fabricated completion without a running turn [0.69ms]
+
+tests/activation-cli.test.ts:
+(pass) Room CLI persists coordinator and selects mention or A2A targets across daemon and legacy reopening [1281.31ms]
+
+tests/logs-cli.test.ts:
+(pass) real CLI logs reads immutable approval Audit and rejects invalid filters before creating a database [844.33ms]
+
+tests/daemon-sandbox-cli.test.ts:
+(skip) daemon Sandbox waits beyond five seconds, cancels and drains before DB close
+(skip) direct Sandbox SIGINT records failed and waits for cleanup
+
+tests/claude-turn.test.ts:
+(pass) Claude command preserves subscription authentication with isolated customizations and the chosen resume session [0.31ms]
+(pass) Claude response rejects failed, missing and inconsistent result envelopes [0.25ms]
+(pass) Claude turn uses process DI and rejects process failure even with a success-looking reply [0.36ms]
+(pass) Claude resumed turn refreshes changed role and instruction instead of reusing a system prompt snapshot
+
+tests/linear-update-cli.test.ts:
+(pass) native Linear Issue update freezes approved intent and baseline with fault=success mode=content [706.30ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=unknown mode=content [586.52ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=stale mode=content [585.93ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=success mode=fields [734.03ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=unknown mode=fields [595.62ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=stale mode=fields [588.17ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=success mode=combined [690.27ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=unknown mode=combined [587.50ms]
+(pass) native Linear Issue update freezes approved intent and baseline with fault=stale mode=combined [587.04ms]
+
+tests/sandbox-docker-real.test.ts:
+(skip) real Docker enforces readonly, writable, timeout and cancellation
+(skip) real Docker parent crash leaves a bounded container lifetime
+
+tests/sandbox-proposal.test.ts:
+(pass) Sandbox proposal accepts only owner Agent code in the active Task Room and rejects privilege fields [0.49ms]
+(pass) Sandbox CLI selects one proposal or code source while keeping limits and host policy outside the proposal
+
+tests/task-audit.test.ts:
+(pass) Task execution Audit preserves original actor, Event and result refs without treating review as execution [0.16ms]
+
+tests/task-workflow-resume.test.ts:
+(pass) resume rechecks native Approval and latest Task before resolving credentials and claims once before invoke [4.84ms]
+
+tests/code-git-handoff.test.ts:
+LOCAL_GIT_HANDOFF_OK
+(pass) native Git handoff commits exact checked files on a branch and leaves fixture main unchanged [596.08ms]
+
+tests/wakeup-service.test.ts:
+(pass) automatic wake-up claims before a turn, records failure once, continues later messages and does not replay [1.05ms]
+(pass) automatic wake-up defers busy Sessions without claiming and restart marks unfinished intent failed without another turn [0.29ms]
+(pass) shutdown leaves later unexecuted Messages unclaimed for the next daemon [0.03ms]
+
+tests/memory-service.test.ts:
+(pass) Memory Artifact capture awaits its injected verified reader and refuses missing or failed evidence [1.13ms]
+(pass) Memory capture verifies original Message references through injected ports before saving [0.16ms]
+(pass) Memory Event evidence requires a canonical existing original before writing [0.71ms]
+(pass) Memory capture validates immutable Task review evidence through injected readers before saving [0.22ms]
+(pass) Memory Decision capture validates injected immutable identity and confirmation before any write [0.66ms]
+
+tests/event-domain.test.ts:
+(pass) event patterns match whole segments and JSON filters ignore object key order [0.25ms]
+(pass) event creation copies payload and rejects malformed event names and patterns [0.47ms]
+
+tests/runtime-config.test.ts:
+(pass) Runtime config admits explicit executable/workspace and selects only named environment values
+(pass) Runtime Agent profiles copy isolated workspaces and env aliases and reject malformed or nested profiles [0.87ms]
+(pass) Runtime env selection rejects inherited host properties
+
+tests/public-content.test.ts:
+(pass) public content gate rejects credential files and secret values without disclosing them [0.17ms]
+
+tests/linear-agent-read.test.ts:
+(pass) Agent Linear read checks scoped credentials and live capabilities without host fallback [2.08ms]
+
+tests/task-workflow-approval-cli.test.ts:
+(pass) real CLI fixes Task Workflow approval proposal, preserves it across human decision and rejects stale references [342.79ms]
+
+tests/workflow-task-cli.test.ts:
+(pass) scoped Runtime Workflow produces a verified Task artifact, human-reviewed Memory and bounded shutdown without credential leakage or replay [1382.92ms]
+
+tests/workflow-task.test.ts:
+(pass) Workflow Task rechecks latest owner permission and version before one scoped invocation and verified artifact [1.31ms]
+
+tests/github-webhook.test.ts:
+(pass) signed Issue webhook validates bytes and scope before publishing and deduplicates changed delivery headers [1.46ms]
+
+tests/runtime-manager.test.ts:
+(pass) Runtime manager selects driver, persists start/resume, and blocks resume until stop has drained [2.56ms]
+(pass) Runtime owns an active turn before a driver startup callback requests shutdown [0.80ms]
+(pass) Runtime shutdown drains every driver even when one stop cannot persist and rejects future starts [0.79ms]
+
+tests/linear-issue-list.test.ts:
+(pass) Linear list validates one scoped page, preserves cursor and rejects invalid and partial responses without another request [1.92ms]
+
+tests/workflow-agent-scope.test.ts:
+(pass) Workflow required capabilities reject invalid or read-only publish/spend contracts before credentials [3.45ms]
+(pass) Agent Workflow scope rejects unapproved targets before reading its own native-only credential [0.91ms]
+(pass) Agent scope rejects write contracts, duplicate actors and unknown Workflow IDs before any credential lookup [1.10ms]
+
+tests/daemon-cleanup.test.ts:
+(pass) resource release attempts every close and propagates collected close failures [0.46ms]
+
+tests/keychain-secret-store.test.ts:
+(pass) Keychain grant denies unknown actor before native lookup, bounds credentials and redacts failures [0.14ms]
+
+tests/linear-work-item.test.ts:
+(pass) Linear import maps existing issue to pending WorkItem through injected writer and preserves source
+
+tests/linear-agent-read-cli.test.ts:
+(pass) Agent scoped Linear read uses its dedicated credential and rejects unscoped issue and host fallback through direct daemon and reopen [481.93ms]
+
+tests/agent-send.test.ts:
+(pass) Agent send uses one explicit human Message and refuses missing targets or Room authority before writing [0.46ms]
+(pass) Agent send parser requires explicit identity and Room and rejects unrelated or extra options [1.25ms]
+
+tests/memory-sqlite.test.ts:
+(pass) Memory projection preserves original evidence and atomically supersedes active same-scope records [9.60ms]
+(pass) Memory createOnce retains immutable originals and explicit invalidation without reviving them [7.06ms]
+
+tests/a2a-service.test.ts:
+(pass) A2A service verifies Agent and Task references before writing through the injected Room port [1.03ms]
+(pass) A2A reading leaves ordinary Room messages alone and rejects a malformed reserved envelope
+(pass) A2A reading validates referenced Tasks instead of trusting arbitrary reserved metadata [0.26ms]
+(pass) A2A reading rejects a reply whose correlation differs from its source
+(pass) delegate requires an explicit sender capability before persisting Room evidence [0.28ms]
+(pass) typed delegation creates an assigned target Task from immutable source without reassigning an advanced Task [0.36ms]
+(pass) delegation result polling returns staged artifacts once and retries only the Room write after failure [1.26ms]
+
+tests/memory-extraction-runtime-cli.test.ts:
+(pass) daemon Runtime original proposal projects scoped Memory and the next Room turn retrieves it with scoped full-text tie-breaking without rewriting evidence [1333.64ms]
+
+tests/task-cli.test.ts:
+(pass) work item and internal execution task persist separately with parent and assignment history [550.94ms]
+(pass) invalid transitions and references leave persistent task and history unchanged [586.81ms]
+(pass) dependencies and cycles are enforced across independent CLI processes [467.24ms]
+(pass) task comments and output artifacts can be written and retrieved via separate CLI processes [214.48ms]
+(pass) task parser rejects malformed options before touching storage [436.58ms]
+(pass) failed tasks retain their original history and reject subsequent state changes [257.06ms]
+(pass) mistaken dependencies and parent links can be removed to unblock a task [387.01ms]
+
+tests/sandbox-task.test.ts:
+(pass) Sandbox Task stages successful stdout for review and never executes a denied capability [0.84ms]
+(pass) Runtime Sandbox rechecks current owner, version, permission and Room before producing an artifact [0.64ms]
+
+tests/sandbox-repo.test.ts:
+(pass) Sandbox exports committed regular files, excluding environment and untracked data [78.59ms]
+(pass) Sandbox repo export cancels before starting Git [0.29ms]
+(pass) Sandbox repo export refuses missing partial-clone blobs without fetching them [200.38ms]
+
+tests/session-service.test.ts:
+(pass) Session service validates references before creation and runs explicit provider resume via minimal Ports
+(pass) Session failure and restart recovery preserve provider identity without persisting external error text
+(pass) Session stop wins over a late runtime response and parallel turns are rejected [1.05ms]
+
+tests/task-audit-cli.test.ts:
+(pass) Audit CLI reopens atomically saved Task execution history and includes its result snapshot [66.30ms]
+
+tests/daemon-cli.test.ts:
+(pass) daemon once creates assigned ExecutionTask and restart does not duplicate or reassign it [626.02ms]
+(pass) two concurrent CLI workers create only one Task and two original history snapshots [342.94ms]
+
+tests/memory-extraction.test.ts:
+(pass) Memory extraction anchors typed candidates to prior Room history, validates before writes, deduplicates and never revives invalidation [3.30ms]
+(pass) Memory JSON extractor bounds unknown input and accepts all four typed candidate kinds [0.31ms]
+(pass) Memory URI candidates reject malformed or NUL-bearing canonical evidence before lookup [0.19ms]
+
+tests/notion-knowledge-cli.test.ts:
+(pass) Notion CLI rejects malformed input and missing credential before database or network access [255.80ms]
+(pass) Notion CLI direct and daemon paths retain native Markdown using explicit test-only HTTP fixture [620.98ms]
+
+tests/linear-issue.test.ts:
+(pass) Linear issue reader uses fixed query and personal-key authorization without creating issues [0.80ms]
+(pass) Linear reader rejects malformed inputs before secrets and sanitizes partial errors or invalid identities [1.16ms]
+(pass) Linear shared query rejects escaped credentials in get/list values, keys and cursors while preserving unrelated quoted text [1.20ms]
+(pass) Linear reader rejects URI-encoded credential reflections before returning external Issue data
+
+tests/linear-comment-cli.test.ts:
+(pass) native existing Linear comment validates approval and preserves one POST with fault=success [673.60ms]
+(pass) native existing Linear comment validates approval and preserves one POST with fault=unknown [685.12ms]
+(pass) native existing Linear comment validates approval and preserves one POST with fault=receipt-failure [717.61ms]
+(pass) native existing Linear comment validates approval and preserves one POST with fault=claim-failure [771.46ms]
+(pass) native existing Linear comment validates approval and preserves one POST with fault=terminal-failure [692.19ms]
+
+tests/task-linear-execution.test.ts:
+(pass) Task Linear execution rejects changed authority before claim and preserves uncertainty and recoverable immutable receipts [15.89ms]
+
+tests/daemon-server.test.ts:
+(pass) stale daemon ownership refuses live, modified and substituted entries before exactly one concurrent restart [782.54ms]
+(pass) SIGINT releases the daemon while preserving replacement socket and lock entries [78.78ms]
+(pass) continuous daemon polls new Events, serves local clients and releases socket across restart [704.54ms]
+(pass) daemon refuses to replace an existing file and client failure creates no database [123.72ms]
+{"state":"ready","socket":"/tmp/org-server-cleanup-oFEyyL/org.sock"}
+(pass) adapter close failure still releases owned socket, lock and process umask [5.57ms]
+{"state":"ready","socket":"/tmp/org-server-poll-juTcNy/org.sock"}
+(pass) poll errors remain visible through status and periodic polling recovers without restart [24.26ms]
+{"state":"ready","socket":"/tmp/org-server-wake-HqBkC2/org.sock"}
+(pass) automatic wake-up tick never overlaps and shutdown drains it before closing adapters [63.47ms]
+{"state":"ready","socket":"/tmp/org-server-wake-error-qvFCCi/org.sock"}
+(pass) shutdown error still drains the active wake-up before adapter close [85.14ms]
+
+tests/workflow-n8n-real.test.ts:
+(skip) native n8n reference workflows return verified execution IDs, success and cancellation status
+
+tests/memory-consolidation-sqlite.test.ts:
+(pass) SQLite consolidation atomically stores immutable receipt with invalidations, detects changed snapshots and rolls back storage failure [13.25ms]
+(pass) Room archive between selection and commit rejects consolidation without receipt or invalidation [10.03ms]
+
+tests/task-workflow-approval.test.ts:
+(pass) native Task Workflow approval binds current owner version and immutable proposal without invoking external tools [1.34ms]
+(pass) Task-bound Approval keeps canonical immutable Message/version and rejects incomplete or human bindings [0.44ms]
+
+tests/a2a-cli.test.ts:
+(pass) malformed A2A payload and options fail before database creation [258.88ms]
+(pass) A2A request and result retain correlation, Task and immutable Room evidence across daemon and reopened CLI [1274.82ms]
+
+tests/task-review-cli.test.ts:
+(pass) daemon CLI reviews the observed result once and preserves the decision across reopen [956.33ms]
+
+tests/agent-reporting-cli.test.ts:
+(pass) Agent CLI creates, changes and clears reporting lines through the daemon without cyclic history [592.16ms]
+
+tests/session-reconstruction-cli.test.ts:
+(pass) CLI rebuilds a broken provider into a fresh Session with Room history, scoped summary and Agent memory without automatic retry [1609.77ms]
+
+tests/task-linear-execution-cli.test.ts:
+(pass) Agent Linear content success executes one approved update and recovers without replay [442.38ms]
+(pass) Agent Linear content unknown executes one approved update and recovers without replay [448.24ms]
+(pass) Agent Linear content stale executes one approved update and recovers without replay [281.52ms]
+(pass) Agent Linear fields success executes one approved update and recovers without replay [448.95ms]
+(pass) Agent Linear fields unknown executes one approved update and recovers without replay [450.93ms]
+(pass) Agent Linear fields stale executes one approved update and recovers without replay [287.28ms]
+
+tests/codex-turn.test.ts:
+(pass) Codex command injects role and instructions via stdin and resumes only the requested session
+(pass) Codex response requires a completed turn and rejects protocol failures or inconsistent sessions
+(pass) Codex turn runner uses the injected process boundary and never accepts failed process output
+(pass) Codex resumed response cannot succeed without a completed assistant reply
+
+tests/event-cli.test.ts:
+(pass) events persist without recipients and subscriptions match independently across CLI processes [647.58ms]
+(pass) malformed event inputs return usage error before creating a database [144.72ms]
+
+tests/memory-decision-cli.test.ts:
+(pass) native Memory captures confirmed approve and reject Decision originals across reopen but refuses pending evidence [552.21ms]
+
+tests/daemon-long-command.test.ts:
+{"state":"ready","socket":"/tmp/org-long-command-PUavEd/org.sock"}
+(pass) daemon command preserves long Runtime replies even with options before the noun [11012.51ms]
+
+tests/daemon-poll.test.ts:
+(pass) injected poll failures are explicitly degraded and the next successful poll recovers [0.14ms]
+
+tests/workflow-audit.test.ts:
+(pass) Workflow Audit preserves native actor, claim causality, Approval and uncertain outcome without input bodies [2.49ms]
+
+tests/a2a-domain.test.ts:
+(pass) A2A JSON validation rejects non-JSON objects and non-finite values [0.28ms]
+(pass) typed A2A stores every protocol type and copies its payload into immutable Room evidence [0.75ms]
+(pass) A2A replies reverse endpoints and retain Task and correlation instead of accepting inconsistent references [0.28ms]
+(pass) Task Room A2A inherits its Task and rejects a different explicit Task reference [0.23ms]
+
+tests/audit-logs.test.ts:
+(pass) logs filters exact Task and Event before taking the latest records in causal order
+(pass) Agent tail selects immutable Agent actors before limiting and never attributes a human or another Agent to that ID
+
+tests/tui-chat.test.ts:
+(pass) TUI chat parses a strict Room and human pair before opening a terminal [0.63ms]
+(pass) Room chat validates participation then sends the exact explicit text once without retry [0.53ms]
+(pass) Room chat rejects inactive or mismatched rooms and bounds history without terminal controls [1.02ms]
+(pass) chat stop during an in-flight send discards buffered input without refresh or prompt [0.94ms]
+
+tests/public-history.test.ts:
+(pass) public history gate catches a credential removed from the ref tip [183.68ms]
+Reachable public history checked: 1 file versions
+Public content checked: 0 files
+(pass) history-only public review does not read an unstaged deletion from the worktree [98.04ms]
+
+tests/task-linear-approval-cli.test.ts:
+(pass) Task owner Linear content proposal persists Agent approval through human decision and cannot use human apply [669.68ms]
+(pass) Task owner Linear fields proposal persists Agent approval through human decision and cannot use human apply [658.74ms]
+
+tests/tui-monitor.test.ts:
+(pass) monitor reads only public list commands and renders bounded Japanese summaries without terminal control or payload [0.98ms]
+(pass) monitor propagates failed reads and rejects malformed public results [0.36ms]
+(pass) monitor clips Japanese text to terminal cells after resize [0.11ms]
+(pass) monitor keeps all four section headings and representative rows visible when Agent and Room lists grow [0.12ms]
+(pass) monitor shows Room title and all Session states separately for each Agent [0.24ms]
+(pass) monitor rejects missing or blank required fields even outside displayed ten rows [0.66ms]
+(pass) monitor keeps all four Session counts visible at 80 columns with real UUID and long Japanese Agent name [0.19ms]
+
+tests/sandbox-domain.test.ts:
+(pass) Sandbox accepts bounded TypeScript and relative artifacts but rejects path and resource escapes [0.28ms]
+(pass) Sandbox capability checks the assigned Task owner before any execution [0.28ms]
+(pass) Sandbox host policy rejects unknown code and privilege fields at the JSON boundary [0.09ms]
+
+tests/linear-work-item-sync-sqlite.test.ts:
+(pass) Core WorkItem synchronization uses atomic CAS and immutable history, preserves Local originals and survives reopen [16.09ms]
+
+tests/schedule-sqlite.test.ts:
+(pass) Schedule definitions remain immutable while enable changes survive reopen [4.57ms]
+
+tests/github-events.test.ts:
+(pass) GitHub import validates public responses and reuses first originals across mutable metadata [3.75ms]
+(pass) GitHub import caps pagination and validates later pages before any publication [6.84ms]
+(pass) GitHub repository validation accepts dot repositories while denying path traversal
+
+tests/task-autonomy-cli.test.ts:
+(pass) Event subscription wakes assigned ExecutionTask with scoped Memory and stages one Artifact for explicit review without replay [3916.80ms]
+
+tests/room-domain.test.ts:
+(pass) Room types require their participant composition and default to coordinator
+(pass) Messages require membership and same-room replies; archive preserves the original Room
+
+tests/memory-validity.test.ts:
+(pass) Memory validity preserves optional original periods and excludes future, expired and invalidated entries at exact boundaries [0.52ms]
+
+tests/approval-cli.test.ts:
+(pass) CLI applies a human-approved permission once and exposes its immutable Audit [572.79ms]
+
+tests/github-webhook-cli.test.ts:
+(pass) native signed webhook import reaches one Subscription Task and preserves originals through daemon replay and reopen [842.92ms]
+
+tests/task-autonomy.test.ts:
+(pass) automatic Task execution prepares one Task Room/input/Session and stages only assigned work without replay [1.13ms]
+(pass) automatic Task execution defers dependencies, WorkItems and cancellation, and records preparation failure at its observed version [0.06ms]
+(pass) automatic Task execution leaves busy work and later Tasks unstarted when cancellation arrives [0.32ms]
+
+tests/a2a-proposal-cli.test.ts:
+(pass) Coordinator runtime proposal auto=%s WorkItem=%s adopts once into specialist execution and human decision across daemon restart [1454.62ms]
+(pass) Coordinator runtime proposal auto=%s WorkItem=%s adopts once into specialist execution and human decision across daemon restart [1307.99ms]
+(pass) Coordinator runtime proposal auto=%s WorkItem=%s adopts once into specialist execution and human decision across daemon restart [1484.33ms]
+(pass) Coordinator runtime proposal auto=%s WorkItem=%s adopts once into specialist execution and human decision across daemon restart [1421.58ms]
+
+tests/workflow-service.test.ts:
+(pass) Workflow claims before invocation, preserves receipt and rejects repeated keys without remote replay
+(pass) Workflow invocation failure remains claimed and records an unconfirmed outcome without private error text
+
+tests/task-recovery.test.ts:
+(pass) startup recovery blocks verified saved results and propagates proof failures before writing [0.45ms]
+(pass) recovery fails only running executions using the observed version and injected time
+(pass) recovery propagates write conflicts instead of accepting new commands with stale state
+
+tests/workflow-approval-cli.test.ts:
+(pass) CLI saves exact Workflow approval, exposes human decision and Audit, and refuses capability apply [343.45ms]
+
+tests/github-events-cli.test.ts:
+(pass) GitHub CLI imports immutable originals into daemon Subscription Tasks and survives long HTTP responses [6659.08ms]
+
+tests/runtime-env.test.ts:
+(pass) project Bun configuration prevents dotenv autoload while explicit loading remains possible [45.11ms]
+
+tests/task-artifact-content.test.ts:
+(pass) Task artifact content reads only an attached immutable hash blob and denies another Task [15.88ms]
+
+tests/task-workflow-resume-cli.test.ts:
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2265.94ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2596.17ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2402.82ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2766.58ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2419.61ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2786.99ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2426.91ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2900.01ms]
+
+tests/history-replace.test.ts:
+(pass) Room immutable Message rejects replacement through id and sequence aliases with recursive triggers disabled [6.66ms]
+(pass) Event immutable payload rejects replacement through id and sequence aliases [4.10ms]
+(pass) Session immutable snapshots reject explicit rowid replacement under a new composite key [3.65ms]
+(pass) Memory invalidation preserves its original reason against explicit rowid replacement [7.69ms]
+(pass) Reopening a legacy Room database installs replacement guards without changing existing Message history [4.92ms]
+
+tests/task-recovery-cli.test.ts:
+(pass) daemon startup records interrupted executions without changing work items or review results [182.19ms]
+
+tests/task-result-recovery.test.ts:
+(pass) Runtime result recovery rejects altered evidence and retries only staging with original CAS [0.83ms]
+
+tests/room-wake-up-cli.test.ts:
+(pass) Agent send CLI rejects malformed requests and direct execution before creating storage [147.88ms]
+(pass) Room activation runs only the coordinator or explicit Agent, reuses provider Session and persists replies without duplicate turns [2948.28ms]
+
+tests/linear-work-item-refresh.test.ts:
+(pass) explicit Linear refresh preserves internal state, replaces source fields and rejects races including unchanged result
+(pass) Linear refresh accepts same-Issue slug changes and retains the original source reference
+
+tests/memory-nightly.test.ts:
+(pass) nightly consolidation is explicit, coalesces missed UTC days and preserves receipts across same-day polls and clock rollback [0.65ms]
+
+tests/room-cli.test.ts:
+(pass) malformed Room creation is rejected before creating a database or directory [146.08ms]
+(pass) multiple rooms with the same Agent keep separate persistent replies and archived histories [1009.65ms]
+
+tests/activation-domain.test.ts:
+(pass) Activation selects only coordinator or explicit mentions and never relays ordinary Agent replies [0.69ms]
+(pass) Activation requires valid Room references, fails closed without coordinator or rules and retains old single-Agent behavior [0.36ms]
+
+tests/task-linear-approval.test.ts:
+(pass) Task Linear proposal validates closed modes and immutable Agent-only binding [0.86ms]
+(pass) Task Linear approval refuses source and capability changes during read without saving a request [3.74ms]
+
+tests/memory-auto-extraction.test.ts:
+(pass) automatic Memory adoption selects human-linked original only and reuses strict scoped evidence and replay [1.25ms]
+(pass) automatic Memory adoption refuses ambiguous proposals before any writes [0.27ms]
+
+tests/task-review.test.ts:
+(pass) result review captures the exact version, artifacts and actor without mutating the Task
+(pass) result review uses the injected writer and propagates a concurrent version failure
+
+tests/memory-extraction-sqlite.test.ts:
+(pass) same-batch and cross-proposal exact dedup never resurrect invalidated Memory on extraction retry after SQLite reopen [8.27ms]
+
+tests/audit-domain.test.ts:
+(pass) Audit preserves request-decision-application order when the clock timestamp is identical
+(pass) Audit keeps numeric Task history order when version nine and ten share a timestamp
+
+tests/delegation-review.test.ts:
+(pass) Delegation human review returns one verified decision and retries only notification after Room failure [1.53ms]
+
+tests/notion-knowledge.test.ts:
+(pass) Notion native Markdown uses canonical page GET fixed host bounded timeout and scoped secret [0.96ms]
+(pass) Notion rejects invalid IDs before credential lookup and HTTP, and hides secret lookup failure [0.13ms]
+(pass) Notion rejects mismatched partial malformed oversized and reflected-credential responses without leaking response [0.91ms]
+
+tests/linear-core-projection-cli.test.ts:
+(pass) mapped Linear CLI reads and explicitly syncs external WorkItems without altering internal ExecutionTasks [1229.44ms]
+
+tests/sandbox-docker.test.ts:
+(pass) Docker Sandbox bounds the container and destroys only its successfully created ID [0.95ms]
+(pass) Docker creation failure never deletes an existing container name [0.06ms]
+
+tests/agent-reporting-sqlite.test.ts:
+(pass) legacy Agent identities gain atomic reporting lines without cycles or mutable history [6.96ms]
+
+tests/task-sqlite.test.ts:
+(pass) task state and immutable history rollback together on storage failure [9.92ms]
+(pass) comments and artifact references persist without rewriting existing task history [8.55ms]
+(pass) comment and artifact originals cannot be modified and artifact linking rolls back with history [9.12ms]
+(pass) converging dependency graphs do not repeatedly load the same completed subtree [1.84ms]
+(pass) common comment and artifact version checks run inside their Local transaction and preserve history on refusal [10.39ms]
+(pass) all Local comment and artifact callers share boundary guards against NUL and invalid metadata before saving [6.70ms]
+
+tests/room-rules-cli.test.ts:
+(pass) persisted Room rules wake native Runtime only for matching human metadata and do not replay after restart [1127.03ms]
+
+tests/wakeup-sqlite.test.ts:
+(pass) Wakeup SQLite claims once, preserves immutable intent and result, rejects failure and reopens [7.79ms]
+
+tests/room-service.test.ts:
+(pass) Room registration validates Agent through a small injected Port before saving [0.21ms]
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [3.46ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.07ms]
+(pass) Agent capabilities persist across reopen and reject malformed direct adapter input [2.47ms]
+
+tests/approval-sqlite.test.ts:
+(pass) Linear update approval baseline survives reopening and rejects changed intent under the same key [2.62ms]
+(pass) Approval requests and decisions are immutable, idempotent and visible across adapters [3.30ms]
+
+tests/memory-extraction-cli.test.ts:
+(pass) native CLI extracts original Agent Memory proposal once and preserves Room evidence and invalidation across reopen [1435.40ms]
+
+tests/context-builder.test.ts:
+(pass) pure ContextBuilder preserves source, omits future history, caps 30/20 and rejects oversized UTF-8 without changing originals [1.79ms]
+
+tests/workflow-n8n.test.ts:
+(pass) n8n invoke uses a host allowlist, status verifies Workflow and cancel stops only a verified execution [1.47ms]
+(pass) n8n rejects redirect and malformed or foreign results without retry or cancellation [0.40ms]
+(pass) n8n bounds input and streaming response, redacts HTTP failures and never retries invocation [1.18ms]
+(pass) malformed successful HTTP JSON never exposes response text in an exception [0.19ms]
+(pass) invalid Workflow host URL never exposes config text in its exception [0.11ms]
+
+tests/workflow-delivery.test.ts:
+(pass) Workflow subscription claims once, recovers receipt without replay and excludes its own receipt events [0.96ms]
+(pass) unconfirmed Workflow outcomes never replay and aborted polls do not claim or invoke
+
+tests/daemon-recovery.test.ts:
+(pass) overlapping Workflow deferrals converge on the same deferred receipt [0.59ms]
+(pass) real Task commit survives receipt failure and retry finishes receipt without duplicate history [12.24ms]
+(pass) Workflow delivery stores its request separately from Task identity and survives legacy schema reopen [2.50ms]
+
+tests/approval-service.test.ts:
+(pass) Approval service refuses pending/rejected decisions before calling the permission writer
+
+tests/event-service.test.ts:
+(pass) publishing needs only an injected writer; Agent subscription validates before saving
+
+tests/secret-store.test.ts:
+(pass) SecretStore reads only explicit actor grants and never exposes lookup errors or mutable caller grants
+(pass) SecretStore rejects unavailable or oversized values without returning secret content
+
+tests/workflow-status-poll.test.ts:
+(pass) Workflow poll selects blocked executions with observation or successful terminal receipt and propagates errors without invoking [0.94ms]
+
+tests/local-hooks.test.ts:
+(pass) pre-commit reads staged contents even when the worktree contains a passing replacement [51.98ms]
+(pass) pre-push reads the selected commit rather than staged or working changes [75.09ms]
+(pass) pre-push parses all actual local commits and skips remote deletions
+(pass) snapshot refuses invalid object ids without running a check [16.73ms]
+(pass) the actual pre-commit gate blocks bad staged code without modifying the worktree [217.40ms]
+(pass) documentation-only bootstrap trees skip runtime gates but source trees require a manifest [0.98ms]
+(pass) configured pre-push job executes even when the pushed revision contains documentation only [316.33ms]
+
+tests/sandbox-cli.test.ts:
+(skip) real Sandbox CLI executes a Task, persists an artifact and requires explicit review
+
+tests/context-retrieval-sqlite.test.ts:
+(pass) real SQLite FTS ranks literal current-scope hits only after recency and importance while excluding invalid evidence [1.96ms]
+
+tests/linear-comment.test.ts:
+(pass) Linear comment rejects unapproved or changed snapshots before credential lookup and HTTP [1.19ms]
+(pass) Linear comment preserves one claim and uncertainty after transport or receipt failure [0.86ms]
+(pass) Linear comment rejects credential reflection or mismatched response and keeps original claim [1.25ms]
+(pass) Linear comment success Audit requires exact approved claim and preserves same-time causal order [0.93ms]
+(pass) Linear comment status-only recovery accepts advanced Task versions and reuses one immutable receipt [0.77ms]
+(pass) Linear comment observation rejects missing or forged authority before secret lookup [0.59ms]
+(pass) Linear comment observation preserves uncertainty on mismatch, read failure or receipt failure [1.33ms]
+(pass) Linear comment apply reuses a success receipt recovered while its mutation response is in flight [0.68ms]
+
+tests/runtime-agent-profiles-cli.test.ts:
+(pass) native daemon selects Agent cwd and aliased env across resume, preserves default and refuses missing profile runtime [1533.06ms]
+
+tests/workflow-secret-store.test.ts:
+(pass) Workflow config resolves only its host secret reference through the injected SecretStore [1.17ms]
+
+tests/task-review-sqlite.test.ts:
+(pass) approval preserves the completed-dependency invariant and leaves no partial decision [1.77ms]
+(pass) SQLite result review commits a decision with Task history and rejects stale or changed evidence [17.82ms]
+
+tests/event-sqlite.test.ts:
+(pass) Event log remains immutable when subscription changes or insertion fails [5.95ms]
+(pass) idempotent Event publication reuses canonical evidence across adapters and rejects conflicts without replacing history [4.61ms]
+
+tests/approved-workflow.test.ts:
+(pass) approved Workflow binds exact operation and actor before one immutable claim, including uncertain outcomes [1.04ms]
+
+tests/daemon-database.test.ts:
+(pass) Another daemon on a different socket cannot recover or own the active database [212.89ms]
+
+tests/workflow-approval.test.ts:
+(pass) Workflow operation approval fixes host, input digest and invocation identity without granting permission changes [1.13ms]
+
+tests/quality-ast.test.ts:
+(pass) every architecture rule fixture runs and detects its planted violations [26.79ms]
+
+tests/workflow-keychain.test.ts:
+(pass) Workflow Keychain configuration swaps SecretStore by explicit host and Agent grants before native credential lookup [2.31ms]
+
+tests/sandbox-artifact.test.ts:
+(pass) Sandbox artifacts are immutable content-addressed blobs and reject a replaced symlink [4.14ms]
+(pass) Failed Artifact writes publish no partial blob and normal retry preserves concurrent content [33.66ms]
+
+tests/daemon-service.test.ts:
+(pass) pure delivery identity is stable and unambiguous, and disabled subscriptions do not dispatch [0.03ms]
+(pass) receipt failure after Task success retries the same identity through injected Ports
+(pass) independent polling stages continue after failure and preserve errors [0.66ms]
+
+tests/agent-permission-sqlite.test.ts:
+(pass) Permission application and Audit roll back together and preserve the original receipt on retry [6.12ms]
+
+tests/a2a-proposal.test.ts:
+(pass) delegation proposal parser accepts one bounded strict delegate and rejects forged host fields [0.24ms]
+(pass) adoption binds sender scope correlation time and original evidence with stable replay [0.45ms]
+(pass) adoption rejects non-Coordinator missing capability non-reporting target and conflicting replay before writes [0.28ms]
+(pass) adoption propagates storage failure and only recovers an exactly matching concurrent insert [0.18ms]
+(pass) automatic adoption accepts only canonical Coordinator reply to human input and propagates marked invalid proposals [0.26ms]
+
+tests/cli-transport.test.ts:
+(pass) transport extracts global options without removing option-like data or escaped positional values [0.17ms]
+(pass) command client rejects malformed or incomplete success envelopes
+
+tests/session-domain.test.ts:
+(pass) Session identity stays separate while turn lifecycle rejects concurrent starts and provider replacement
+
+tests/task-execution.test.ts:
+(pass) Produced Task result staging failure remains blocked and preserves concurrent decisions
+(pass) ExecutionTask persists running before the runtime and stages its result for human review [0.83ms]
+(pass) ExecutionTask rejects reused Room replies before running and records failure without overwriting concurrent decisions
+(pass) ExecutionTask stages the injected artifact only after production and records producer failure [0.78ms]
+
+tests/session-parser.test.ts:
+(pass) Session CLI requires explicit identity and messages and rejects conflicting options before storage
+
+tests/runtime-linear-approval-cli.test.ts:
+(pass) native Runtime Linear content success preserves approval, one-send and restart boundaries [1370.74ms]
+(pass) native Runtime Linear content approval-save preserves approval, one-send and restart boundaries [1156.36ms]
+(pass) native Runtime Linear content task-save preserves approval, one-send and restart boundaries [1053.78ms]
+(pass) native Runtime Linear content invalid preserves approval, one-send and restart boundaries [1028.39ms]
+(pass) native Runtime Linear content ambiguous preserves approval, one-send and restart boundaries [1052.50ms]
+(pass) native Runtime Linear content resume preserves approval, one-send and restart boundaries [2094.85ms]
+(skip) native Runtime Linear content real-resume preserves approval, one-send and restart boundaries
+(pass) native Runtime Linear content unknown preserves approval, one-send and restart boundaries [2155.42ms]
+(pass) native Runtime Linear content artifact preserves approval, one-send and restart boundaries [2145.37ms]
+(pass) native Runtime Linear content stage preserves approval, one-send and restart boundaries [2130.50ms]
+(pass) native Runtime Linear content claim preserves approval, one-send and restart boundaries [1942.61ms]
+(pass) native Runtime Linear content receipt preserves approval, one-send and restart boundaries [2213.42ms]
+(pass) native Runtime Linear content blocked preserves approval, one-send and restart boundaries [2172.83ms]
+(pass) native Runtime Linear content crash preserves approval, one-send and restart boundaries [2126.31ms]
+(pass) native Runtime Linear fields success preserves approval, one-send and restart boundaries [1336.20ms]
+(pass) native Runtime Linear fields approval-save preserves approval, one-send and restart boundaries [1049.99ms]
+(pass) native Runtime Linear fields task-save preserves approval, one-send and restart boundaries [1029.15ms]
+(pass) native Runtime Linear fields invalid preserves approval, one-send and restart boundaries [1059.59ms]
+(pass) native Runtime Linear fields ambiguous preserves approval, one-send and restart boundaries [1006.06ms]
+(pass) native Runtime Linear fields resume preserves approval, one-send and restart boundaries [2081.98ms]
+(skip) native Runtime Linear fields real-resume preserves approval, one-send and restart boundaries
+(pass) native Runtime Linear fields unknown preserves approval, one-send and restart boundaries [2176.41ms]
+(pass) native Runtime Linear fields artifact preserves approval, one-send and restart boundaries [2152.65ms]
+(pass) native Runtime Linear fields stage preserves approval, one-send and restart boundaries [2126.07ms]
+(pass) native Runtime Linear fields claim preserves approval, one-send and restart boundaries [1999.90ms]
+(pass) native Runtime Linear fields receipt preserves approval, one-send and restart boundaries [2160.55ms]
+(pass) native Runtime Linear fields blocked preserves approval, one-send and restart boundaries [2152.74ms]
+(pass) native Runtime Linear fields crash preserves approval, one-send and restart boundaries [2099.10ms]
+
+tests/sandbox-jobs.test.ts:
+(pass) Sandbox slot cancels only its Task, drains before shutdown and rejects new launches [0.86ms]
+(pass) Sandbox slot releases a failed job so a later Task can run [0.25ms]
+(pass) Sandbox list accepts no target or execution options and refuses direct execution without touching Docker [0.64ms]
+
+tests/agent-permission.test.ts:
+(pass) Approved permission applies only to the named Agent and exact revision [0.26ms]
+
+tests/session-cli.test.ts:
+(pass) Session CLI recovers persisted Task replies and drains turns with blockedWriteFailure=%s [2622.67ms]
+(pass) Session CLI recovers persisted Task replies and drains turns with blockedWriteFailure=%s [2638.23ms]
+(pass) Runtime result recovery releases Room connection when Session initialization fails [50.95ms]
+
+tests/linear-artifact.test.ts:
+(pass) Linear Artifact observation recovers a verified link after uncertainty without replaying mutation [1.58ms]
+(pass) Linear Artifact observation refuses altered approvals, targets, ambiguous responses and forged receipts [4.43ms]
+(pass) Linear Artifact approval rejects unshared or unrelated output before storing a request [0.16ms]
+(pass) Linear Artifact apply refuses unapproved or mismatched snapshots before credential lookup [0.41ms]
+(pass) Linear Artifact apply preserves claim and uncertainty through credential, transport and persistence faults [0.84ms]
+(pass) Linear Artifact apply validates returned Issue, URI, title and UUID without leaking credential reflections [1.01ms]
+(pass) Linear Artifact Audit binds linked URI to the approved digest and rejects forged originals [0.50ms]
+(pass) Linear Artifact rejects URI-encoded credentials before HTTP or immutable claim [0.14ms]
+
+tests/agent-reporting.test.ts:
+(pass) reporting line preserves identity and rejects missing managers and direct or indirect cycles
+(pass) reporting line service rejects invalid graph before writing and uses the injected timestamp
+
+tests/linear-issue-cli.test.ts:
+(pass) Linear CLI read preserves existing issue without creating database and rejects missing credentials [1578.84ms]
+
+tests/linear-core-projection.test.ts:
+(pass) Core Linear projection rejects malformed mapping and incomplete or unknown remote fields without inventing authority [2.08ms]
+(pass) Core Linear projection accepts long identifier requests independently of UUID string length
+(pass) Core outbound mapping requires explicit unique registered targets and keeps Local relations out of Linear fields [0.36ms]
+
+tests/task-service.test.ts:
+(pass) assignment rejects missing Agent before invoking the injected writer [0.19ms]
+(pass) assignment forwards identity and time through injected ports and propagates persistence failure [0.24ms]
+(pass) Room artifact reading requires canonical URI and same Task original before returning content [0.07ms]
+
+tests/agent-service.test.ts:
+(pass) invalid Agent inputs never reach the injected persistence port
+(pass) Agent registration propagates injected persistence failures [0.44ms]
+
+tests/linear-artifact-cli.test.ts:
+(pass) native approved Linear Artifact link preserves one mutation and originals with fault=success [985.39ms]
+(pass) native approved Linear Artifact link preserves one mutation and originals with fault=unknown [1001.27ms]
+(pass) native approved Linear Artifact link preserves one mutation and originals with fault=claim-failure [1035.89ms]
+(pass) native approved Linear Artifact link preserves one mutation and originals with fault=receipt-failure [1005.45ms]
+
+tests/memory-auto-extraction-cli.test.ts:
+(pass) native Room Memory proposal auto=%s preserves Context evidence and no revival across restart [828.34ms]
+(pass) native Room Memory proposal auto=%s preserves Context evidence and no revival across restart [1579.65ms]
+(skip) real Claude adopts Room Memory and restores generated summary into a fresh Session beyond the history window without rewriting originals
+
+tests/workflow-task-observe.test.ts:
+(pass) pending Workflow observation validates execution chain before key lookup and uses status only after latest Task CAS [3.31ms]
+(pass) interrupted Workflow recovery preserves durable receipts before Task CAS and never retries an unknown invocation
+
+tests/linear-work-item-sqlite.test.ts:
+(pass) native Linear WorkItem import preserves progress and rejects changed source across connections [8.65ms]
+(pass) native import rolls Task and initial history back together on write failure [7.79ms]
+
+tests/task-dispatch.test.ts:
+(pass) idempotent assigned creation rolls back both snapshots and never reassigns advanced Task [10.72ms]
+
+tests/linear-update.test.ts:
+(pass) Linear Issue update refuses mismatched authority and input before credential lookup [1.92ms]
+(pass) Linear Issue update preserves baseline rejection, uncertainty and no replay across boundary faults [4.00ms]
+(pass) Linear Issue update success Audit binds output digest to immutable approval and claim [0.57ms]
+(pass) Linear update observation validates approval and claim before read and preserves known immutable success [0.44ms]
+(pass) Linear update observation rejects mismatched current contents and saves no proof on boundary failures [2.30ms]
+(pass) Linear update observation is distinct from mutation success, survives version progress and rejects forged receipts [0.58ms]
+(pass) Linear selected fields canonicalize nullable assignee and label sets and reject unknown or incomplete values [0.66ms]
+(pass) Linear field update reuses authority and claim while preserving omitted fields and rejecting returned mismatches [3.70ms]
+
+tests/cli-client.test.ts:
+(pass) normal CLI uses daemon for Agent Task Room and Event without opening client-selected DB [852.19ms]
+(pass) normal CLI with unavailable daemon fails without creating DB and direct mode remains explicit [86.62ms]
+(pass) different database filenames in the same directory never silently share a daemon [269.57ms]
+
+tests/session-runtime.test.ts:
+(pass) Session codex lifecycle manager connects SQLite to real fixture process for start resume and stop [68.12ms]
+(pass) Session claude lifecycle manager connects SQLite to real fixture process for start resume and stop [68.43ms]
+
+tests/context-retrieval.test.ts:
+(pass) scoped Retriever uses literal full-text after higher priorities, rejects foreign/expired hits and propagates search failure [0.94ms]
+
+tests/memory-cli.test.ts:
+(pass) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [2071.18ms]
+
+tests/runtime-process-group.test.ts:
+(pass) runtime timeout terminates a descendant that inherits its output pipes [507.87ms]
+(pass) runtime cancelled terminates a descendant that inherits its output pipes [48.53ms]
+(pass) runtime exited terminates a descendant that inherits its output pipes [34.50ms]
+
+tests/reviewed-task-memory.test.ts:
+(pass) Reviewed Task Memory uses explicit owner policy and verified historical facts without rerunning work [1.04ms]
+
+tests/task-provider.test.ts:
+(pass) same async Core consumer creates, gets and lists through both concrete adapters and propagates failures [2.76ms]
+(pass) Core consumer awaits the injected async result before reporting success
+(pass) Linear client refuses invalid Core IDs and stored scope before credentials and rejects acquisition races [0.62ms]
+(pass) Linear list validates all pages before reconciliation and rejects duplicate IDs, cursor cycles, partial fields and page overflow [2.44ms]
+(pass) common update awaits Local CAS, validates closed patches and never treats external Approval as Local authorization [0.44ms]
+(pass) Linear relation-only common update is Local CAS and rejects cycles without credentials or external claims [0.47ms]
+(pass) approved common Linear update preserves receipts across read/save/CAS failures and never resends during recovery [3.98ms]
+(pass) common comment and artifact consumer validates authority and awaits both real adapters without hidden Local stage [1.73ms]
+
+tests/memory-domain.test.ts:
+(pass) Typed Memory keeps evidence and validates scope, confidence and replacement identity [0.27ms]
+(pass) Memory scope preserves namespaced Task IDs without accepting unknown or empty namespaces
+
+tests/workflow-proposal.test.ts:
+(pass) Workflow proposal accepts only a bounded JSON object and denies privilege fields without leaking invalid body [0.72ms]
+
+tests/schedule-cli.test.ts:
+(pass) Schedule CLI publishes a due Event once across worker restarts and preserves enable state [647.13ms]
+
+tests/notion-room-snapshot.test.ts:
+(pass) Notion snapshot checks active participant before read and never appends failed reads [0.36ms]
+(pass) Notion snapshot retains content and provenance in immutable Room message [0.04ms]
+
+tests/runtime-linear-resume.test.ts:
+(pass) Runtime Linear resume validates historical authority and never reads or writes rejected sources [9.37ms]
+(pass) Linear startup recovery validates original claims and skips assigned management approvals [1.06ms]
+(pass) Runtime Linear observation rejects forged receipts and revoked authority without resending [2.03ms]
+
+tests/quality-lint.test.ts:
+(pass) lint rejects unsafe generated code and infrastructure imports in domain code [214.39ms]
+(pass) lint accepts a pure function with explicit typed inputs [107.70ms]
+
+tests/workflow-approval-pause.test.ts:
+(pass) write Workflow proposal waits for native human Approval before Agent credential resolution or invocation [1.03ms]
+
+tests/runtime-guardian.test.ts:
+(pass) killing the source runtime owner also terminates its driver and descendant [61.11ms]
+(pass) killing the bundled runtime owner also terminates its driver and descendant [64.32ms]
+
+tests/cli.test.ts:
+(pass) empty registry reports no agents and returns an empty JSON array [78.70ms]
+(pass) agents survive separate CLI processes with stable identity and name ordering [156.81ms]
+(pass) duplicate registration fails without replacing the existing agent [158.73ms]
+(pass) text output includes id name role and runtime [120.92ms]
+(pass) empty or whitespace-only identity fields cannot register an agent [467.57ms]
+(pass) missing database parent directories are created [79.37ms]
+(pass) storage errors return failure on stderr without a stack trace [75.04ms]
+(pass) unicode and quote characters are saved as values rather than SQL [159.72ms]
+(pass) default database is persisted only under the isolated HOME [81.60ms]
+(pass) invalid arguments fail before creating a database and help succeeds [356.51ms]
+(pass) an explicitly empty database path cannot silently register an ephemeral agent [72.10ms]
+(pass) a corrupted database is reported as storage failure rather than an empty registry [39.50ms]
+
+tests/room-rules.test.ts:
+(pass) Room rules select only matching participant Agents for human metadata and retain explicit target precedence [0.85ms]
+(pass) Room rule validation rejects malformed or excessive conditions and preserves scalar type matching [0.24ms]
+
+tests/coordinator-claude-real.test.ts:
+(pass) real proof uniqueness guard rejects duplicate delegation with distinct Task IDs
+(pass) real proof polling permits a result at the configured 120 second Runtime boundary [0.92ms]
+(pass) real proof rejects incorrect results containing the expected token [0.20ms]
+(pass) code proof refuses a successful process with zero executed generated tests [0.36ms]
+(pass) code proof polling permits combined Runtime and Docker limits [0.35ms]
+(skip) real Claude Coordinator and specialist preserve Artifact review Memory and same provider session across restart
+(skip) real Claude delegation generates code and tests in Docker before human review Memory and restart
+(skip) generated code gate rejects runtime-valid explicit-any source
+
+tests/memory-consolidation.test.ts:
+(pass) conservative consolidation selects only same-scope valid exact metadata and validates Room before atomic Port commit
+
+tests/database-lease.test.ts:
+(pass) Database lease rejects live owners across aliases and releases only its own token [4.61ms]
+(pass) A terminated process leaves a lease that the real liveness check can safely reacquire [26.31ms]
+
+tests/daemon-parser.test.ts:
+(pass) socket flags cannot silently target a different database in once mode [0.63ms]
+(pass) automatic wake-up is opt-in and requires a configured continuous daemon [0.06ms]
+(pass) daemon Sandbox host policy is explicit and requires continuous configured Runtime [0.19ms]
+(pass) daemon Workflow host config enables continuous Workflow polling without Agent credentials [0.05ms]
+(pass) automatic delegation Room allowlist requires configured continuous wake-up and rejects invalid IDs
+(pass) Memory extraction Room opt-in rejects duplicate or malformed IDs and requires continuous wake-up [0.49ms]
+(pass) Workflow status observation opt-in requires configured continuous mode [0.04ms]
+(pass) Runtime Linear proposals require explicit configured continuous opt-in [0.15ms]
+
+tests/keychain-real.test.ts:
+(skip) native private macOS Keychain swaps host and Agent Workflow credentials without env, output leakage or existing item changes
+
+tests/memory-context-scopes-cli.test.ts:
+(pass) native Runtime selects host Room and Agent department/project scopes through restart rebuild Task and automatic wake-up without granting other memberships [5098.63ms]
+
+tests/task-result.test.ts:
+(pass) Task result atomically links artifact and waiting approval history, preserving running on rollback [11.33ms]
+
+tests/schedule-domain.test.ts:
+(pass) fixed schedules compute the latest due slot from supplied time and reject unsafe inputs [0.29ms]
+(pass) schedule polling emits the same Event for the same slot and propagates a failed write [0.36ms]
+
+tests/linear-work-item-sync.test.ts:
+(pass) external WorkItem merge preserves Local fields and accepts remote reopening without weakening internal transitions
+(pass) external snapshot status does not assert Local prerequisite completion while ExecutionTask still requires it
+(pass) Linear Core sync refuses wrong identity, versions and authority before write and rejects changes during read [1.48ms]
+
+tests/quality-types.test.ts:
+(pass) native type checker rejects a bad assignment and accepts a strictly typed module [176.44ms]
+
+tests/activation-service.test.ts:
+(pass) Room wake-up opens only the selected Session, reuses it and returns existing replies without another turn [0.60ms]
+(pass) Room wake-up rejects busy or mismatched Sessions and propagates runtime failure without a reply [0.42ms]
+
+tests/room-sqlite.test.ts:
+(pass) SQLite preserves immutable Messages and rejects insertion failure without affecting history [6.56ms]
+
+14 tests skipped:
+(skip) Runtime proposal executes in Docker then human review projects one Memory without replay
+(skip) daemon Sandbox waits beyond five seconds, cancels and drains before DB close
+(skip) direct Sandbox SIGINT records failed and waits for cleanup
+(skip) real Docker enforces readonly, writable, timeout and cancellation
+(skip) real Docker parent crash leaves a bounded container lifetime
+(skip) native n8n reference workflows return verified execution IDs, success and cancellation status
+(skip) real Sandbox CLI executes a Task, persists an artifact and requires explicit review
+(skip) native Runtime Linear content real-resume preserves approval, one-send and restart boundaries
+(skip) native Runtime Linear fields real-resume preserves approval, one-send and restart boundaries
+(skip) real Claude adopts Room Memory and restores generated summary into a fresh Session beyond the history window without rewriting originals
+(skip) real Claude Coordinator and specialist preserve Artifact review Memory and same provider session across restart
+(skip) real Claude delegation generates code and tests in Docker before human review Memory and restart
+(skip) generated code gate rejects runtime-valid explicit-any source
+(skip) native private macOS Keychain swaps host and Agent Workflow credentials without env, output leakage or existing item changes
+
+ 480 pass
+ 14 skip
+ 0 fail
+Ran 494 tests across 200 files. [173.20s]
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 2265,
+  "cached": 2265,
+  "requests": 0,
+  "tokens": 0,
+  "usd": 0,
+  "retry": 1,
+  "batches": [],
+  "byRule": [
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 8,
+    "files": [
+      "src/audit/service.ts",
+      "src/linear/config.ts",
+      "src/runtime/guardian.ts",
+      "src/runtime/http.ts",
+      "src/tasks/proposal.ts",
+      "src/tui/room-chat.ts"
+    ]
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": []
+}

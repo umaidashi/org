@@ -25,7 +25,7 @@ import { pollWorkflowDeliveries } from '../workflows/delivery.js';
 import { validateSandboxPolicy, type SandboxPolicy } from '../sandbox/domain.js';
 import { produceTaskSandboxArtifact } from '../sandbox/service.js';
 import { runDockerSandbox } from '../sandbox/docker.js';
-import { saveSandboxArtifact } from '../sandbox/artifact.js';
+import { saveSandboxArtifact, readSandboxArtifact } from '../sandbox/artifact.js';
 import { runProcess } from '../runtime/process.js';
 import { SandboxJobs } from '../sandbox/jobs.js';
 import { runSandboxCommand } from '../sandbox/cli.js';
@@ -381,7 +381,7 @@ function openOperations(
               ? {
                   memory: {
                     policy:
-                      'For durable Room Memory requests, reply only JSON {version:1,tool:memory,candidates:[{type:semantic|episodic|procedural|relational,content:string,confidence:number,sourceMessageIds:[prior same-Room message ID],supersedes?:existing Memory ID}]}. Otherwise reply ordinary text or another allowed tool proposal. Memory writes require read/write capabilities and remain in this Room.',
+                      'For durable Room Memory requests, reply only JSON {version:1,tool:memory,candidates:[{type:semantic|episodic|procedural|relational,content:string,confidence:number,sourceMessageIds:[prior same-Room message ID],sourceUris?:[canonical existing Event/Artifact/TaskReview/confirmed Approval Decision URI],supersedes?:existing Memory ID}]}. Otherwise reply ordinary text or another allowed tool proposal. Memory writes require read/write capabilities and remain in this Room.',
                   },
                 }
               : {}),
@@ -405,7 +405,7 @@ function openOperations(
           replies.map((m) => m.id),
         );
       if (extractionRooms.includes(roomId))
-        extractRoomReplyMemories(
+        await extractRoomReplyMemories(
           roomRepository,
           agentRepository,
           memoryProvider,
@@ -413,6 +413,12 @@ function openOperations(
           roomId,
           messageId,
           replies.map((m) => m.id),
+          {
+            tasks: taskProvider,
+            events: eventBus,
+            approvals: approvalStore,
+            readArtifact: (uri) => readSandboxArtifact(db + '.artifacts', uri),
+          },
         );
       return replies;
     };

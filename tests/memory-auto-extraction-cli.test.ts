@@ -1,3 +1,5 @@
+import { SqliteEventBus } from '../src/events/sqlite.js';
+import { createEvent } from '../src/events/domain.js';
 import { cli } from './cli-path.js';
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
@@ -24,7 +26,7 @@ async function proof(auto: boolean, real = false) {
   writeFileSync(count, '');
   writeFileSync(
     driver,
-    `#!${process.execPath}\nimport assert from 'node:assert/strict';import {appendFileSync} from 'node:fs';const input=JSON.parse(await Bun.stdin.text());const context=JSON.parse(input.instruction);appendFileSync(${JSON.stringify(count)},'turn\\n');let text;if(input.message==='remember'){if(${JSON.stringify(auto)})assert.ok(JSON.parse(context.instruction).memory.policy.includes('tool:memory'));const source=context.messages.find(m=>m.content==='remember'&&m.sender.kind==='human');text=JSON.stringify({version:1,tool:'memory',candidates:[{type:'procedural',content:'Small tests first',confidence:1,sourceMessageIds:[source.id]}]});}else{text=context.memories.some(m=>m.content==='Small tests first')?'REMEMBERED':'NO_MEMORY';}console.log(JSON.stringify({type:'thread.started',thread_id:'provider'}));console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text}}));console.log(JSON.stringify({type:'turn.completed',usage:{}}));`,
+    `#!${process.execPath}\nimport assert from 'node:assert/strict';import {appendFileSync} from 'node:fs';const input=JSON.parse(await Bun.stdin.text());const context=JSON.parse(input.instruction);appendFileSync(${JSON.stringify(count)},'turn\\n');let text;if(input.message==='remember'){if(${JSON.stringify(auto)})assert.ok(JSON.parse(context.instruction).memory.policy.includes('tool:memory'));const source=context.messages.find(m=>m.content==='remember'&&m.sender.kind==='human');text=JSON.stringify({version:1,tool:'memory',candidates:[{type:'procedural',content:'Small tests first',confidence:1,sourceMessageIds:[source.id],sourceUris:['org://events/fixture-source']}]});}else{text=context.memories.some(m=>m.content==='Small tests first')?'REMEMBERED':'NO_MEMORY';}console.log(JSON.stringify({type:'thread.started',thread_id:'provider'}));console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text}}));console.log(JSON.stringify({type:'turn.completed',usage:{}}));`,
     { mode: 0o700 },
   );
   writeFileSync(
@@ -110,6 +112,19 @@ async function proof(auto: boolean, real = false) {
     throw Error('expected projection');
   };
   try {
+    if (!real) {
+      const bus = new SqliteEventBus(db);
+      try {
+        bus.publish(
+          createEvent(
+            { type: 'fixture.observed', source: 'fixture', payload: {} },
+            { id: 'fixture-source', createdAt: '2026-10-01T00:00:00.000Z' },
+          ),
+        );
+      } finally {
+        bus.close();
+      }
+    }
     assert.equal(
       run([
         '--direct',
@@ -161,6 +176,7 @@ async function proof(auto: boolean, real = false) {
       assert.deepEqual(memory.sourceRefs, [
         { roomId, messageId: source.id },
         { roomId, messageId: reply.id },
+        ...(!real ? [{ uri: 'org://events/fixture-source' }] : []),
       ]);
       assert.deepEqual(
         json(['memory', 'extract', '--room', roomId, '--message', reply.id]),

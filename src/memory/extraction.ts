@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from 'node:util';
+import { verifyMemorySources, type MemoryEvidenceReaders } from './service.js';
 import { createHash } from 'node:crypto';
 import { requireCapability } from '../agents/domain.js';
 import type { AgentRepository } from '../agents/port.js';
@@ -5,13 +7,14 @@ import type { RoomRepository } from '../rooms/port.js';
 import { createMemory, type Memory } from './domain.js';
 import type { MemoryProvider } from './port.js';
 import type { MemoryExtractor } from './extractor.js';
-export function extractRoomMemories(
+export async function extractRoomMemories(
   rooms: Pick<RoomRepository, 'get' | 'messages'>,
   agents: Pick<AgentRepository, 'list'>,
   memories: Pick<MemoryProvider, 'list' | 'createOnce'>,
   extractor: MemoryExtractor,
   input: { readonly roomId: string; readonly messageId: string },
-): readonly Memory[] {
+  evidence: MemoryEvidenceReaders = {},
+): Promise<readonly Memory[]> {
   const room = rooms.get(input.roomId);
   if (room.id !== input.roomId || room.archivedAt !== null)
     throw new Error('Memory extraction Room unavailable');
@@ -64,6 +67,7 @@ export function extractRoomMemories(
         sourceRefs: [
           ...candidate.sourceMessageIds.map((messageId) => ({ roomId: room.id, messageId })),
           { roomId: room.id, messageId: proposal.id },
+          ...(candidate.sourceUris ?? []).map((uri) => ({ uri })),
         ],
         ...(candidate.supersedes === undefined ? {} : { supersedes: candidate.supersedes }),
       },
@@ -90,6 +94,29 @@ export function extractRoomMemories(
     )
       throw new Error('Memory candidate metadata conflict requires explicit replacement');
   }
+  const sourceUris = new Set(
+    candidates.flatMap((candidate) =>
+      candidate.sourceRefs.flatMap((ref) => ('uri' in ref ? [ref.uri] : [])),
+    ),
+  );
+  await verifyMemorySources(
+    [...sourceUris].map((uri) => ({ uri })),
+    evidence,
+  );
+  const currentRoom = rooms.get(room.id);
+  const currentAgent = agents.list().find((a) => a.id === proposal.sender.id);
+  if (!isDeepStrictEqual(currentRoom, room) || !currentAgent)
+    throw new Error('Memory extraction authority changed during evidence read');
+  requireCapability(currentAgent, 'can_read');
+  requireCapability(currentAgent, 'can_write');
+  const ordered = (items: readonly Memory[]) => [...items].sort((a, b) => a.id.localeCompare(b.id));
+  if (
+    !isDeepStrictEqual(
+      ordered(memories.list([scope]).filter((m) => m.scope === scope)),
+      ordered(existing),
+    )
+  )
+    throw new Error('Memory extraction snapshot changed during evidence read');
   const results: Memory[] = [];
   for (const candidate of candidates) {
     const own = existing.find((m) => m.id === candidate.id);
@@ -106,7 +133,7 @@ export function extractRoomMemories(
   return results;
 }
 
-export function extractRoomReplyMemories(
+export async function extractRoomReplyMemories(
   rooms: Pick<RoomRepository, 'get' | 'messages'>,
   agents: Pick<AgentRepository, 'list'>,
   memories: Pick<MemoryProvider, 'list' | 'createOnce'>,
@@ -114,7 +141,8 @@ export function extractRoomReplyMemories(
   roomId: string,
   sourceId: string,
   replyIds: readonly string[],
-): readonly Memory[] {
+  evidence: MemoryEvidenceReaders = {},
+): Promise<readonly Memory[]> {
   const room = rooms.get(roomId),
     messages = rooms.messages(roomId);
   const source = messages.find((message) => message.id === sourceId && message.roomId === roomId);
@@ -151,8 +179,15 @@ export function extractRoomReplyMemories(
   if (proposals.length > 1) throw new Error('Ambiguous Memory extraction replies');
   const proposal = proposals[0];
   if (!proposal) return [];
-  return extractRoomMemories(rooms, agents, memories, extractor, {
-    roomId,
-    messageId: proposal.id,
-  });
+  return extractRoomMemories(
+    rooms,
+    agents,
+    memories,
+    extractor,
+    {
+      roomId,
+      messageId: proposal.id,
+    },
+    evidence,
+  );
 }

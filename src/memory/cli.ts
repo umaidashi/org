@@ -283,14 +283,46 @@ export async function runMemoryCommand(
       case 'extract': {
         const rooms = new SqliteRoomRepository(command.db);
         let agents: SqliteAgentRepository | undefined;
+        let events: SqliteEventBus | undefined;
+        let tasks: SqliteTaskProvider | undefined;
+        let approvals: SqliteApprovalStore | undefined;
         try {
           agents = new SqliteAgentRepository(command.db);
-          result = extractRoomMemories(rooms, agents, provider, jsonMemoryExtractor, command);
+          result = await extractRoomMemories(
+            rooms,
+            agents,
+            provider,
+            jsonMemoryExtractor,
+            command,
+            {
+              events: { get: (id) => (events ??= new SqliteEventBus(command.db)).get(id) },
+              tasks: {
+                get: (id) => (tasks ??= new SqliteTaskProvider(command.db)).get(id),
+                reviews: (id) => (tasks ??= new SqliteTaskProvider(command.db)).reviews(id),
+              },
+              approvals: {
+                get: (id) => (approvals ??= new SqliteApprovalStore(command.db)).get(id),
+              },
+              readArtifact: (uri) => readSandboxArtifact(command.db + '.artifacts', uri),
+            },
+          );
         } finally {
           try {
-            agents?.close();
+            approvals?.close();
           } finally {
-            rooms.close();
+            try {
+              tasks?.close();
+            } finally {
+              try {
+                events?.close();
+              } finally {
+                try {
+                  agents?.close();
+                } finally {
+                  rooms.close();
+                }
+              }
+            }
           }
         }
         break;

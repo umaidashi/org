@@ -42,7 +42,7 @@ const reply = createMessage(
   { id: 'reply', createdAt: '2' },
   source,
 );
-test('automatic Memory adoption selects human-linked original only and reuses strict scoped evidence and replay', () => {
+test('automatic Memory adoption selects human-linked original only and reuses strict scoped evidence and replay', async () => {
   const stored = new Map<string, Memory>();
   let messages: readonly Message[] = [source, reply];
   let owner = agent;
@@ -63,29 +63,29 @@ test('automatic Memory adoption selects human-linked original only and reuses st
       replies,
     );
   messages = [source, { ...reply, content: 'ordinary text' }];
-  assert.deepEqual(run(), []);
+  assert.deepEqual(await run(), []);
   assert.equal(stored.size, 0);
   messages = [source, { ...reply, roomId: 'foreign' }];
-  assert.deepEqual(run(), []);
+  assert.deepEqual(await run(), []);
   messages = [source, { ...reply, metadata: { a2a: {} } }];
-  assert.deepEqual(run(), []);
+  assert.deepEqual(await run(), []);
   messages = [source, { ...reply, replyTo: null }];
-  assert.deepEqual(run(), []);
+  assert.deepEqual(await run(), []);
   messages = [source, reply];
-  assert.deepEqual(run(reply.id), []);
+  assert.deepEqual(await run(reply.id), []);
   owner = { ...agent, capabilities: ['can_read'] };
-  assert.throws(() => run());
+  await assert.rejects(() => run());
   assert.equal(stored.size, 0);
   owner = agent;
-  const result = run();
+  const result = await run();
   assert.equal(result.length, 1);
   assert.equal(result[0]?.scope, 'room:r');
-  assert.deepEqual(run(), result);
+  assert.deepEqual(await run(), result);
   assert.equal(stored.size, 1);
 });
-test('automatic Memory adoption refuses ambiguous proposals before any writes', () => {
+test('automatic Memory adoption refuses ambiguous proposals before any writes', async () => {
   let writes = 0;
-  assert.throws(
+  await assert.rejects(
     () =>
       extractRoomReplyMemories(
         { get: () => room, messages: () => [source, reply, { ...reply, id: 'other' }] },

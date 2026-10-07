@@ -17,7 +17,7 @@ export function eventSource(uri: string): string {
   const match = /^org:\/\/events\/([^/]+)$/.exec(uri);
   if (!match?.[1]) throw new Error('Invalid Memory Event source');
   const id = decodeURIComponent(match[1]);
-  if (!id.trim() || encodeURIComponent(id) !== match[1])
+  if (!id.trim() || id.includes('\0') || encodeURIComponent(id) !== match[1])
     throw new Error('Invalid Memory Event source');
   return id;
 }
@@ -40,6 +40,8 @@ export function taskReviewSource(uri: string): {
   if (
     !taskId.trim() ||
     !reviewId.trim() ||
+    taskId.includes('\0') ||
+    reviewId.includes('\0') ||
     encodeURIComponent(taskId) !== match[1] ||
     encodeURIComponent(reviewId) !== match[2]
   )

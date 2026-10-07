@@ -2,7 +2,7 @@ import type { ApprovalStore } from '../approvals/port.js';
 import type { RoomRepository } from '../rooms/port.js';
 import { approvalDecisionSource, createMemory, eventSource, taskReviewSource } from './domain.js';
 import type { EventBus } from '../events/port.js';
-import type { Memory, MemoryInput } from './domain.js';
+import type { Memory, MemoryInput, SourceRef } from './domain.js';
 import type { MemoryProvider } from './port.js';
 import type { TaskProvider } from '../tasks/port.js';
 import type { TaskReviewReader } from '../tasks/review.js';
@@ -17,7 +17,23 @@ export async function captureMemory(
   approvals?: Pick<ApprovalStore, 'get'>,
 ): Promise<Memory> {
   const memory = createMemory(input, identity);
-  for (const ref of memory.sourceRefs) {
+  await verifyMemorySources(memory.sourceRefs, { rooms, tasks, events, readArtifact, approvals });
+  return provider.create(memory);
+}
+
+export interface MemoryEvidenceReaders {
+  readonly rooms?: Pick<RoomRepository, 'get' | 'messages'> | undefined;
+  readonly tasks?: (Pick<TaskProvider, 'get'> & TaskReviewReader) | undefined;
+  readonly events?: Pick<EventBus, 'get'> | undefined;
+  readonly readArtifact?: ((uri: string) => Promise<string>) | undefined;
+  readonly approvals?: Pick<ApprovalStore, 'get'> | undefined;
+}
+export async function verifyMemorySources(
+  refs: readonly SourceRef[],
+  readers: MemoryEvidenceReaders,
+): Promise<void> {
+  const { rooms, tasks, events, readArtifact, approvals } = readers;
+  for (const ref of refs) {
     if ('uri' in ref) {
       if (ref.uri.startsWith('org://approvals/')) {
         if (!approvals) throw new Error('Memory Decision reader required');
@@ -52,5 +68,4 @@ export async function captureMemory(
     if (!rooms.messages(ref.roomId).some((m) => m.id === ref.messageId && m.roomId === ref.roomId))
       throw new Error('Memory source Message not found');
   }
-  return provider.create(memory);
 }
