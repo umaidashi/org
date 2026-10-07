@@ -162,3 +162,7 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 ### 2026-10-07 Codex native shell境界
 
 共有start/resumeへshell_tool=false固定。installed0.160.1のread-only baselineは実shell読取成功、追加設定は通常応答しshellなし、同provider resumeも成功。[証拠](verification/2026-10-07-codex-shell-boundary/) full508成功14skip0失敗522tests206files184.12秒、実Jev2347subjects/欠損・エラー・劣化0。他native tool/任意版/同UID本人隔離は未保証。[限定Sandbox credential注入](superpowers/plans/2026-10-07-sandbox-credential-injection.md)は次の未完了要件。全体未達。
+
+### 2026-10-07 限定Sandbox credential注入
+
+Host finite Agent/Task grant・Environment SecretStore・前後owner/version/capability再照合・Docker child stdinだけのenvを接続。既知反射をstdout/stderr/例外/decoded fileで拒否。direct/RPC/continuous Runtime autoの実CLIと実Docker全6成功41.27秒、通常full511成功18skip0失敗529tests208files183.12秒、実Jev2371subjects/欠損・エラー・劣化0。[証拠](verification/2026-10-07-sandbox-credential-injection/)。Networkなし/値をargv・container config・Artifactへ保存しない。限定Environment経路の証拠であり、未知/変換/部分秘密・同UID本人隔離・全credential backendを保証しない。Agent内reference一意制約。重要操作inventory/resource permissions/実業務API/全体は未達、[Agent外部読取Audit](superpowers/plans/2026-10-07-agent-linear-read-audit.md)へ続行。

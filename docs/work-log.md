@@ -1889,3 +1889,20 @@
 - Fresh reviewer C0/I0/M2、独立8成功180ms。予定文書整合を完了。Deferred Minor/Ponytail: 単一要素flag loopの直接assert化、net -4行候補。正しさを変えないためdefault defer。新wrapper/dependency/providerは不要。
 - Ruling: reviewerは実native/full/Jevを保留、親の実行結果とは区別する。同UID本人隔離、外部tool/任意binary、実業務API/全体完了は認定しない。Minor以外のfixなし、再レビューなし。
 - [証拠](verification/2026-10-07-codex-shell-boundary/)とREADME更新。全体は未達。[次の限定Sandbox credential注入計画](superpowers/plans/2026-10-07-sandbox-credential-injection.md)を保存して続行。
+
+## 2026-10-07 — 限定Sandbox credential作業開始
+
+- [計画](superpowers/plans/2026-10-07-sandbox-credential-injection.md)を実行。Ruling: 小さなe2eを優先し、まずDocker stdin transport/反射拒否をRED→GREEN、次にhost grant/SecretStoreと両caller配線へ進める。transportだけで全注入完了とは認定しない。
+- 前unitの監査追記で既存completion-audit.mdと異なる名前の短いmvp-goal-audit.mdを誤作成したため、既存監査へ内容を移して重複ファイルを削除する。
+
+## 2026-10-07 — 限定Sandbox credential完了
+
+- 前unit d1f887b main通常push terminal0/ローカルgate206.41秒、remote更新を確認。
+- Hostのfinite Agent/Task/target/reference/source環境grantを追加。既存Environment SecretStore/Task owner/version/capabilityを秘密取得前後に再照合。direct/RPC --credential-configとcontinuous Runtime --sandbox-credentialsに同じguardを配線。grantなしは秘密なし、他ownerは取得/実行前拒否。
+- Ruling: targetを大文字_TOKEN/_KEY/_SECRET/_PASSWORD末尾、最大16値/計64KiBへ限定 — shell制御envを注入しない最小契約 — 他のcredential名が必要になったら具体callerで拡張。Agent内reference一意をREADMEに明示。複数Taskで同referenceを共有するconfigはparser通過後Environment Adapterで拒否する既知制約、万能keyへ広げない。
+- Docker childだけへstdin注入。argv/host Process env/container config/一時秘密fileなし。shared Process stdout/stderr/例外とdecoded Artifact bytesの既知値反射を固定エラーで拒否。cleanup例外の反射RED→同じshared command guardでGREEN。符号化/変換/部分値/未知秘密/同UIDの完全隔離は保証しない。
+- RED: transport追加assert一件失敗、scope新module未存在（意味拒否のREDとは区別）、cleanup私有synthetic例外一件失敗。focused7成功60ms。型fixtureはSandboxInput readonlyへ修正。最初のinspect出力4096上限で137終了したため65536へ修正、product secret漏洩とは扱わない。
+- そのinspect fixture例外はcreate IDをdriverが返す前に発生して未起動container二つを残した。失敗時刻とCreated/state created/501:20/33s commandの一致でfixture所有を確認し当該二IDだけ削除。他containerへ触れない。修正後native全6成功0失敗41.27秒。既存readonly/writable/timeout/cancel/crash lifetimeとdirect/RPC/continuous auto注入、metadata非露出、出力/file反射拒否、成果物/再openを観測。
+- 全localcheck terminal0: 511成功18skip0失敗529tests208files183.12秒。最後のtest追加後staticを再実行して非空format/ASTまで成功。実Jev2371subjects143warnings、missing/unsure/review/errors/degraded0。抽象failure-path warningsは具体native拒否/DI/既存検査と照合、未校正warningだけから新実装はしない。
+- Fresh reviewer C0/I0/M1、独立5成功35ms。Deferred Minor/Ponytail: single callerが常に渡すdaemon configのoptional/fake SecretStore fallback、net約-5行。正しさ変更なしのdefault defer。既知reference一意制約のsynthetic再現を了承。fresh reviewerはnative/full/Jev/外部auth/push/全体完了を認定しない。fix必須なし、再レビューなし。
+- [証拠](verification/2026-10-07-sandbox-credential-injection/)、README/監査更新。重複監査ファイルを既存completion-auditへ統合。全体は未達。次の[Agent Linear読取Audit](superpowers/plans/2026-10-07-agent-linear-read-audit.md)は実callerに原本記録がない具体gapとして進む。

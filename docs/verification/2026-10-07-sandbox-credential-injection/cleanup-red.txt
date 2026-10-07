@@ -1,0 +1,41 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-docker.test.ts:
+(pass) Docker Sandbox bounds the container and destroys only its successfully created ID [1.78ms]
+(pass) Docker creation failure never deletes an existing container name [0.29ms]
+(pass) Docker credential transport uses stdin only and rejects reflected values before returning artifacts [6.44ms]
+AssertionError: The input did not match the regular expression /credential output rejected/. Input:
+
+'Error: synthetic-cleanup-private-token-704'
+
+ generatedMessage: true,
+   expected: /credential output rejected/,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at expectedException (node:assert:367:33)
+      at expectsError (node:assert:435:20)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+
+107 | });
+108 | 
+109 | test('Docker credential guard covers cleanup process exceptions as well as stdout and stderr', async () => {
+110 |   const secret='synthetic-cleanup-private-token-704';
+111 |   await assert.rejects(runDockerSandbox(async request => {
+112 |     if(request.argv[1]==='rm')throw new Error(secret);
+                                              ^
+error: synthetic-cleanup-private-token-704
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/sandbox-docker.test.ts:112:41)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/sandbox-docker.test.ts:111:47)
+      at command (/Users/umaidashi/Documents/git/org/src/sandbox/docker.ts:58:26)
+      at command (/Users/umaidashi/Documents/git/org/src/sandbox/docker.ts:52:5)
+      at destroy (/Users/umaidashi/Documents/git/org/src/sandbox/docker.ts:80:26)
+      at destroy (/Users/umaidashi/Documents/git/org/src/sandbox/docker.ts:79:26)
+      at runDockerSandbox (/Users/umaidashi/Documents/git/org/src/sandbox/docker.ts:193:33)
+      at async <anonymous> (/Users/umaidashi/Documents/git/org/tests/sandbox-docker.test.ts:111:16)
+(fail) Docker credential guard covers cleanup process exceptions as well as stdout and stderr [1.64ms]
+
+ 3 pass
+ 1 fail
+Ran 4 tests across 1 file. [79.00ms]

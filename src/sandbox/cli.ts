@@ -1,3 +1,4 @@
+import { configuredSandboxCredentials, runGrantedSandbox } from './credentials.js';
 import { SqliteEventBus } from '../events/sqlite.js';
 import { releaseResources } from '../daemon/service.js';
 import { parseArgs } from 'node:util';
@@ -19,7 +20,7 @@ import { SqliteRoomRepository } from '../rooms/sqlite.js';
 import { parseSandboxProposal } from './proposal.js';
 import { runSandboxTask } from './service.js';
 export type SandboxCommand = { readonly db: string; readonly json: boolean } & (
-  | ({ readonly action: 'run'; readonly taskId: string } & (
+  | ({ readonly action: 'run'; readonly taskId: string; readonly credentialConfig?: string } & (
       | { readonly input: SandboxInput }
       | { readonly proposalId: string; readonly policy: SandboxPolicy }
     ))
@@ -36,6 +37,7 @@ export function parseSandboxCommand(argv: string[]): SandboxCommand {
       db: { type: 'string' },
       json: { type: 'boolean' },
       code: { type: 'string' },
+      'credential-config': { type: 'string' },
       proposal: { type: 'string' },
       file: { type: 'string', multiple: true },
       repo: { type: 'string' },
@@ -71,6 +73,10 @@ export function parseSandboxCommand(argv: string[]): SandboxCommand {
     return { ...base, action, uri: target };
   }
   if (action !== 'run') throw new Error('Expected sandbox run|artifact|cancel');
+  const credentialConfig = parsed.values['credential-config'];
+  if (credentialConfig !== undefined && !credentialConfig.trim())
+    throw new Error('Invalid credential config path');
+  const credential = credentialConfig === undefined ? {} : { credentialConfig };
   const policy = validateSandboxPolicy({
     ...(parsed.values.repo === undefined ? {} : { repo: parsed.values.repo }),
     writable: parsed.values.writable ?? false,
@@ -81,11 +87,19 @@ export function parseSandboxCommand(argv: string[]): SandboxCommand {
   if (parsed.values.proposal !== undefined) {
     if (!parsed.values.proposal.trim() || parsed.values.code !== undefined)
       throw new Error('Choose --code or --proposal');
-    return { ...base, action, taskId: target, proposalId: parsed.values.proposal, policy };
+    return {
+      ...base,
+      ...credential,
+      action,
+      taskId: target,
+      proposalId: parsed.values.proposal,
+      policy,
+    };
   }
   return {
     ...base,
     action,
+    ...credential,
     taskId: target,
     input: validateSandboxInput({ ...policy, code: parsed.values.code ?? '' }),
   };
@@ -102,6 +116,7 @@ export async function runSandboxCommand(
     output(await readSandboxArtifact(directory, command.uri));
     return;
   }
+  const credentialConfiguration = await configuredSandboxCredentials(command.credentialConfig);
   const controller = signal === undefined ? new AbortController() : undefined;
   const interrupt = () => controller?.abort();
   if (controller) {
@@ -142,21 +157,32 @@ export async function runSandboxCommand(
       proposalRef = `org://rooms/${encodeURIComponent(room.id)}/messages/${encodeURIComponent(message.id)}`;
     } else input = command.input;
     events = new SqliteEventBus(command.db);
+    const taskProvider = tasks;
+    const agentRepository = agents;
     const result = await runSandboxTask(
       tasks,
       agent,
       (input) =>
-        runDockerSandbox(
-          runProcess,
-          {
-            executable: 'docker',
-            env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
-            cwd: process.cwd(),
-            uid: process.getuid?.() ?? 0,
-            gid: process.getgid?.() ?? 0,
-          },
+        runGrantedSandbox(
+          { tasks: taskProvider, agents: agentRepository },
+          credentialConfiguration.secrets,
+          credentialConfiguration.grants,
+          command.taskId,
           input,
-          signal ?? controller?.signal,
+          (input, credentials) =>
+            runDockerSandbox(
+              runProcess,
+              {
+                executable: 'docker',
+                credentials,
+                env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
+                cwd: process.cwd(),
+                uid: process.getuid?.() ?? 0,
+                gid: process.getgid?.() ?? 0,
+              },
+              input,
+              signal ?? controller?.signal,
+            ),
         ),
       (bytes) => saveSandboxArtifact(directory, bytes),
       input,

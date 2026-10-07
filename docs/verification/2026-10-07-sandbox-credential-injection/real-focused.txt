@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-docker-real.test.ts:
+(pass) real Docker injects only explicit credentials without metadata or artifact disclosure [2430.80ms]
+
+ 1 pass
+ 2 filtered out
+ 0 fail
+Ran 1 test across 1 file. [2.46s]

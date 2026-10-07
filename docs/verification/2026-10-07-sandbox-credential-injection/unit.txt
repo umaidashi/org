@@ -1,0 +1,18 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-task.test.ts:
+(pass) Sandbox Task stages successful stdout for review and never executes a denied capability [1.98ms]
+(pass) Runtime Sandbox rechecks current owner, version, permission and Room before producing an artifact [1.92ms]
+
+tests/sandbox-credentials.test.ts:
+(pass) Sandbox credential grants bind current Task owner and reject changes during lookup before invoking Docker [0.96ms]
+
+tests/sandbox-docker.test.ts:
+(pass) Docker Sandbox bounds the container and destroys only its successfully created ID [1.16ms]
+(pass) Docker creation failure never deletes an existing container name [0.25ms]
+(pass) Docker credential transport uses stdin only and rejects reflected values before returning artifacts [0.55ms]
+(pass) Docker credential guard covers cleanup process exceptions as well as stdout and stderr [0.24ms]
+
+ 7 pass
+ 0 fail
+Ran 7 tests across 3 files. [60.00ms]

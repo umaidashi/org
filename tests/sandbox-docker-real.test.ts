@@ -145,3 +145,74 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
   },
   45000,
 );
+
+test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
+  'real Docker injects only explicit credentials without metadata or artifact disclosure',
+  async () => {
+    const secret = 'synthetic-docker-private-token-702';
+    const host = {
+      executable: 'docker',
+      env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
+      cwd: process.cwd(),
+      uid: process.getuid?.() ?? 0,
+      gid: process.getgid?.() ?? 0,
+      credentials: { SERVICE_TOKEN: secret },
+    };
+    const input = {
+      code: '',
+      files: [] as string[],
+      writable: false,
+      timeoutMs: 3000,
+      maxOutputBytes: 4096,
+    };
+    let id: string | undefined;
+    const checkedRun = async (request: Parameters<typeof runProcess>[0]) => {
+      assert.ok(!JSON.stringify(request.argv).includes(secret));
+      assert.ok(!JSON.stringify(request.env).includes(secret));
+      const result = await runProcess(request);
+      if (request.argv[1] === 'create') {
+        id = result.stdout.trim();
+        const inspected = await runProcess({
+          ...request,
+          argv: ['docker', 'inspect', id],
+          input: '',
+          maxOutputBytes: 65536,
+        });
+        assert.equal(inspected.exitCode, 0);
+        assert.ok(!inspected.stdout.includes(secret));
+      }
+      return result;
+    };
+    const safe = await runDockerSandbox(checkedRun, host, {
+      ...input,
+      code: `if(process.env.SERVICE_TOKEN!==${JSON.stringify(secret)}||process.env.HOME!==undefined||process.env.TYPESAFE_API_KEY!==undefined)throw new Error('environment mismatch');console.log('credential-present');`,
+    });
+    assert.equal(safe.stdout, 'credential-present\n');
+    for (const code of [
+      'console.log(process.env.SERVICE_TOKEN)',
+      'console.error(process.env.SERVICE_TOKEN)',
+      "await Bun.write('result.txt',process.env.SERVICE_TOKEN??'')",
+    ]) {
+      await assert.rejects(
+        runDockerSandbox(checkedRun, host, {
+          ...input,
+          code,
+          writable: true,
+          files: code.includes('Bun.write') ? ['result.txt'] : [],
+        }),
+        /credential output rejected/,
+      );
+      assert.ok(id);
+      const inspected = await runProcess({
+        argv: ['docker', 'inspect', id],
+        input: '',
+        env: host.env,
+        cwd: host.cwd,
+        timeoutMs: 3000,
+        maxOutputBytes: 4096,
+      });
+      assert.notEqual(inspected.exitCode, 0);
+    }
+  },
+  15000,
+);

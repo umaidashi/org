@@ -435,7 +435,7 @@ host設定のAPIキー環境変数はdaemon起動時に渡します。Agent Runt
 
 WorkflowのAPIキーは`SecretStore` Port経由でhost側だけが解決します。初期Environment Adapterは、hostが指定したactor/secret参照/env名のgrantだけを読み、未知actor・未知参照はenv読取前に拒否します。欠損・過大値・lookup失敗のエラーは固定文言で、秘密や元の例外を出力しません。秘密値を表示するCLIはありません。
 
-現在のWorkflow configは`host:workflow`の`n8n-api-key`参照を解決します。これは信頼済みhost内部の識別子で、Agent認証ではありません。Agent別Workflow scopeと最新Task owner/capability照合を実装しています。Workflow操作Approvalは後述の経路で実装しています。Sandboxへの限定credential注入は後続です。Environment参照自体は暗号化保管機能を提供しません。
+現在のWorkflow configは`host:workflow`の`n8n-api-key`参照を解決します。これは信頼済みhost内部の識別子で、Agent認証ではありません。Agent別Workflow scopeと最新Task owner/capability照合を実装しています。Workflow操作Approvalは後述の経路で実装しています。Sandboxへの限定credential注入は下記のhost grantで明示します。Environment参照自体は暗号化保管機能を提供しません。
 
 ## Taskから読み取りWorkflowへ委譲する
 
@@ -527,7 +527,7 @@ AdapterはmacOSの`security find-generic-password`で指定path/service/account�
 
 専用の一時Keychainと実CLI/HTTPによる再現テストは`ORG_KEYCHAIN_TEST=1 bun --no-env-file test tests/keychain-real.test.ts`です。自作itemだけを作成・削除し、既存itemを変更しません。通常全検査ではこの実機テストはskipします。
 
-grantは信頼済みhost内部の許可です。Keychainへの交換はAgent RPC認証やAgentプロセスの完全なfilesystem/credential隔離を意味しません。Vault、Sandboxへの限定credential注入は未完了です。
+grantは信頼済みhost内部の許可です。Keychainへの交換はAgent RPC認証やAgentプロセスの完全なfilesystem/credential隔離を意味しません。Vaultは未完了です。Sandboxへの限定credential注入はEnvironment SecretStoreの明示grantを使用します。
 
 ## Auditログを監視する
 
@@ -921,3 +921,22 @@ bun --env-file=.env src/cli.ts daemon --github-webhook-repo OWNER/REPO --github-
 `http://127.0.0.1:32123/hooks/github`へのPOSTだけを受け付けます。`X-GitHub-Event: issues`、delivery UUID、`X-Hub-Signature-256`と生UTF8本文の署名を照合し、設定済み公開repoのopened/edited/closed/reopened Issueだけを既存Eventへ保存します。BOM/不正UTF8の正規化で署名を流用できません。本文上限64KiB、idle timeout10秒、成功応答はEvent IDだけです。既存SubscriptionがTaskへ投影し、同内容の再送やdaemon再起動で原本/Taskを増やしません。
 
 設定なしではHTTP listenerを作りません。once/status等には指定できず、stopで受付とlistenerを閉じます。127.0.0.1だけへbindし、公開ingress/hook登録を自動作成しません。実HTTP e2eは合成署名からlocal Event/Taskへの検証で、実GitHub配送・業務Issue受け入れの証拠ではありません。
+
+## Sandboxへの限定credential注入
+
+秘密の値を含まないhost設定ファイルを用意します。Agent/ExecutionTaskを厳密に指定し、referenceは同じAgent内で一意にします。
+
+```json
+[{"agentId":"AGENT_ID","taskId":"TASK_ID","environmentVariable":"SERVICE_TOKEN","reference":"service:task","sourceEnvironmentVariable":"PRIVATE_TASK_TOKEN"}]
+```
+
+`PRIVATE_TASK_TOKEN`は実行hostの環境へ設定し、値をGitやコマンド引数へ書かないでください。明示起動例：
+
+```sh
+org sandbox run TASK_ID --credential-config ./sandbox-credentials.local.json --code 'if(!process.env.SERVICE_TOKEN)throw new Error("missing credential");console.log("present");'
+org daemon --runtime-config ./runtime.local.json --sandbox-config ./sandbox.local.json --sandbox-credentials ./sandbox-credentials.local.json --wake-up
+```
+
+`--credential-config`はdirectとdaemon RPCの明示Sandbox runで使えます。`--sandbox-credentials`はcontinuous daemonのRuntime Sandbox提案へ適用します。Task owner/versionとcan_run_shell（repo読取/書込は対応capabilityも）を秘密取得前後に照合し、異なるownerのgrantは拒否します。grantのないTaskへ秘密は注入しません。
+
+target名は大文字の`_TOKEN`/`_KEY`/`_SECRET`/`_PASSWORD`末尾に限定し、最大16値/合計64KiB。stdinで実行childの環境だけへ渡し、Docker argv/inspect可能なcontainer設定/秘密ファイルへ保存しません。既知の値がstdout/stderr/収集fileへ反射すると成果物保存を拒否します。network-none/read-only/non-root/timeout/cancel/cleanupは継続します。符号化・変換された秘密や同UIDのhost隔離を保証する機能ではありません。

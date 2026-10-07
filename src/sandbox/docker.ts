@@ -11,6 +11,7 @@ export async function runDockerSandbox(
     readonly cwd: string;
     readonly uid: number;
     readonly gid: number;
+    readonly credentials?: Readonly<Record<string, string>>;
   },
   input: SandboxInput,
   signal?: AbortSignal,
@@ -18,6 +19,25 @@ export async function runDockerSandbox(
   ProcessResult & { readonly files: readonly { readonly path: string; readonly base64: string }[] }
 > {
   validateSandboxInput(input);
+  const credentials = { ...host.credentials };
+  const secretValues = Object.values(credentials);
+  if (
+    secretValues.length > 16 ||
+    Object.entries(credentials).some(
+      ([name, value]) =>
+        !/^[A-Z][A-Z0-9_]{0,120}_(TOKEN|KEY|SECRET|PASSWORD)$/.test(name) ||
+        typeof value !== 'string' ||
+        !value.length ||
+        value.includes('\0') ||
+        Buffer.byteLength(value) > 65536,
+    ) ||
+    secretValues.reduce((total, value) => total + Buffer.byteLength(value), 0) > 65536
+  )
+    throw new Error('Invalid Sandbox credential environment');
+  const rejectReflection = (value: string): void => {
+    if (secretValues.some((secret) => value.includes(secret)))
+      throw new Error('Sandbox credential output rejected');
+  };
 
   if (
     !Number.isSafeInteger(host.uid) ||
@@ -35,15 +55,23 @@ export async function runDockerSandbox(
     stdin = '',
     maxOutputBytes = 4096,
   ): Promise<ProcessResult> {
-    return run({
-      argv: [host.executable, ...argv],
-      input: stdin,
-      env: host.env,
-      cwd: host.cwd,
-      timeoutMs: limit,
-      maxOutputBytes,
-      ...(cancellation === null || cancellation === undefined ? {} : { signal: cancellation }),
-    });
+    try {
+      const result = await run({
+        argv: [host.executable, ...argv],
+        input: stdin,
+        env: host.env,
+        cwd: host.cwd,
+        timeoutMs: limit,
+        maxOutputBytes,
+        ...(cancellation === null || cancellation === undefined ? {} : { signal: cancellation }),
+      });
+      rejectReflection(result.stdout);
+      rejectReflection(result.stderr);
+      return result;
+    } catch (error) {
+      rejectReflection(error instanceof Error ? error.message : String(error));
+      throw error;
+    }
   }
   async function setup(argv: readonly string[], stdin = ''): Promise<ProcessResult> {
     const result = await command(argv, 10000, signal, stdin);
@@ -119,10 +147,12 @@ export async function runDockerSandbox(
       input.code,
     );
     const execution = await command(
-      ['exec', id, 'bun', '--no-env-file', '/workspace/.org-execution.ts'],
+      secretValues.length
+        ? ['exec', '-i', id, 'bun', '--no-env-file', '-e', credentialRunner]
+        : ['exec', id, 'bun', '--no-env-file', '/workspace/.org-execution.ts'],
       input.timeoutMs,
       signal,
-      '',
+      secretValues.length ? JSON.stringify(credentials) : '',
       input.maxOutputBytes,
     );
     const files: { path: string; base64: string }[] = [];
@@ -159,7 +189,11 @@ export async function runDockerSandbox(
         files.push({ path: input.files[index] ?? '', base64: value.base64 });
       }
     }
+    for (const file of files) rejectReflection(Buffer.from(file.base64, 'base64').toString('utf8'));
     return { ...execution, files };
+  } catch (error) {
+    rejectReflection(error instanceof Error ? error.message : String(error));
+    throw error;
   } finally {
     if (id !== undefined) await destroy(id);
   }
@@ -197,4 +231,12 @@ for(const file of files){
  mkdirSync(dirname(path),{recursive:true,mode:0755});
  writeFileSync(path,Buffer.from(file.base64,'base64'),{flag:'wx',mode:process.getuid()===0?0444:0600});
 }
+`;
+
+const credentialRunner = `
+const credentials=JSON.parse(await Bun.stdin.text());
+const child=Bun.spawn([process.execPath,'--no-env-file','/workspace/.org-execution.ts'],{
+ env:{PATH:process.env.PATH??'',...credentials},stdin:'ignore',stdout:'inherit',stderr:'inherit'
+});
+process.exit(await child.exited);
 `;

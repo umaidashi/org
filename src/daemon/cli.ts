@@ -1,3 +1,4 @@
+import { configuredSandboxCredentials, runGrantedSandbox } from '../sandbox/credentials.js';
 import { validateGithubRepository } from '../events/github.js';
 import { importGithubWebhook } from '../events/github-webhook.js';
 import { receiveGithubWebhook } from '../events/github-webhook-http.js';
@@ -87,6 +88,7 @@ export interface DaemonCommand {
   readonly runtimeConfig?: string;
   readonly memoryContextConfig?: string;
   readonly sandboxConfig?: string;
+  readonly sandboxCredentialConfig?: string;
   readonly workflowConfig?: string;
   readonly wakeUp: boolean;
   readonly consolidationRooms?: readonly string[];
@@ -112,6 +114,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       'runtime-config': { type: 'string' },
       'memory-context-config': { type: 'string' },
       'sandbox-config': { type: 'string' },
+      'sandbox-credentials': { type: 'string' },
       'workflow-config': { type: 'string' },
       'wake-up': { type: 'boolean' },
       'observe-workflows': { type: 'boolean' },
@@ -214,6 +217,11 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
   )
     throw new Error('--workflow-config requires a path and continuous mode');
   if (
+    parsed.values['sandbox-credentials'] !== undefined &&
+    (!parsed.values['sandbox-credentials'].trim() || parsed.values['sandbox-config'] === undefined)
+  )
+    throw new Error('--sandbox-credentials requires --sandbox-config');
+  if (
     parsed.values['sandbox-config'] !== undefined &&
     (action !== undefined ||
       parsed.values.once ||
@@ -238,6 +246,9 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
     ...(extractionRooms === undefined ? {} : { extractionRooms }),
     ...(consolidationRooms === undefined ? {} : { consolidationRooms }),
     ...(consolidationScopes === undefined ? {} : { consolidationScopes }),
+    ...(parsed.values['sandbox-credentials'] === undefined
+      ? {}
+      : { sandboxCredentialConfig: resolve(parsed.values['sandbox-credentials']) }),
     ...(parsed.values['sandbox-config'] === undefined
       ? {}
       : { sandboxConfig: resolve(parsed.values['sandbox-config']) }),
@@ -278,6 +289,7 @@ function openOperations(
   memoryGrants: readonly MemoryContextGrant[] = [],
   consolidationScopes: readonly string[] = [],
   githubWebhook?: DaemonCommand['githubWebhook'],
+  sandboxCredentials?: Awaited<ReturnType<typeof configuredSandboxCredentials>>,
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -622,17 +634,30 @@ function openOperations(
                       message,
                       sandboxPolicy,
                       (input) =>
-                        runDockerSandbox(
-                          runProcess,
-                          {
-                            executable: 'docker',
-                            env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
-                            cwd: process.cwd(),
-                            uid: process.getuid?.() ?? 0,
-                            gid: process.getgid?.() ?? 0,
+                        runGrantedSandbox(
+                          { tasks: taskProvider, agents: agentRepository },
+                          sandboxCredentials?.secrets ?? {
+                            getSecret: () => {
+                              throw new Error('Sandbox credentials unavailable');
+                            },
                           },
+                          sandboxCredentials?.grants ?? [],
+                          running.id,
                           input,
-                          signal,
+                          (input, credentials) =>
+                            runDockerSandbox(
+                              runProcess,
+                              {
+                                executable: 'docker',
+                                credentials,
+                                env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
+                                cwd: process.cwd(),
+                                uid: process.getuid?.() ?? 0,
+                                gid: process.getgid?.() ?? 0,
+                              },
+                              input,
+                              signal,
+                            ),
                         ),
                       (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
                       () => new Date().toISOString(),
@@ -951,6 +976,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
       }
       sandboxPolicy = validateSandboxPolicy(value);
     }
+    const sandboxCredentials = await configuredSandboxCredentials(command.sandboxCredentialConfig);
     let lease: DatabaseLease | undefined;
     try {
       await runLocalDaemon(command.socket, command.interval, () => {
@@ -969,6 +995,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
           memoryGrants,
           command.consolidationScopes,
           command.githubWebhook,
+          sandboxCredentials,
         );
       });
     } finally {

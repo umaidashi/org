@@ -1,0 +1,10 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-credentials-cli.test.ts:
+(pass) real CLI Sandbox credential grant protects artifacts direct=true [1398.24ms]
+(pass) real CLI Sandbox credential grant protects artifacts direct=false [1275.67ms]
+(pass) continuous daemon injects its host Sandbox grant into a Runtime proposal [1052.66ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 1 file. [3.78s]

@@ -1,0 +1,29 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-docker.test.ts:
+(pass) Docker Sandbox bounds the container and destroys only its successfully created ID [1.52ms]
+(pass) Docker creation failure never deletes an existing container name
+56 |     calls.push(request);
+57 |     return { reason: 'exited', exitCode: 0, stdout: request.argv[1] === 'create' ? 'a'.repeat(64) : '', stderr: '' };
+58 |   }, host, input);
+59 |   assert.equal(result.exitCode, 0);
+60 |   const injected = calls.filter(request => request.input.includes(secret));
+61 |   assert.equal(injected.length, 1);
+              ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 1
+
+ generatedMessage: true,
+     actual: 0,
+   expected: 1,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/sandbox-docker.test.ts:61:10
+      at processTicksAndRejections (native:7:39)
+(fail) Docker credential transport uses stdin only and rejects reflected values before returning artifacts [1.49ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [51.00ms]
