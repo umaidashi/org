@@ -2,6 +2,9 @@ import { test } from 'bun:test';
 import assert from 'node:assert/strict';
 import {
   createTask,
+  attachArtifact,
+  type TaskComment,
+  type TaskArtifact,
   changeTask,
   type TaskPatch,
   parseProviderTaskPatch,
@@ -11,6 +14,8 @@ import {
 } from '../src/tasks/domain.js';
 import type { TaskFilter } from '../src/tasks/port.js';
 import { localTaskClient, runTaskClient } from '../src/tasks/client.js';
+import { requestLinearCommentApproval } from '../src/linear/comment.js';
+import { requestLinearArtifactApproval } from '../src/linear/artifact.js';
 import { createApprovalDecision, type Approval } from '../src/approvals/domain.js';
 import type { Event } from '../src/events/domain.js';
 import { linearTaskClient, requestLinearCoreUpdateApproval } from '../src/linear/provider.js';
@@ -50,8 +55,36 @@ const issue = {
 function store(initial: readonly Task[] = []) {
   const tasks = new Map(initial.map((value) => [value.id, value]));
   let writes = 0;
+  const comments = new Map<string, TaskComment[]>(),
+    artifacts = new Map<string, TaskArtifact[]>();
   return {
     tasks,
+    artifacts: (id: string) => artifacts.get(id) ?? [],
+    comments: (id: string) => comments.get(id) ?? [],
+    addComment: (id: string, comment: TaskComment, expected?: number) => {
+      const task = tasks.get(id);
+      assert.ok(task);
+      if (task.version !== expected) throw Error('version');
+      const entries = comments.get(id) ?? [];
+      if (entries.some((entry) => entry.id === comment.id)) throw Error('duplicate');
+      comments.set(id, [...entries, comment]);
+      writes++;
+    },
+    linkArtifact: (
+      id: string,
+      artifact: TaskArtifact,
+      direction: 'input' | 'output',
+      expected?: number,
+    ) => {
+      const original = tasks.get(id);
+      assert.ok(original);
+      if (original.version !== expected) throw Error('version');
+      const changed = attachArtifact(original, artifact, direction);
+      artifacts.set(id, [...(artifacts.get(id) ?? []), artifact]);
+      tasks.set(id, changed);
+      writes++;
+      return changed;
+    },
     writes: () => writes,
     create: (value: Task) => {
       if (tasks.has(value.id)) throw Error('duplicate');
@@ -521,5 +554,197 @@ test('approved common Linear update preserves receipts across read/save/CAS fail
     assert.ok('title' in result);
     assert.equal(result.title, 'Changed');
     assert.equal(mutations, 1);
+  }
+});
+
+test('common comment and artifact consumer validates authority and awaits both real adapters without hidden Local stage', async () => {
+  for (const operation of ['comment', 'artifact'] as const) {
+    const saved = store([task]);
+    const comment = {
+      id: '77777777-7777-4777-8777-777777777777',
+      body: 'Note',
+      actor: 'human',
+      createdAt: 'before',
+    };
+    const artifact = { id: 'output', uri: 'https://example.test/output', createdAt: 'before' };
+    const local = localTaskClient(saved, () => 'after');
+    const localResult =
+      operation === 'comment'
+        ? await runTaskClient(local, {
+            kind: 'comment',
+            id,
+            comment,
+            context: { actor: 'human', expectedVersion: 0 },
+          })
+        : await runTaskClient(local, {
+            kind: 'artifact',
+            id,
+            artifact,
+            direction: 'output',
+            context: { actor: 'human', expectedVersion: 0 },
+          });
+    assert.ok('reference' in localResult);
+    assert.equal(localResult.reference, null);
+    const current = saved.get(id);
+    let approval: Approval | undefined,
+      calls = 0,
+      lookups = 0,
+      metadataRace = false;
+    const approvals = {
+      get: () => {
+        assert.ok(approval);
+        return approval;
+      },
+      requestOnce: (request: import('../src/approvals/domain.js').ApprovalRequest) => request,
+      list: () => [],
+    };
+    const requested =
+      operation === 'comment'
+        ? requestLinearCommentApproval(
+            saved,
+            approvals,
+            {
+              taskId: id,
+              body: comment.body,
+              actor: 'human',
+              expectedVersion: current.version,
+              key: 'core-comment',
+            },
+            { id: comment.id, createdAt: 'before' },
+          )
+        : requestLinearArtifactApproval(
+            saved,
+            approvals,
+            {
+              taskId: id,
+              artifactId: artifact.id,
+              title: 'Output',
+              actor: 'human',
+              expectedVersion: current.version,
+              key: 'core-artifact',
+            },
+            { id: 'approval', createdAt: 'before' },
+          );
+    approval = {
+      request: requested,
+      decision: createApprovalDecision(
+        requested,
+        { actor: { kind: 'human', id: 'reviewer' }, decision: 'approve', reason: 'verified' },
+        'after',
+      ),
+    };
+    const records: Event[] = [];
+    const request = async () => {
+      calls++;
+      return Response.json({
+        data:
+          operation === 'comment'
+            ? {
+                commentCreate: {
+                  success: true,
+                  comment: {
+                    id: comment.id,
+                    body: comment.body,
+                    url: task.externalRef + '#comment',
+                    issue: { id: uuid },
+                  },
+                },
+              }
+            : {
+                attachmentCreate: {
+                  success: true,
+                  attachment: {
+                    id: comment.id,
+                    title: 'Output',
+                    url: artifact.uri,
+                    issue: { id: uuid },
+                  },
+                },
+              },
+      });
+    };
+    const provider = linearTaskClient(
+      saved,
+      request,
+      {
+        getSecret: () => {
+          lookups++;
+          if (metadataRace)
+            saved.artifacts = () => [{ ...artifact, createdAt: 'changed metadata' }];
+          return 'fixture-provider-key';
+        },
+      },
+      { list: () => [] },
+      mapping,
+      'ORG',
+      () => 'after',
+      {
+        approvals,
+        events: {
+          list: () => records,
+          publish: (event: Event) => {
+            records.push(event);
+            return event;
+          },
+        },
+      },
+    );
+    const context = { actor: 'human', expectedVersion: current.version, approvalId: requested.id };
+    if (operation === 'comment') {
+      for (const invalid of [
+        { ...comment, id: 'wrong' },
+        { ...comment, actor: 'other' },
+        { ...comment, body: 'Changed' },
+        { ...comment, body: '\0' },
+      ])
+        await assert.rejects(() => provider.addComment(id, invalid, context));
+      await assert.rejects(() =>
+        provider.addComment(id, comment, { actor: 'human', expectedVersion: current.version }),
+      );
+    } else {
+      await assert.rejects(() =>
+        provider.linkArtifact(id, artifact, 'input', { ...context, title: 'Output' }),
+      );
+      await assert.rejects(() =>
+        provider.linkArtifact(id, { ...artifact, uri: 'https://example.test/changed' }, 'output', {
+          ...context,
+          title: 'Output',
+        }),
+      );
+      await assert.rejects(() => provider.linkArtifact(id, artifact, 'output', context));
+    }
+    assert.equal(calls, 0);
+    assert.equal(lookups, 0);
+    if (operation === 'artifact') {
+      const originals = saved.artifacts;
+      metadataRace = true;
+      await assert.rejects(
+        () => provider.linkArtifact(id, artifact, 'output', { ...context, title: 'Output' }),
+        /credential unavailable/,
+      );
+      assert.equal(calls, 0);
+      assert.equal(records.length, 0);
+      saved.artifacts = originals;
+      metadataRace = false;
+      lookups = 0;
+    }
+    const writes = saved.writes();
+    const action =
+      operation === 'comment'
+        ? { kind: 'comment' as const, id, comment, context }
+        : {
+            kind: 'artifact' as const,
+            id,
+            artifact,
+            direction: 'output' as const,
+            context: { ...context, title: 'Output' },
+          };
+    const result = await runTaskClient(provider, action);
+    assert.ok('reference' in result && typeof result.reference === 'string');
+    assert.equal(saved.writes(), writes);
+    assert.deepEqual(saved.get(id), current);
+    await assert.rejects(() => runTaskClient(provider, action));
+    assert.equal(calls, 1);
+    assert.equal(lookups, 1);
   }
 });

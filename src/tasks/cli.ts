@@ -58,8 +58,21 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
-import { createTask, isTaskStatus, parseProviderTaskPatch } from './domain.js';
-import type { TaskInput, TaskKind, TaskPatch, TaskStatus } from './domain.js';
+import {
+  createTask,
+  isTaskStatus,
+  parseProviderTaskPatch,
+  validateTaskComment,
+  validateTaskArtifact,
+} from './domain.js';
+import type {
+  TaskComment,
+  TaskArtifact,
+  TaskInput,
+  TaskKind,
+  TaskPatch,
+  TaskStatus,
+} from './domain.js';
 import type { TaskFilter, TaskWriteContext } from './port.js';
 import { assignTask, readTaskRoomArtifact } from './service.js';
 import { SqliteTaskProvider } from './sqlite.js';
@@ -69,6 +82,14 @@ import { recoverExecutionTaskResult } from './execution.js';
 import { parseLinearIssueFields, type LinearIssueFields } from '../linear/fields.js';
 
 type TaskAction =
+  | { kind: 'provider-comment'; id: string; comment: TaskComment; context: TaskWriteContext }
+  | {
+      kind: 'provider-artifact';
+      id: string;
+      artifact: TaskArtifact;
+      direction: 'input' | 'output';
+      context: TaskWriteContext & { readonly title?: string };
+    }
   | { kind: 'provider-update'; id: string; patch: TaskPatch; context: TaskWriteContext }
   | {
       kind: 'request-core-linear-update';
@@ -182,6 +203,8 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       fields: { type: 'string' },
       patch: { type: 'string' },
       'core-patch': { type: 'string' },
+      'comment-id': { type: 'string' },
+      'created-at': { type: 'string' },
       status: { type: 'string' },
       owner: { type: 'string' },
       priority: { type: 'string' },
@@ -278,16 +301,29 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const options =
     values.provider !== undefined && action === 'update'
       ? ['patch', 'expected-version', 'actor', 'approval']
-      : action === undefined
-        ? undefined
-        : allowed[action];
+      : values.provider !== undefined && action === 'comment'
+        ? ['body', 'actor', 'comment-id', 'created-at', 'expected-version', 'approval']
+        : values.provider !== undefined && action === 'artifact'
+          ? [
+              'artifact',
+              'uri',
+              'direction',
+              'actor',
+              'created-at',
+              'expected-version',
+              'approval',
+              'title',
+            ]
+          : action === undefined
+            ? undefined
+            : allowed[action];
   if (!options) throw new Error('Expected task create/list/get/assign/update/history');
   if (
     values.provider !== undefined &&
     (!['local', 'linear'].includes(values.provider) ||
-      !['create', 'get', 'list', 'update'].includes(action ?? ''))
+      !['create', 'get', 'list', 'update', 'comment', 'artifact'].includes(action ?? ''))
   )
-    throw new Error('Provider supports task create/get/list/update');
+    throw new Error('Provider supports task create/get/list/update/comment/artifact');
   const providerOptions =
     values.provider === undefined
       ? []
@@ -329,6 +365,50 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     validateTaskWriteContext(context);
     return context;
   };
+  if (values.provider !== undefined && (action === 'comment' || action === 'artifact')) {
+    const context = writeContext();
+    const createdAt = required(values['created-at'], '--created-at');
+    const taskId = required(id, 'Task ID');
+    if (action === 'comment') {
+      const comment = {
+        id: required(values['comment-id'], '--comment-id'),
+        body: required(values.body, '--body'),
+        actor: context.actor,
+        createdAt,
+      };
+      validateTaskComment(comment);
+      return {
+        ...common,
+        action: {
+          kind: 'provider-comment',
+          id: taskId,
+          comment,
+          context,
+        },
+      };
+    }
+    if (values.direction !== 'input' && values.direction !== 'output')
+      throw new Error('Invalid artifact direction');
+    const artifact = {
+      id: required(values.artifact, '--artifact'),
+      uri: required(values.uri, '--uri'),
+      createdAt,
+    };
+    validateTaskArtifact(artifact);
+    return {
+      ...common,
+      action: {
+        kind: 'provider-artifact',
+        id: taskId,
+        artifact,
+        direction: values.direction,
+        context: {
+          ...context,
+          ...(values.title === undefined ? {} : { title: required(values.title, '--title') }),
+        },
+      },
+    };
+  }
   if (values.provider !== undefined && action === 'update')
     return {
       ...common,
@@ -722,26 +802,38 @@ export async function runTaskCommand(
       action.kind !== 'create' &&
       action.kind !== 'get' &&
       action.kind !== 'list' &&
-      action.kind !== 'provider-update'
+      action.kind !== 'provider-update' &&
+      action.kind !== 'provider-comment' &&
+      action.kind !== 'provider-artifact'
     )
-      throw new Error('Provider supports task create/get/list/update');
+      throw new Error('Provider supports task create/get/list/update/comment/artifact');
     const coreAction: TaskClientAction =
-      action.kind === 'create'
-        ? {
-            kind: 'create',
-            task: {
-              ...createTask(action.input, {
-                id: action.id ?? randomUUID(),
-                createdAt: new Date().toISOString(),
-              }),
-              externalRef: action.externalRef ?? null,
-            },
-          }
-        : action.kind === 'provider-update'
-          ? { kind: 'update', id: action.id, patch: action.patch, context: action.context }
-          : action.kind === 'list'
-            ? { kind: 'list', filter: action.filter }
-            : { kind: 'get', id: action.id };
+      action.kind === 'provider-comment'
+        ? { kind: 'comment', id: action.id, comment: action.comment, context: action.context }
+        : action.kind === 'provider-artifact'
+          ? {
+              kind: 'artifact',
+              id: action.id,
+              artifact: action.artifact,
+              direction: action.direction,
+              context: action.context,
+            }
+          : action.kind === 'create'
+            ? {
+                kind: 'create',
+                task: {
+                  ...createTask(action.input, {
+                    id: action.id ?? randomUUID(),
+                    createdAt: new Date().toISOString(),
+                  }),
+                  externalRef: action.externalRef ?? null,
+                },
+              }
+            : action.kind === 'provider-update'
+              ? { kind: 'update', id: action.id, patch: action.patch, context: action.context }
+              : action.kind === 'list'
+                ? { kind: 'list', filter: action.filter }
+                : { kind: 'get', id: action.id };
     const settings =
       command.provider === 'linear'
         ? { mapping: linearTaskMapping(), team: linearTaskTeam() }
@@ -1017,7 +1109,12 @@ export async function runTaskCommand(
     }
     return;
   }
-  if (command.action.kind === 'provider-update') throw new Error('Core update requires provider');
+  if (
+    command.action.kind === 'provider-update' ||
+    command.action.kind === 'provider-comment' ||
+    command.action.kind === 'provider-artifact'
+  )
+    throw new Error('Core update requires provider');
   const provider = new SqliteTaskProvider(command.db);
   try {
     const action = command.action;

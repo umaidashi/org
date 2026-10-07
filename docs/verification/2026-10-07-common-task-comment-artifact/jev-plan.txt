@@ -1,0 +1,276 @@
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 2235,
+  "cached": 2181,
+  "requests": 23,
+  "tokens": 159412,
+  "usd": 0.006695304,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "src/linear/artifact.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "paired",
+      "tokens": 9594,
+      "degraded": null
+    },
+    {
+      "file": "src/linear/comment.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "paired",
+      "tokens": 9686,
+      "degraded": null
+    },
+    {
+      "file": "src/linear/provider.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "paired",
+      "tokens": 7395,
+      "degraded": null
+    },
+    {
+      "file": "src/linear/provider.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 5545,
+      "degraded": null
+    },
+    {
+      "file": "src/linear/provider.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 5805,
+      "degraded": null
+    },
+    {
+      "file": "src/linear/provider.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 2105,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 15580,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 16371,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "paired",
+      "tokens": 4965,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/cli.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "local",
+      "tokens": 2057,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/client.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "paired",
+      "tokens": 5125,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/client.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 2587,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/client.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 3379,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 5638,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 3,
+      "arm": "located",
+      "tokens": 6247,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/domain.ts",
+      "rule": null,
+      "subjects": 9,
+      "arm": "paired",
+      "tokens": 16999,
+      "degraded": null
+    },
+    {
+      "file": "src/tasks/sqlite.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 6332,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-provider-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2534,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-provider-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 7952,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-provider.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "located",
+      "tokens": 8757,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-provider.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "located",
+      "tokens": 8822,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-provider.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2520,
+      "degraded": null
+    },
+    {
+      "file": "tests/task-sqlite.test.ts",
+      "rule": null,
+      "subjects": 2,
+      "arm": "bare",
+      "tokens": 3417,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 25,
+      "requests": 6,
+      "tokens": 53764,
+      "usd": 0.002258088,
+      "share": 0.3372644468421449
+    },
+    {
+      "rule": "fn-name-promises",
+      "subjects": 14,
+      "requests": 7,
+      "tokens": 52391,
+      "usd": 0.002200422,
+      "share": 0.32865154442576466
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 9,
+      "requests": 5,
+      "tokens": 40624,
+      "usd": 0.001706208,
+      "share": 0.2548365242265325
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 4,
+      "requests": 3,
+      "tokens": 8471,
+      "usd": 0.000355782,
+      "share": 0.0531390359571425
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 2,
+      "requests": 2,
+      "tokens": 4162,
+      "usd": 0.000174804,
+      "share": 0.026108448548415427
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 8,
+    "files": [
+      "src/audit/service.ts",
+      "src/linear/config.ts",
+      "src/runtime/guardian.ts",
+      "src/runtime/http.ts",
+      "src/tasks/proposal.ts",
+      "src/tui/room-chat.ts"
+    ]
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": []
+}

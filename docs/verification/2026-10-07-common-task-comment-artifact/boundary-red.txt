@@ -1,0 +1,25 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-sqlite.test.ts:
+(pass) task state and immutable history rollback together on storage failure [15.52ms]
+(pass) comments and artifact references persist without rewriting existing task history [10.15ms]
+(pass) comment and artifact originals cannot be modified and artifact linking rolls back with history [9.94ms]
+(pass) converging dependency graphs do not repeatedly load the same completed subtree [2.60ms]
+(pass) common comment and artifact version checks run inside their Local transaction and preserve history on refusal [11.70ms]
+206 | test('all Local comment and artifact callers share boundary guards against NUL and invalid metadata before saving', () => {
+207 |   const directory=mkdtempSync(join(tmpdir(),'org-task-write-boundary-'));
+208 |   const provider=new SqliteTaskProvider(join(directory,'org.db'));
+209 |   try {
+210 |     provider.create(createTask({title:'Task',objective:'Task'},identity));
+211 |     assert.throws(()=>provider.addComment('one',{id:'comment',body:'bad\0body',actor:'human',createdAt:'now'}));
+                 ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/task-sqlite.test.ts:211:12)
+(fail) all Local comment and artifact callers share boundary guards against NUL and invalid metadata before saving [8.16ms]
+
+ 5 pass
+ 1 fail
+Ran 6 tests across 1 file. [92.00ms]

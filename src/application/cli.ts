@@ -51,7 +51,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org agent capabilities|capability-history ID [--json]
        org agent reporting-history ID [--json]
        org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
-       org task create|get|list|update [OPTIONS] --provider local|linear [--json]
+       org task create|get|list|update|comment|artifact [OPTIONS] --provider local|linear [--json]
        org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
        org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
        org [--db PATH] event publish|import-github|import-github-webhook|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]

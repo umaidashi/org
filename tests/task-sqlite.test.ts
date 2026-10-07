@@ -163,3 +163,71 @@ test('converging dependency graphs do not repeatedly load the same completed sub
     provider.close();
   }
 });
+
+test('common comment and artifact version checks run inside their Local transaction and preserve history on refusal', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'org-task-common-cas-'));
+  const path = join(directory, 'org.db'),
+    provider = new SqliteTaskProvider(path),
+    inspector = new Database(path);
+  try {
+    provider.create(createTask({ title: 'Task', objective: 'Task' }, identity));
+    const comment = { id: 'comment', body: 'Note', actor: 'human', createdAt: 'before' },
+      artifact = { id: 'artifact', uri: 'https://example.test/artifact', createdAt: 'after' };
+    for (const version of [1, -1, 0.5]) {
+      assert.throws(() => provider.addComment('one', comment, version), /version/);
+      assert.throws(() => provider.linkArtifact('one', artifact, 'output', version), /version/);
+    }
+    assert.deepEqual(provider.comments('one'), []);
+    assert.deepEqual(provider.artifacts('one'), []);
+    assert.equal(provider.history('one').length, 1);
+    provider.addComment('one', comment, 0);
+    assert.equal(provider.get('one').version, 0);
+    inspector.exec(
+      "CREATE TRIGGER reject_common_artifact_history BEFORE INSERT ON task_history WHEN NEW.version>0 BEGIN SELECT RAISE(ABORT,'fixture artifact history failure'); END",
+    );
+    assert.throws(
+      () => provider.linkArtifact('one', artifact, 'output', 0),
+      /fixture artifact history failure/,
+    );
+    assert.deepEqual(provider.artifacts('one'), []);
+    assert.equal(provider.get('one').version, 0);
+    assert.equal(provider.history('one').length, 1);
+    inspector.exec('DROP TRIGGER reject_common_artifact_history');
+    assert.equal(provider.linkArtifact('one', artifact, 'output', 0).version, 1);
+    assert.throws(() => provider.addComment('one', { ...comment, id: 'stale' }, 0), /version/);
+    assert.deepEqual(provider.comments('one'), [comment]);
+  } finally {
+    inspector.close();
+    provider.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('all Local comment and artifact callers share boundary guards against NUL and invalid metadata before saving', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'org-task-write-boundary-'));
+  const provider = new SqliteTaskProvider(join(directory, 'org.db'));
+  try {
+    provider.create(createTask({ title: 'Task', objective: 'Task' }, identity));
+    assert.throws(() =>
+      provider.addComment('one', {
+        id: 'comment',
+        body: 'bad\0body',
+        actor: 'human',
+        createdAt: 'now',
+      }),
+    );
+    assert.throws(() =>
+      provider.linkArtifact(
+        'one',
+        { id: 'artifact', uri: 'https://example.test/\0', createdAt: 'now' },
+        'output',
+      ),
+    );
+    assert.deepEqual(provider.comments('one'), []);
+    assert.deepEqual(provider.artifacts('one'), []);
+    assert.equal(provider.get('one').version, 0);
+  } finally {
+    provider.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

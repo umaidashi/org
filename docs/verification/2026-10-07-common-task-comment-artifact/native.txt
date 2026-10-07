@@ -1,0 +1,21 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-provider-cli.test.ts:
+(pass) common async Task consumer uses Local and scoped Linear create/get/list/update/comment/artifact with real HTTP pages and preserved Local originals [2323.29ms]
+
+tests/linear-comment-cli.test.ts:
+(pass) native existing Linear comment validates approval and preserves one POST with fault=success [691.32ms]
+(pass) native existing Linear comment validates approval and preserves one POST with fault=unknown [695.15ms]
+(pass) native existing Linear comment validates approval and preserves one POST with fault=receipt-failure [696.26ms]
+(pass) native existing Linear comment validates approval and preserves one POST with fault=claim-failure [719.14ms]
+(pass) native existing Linear comment validates approval and preserves one POST with fault=terminal-failure [686.59ms]
+
+tests/linear-artifact-cli.test.ts:
+(pass) native approved Linear Artifact link preserves one mutation and originals with fault=success [998.74ms]
+(pass) native approved Linear Artifact link preserves one mutation and originals with fault=unknown [1003.73ms]
+(pass) native approved Linear Artifact link preserves one mutation and originals with fault=claim-failure [1032.34ms]
+(pass) native approved Linear Artifact link preserves one mutation and originals with fault=receipt-failure [1003.79ms]
+
+ 10 pass
+ 0 fail
+Ran 10 tests across 3 files. [9.89s]

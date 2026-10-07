@@ -613,7 +613,7 @@ daemon起動時にWorkflow claimを持つrunning Taskを検出すると、blocke
 
 ## Linear IssueをCore WorkItem形式で読む
 
-共通非同期consumerは既存`task create/get/list/update --provider local|linear`から使用できます。Localは既存SQLite store、Linearはhostの`ORG_LINEAR_TASK_MAPPING`と`ORG_LINEAR_TASK_TEAM`（Team key）を使います。CoreへGraphQLの応答形式を返しません。updateは明示actor/versionとCore patchを使います。comment/artifactの共通非同期契約はまだ未完了です。
+共通非同期consumerは既存`task create/get/list/update/comment/artifact --provider local|linear`から使用できます。Localは既存SQLite store、Linearはhostの`ORG_LINEAR_TASK_MAPPING`と`ORG_LINEAR_TASK_TEAM`（Team key）を使います。CoreへGraphQLの応答形式を返しません。updateは明示actor/versionとCore patchを使います。comment/artifactも同じ非同期consumerへ接続しています。実API認証は未完了です。
 
 ```sh
 bun run start task create Local --objective Done --provider local --id local-task --json
@@ -862,4 +862,19 @@ Linearは`ORG_LINEAR_TASK_MAPPING`のstates（UUID→Core状態）/owners（UUID
 
 parentId/dependenciesはLocal所有でLinearへ送らず、外部six fieldsの承認対象に含めません。明示patchに含めるとgraph検証後に外部snapshotと同じLocal CAS/history transactionで保存します。関係だけの変更はHTTP/外部承認不要です。Local更新は既存状態遷移を守り、外部Approvalを消費したと装いません。actorは宣言値で本人認証は残件です。
 
-外部receiptが確定してもCore同期が失敗した場合は、receipt IDを示して失敗します。`task observe-linear-update`で既存receiptを確認し、`task get --provider linear`でミラーを回復してください。同じ承認のwriteを再送しません。同期前には選択したCore fieldsの現在値も照合します。別writerの変更やhost labels名の不一致は成功扱いにせず、跨system原子性は保証しません。成果物/Local原本を保持します。実Linear API/業務対象の受け入れと残comment/artifactは未完了です。
+外部receiptが確定してもCore同期が失敗した場合は、receipt IDを示して失敗します。`task observe-linear-update`で既存receiptを確認し、`task get --provider linear`でミラーを回復してください。同じ承認のwriteを再送しません。同期前には選択したCore fieldsの現在値も照合します。別writerの変更やhost labels名の不一致は成功扱いにせず、跨system原子性は保証しません。成果物/Local原本を保持します。実Linear API/業務対象の受け入れは未完了です。
+
+## Core Taskの共通コメント・成果物リンク
+
+```sh
+bun run start task comment TASK_ID --provider local --comment-id COMMENT_ID --body '確認内容' --actor HUMAN --expected-version VERSION --created-at TIMESTAMP --json
+bun run start task artifact TASK_ID --provider local --artifact ARTIFACT_ID --uri 'https://example.com/result' --direction output --actor HUMAN --expected-version VERSION --created-at TIMESTAMP --json
+```
+
+Localコメントは現在versionを同じ保存transaction内で照合し、Task versionは増やしません。成果物stageはCAS付きでTask/historyも変更します。外部ApprovalをLocal操作の承認と装わず拒否します。結果の`reference`はLocalではnullです。
+
+Linearコメントは既存`task request-linear-comment`→`approval decide`の後、`task comment --provider linear`へ同じbody/actor/version、承認operationの`commentId`、Core metadataのcreated-atと`--approval APPROVAL_ID`を渡します。結果は`{id, reference}`で、referenceはconfirmed receipt IDです。Local comment原本へ暗黙保存しません。
+
+Linear成果物はLocalで明示stage済みのoutputが必要です。既存`task request-linear-artifact`→`approval decide`の後、`task artifact --provider linear`へ同じartifact ID/URI/createdAt、actor/versionと`--title TITLE --approval APPROVAL_ID`を渡します。input、未stage、原本不一致を送信前に拒否し、結果`{task, reference}`は元Taskとconfirmed receipt IDを返します。外部操作はTask versionを変えません。created-atはCore metadataであり外部の作成時刻を示しません。
+
+応答不明やreceipt保存障害では、既存の`task observe-linear-comment` / `task observe-linear-artifact`で回収してください。同じ承認でwriteを再送しません。両操作は人間の明示管理操作で、本人認証・全重要Audit・実サービス受け入れは残件です。

@@ -6,6 +6,7 @@ import { planTaskReview } from './review.js';
 import type { TaskReview, TaskReviewWriter } from './review.js';
 import {
   attachArtifact,
+  validateTaskComment,
   changeTask,
   isTaskStatus,
   validateTaskReferences,
@@ -321,12 +322,12 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
   close(): void {
     this.db.close();
   }
-  addComment(id: string, comment: TaskComment): void {
-    for (const value of [comment.id, comment.body, comment.actor, comment.createdAt]) {
-      if (!value.trim()) throw new Error('Comment fields must not be empty');
-    }
+  addComment(id: string, comment: TaskComment, expectedVersion?: number): void {
+    validateTaskComment(comment);
     this.transaction(() => {
-      this.get(id);
+      const current = this.get(id);
+      if (expectedVersion !== undefined && current.version !== expectedVersion)
+        throw new Error('Task version conflict');
       this.db
         .prepare<Record<string, unknown>, (string | number)[]>(
           'INSERT INTO task_comments (task_id, id, body, actor, created_at) VALUES (?, ?, ?, ?, ?)',
@@ -348,9 +349,17 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
         createdAt: text(row.created_at),
       }));
   }
-  linkArtifact(id: string, artifact: TaskArtifact, direction: 'input' | 'output'): Task {
+  linkArtifact(
+    id: string,
+    artifact: TaskArtifact,
+    direction: 'input' | 'output',
+    expectedVersion?: number,
+  ): Task {
     return this.transaction(() => {
-      const task = attachArtifact(this.get(id), artifact, direction);
+      const current = this.get(id);
+      if (expectedVersion !== undefined && current.version !== expectedVersion)
+        throw new Error('Task version conflict');
+      const task = attachArtifact(current, artifact, direction);
       this.db
         .prepare<Record<string, unknown>, (string | number)[]>(
           'INSERT INTO task_artifacts (task_id, id, uri, created_at) VALUES (?, ?, ?, ?)',

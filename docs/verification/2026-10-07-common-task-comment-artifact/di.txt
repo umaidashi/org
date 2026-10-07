@@ -1,0 +1,29 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-domain.test.ts:
+(pass) clearing an already unassigned pending owner does not invent an assignment [1.16ms]
+(pass) pure task decisions preserve identity and reject illegal state changes
+(pass) task domain rejects invalid values and snapshots do not alias input arrays
+(pass) pure graph validation rejects parent cycles, dependency cycles and unfinished prerequisites [1.30ms]
+
+tests/task-sqlite.test.ts:
+(pass) task state and immutable history rollback together on storage failure [13.26ms]
+(pass) comments and artifact references persist without rewriting existing task history [9.25ms]
+(pass) comment and artifact originals cannot be modified and artifact linking rolls back with history [9.99ms]
+(pass) converging dependency graphs do not repeatedly load the same completed subtree [2.55ms]
+(pass) common comment and artifact version checks run inside their Local transaction and preserve history on refusal [10.28ms]
+(pass) all Local comment and artifact callers share boundary guards against NUL and invalid metadata before saving [6.90ms]
+
+tests/task-provider.test.ts:
+(pass) same async Core consumer creates, gets and lists through both concrete adapters and propagates failures [5.68ms]
+(pass) Core consumer awaits the injected async result before reporting success [0.21ms]
+(pass) Linear client refuses invalid Core IDs and stored scope before credentials and rejects acquisition races [0.52ms]
+(pass) Linear list validates all pages before reconciliation and rejects duplicate IDs, cursor cycles, partial fields and page overflow [3.99ms]
+(pass) common update awaits Local CAS, validates closed patches and never treats external Approval as Local authorization [0.65ms]
+(pass) Linear relation-only common update is Local CAS and rejects cycles without credentials or external claims [0.47ms]
+(pass) approved common Linear update preserves receipts across read/save/CAS failures and never resends during recovery [6.85ms]
+(pass) common comment and artifact consumer validates authority and awaits both real adapters without hidden Local stage [2.48ms]
+
+ 18 pass
+ 0 fail
+Ran 18 tests across 3 files. [108.00ms]

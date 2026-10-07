@@ -103,3 +103,7 @@ selected fieldsへtitle/descriptionを追加し、状態・担当・labels・pri
 ## 2026-10-07 共通Core Task update
 
 共通consumerの第四操作updateを両Adapterへ実接続。Core patchの明示逆mapping/承認後mapping変更拒否、外部receipt後CAS同期、Local relations/history rollback、送信後read/save/CAS/selected Core変更障害のreceipt保存・再送禁止/get回復を実CLI/daemon/HTTP fixture/SQLiteで確認。[全gate](verification/2026-10-07-core-task-update/check.txt):470成功/14skip/0失敗。実Jev2224subjects/missing・errors・degraded0。四操作の確認であり、残comment/artifactと実API・本人認証・全重要Audit・他の全体残件を完了へ変更しない。[次の計画](superpowers/plans/2026-10-07-common-task-comment-artifact.md)へ続く。
+
+## 2026-10-07 共通TaskProvider六操作
+
+comment/artifactをLocal/Linear両Adapterと実await consumerへ接続。Localは同transactionでversion照合・原本保存、Linearは明示stage/承認対象一致・既存engineのreceiptを返し、隠れたLocal書込なし。取得中原本変更/NULを拒否、未承認・不一致送信ゼロ/再送禁止/reopenをDI/実CLI/daemon/HTTP/SQLiteで確認。[全gate](verification/2026-10-07-common-task-comment-artifact/check.txt):473成功/14skip/0失敗、実Jev2235subjects/missing・errors・degraded0。六操作の実接続は達成、実API/本人認証/全重要Audit/全Memory policy・source/実業務納品などの全体残件は未達。

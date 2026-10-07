@@ -1617,3 +1617,25 @@
 - Final: Ruling:次段階comment/artifact計画は別実装前に契約を照合する — reviewerは現変更だけを判断した — 誤ると詳細設計承認済みと誤認する。
 
 - 最終全check終了0:470成功/14skip/0失敗、484tests/197files165.05秒、static350files/AST成功。実Jev2224subjects/134warning、missing/unsure/review/errors/degraded0。[RED/GREEN/全gate/実Jev証拠](verification/2026-10-07-core-task-update/)保存、requirements/completion-audit/design/READMEを四操作の実績へ更新。skipは未実施、実API/本人認証/実業務納品/全体goal未達を保持。
+
+## 2026-10-07 共通comment/artifactの実consumer
+
+- update単位のpush対象5082368はLefthook committed tree検査中。[残二操作計画](superpowers/plans/2026-10-07-common-task-comment-artifact.md)の最小契約を補足し、同unitのHTTP/daemon fixtureを再利用したRED0成功/1失敗1402ms（provider comment未対応、終了2）。最初はfixtureの既存linked変数と衝突してparse失敗したため名前を修正し、目的のCLI REDを実測。検証済みsourceと新差分を分け、push完了後に次featureへ進める。
+- 前単位のmain通常ff/push終了0、公開5082368、公開時点main/origin/main一致。Lefthook push対象全gate/実Jev成功184.09秒（470成功/14skip/0失敗、484tests/197files163.59秒）、forceなし。その後`feat/common-task-comment-artifact`へ新差分を移動。
+- 初回native GREEN1成功/0失敗2.33秒、両Adapterの実consumerがcomment/artifactをawaitし、Local原本保存・外部pending送信ゼロ・承認後各一回・再送拒否・元Task version保持を確認。型検査は既存DI fixtureに必要な実comment/artifact操作の追加を要求し、保存する小さなfixtureへ配線。nativeのJSON array find結果はunknownでnarrowingしてunsafe assignmentを解消。
+- metadata取得中変更のDI RED7成功/1失敗63ms。外部digestに含まれないcreatedAtがcredential取得中に変わっても送信していたため、共通artifactの原本照合を取得前後へ配置。既存queryLinearがcredential内例外をredactするため期待エラーを公開genericへ修正し、送信/claimゼロを確認。さらに全Local callersのNUL境界RED5成功/1失敗92ms、comment/attachArtifactの重複guardをCore共有validatorへ集約。GREEN18成功/0失敗3files108ms、SQLite同transaction version拒否・history障害rollbackも確認。型/Oxlint/Oxfmt350files/AST終了0。
+- Ruling:外部commentは承認のcomment UUIDをCore IDとして照合し、Local commentへ暗黙二重保存しない — referenceでconfirmed receiptを返す — 誤るとLocal原本と外部送信の帰属を誤認する。
+- Ruling:外部artifactは確定済みLocal outputだけをリンクし、隠れたstageをしない — LocalはCAS stage、Linearは同原本一致/承認/receiptでTask versionを変えない — 誤ると半成功を隠す。CoreのcreatedAtはmetadataで外部作成時刻ではない。
+- Ruling:credential取得中の原本不一致は既存generic redactionエラーを維持 — 機密を含み得る依存エラーの本文を公開しない — 誤ると具体的障害原因の区別が弱くなるが送信/claimゼロを検証する。
+- Ponytail review:既存comment/artifact engine・Approval/claim/receipt/observeとSQLite transactionを再利用。重複Local guardとCLI object再構築を削減し、外部stage engine/DDL/依存/背景syncなし。六methodは実装/実consumerへ接続し空stubなし。全体の実API/認証/Audit/Memory等は引き続き未達。
+- 独立最終review:Critical0/Important0/Minor1（READMEの旧comment/artifact未完了文言）、focused30成功/0失敗4files152ms、git diff --check成功。Ponytail Lean already、削減候補なし。C/I fix pass・再reviewなし。
+- Final: Ruling:README旧未完了文言のMinorは一文訂正 — ユーザーのREADME更新依頼に従い、今回の実装済み節と矛盾する記述を維持しない（skillのMinor保留既定より明示依頼優先） — 誤ると四操作/六操作の進捗境界が読者に伝わらない。文書のみ、追加product変更/再reviewなし。前単位のLocal関係回復手順候補は保留のまま。
+- Final: Ruling:全native/static/Jevは親terminal結果で判定 — focusedだけで全gateを代用しない — 誤ると未検査を成功に数える。
+- Final: Ruling:実Linear API/認証/service制約は未達 — fixtureの契約検証に限定 — 誤ると実サービス受け入れを誤認する。
+- Final: Ruling:本人認証/帰属/跨system原子性/継続remote鮮度は契約外残件 — 既存明示管理境界と時点検証を保持 — 誤ると偽装/競合防止まで達成と誤認する。
+- Final: Ruling:実モデル提案/業務納品/全重要Audit/Memory/全体要件は未達 — 六操作の実接続だけから全体完成を推定しない — 誤ると未接続業務を完成と誤認する。
+- Final: Ruling:createdAt形式/Local URI方式・サイズは既存metadata契約を維持 — 新しい日付/URI方式を強制せずNUL/非空/必要なexternal HTTPSとboundsだけ検査 — 誤ると厳密な型付き日付/Local URI上限があると誤認する。
+- 全体照合の古い直接証拠を現codeへ更新:Agent send verb/監査は既存検証済み。Event/Artifact原本Readerと明示captureも既存実装/検証あり、一般自動抽出/Workflow sourceを未達として分離。行の古さを新実装の要求へ誤変換しない。
+
+- 最終全check終了0:473成功/14skip/0失敗、487tests/197files165.42秒、static350files/AST成功。実Jev2235subjects/136warning/missing0/unsure0/review0/errors[]/degraded[]、直前dry-run対象確認済みでexcluded/undeclared/idleLanguages/silentRules0。fast UT166成功/56files326ms、native関連10成功/3files9.89秒。[証拠](verification/2026-10-07-common-task-comment-artifact/)保存、旧全体残件を維持。新Jevのvalidator失敗経路候補はnative/DI/SQLiteの実否定fixtureと独立reviewで評価し、ルール採点だけで新frameworkを追加しない。
+- 次のCLI確認でNotion07を既知snapshot IDから再取得成功（編集2026-10-04/verification unverified/切詰めなし）。先行リクエストは誤ったIDでvalidation_error、成果に数えず既知IDに訂正。raw snapshotは新証拠/Jevへ追加しない。

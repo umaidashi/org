@@ -8,7 +8,7 @@ import { createAgent } from '../src/agents/domain.js';
 function record(value: unknown): asserts value is Record<string, unknown> {
   assert.ok(value !== null && typeof value === 'object' && !Array.isArray(value));
 }
-test('common async Task consumer uses Local and scoped Linear create/get/list/update with real HTTP pages and preserved Local originals', async () => {
+test('common async Task consumer uses Local and scoped Linear create/get/list/update/comment/artifact with real HTTP pages and preserved Local originals', async () => {
   const home = mkdtempSync('/tmp/org-task-provider-'),
     db = home + '/org.db',
     socket = home + '/org.sock';
@@ -42,7 +42,9 @@ test('common async Task consumer uses Local and scoped Linear create/get/list/up
   agents.close();
   let calls = 0,
     listCalls = 0,
-    mutations = 0;
+    mutations = 0,
+    commentPosts = 0,
+    artifactPosts = 0;
   const server = Bun.serve({
     hostname: '127.0.0.1',
     port: 0,
@@ -81,6 +83,43 @@ test('common async Task consumer uses Local and scoped Linear create/get/list/up
         });
         mutations++;
         return Response.json({ data: { issueUpdate: { success: true, issue: first } } });
+      }
+      if (body.query.startsWith('mutation KernelComment(')) {
+        record(body.variables);
+        assert.equal(body.variables.body, 'Core note');
+        commentPosts++;
+        return Response.json({
+          data: {
+            commentCreate: {
+              success: true,
+              comment: {
+                id: body.variables.id,
+                body: body.variables.body,
+                url: issues[0]?.url + '#comment',
+                issue: { id: issues[0]?.id },
+              },
+            },
+          },
+        });
+      }
+      if (body.query.startsWith('mutation KernelArtifact(')) {
+        record(body.variables);
+        assert.equal(body.variables.url, 'https://example.test/output');
+        assert.equal(body.variables.title, 'Core output');
+        artifactPosts++;
+        return Response.json({
+          data: {
+            attachmentCreate: {
+              success: true,
+              attachment: {
+                id: label,
+                title: body.variables.title,
+                url: body.variables.url,
+                issue: { id: issues[0]?.id },
+              },
+            },
+          },
+        });
       }
       assert.ok(body.query.startsWith('query '));
       if (body.query.startsWith('query KernelCoreWorkItems(')) {
@@ -464,6 +503,220 @@ test('common async Task consumer uses Local and scoped Linear create/get/list/up
     record(localUpdatedTask);
     assert.equal(localUpdatedTask.title, 'Local updated');
     assert.equal(localUpdatedTask.version, 1);
+    const localComment = await run(
+      [
+        'task',
+        'comment',
+        'rpc-local',
+        '--provider',
+        'local',
+        '--comment-id',
+        'local-comment',
+        '--body',
+        'Local note',
+        '--actor',
+        'human',
+        '--expected-version',
+        '1',
+        '--created-at',
+        'comment-time',
+        '--json',
+      ],
+      false,
+    );
+    assert.equal(localComment.status, 0, localComment.stderr);
+    assert.deepEqual(JSON.parse(localComment.stdout), { id: 'local-comment', reference: null });
+    const localArtifact = await run(
+      [
+        'task',
+        'artifact',
+        'rpc-local',
+        '--provider',
+        'local',
+        '--artifact',
+        'local-artifact',
+        '--uri',
+        'https://example.test/local',
+        '--direction',
+        'output',
+        '--actor',
+        'human',
+        '--expected-version',
+        '1',
+        '--created-at',
+        'artifact-time',
+        '--json',
+      ],
+      false,
+    );
+    assert.equal(localArtifact.status, 0, localArtifact.stderr);
+    const artifactResult: unknown = JSON.parse(localArtifact.stdout);
+    record(artifactResult);
+    record(artifactResult.task);
+    assert.equal(artifactResult.task.version, 2);
+    assert.equal(artifactResult.reference, null);
+    const commentRequest = await run(
+      [
+        'task',
+        'request-linear-comment',
+        id,
+        '--body',
+        'Core note',
+        '--actor',
+        'human',
+        '--expected-version',
+        '4',
+        '--key',
+        'common-comment',
+        '--json',
+      ],
+      false,
+    );
+    assert.equal(commentRequest.status, 0, commentRequest.stderr);
+    const commentApproval: unknown = JSON.parse(commentRequest.stdout);
+    record(commentApproval);
+    record(commentApproval.operation);
+    assert.ok(
+      typeof commentApproval.id === 'string' &&
+        typeof commentApproval.operation.commentId === 'string',
+    );
+    const commentArgs = [
+      'task',
+      'comment',
+      id,
+      '--provider',
+      'linear',
+      '--comment-id',
+      commentApproval.operation.commentId,
+      '--body',
+      'Core note',
+      '--actor',
+      'human',
+      '--expected-version',
+      '4',
+      '--created-at',
+      'comment-time',
+      '--approval',
+      commentApproval.id,
+      '--json',
+    ];
+    const beforeComment = calls;
+    assert.equal((await run(commentArgs, false)).status, 1);
+    assert.equal(calls, beforeComment);
+    assert.equal(
+      (
+        await run(
+          [
+            'approval',
+            'decide',
+            commentApproval.id,
+            '--actor',
+            'reviewer',
+            '--decision',
+            'approve',
+            '--reason',
+            'verified',
+          ],
+          false,
+        )
+      ).status,
+      0,
+    );
+    const commentWritten = await run(commentArgs, false);
+    assert.equal(commentWritten.status, 0, commentWritten.stderr);
+    const commentResult: unknown = JSON.parse(commentWritten.stdout);
+    record(commentResult);
+    assert.equal(commentResult.id, commentApproval.operation.commentId);
+    assert.ok(typeof commentResult.reference === 'string');
+    assert.equal((await run(commentArgs, false)).status, 1);
+    const outputArtifacts: unknown = JSON.parse(
+      (await run(['task', 'artifacts', id, '--json'], false)).stdout,
+    );
+    assert.ok(Array.isArray(outputArtifacts));
+    const output: unknown = outputArtifacts.find((entry: unknown) => {
+      record(entry);
+      return entry.id === 'output';
+    });
+    record(output);
+    assert.ok(typeof output.createdAt === 'string');
+    const artifactRequest = await run(
+      [
+        'task',
+        'request-linear-artifact',
+        id,
+        '--artifact',
+        'output',
+        '--title',
+        'Core output',
+        '--actor',
+        'human',
+        '--expected-version',
+        '4',
+        '--key',
+        'common-artifact',
+        '--json',
+      ],
+      false,
+    );
+    assert.equal(artifactRequest.status, 0, artifactRequest.stderr);
+    const artifactApproval: unknown = JSON.parse(artifactRequest.stdout);
+    record(artifactApproval);
+    assert.ok(typeof artifactApproval.id === 'string');
+    const externalArtifactArgs = [
+      'task',
+      'artifact',
+      id,
+      '--provider',
+      'linear',
+      '--artifact',
+      'output',
+      '--uri',
+      'https://example.test/output',
+      '--direction',
+      'output',
+      '--actor',
+      'human',
+      '--expected-version',
+      '4',
+      '--created-at',
+      output.createdAt,
+      '--title',
+      'Core output',
+      '--approval',
+      artifactApproval.id,
+      '--json',
+    ];
+    const beforeArtifact = calls;
+    assert.equal((await run(externalArtifactArgs, false)).status, 1);
+    assert.equal(calls, beforeArtifact);
+    assert.equal(
+      (
+        await run(
+          [
+            'approval',
+            'decide',
+            artifactApproval.id,
+            '--actor',
+            'reviewer',
+            '--decision',
+            'approve',
+            '--reason',
+            'verified',
+          ],
+          false,
+        )
+      ).status,
+      0,
+    );
+    const artifactWritten = await run(externalArtifactArgs, false);
+    assert.equal(artifactWritten.status, 0, artifactWritten.stderr);
+    const externalLinked: unknown = JSON.parse(artifactWritten.stdout);
+    record(externalLinked);
+    assert.deepEqual(externalLinked.task, updatedTask);
+    assert.ok(typeof externalLinked.reference === 'string');
+    assert.equal((await run(externalArtifactArgs, false)).status, 1);
+    assert.equal(commentPosts, 1);
+    assert.equal(artifactPosts, 1);
     const stopped = await run(['daemon', 'stop'], false);
     assert.equal(stopped.status, 0, stopped.stderr);
     await daemonExited;
@@ -472,6 +725,15 @@ test('common async Task consumer uses Local and scoped Linear create/get/list/up
       JSON.parse((await run(['task', 'get', id, '--provider', 'local', '--json'])).stdout),
       updatedTask,
     );
+    assert.deepEqual(JSON.parse((await run(['task', 'comments', 'rpc-local', '--json'])).stdout), [
+      { id: 'local-comment', body: 'Local note', actor: 'human', createdAt: 'comment-time' },
+    ]);
+    const reopenedArtifacts: unknown = JSON.parse(
+      (await run(['task', 'artifacts', 'rpc-local', '--json'])).stdout,
+    );
+    assert.deepEqual(reopenedArtifacts, [
+      { id: 'local-artifact', uri: 'https://example.test/local', createdAt: 'artifact-time' },
+    ]);
     const beforeInvalid = calls;
     for (const args of [
       ['task', 'get', id, '--provider', 'unknown'],

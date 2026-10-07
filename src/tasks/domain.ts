@@ -40,14 +40,29 @@ export interface TaskArtifact {
   readonly uri: string;
   readonly createdAt: string;
 }
+export function validateTaskComment(comment: TaskComment): void {
+  for (const value of [comment.id, comment.body, comment.actor, comment.createdAt])
+    if (typeof value !== 'string' || !value.trim() || value.includes('\0'))
+      throw new Error('Invalid Task comment');
+  if (
+    comment.id.length > 128 ||
+    comment.actor.length > 128 ||
+    new TextEncoder().encode(comment.body).length > 32768
+  )
+    throw new Error('Invalid Task comment size');
+}
+export function validateTaskArtifact(artifact: TaskArtifact): void {
+  for (const value of [artifact.id, artifact.uri, artifact.createdAt])
+    if (typeof value !== 'string' || !value.trim() || value.includes('\0'))
+      throw new Error('Invalid Task artifact');
+  if (artifact.id.length > 128) throw new Error('Invalid Task artifact ID');
+}
 export function attachArtifact(
   task: Task,
   artifact: TaskArtifact,
   direction: 'input' | 'output',
 ): Task {
-  for (const value of [artifact.id, artifact.uri, artifact.createdAt]) {
-    if (!value.trim()) throw new Error('Artifact fields must not be empty');
-  }
+  validateTaskArtifact(artifact);
   const field = direction === 'input' ? 'inputArtifacts' : 'outputArtifacts';
   if (task[field].includes(artifact.id)) throw new Error('Artifact already linked');
   return {

@@ -27,9 +27,14 @@ export interface TaskProvider {
   update(id: string, patch: TaskPatch, at: string, expectedVersion?: number): Task;
   list(filter?: TaskFilter): readonly Task[];
   history(id: string): readonly TaskHistory[];
-  addComment(id: string, comment: TaskComment): void;
+  addComment(id: string, comment: TaskComment, expectedVersion?: number): void;
   comments(id: string): readonly TaskComment[];
-  linkArtifact(id: string, artifact: TaskArtifact, direction: 'input' | 'output'): Task;
+  linkArtifact(
+    id: string,
+    artifact: TaskArtifact,
+    direction: 'input' | 'output',
+    expectedVersion?: number,
+  ): Task;
   artifacts(id: string): readonly TaskArtifact[];
 }
 export interface AsyncTaskProvider {
@@ -37,6 +42,17 @@ export interface AsyncTaskProvider {
   get(id: string): Promise<Task>;
   list(filter?: TaskFilter): Promise<readonly Task[]>;
   update(id: string, patch: TaskPatch, context: TaskWriteContext): Promise<Task>;
+  addComment(
+    id: string,
+    comment: TaskComment,
+    context: TaskWriteContext,
+  ): Promise<{ readonly id: string; readonly reference: string | null }>;
+  linkArtifact(
+    id: string,
+    artifact: TaskArtifact,
+    direction: 'input' | 'output',
+    context: TaskWriteContext & { readonly title?: string },
+  ): Promise<{ readonly task: Task; readonly reference: string | null }>;
 }
 export interface TaskWriteContext {
   readonly actor: string;

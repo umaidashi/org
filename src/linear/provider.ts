@@ -1,9 +1,13 @@
 import { isDeepStrictEqual } from 'node:util';
+import { applyApprovedLinearComment } from './comment.js';
+import { applyApprovedLinearArtifact } from './artifact.js';
 import type { AgentRepository } from '../agents/port.js';
 import type { SecretStore } from '../secrets/port.js';
 import {
   mergeWorkItemSnapshot,
   parseProviderTaskPatch,
+  validateTaskComment,
+  validateTaskArtifact,
   validateTaskReferences,
   type Task,
   type TaskPatch,
@@ -95,7 +99,7 @@ export async function requestLinearCoreUpdateApproval(
   );
 }
 export function linearTaskClient(
-  store: Pick<TaskProvider, 'create' | 'get' | 'list'> & WorkItemSynchronizer,
+  store: Pick<TaskProvider, 'create' | 'get' | 'list' | 'artifacts'> & WorkItemSynchronizer,
   request: (url: string, init: RequestInit) => Promise<Response>,
   secrets: Pick<SecretStore, 'getSecret'>,
   agents: Pick<AgentRepository, 'list'>,
@@ -117,6 +121,95 @@ export function linearTaskClient(
       : snapshot;
   };
   return {
+    addComment: async (id, comment, context) => {
+      validateTaskWriteContext(context);
+      validateTaskComment(comment);
+      linearWorkItemIssueId(id);
+      const original = store.get(id);
+      if (
+        original.kind !== 'work_item' ||
+        original.version !== context.expectedVersion ||
+        context.actor !== comment.actor ||
+        !context.approvalId
+      )
+        throw new Error('Invalid Linear comment context');
+      scope(original.externalRef);
+      const approval = writes.approvals.get(context.approvalId);
+      if (
+        approval.request.operation.kind !== 'linear_comment' ||
+        approval.request.operation.commentId !== comment.id
+      )
+        throw new Error('Core comment ID does not match Approval');
+      const guarded = {
+        getSecret: (actor: string, reference: string) => {
+          scope(store.get(id).externalRef);
+          return secrets.getSecret(actor, reference);
+        },
+      };
+      const receipt = await applyApprovedLinearComment(
+        store,
+        writes.approvals,
+        writes.events,
+        guarded,
+        request,
+        {
+          taskId: id,
+          actor: context.actor,
+          expectedVersion: context.expectedVersion,
+          approvalId: context.approvalId,
+          body: comment.body,
+        },
+        now,
+      );
+      return { id: comment.id, reference: receipt.id };
+    },
+    linkArtifact: async (id, artifact, direction, context) => {
+      validateTaskWriteContext(context);
+      validateTaskArtifact(artifact);
+      linearWorkItemIssueId(id);
+      const original = store.get(id);
+      if (
+        original.kind !== 'work_item' ||
+        original.version !== context.expectedVersion ||
+        direction !== 'output' ||
+        !context.approvalId ||
+        !context.title
+      )
+        throw new Error('Invalid Linear artifact context');
+      scope(original.externalRef);
+      const check = () => {
+        scope(store.get(id).externalRef);
+        const saved = store.artifacts(id).find((value) => value.id === artifact.id);
+        if (!saved || !isDeepStrictEqual(saved, artifact))
+          throw new Error('Core artifact does not match staged original');
+      };
+      check();
+      const guarded = {
+        getSecret: (actor: string, reference: string) => {
+          check();
+          const key = secrets.getSecret(actor, reference);
+          check();
+          return key;
+        },
+      };
+      const receipt = await applyApprovedLinearArtifact(
+        store,
+        writes.approvals,
+        writes.events,
+        guarded,
+        request,
+        {
+          taskId: id,
+          artifactId: artifact.id,
+          title: context.title,
+          actor: context.actor,
+          expectedVersion: context.expectedVersion,
+          approvalId: context.approvalId,
+        },
+        now,
+      );
+      return { task: original, reference: receipt.id };
+    },
     update: async (id, input, context) => {
       validateTaskWriteContext(context);
       linearWorkItemIssueId(id);
