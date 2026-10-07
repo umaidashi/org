@@ -1451,3 +1451,5 @@
 - 独立最終review:Critical0/Important0/Minor0。原本Approval/running履歴/currentTask、checked view、Task CAS/immutable claim、receipt再利用、Artifact/起動回収、shutdown abort/server待機/専用credential/closed CLIを確認。独立関連UT4成功/0失敗85ms・git diff --check成功。reviewerは全check/実Jevを重複実行せず、親の結果を確認する。Ponytail:Lean already. Ship. Deferred minorなし。
 - Final Ruling:跨process原子性/外部CAS/送信後即時撤回は保証外で、observedは現在値だけを証明する。実API/本人認証/業務Draft PRは未完了。上述Rulingを維持し、fixture/native daemon成功から実業務の納品を主張しない（誤ると実サービス拒否・なりすまし・別writerの成功・未納品を見逃す）。
 - 全bun run check終了0:445成功/12skip/0失敗、457tests/190files。nativeはcontent/fields両モードで最終26件（並行観測/SIGKILL含む）を実行し、旧human/assigned管理も維持。[全検査証拠](verification/2026-10-07-runtime-linear-resume/check.txt)。12skipは今回未実行の実機opt-inで成功へ数えない。
+- main通常fast-forwardとorigin/main push終了0、公開commit69f0f4c。Lefthook push対象treeの全検査/実Jev成功170.74秒。通常gateの実測151.61秒。秘密情報/raw Notionを公開証拠へ追加しない。
+- 次の[実Claude Max受け入れ計画](superpowers/plans/2026-10-07-runtime-linear-real-claude.md)を保存し、MVP受け入れ文書の旧未接続記述を修正。Ponytail review:既存native e2eと既存Claude driver/configを再利用し、fixtureの複製や新依存を追加しない。文書照合の正しさは公開した実装/全gate証拠と突合、git diff --check成功。実Claudeで今回の新経路はまだ未実行で、実API/本人認証/既存業務IssueからのDraft PRを含む全体goalはactive。

@@ -28,8 +28,8 @@
 
 ## 未達と次の実装
 
-1. 既存IssueのAgent操作とCore status/Agent owner対応・自動同期を、既存の承認・HTTP・一回claim・Audit境界と照合して小さく積み上げる。humanコメント/Artifactリンクと両方の不明結果status-only回収、title/description更新と不明結果の現在値観測はfixtureまで検証済み。同期Coreを暗黙に変更しない。
-2. 実Notion/Linear native認証は設定後に確認。キー値は不要で、現在は設定有無だけfalseを確認した。connectorから秘密キーを取り出したり、fixtureを実認証に読み替えたりしない。
+1. Agent専用scope/credential、owner Task Messageからの操作承認、Runtimeの操作待機、人間承認後のTask再開、blockedのstatus-only観測、receipt Artifactと人間結果reviewまで実CLI/daemon fixtureで確認した。content/fields、並行操作、保存障害、SIGKILL/再起動も確認（[証拠](verification/2026-10-07-runtime-linear-resume/check.txt)：445成功/12skip/0失敗）。次は[実Claude Maxの受け入れ](superpowers/plans/2026-10-07-runtime-linear-real-claude.md)。Core status/Agent owner対応・自動同期は未達で、同期Coreを暗黙に変更しない。
+2. 実Notion/Linear native認証は設定後に確認。キー値は不要で、以前の設定有無確認はfalseだった。connectorから秘密キーを取り出したり、fixtureを実認証に読み替えたりしない。
 3. 既存業務Issueと変更先repoを確定してDraft PRまで一周する。現時点のorg GitHub open Issueは空、Linearのorg/Kernel/AIカンパニー検索も空。別対象の不存在を断定せず、既存の対象指定質問を維持する。新Issue・任意の業務writeは行わない。
 4. 全体要件の他の未完了を保持し、Org Deskの未決定設計・将来Adapter・heavy GUIを勝手に確定しない。MVP証拠があっても全体目標はactive。
 
