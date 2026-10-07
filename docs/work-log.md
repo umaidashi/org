@@ -1315,3 +1315,4 @@
 - Final Ruling: 実Linear認証/サーバー挙動はfixtureと分離して未完了を維持。判断が誤れば実API固有の違いを見逃すため、資格情報設定後に実測する。
 - Final Ruling: human文字列照合を本人認証やDB所有者の直接改竄耐性と扱わない。既存ローカル権限境界と未完了要件を維持。判断が誤れば別人/DB管理者操作を同一承認と扱うため、本人認証は別途実装/受け入れる。
 - Final Ruling: 履歴回収は一致状態の観測証拠とし、継続監視/過去upsertの排他的起源証明は提供しない。判断が誤れば後の編集/削除や既存一致を実行結果保証と誤認するため、READMEに限界を明記。
+- 公開結果: 7a113c4実装＋ec033feレビュー記録をmainへfast-forwardし通常push exit0。pre-pushの対象commit検査/実Jev119.69s成功、384 pass / 12 skip / 0 fail、396 tests / 180 files / 102.69s。HEAD/origin/main同一ec033feとclean確認。当該scratchのみ削除、全Ruling/Minorはログへ保持。この公開結果追記をGit保存し、次は既存Issue明示updateを進める。全体目標active。
