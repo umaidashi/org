@@ -220,3 +220,5 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 2026-10-07 Agent外部読取Audit追記: shared scoped Linear読取の開始/終端・保存失敗・結果8fieldを原本に接続。[証拠](verification/2026-10-07-agent-linear-read-audit/)。重要操作inventoryのこのgapは検証済み。Native tool/resource permissions/実業務APIと全体は未達。
 
 2026-10-07 Codex native境界: shared start/resumeのoperative設定と独立legacy notify抑止を実Codexで確認。[証拠](verification/2026-10-07-codex-native-tool-boundary/)。imageはsource/設定以上の実読取証明なし。全tool/任意版/本人認証/全体は未達、[Sandbox完了後権限](superpowers/plans/2026-10-07-sandbox-completion-authority.md)へ続行。
+
+2026-10-07 Sandbox完了後の権限再照合: 実行開始後のhuman Approval撤回でdirect/RPC両方の成果物保存を拒否。[証拠](verification/2026-10-07-sandbox-completion-authority/) full513成功21skip0失敗534tests209files182.90秒/実Jev2382subjects欠損・エラー・劣化0。送信済みcode/秘密回収と保存原子性は別。重要操作の[棚卸し](important-operation-audit-inventory.md)に未接続項目あり、resource permissions/実業務API/全体は未達。

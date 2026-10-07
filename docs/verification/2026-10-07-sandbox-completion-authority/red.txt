@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-credentials.test.ts:
+(pass) Sandbox credential grants bind current Task owner and reject changes during lookup before invoking Docker [1.85ms]
+AssertionError: Missing expected rejection.
+ generatedMessage: false,
+     actual: undefined,
+   expected: /can_run_shell|owner\/version/,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at innerFail (node:assert:36:27)
+      at expectsError (node:assert:425:14)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+(fail) Sandbox completion rechecks capabilities and Task ownership/version after asynchronous execution [2.01ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [51.00ms]

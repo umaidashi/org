@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-credentials.test.ts:
+(pass) Sandbox credential grants bind current Task owner and reject changes during lookup before invoking Docker [1.67ms]
+(pass) Sandbox completion rechecks capabilities and Task ownership/version after asynchronous execution [0.96ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [30.00ms]

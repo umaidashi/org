@@ -113,5 +113,7 @@ export async function runGrantedSandbox<T>(
     throw new Error('Sandbox credential unavailable');
   }
   authorize();
-  return run(input, credentials);
+  const result = await run(input, credentials);
+  authorize();
+  return result;
 }

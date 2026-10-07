@@ -1927,3 +1927,14 @@
 - Fresh reviewer C0/I0/M1: marker未quote。親は空白path実検証とowned tempdir境界の堅牢性としてImportantへ再grade、RED→shell位置引数一fixpass、native1成功24.01秒、再レビューなし。Ponytail Lean/net0、image_generationは注入executor条件のため既定迂回反例なし、推測実装をskip。
 - fixture修正前full512成功19skip0失敗531tests209files183.61秒。修正後static366files/type/Oxlint/Oxfmt/非空ASTと実Jev2378subjects/missing・unsure・review・errors・degraded0、terminal0。最終commit treeの全回帰は必須pre-pushで確認する。abstract warningだけから追加実装しない。
 - [証拠](verification/2026-10-07-codex-native-tool-boundary/)。任意版/managed config/MCP/全native tool/本人認証の保証には広げない。resource permissions/重要操作inventory/実業務API/全体は未達。[Sandbox完了権限再照合](superpowers/plans/2026-10-07-sandbox-completion-authority.md)へ続行。
+
+## 2026-10-07 — Sandbox完了後の権限再照合
+
+- 前Codex unit3ad26da main push terminal0/localgate208.14秒、remote exact head確認。最終commit tree512成功19skip0失敗531tests209files184.12秒を観測し、fixture修正後の全回帰を確定。
+- [計画](superpowers/plans/2026-10-07-sandbox-completion-authority.md)を実行。実caller二つを追い、共有runGrantedSandboxの既存authorizeを非同期run完了後に呼ぶ3行修正。新store/token/wrapper/cancelengineなし。RED1成功1失敗→GREEN2成功30ms、capability/owner/version変化・安全対照。
+- 実Dockerで開始markerをowned path値で同定し、その後human Approvalをdirectでapply。direct/RPC双方のTask failed、Artifact原本/bytesなし、Audit failed/成功なし、owned container cleanupを確認。既存注入安全対照含め5成功0失敗10.96秒。
+- Ruling: 初回native3成功2失敗はfailed Audit outputRef=nullという誤期待 — 既存projectionはEvent URIなのでfixtureのみ修正 — product URL契約を無用に変更しない。最初のbranch作成はsandbox ref lock拒否、権限付きGitで成功。存在しないtest/source名の読取失敗後はrg --filesで実callerを確認。
+- 最終full terminal0: 513成功21skip0失敗534tests209files182.90秒、type/Oxlint/Oxfmt366files/非空AST/dry-run成功。実Jev2382subjects145warnings、missing/unsure/review/errors/degraded0。既存abstract warningsは具体failure guards/testsと照合、具体的反例なし。
+- Fresh reviewer C0/I0/M1、独立UT2成功。Deferred Minor: native非ゼロがtimeout等でも満たせるためstderr can_run_shell assert追加候補。unitは原因を直接検査、default defer、fixpassなし/再レビューなし。Ponytail Lean/net0、shared guardを再利用。
+- Ruling: 実行済みcode/秘密の回収と権限照合→後続保存の完全原子性を認定しない — 今回はDocker結果返却境界 — そこまで必要な実業務なら別実行契約が要る。独立reviewはnative/full/Jev/push未検証、親の結果と区別。
+- [証拠](verification/2026-10-07-sandbox-completion-authority/)を保存。[重要操作棚卸し](important-operation-audit-inventory.md)でAgent構成/Memory/Session等の原本と8field Auditを区別し、[Agent構成Audit計画](superpowers/plans/2026-10-07-agent-configuration-audit.md)へ続ける。設定有無のみ再確認: Linear/Notion CLI keysなし、Jevあり。既存業務Issue/変更先repo未指定、任意外部writeはしない。全体は未達。

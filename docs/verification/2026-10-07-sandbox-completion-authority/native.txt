@@ -1,0 +1,44 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-credentials-cli.test.ts:
+(pass) real CLI Sandbox credential grant protects artifacts direct=true [1713.13ms]
+(pass) real CLI Sandbox credential grant protects artifacts direct=false [1271.83ms]
+(pass) continuous daemon injects its host Sandbox grant into a Runtime proposal [1046.53ms]
+395 |         assert.ok(!existsSync(db + '.artifacts'), 'No artifact bytes should be saved');
+396 |         const audit = json(['audit', 'list']);
+397 |         assert.ok(Array.isArray(audit));
+398 |         const sandbox = audit.filter((entry) => entry.tool === 'sandbox.run');
+399 |         assert.equal(sandbox.length, 2);
+400 |         assert.ok(sandbox.some((entry) => entry.result === 'failed' && entry.outputRef === null));
+                     ^
+AssertionError: false == true
+ generatedMessage: true,
+     actual: false,
+   expected: true,
+   operator: "==",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/sandbox-credentials-cli.test.ts:400:16
+      at processTicksAndRejections (native:7:39)
+(fail) real Sandbox rejects completion after human capability revocation direct=true [3575.22ms]
+395 |         assert.ok(!existsSync(db + '.artifacts'), 'No artifact bytes should be saved');
+396 |         const audit = json(['audit', 'list']);
+397 |         assert.ok(Array.isArray(audit));
+398 |         const sandbox = audit.filter((entry) => entry.tool === 'sandbox.run');
+399 |         assert.equal(sandbox.length, 2);
+400 |         assert.ok(
+                     ^
+AssertionError: false == true
+ generatedMessage: true,
+     actual: false,
+   expected: true,
+   operator: "==",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/sandbox-credentials-cli.test.ts:400:16
+      at processTicksAndRejections (native:7:39)
+(fail) real Sandbox rejects completion after human capability revocation direct=false [3669.13ms]
+
+ 3 pass
+ 2 fail
+Ran 5 tests across 1 file. [11.34s]

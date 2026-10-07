@@ -104,3 +104,44 @@ test('Sandbox credential grants bind current Task owner and reject changes durin
     /credential/,
   );
 });
+
+test('Sandbox completion rechecks capabilities and Task ownership/version after asynchronous execution', async () => {
+  for (const mutation of ['capability', 'owner', 'version', 'safe']) {
+    let task = changeTask(
+      changeTask(
+        createTask(
+          { title: 'T', objective: 'O', kind: 'execution_task' },
+          { id: 'task', createdAt: 'before' },
+        ),
+        { owner: 'worker' },
+        'assigned',
+      ),
+      { status: 'running' },
+      'running',
+    );
+    let agent = createAgent(
+      { name: 'Worker', role: 'Code', runtime: 'codex', capabilities: ['can_run_shell'] },
+      { id: 'worker', createdAt: 'before' },
+    );
+    const execution = runGrantedSandbox(
+      { tasks: { get: () => task }, agents: { list: () => [agent] } },
+      {
+        getSecret: () => {
+          throw new Error('No credential grant');
+        },
+      },
+      [],
+      'task',
+      { code: 'console.log(7)', writable: false, files: [], timeoutMs: 1000, maxOutputBytes: 4096 },
+      async () => {
+        await Promise.resolve();
+        if (mutation === 'capability') agent = { ...agent, capabilities: [] };
+        if (mutation === 'owner') task = changeTask(task, { owner: 'other' }, 'changed');
+        if (mutation === 'version') task = changeTask(task, { title: 'Changed' }, 'changed');
+        return 7;
+      },
+    );
+    if (mutation === 'safe') assert.equal(await execution, 7);
+    else await assert.rejects(execution, /can_run_shell|owner\/version/);
+  }
+});
