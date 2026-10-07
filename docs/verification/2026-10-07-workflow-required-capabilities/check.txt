@@ -7,3 +7,4 @@ Final check incl input-boundary tests: 340 pass / 12 skip / 0 fail, 352tests175f
 Real Jev: subjects1762 / reported113 / missing0 / unsure0 / errors[] / degraded[], exit0. Dry-run is separate.
 Native fixture covers host publish/spend declaration, immutable Approval binding, pending no invocation, human decision, daemon restart, one invocation, delayed status-only manual/automatic observation.
 Independent review pending. No actual business publish/spend claimed; existing business Issue/repository and actual Linear/Notion credentials still pending.
+Final independent review: Critical0 / Important0 / Minor1 deferred extra-capability-only revocation test; latest-owner guards verified correct. Independent8pass59ms. Ponytail: Lean already. Ship. No rereview required.

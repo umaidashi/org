@@ -1136,3 +1136,6 @@
 - Workflow host任意requiredCapabilitiesを既存validateCapabilitiesで検証。publish/spendをread_onlyに宣言する設定はcredential lookup前に拒否。Task ownerへ全追加権限を要求し、既存Task Approval bindingへコピー保存、再開・継続観測の原本再構築にも反映。daemon callbackはhost契約を渡す。新Port/DB/dependencyなし。
 - 初回型検査でexactOptionalPropertyTypesのundefined渡しが失敗し、配列fallbackへ修正。既存DI4成功41ms、設定境界3成功29ms。全check初回339成功12skip0失敗72.34秒、追加設定境界込み最終340成功12skip0失敗352tests175files73.37秒。nativeのmanual/auto両経路も成功。実jev1762対象113warning、missing/unsure0/errors/degraded空、exit0。意味警告は補助候補であり、自動的な合格/業務承認と扱わない。
 - [検証](verification/2026-10-07-workflow-required-capabilities/check.txt)。独立最終reviewを依頼済み。実業務publish/spendの実行・業務Issue/repo・実Notion/Linear認証は未完了。
+- 独立最終review: Critical0/Important0、Minor1（追加Capabilityだけを実行前/status待機中に取り消す負系は直接検証していない）。最新owner再取得と実装guard自体は適切との判定。既存全権限失効・Task変更・契約変更・native manual/auto検証を維持し、この補強候補はdeferred。独立DI8成功0fail59ms、作者再実行8成功0fail50ms。レビューは一回で終了。
+- Ponytail review: Lean already. Ship. validator/既存owner再照合/Approval bindingを再利用し、新framework・Port・tableなし。要求配列の順序変更も契約変更として拒否する保守的仕様を選択（誤った場合のコストは新しい承認要求）。host宣言の意味をノード解析で推測する実装は追加しない。
+- Next: 全体requirementsへ再照合し、実務のDraft PRに必要な既存Issue/repoの指定待ちと区別しながら、未完了のローカル実行・復旧経路を進める。今回のWorkflow fixtureを実業務publish/spend完了とは主張しない。
