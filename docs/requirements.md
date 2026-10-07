@@ -53,6 +53,10 @@
 
 実サービスの資格情報が不足する場合は、ローカル実装とcontract testsを進め、実サービスで未検証の部分を分けて記録する。モックの成功を実サービスの成功とは扱わない。
 
+## 2026-10-07 Notion追加設計の照合
+
+[Org Desk](https://app.notion.com/p/3f28a4020cb6817ba677e241ac8b1a71)（編集2026-10-07）はAgent単位の閲覧専用read modelの設計中資料。並行Sessionの現在・時系列履歴・元Task/Room/Artifactへの参照、鮮度不明を元Task状態と分離する方向を確認した。閲覧権限、鮮度閾値、生存確認、画面提供範囲、正式schemaは未決定。実装済みとは扱わず、未決定の案を確定要件にしない。既存の原本と状態機械を増やさず参照する方針を維持する。
+
 ## 対象外（Notionに明記）
 
 重いGUI、独自LLM provider、独自vector DB、Kafka等の大規模基盤、独自Workflow designer、完全な外部A2A protocol。NATS/Redisは必要性が確認できた時にAdapterとして追加する。

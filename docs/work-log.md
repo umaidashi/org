@@ -1231,3 +1231,5 @@
 - GREEN既存Sandbox+native4成功5.15秒、通常元内容/再関連付けURI/実行counter一回を確認。DB不要DI3成功25ms、Unicode・slashのID、正規URI round-trip、不正query/fragment/percent、別Task/Room、原本欠落、storage障害伝播を確認。
 - 最終check356成功12skip0失敗368tests176files94.64秒、型/Oxlint/Oxfmt315files/AST/非空plan成功exit0。実jev1807対象114warning、missing/unsure0/errors/degraded空exit0。変更したservice/UTのJev候補なし。[検証](verification/2026-10-07-runtime-room-artifact-content/check.txt)。
 - 独立review Critical0/Important0/Minor0、関連テスト4成功75ms。Ponytail: Lean already. Ship. 既存Room PortとTask artifactsを再利用し、新table/registry/外部fetch/依存は不要と判断。READMEと要件書へ検証済み範囲を反映。全体目標は実業務Issue/Draft PR、外部native認証、一般tool loop/Scheduler cron等が残りactive。
+- Notion親ページを再取得（編集2026-10-07）し、追加のOrg Desk設計を確認。Agentごとの閲覧専用read model/並行Session/時系列原本参照を要件照合へ追記。閲覧権限・鮮度閾値・提供画面・正式schemaは未決定のため、推測で確定/実装しない。原文snapshotは新規保存・Jev送信しない。native Notion/Linearのキーは値を出さず設定有無だけ再確認し、両方未設定。
+- 5b89b64をmainへffし、pre-push全gate110.88秒で通常remote push成功。今回のNotion追加照合は文書のみ。Ponytail: Lean already. Ship. Desk専用table/権限/鮮度設定/画面を先行追加せず、未決定範囲を明記した。正しさは取得した設計の確定事項と設計案を分けて照合した。
