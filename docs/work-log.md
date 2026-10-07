@@ -1210,3 +1210,14 @@
 - Review fix GREEN2成功2.68秒、Room接続を一回解放し正常復旧経路も維持。一回のfix pass後の最終check353成功12skip0失敗365tests176files91.36秒、型/Oxlint/Oxfmt315files/ASTと非空review plan成功、exit0。実jev1795対象115warning、missing/unsure0/errors/degraded空、exit0。[検証](verification/2026-10-07-task-runtime-result-reference/check.txt)。
 - JevのrecoverExecutionTaskResult名前候補は、ここでの復旧が明示blocked結果の再関連付けでありRuntime再実行ではないという実装/CLI/READMEの契約に照合して据置。failure-path候補は具体的DI/native/実初期化障害と独立source確認で判定し、全DB障害を再現したとは主張しない。
 - Next: Taskのblocked記録も失敗してrunningが残る場合、保存済み通常返信の実行参照を使い起動時に結果保存待ちへ回復する経路を検証する。原本がない旧/不確定実行を推測で再実行しない。Sandbox結果/一般retry/実務Issue・repo→Draft PR/実API認証などは引き続き未完了。
+
+
+### 2026-10-07 保存済み応答があるrunning Taskの起動時復旧
+
+- 全体目標達成まで継続という依頼を維持。前変更1a16b50の通常main push成功108.93秒。実業務対象は未指定で、orgの既存open Issue一覧は空だった。全体完了とはしない。
+- [計画](superpowers/plans/2026-10-07-interrupted-runtime-result-recovery.md)。native RED2成功1失敗4.50秒、Artifact保存とblocked更新の障害後、元返信があるrunning Taskが起動時failedになる。DI RED2成功1失敗48ms、既存復旧関数が保存結果判定を使わない。
+- 既存running復旧へDI判定を渡し、明示recover-resultと原本検証を共有する。別の復旧ループ/table/Portは作らない。共有化の初回テスト4成功3失敗3.70秒でstatus定数の誤置換を検出し、blocked定数を復元。型検査成功のみを先行確認、全検証は継続中。
+- targeted GREEN7成功0失敗4.97秒。追加DI1成功27msで一意原本、原本なし/旧version除外、複数原本拒否、不正marker拒否、blocked候補除外と副作用なしを確認。初回全checkは非null断言lintで停止し、明示guardへ修正した。
+- 最終check355成功12skip0失敗367tests176files93.93秒、型/Oxlint/Oxfmt315files/AST/非空plan成功exit0。実jev1803対象114warning、missing/unsure0/errors/degraded空exit0。[検証](verification/2026-10-07-interrupted-runtime-result-recovery/check.txt)。Jevの復旧failure-path候補は原本/旧参照/曖昧性/変更履歴/stage/CASのDI・実CLIで照合。全DB停止やすべてのStorage例外を網羅した保証とはしない。
+- 独立review Critical0/Important0/Minor1（要件書の一般running→failedと未完了記述が古い）。検証後に更新。Ponytail: Lean already. Ship. 既存復旧callbackと二経路の共有原本照合を維持し、別ループ/新Portは不要と判断。
+- Next:通常Runtimeのorg://rooms成果物はtask artifact-contentがSandbox blob専用のため読めない。Task/Room/原本参照の検証を保つ小さなCLI e2eへ進む。実業務Issue/Draft PR/外部native認証/一般retry等が残り、全体目標はactive。

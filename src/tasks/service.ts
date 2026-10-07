@@ -4,10 +4,16 @@ import type { TaskProvider } from './port.js';
 export function recoverInterruptedExecutionTasks(
   provider: Pick<TaskProvider, 'list' | 'update'>,
   now: () => string,
+  pendingResult?: (task: Task) => boolean,
 ): void {
   for (const task of provider.list({ kind: 'execution_task', status: 'running' })) {
     if (task.kind === 'execution_task' && task.status === 'running')
-      provider.update(task.id, { status: 'failed' }, now(), task.version);
+      provider.update(
+        task.id,
+        { status: pendingResult?.(task) ? 'blocked' : 'failed' },
+        now(),
+        task.version,
+      );
   }
 }
 export function assignTask(

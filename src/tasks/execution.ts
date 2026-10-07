@@ -6,6 +6,87 @@ import type { RoomRepository } from '../rooms/port.js';
 import type { Message } from '../rooms/domain.js';
 import { changeTask } from './domain.js';
 import { isDeepStrictEqual } from 'node:util';
+function verifyExecutionTaskResult(
+  tasks: Pick<TaskProvider, 'get' | 'history'>,
+  sessions: Pick<SessionStore, 'get'>,
+  rooms: Pick<RoomRepository, 'get' | 'messages'>,
+  input: {
+    readonly taskId: string;
+    readonly sessionId: string;
+    readonly messageId: string;
+    readonly expectedVersion: number;
+  },
+  phase: 'running' | 'blocked',
+) {
+  const current = tasks.get(input.taskId);
+  if (
+    current.kind !== 'execution_task' ||
+    current.status !== phase ||
+    current.owner === null ||
+    current.version !== input.expectedVersion ||
+    current.outputArtifacts.length !== 0
+  )
+    throw new Error('Result recovery requires current matching ExecutionTask');
+  const session = sessions.get(input.sessionId);
+  const room = rooms.get(session.roomId);
+  if (
+    session.agentId !== current.owner ||
+    session.status === 'running' ||
+    room.type !== 'task' ||
+    room.taskId !== current.id ||
+    room.id !== session.roomId ||
+    room.archivedAt !== null ||
+    !room.participants.some((p) => p.kind === 'agent' && p.id === current.owner)
+  )
+    throw new Error('Result recovery requires original Session and active Task Room');
+  const messages = rooms.messages(room.id);
+  const message = messages.find((m) => m.id === input.messageId && m.roomId === room.id);
+  const reference = message?.metadata.taskExecution;
+  if (
+    !message ||
+    message.sender.kind !== 'agent' ||
+    message.sender.id !== current.owner ||
+    message.metadata.sessionId !== session.id ||
+    message.replyTo === null ||
+    !messages.some((m) => m.id === message.replyTo && m.roomId === room.id) ||
+    reference === null ||
+    typeof reference !== 'object' ||
+    Array.isArray(reference) ||
+    Object.keys(reference).some((k) => !['taskId', 'version'].includes(k)) ||
+    !('taskId' in reference) ||
+    reference.taskId !== current.id ||
+    !('version' in reference) ||
+    typeof reference.version !== 'number' ||
+    !Number.isSafeInteger(reference.version) ||
+    reference.version < 1
+  )
+    throw new Error('Task result execution reference missing or mismatched');
+  const history = tasks.history(current.id);
+  const index = history.findIndex((h) => h.version === reference.version);
+  let previous = history[index]?.task;
+  if (
+    !previous ||
+    previous.id !== current.id ||
+    previous.version !== reference.version ||
+    previous.status !== 'running' ||
+    previous.owner !== current.owner ||
+    previous.outputArtifacts.length !== 0 ||
+    !isDeepStrictEqual(history.at(-1)?.task, current)
+  )
+    throw new Error('Task result execution history missing');
+  for (const entry of history.slice(index + 1)) {
+    if (
+      !['blocked', 'running'].includes(entry.status) ||
+      entry.version !== entry.task.version ||
+      !isDeepStrictEqual(changeTask(previous, { status: entry.status }, entry.at), entry.task)
+    )
+      throw new Error('Task result snapshot changed since execution');
+    previous = entry.task;
+  }
+  if (current.dependencies.some((id) => tasks.get(id).status !== 'completed'))
+    throw new Error('Task dependencies are not complete');
+  return { task: current, message, room };
+}
 export function recoverExecutionTaskResult(
   tasks: Pick<TaskProvider, 'get' | 'history' | 'update'> & ExecutionResultWriter,
   sessions: Pick<SessionStore, 'get'>,
@@ -18,73 +99,11 @@ export function recoverExecutionTaskResult(
   },
   now: () => string,
 ): Task {
-  const blocked = tasks.get(input.taskId);
-  if (
-    blocked.kind !== 'execution_task' ||
-    blocked.status !== 'blocked' ||
-    blocked.owner === null ||
-    blocked.version !== input.expectedVersion ||
-    blocked.outputArtifacts.length !== 0
-  )
-    throw new Error('Result recovery requires current blocked ExecutionTask');
-  const session = sessions.get(input.sessionId);
-  const room = rooms.get(session.roomId);
-  if (
-    session.agentId !== blocked.owner ||
-    session.status === 'running' ||
-    room.type !== 'task' ||
-    room.taskId !== blocked.id ||
-    room.id !== session.roomId ||
-    room.archivedAt !== null ||
-    !room.participants.some((p) => p.kind === 'agent' && p.id === blocked.owner)
-  )
-    throw new Error('Result recovery requires original Session and active Task Room');
-  const messages = rooms.messages(room.id);
-  const message = messages.find((m) => m.id === input.messageId && m.roomId === room.id);
-  const reference = message?.metadata.taskExecution;
-  if (
-    !message ||
-    message.sender.kind !== 'agent' ||
-    message.sender.id !== blocked.owner ||
-    message.metadata.sessionId !== session.id ||
-    message.replyTo === null ||
-    !messages.some((m) => m.id === message.replyTo && m.roomId === room.id) ||
-    reference === null ||
-    typeof reference !== 'object' ||
-    Array.isArray(reference) ||
-    Object.keys(reference).some((k) => !['taskId', 'version'].includes(k)) ||
-    !('taskId' in reference) ||
-    reference.taskId !== blocked.id ||
-    !('version' in reference) ||
-    typeof reference.version !== 'number' ||
-    !Number.isSafeInteger(reference.version) ||
-    reference.version < 1
-  )
-    throw new Error('Task result execution reference missing or mismatched');
-  const history = tasks.history(blocked.id);
-  const index = history.findIndex((h) => h.version === reference.version);
-  let previous = history[index]?.task;
-  if (
-    !previous ||
-    previous.id !== blocked.id ||
-    previous.version !== reference.version ||
-    previous.status !== 'running' ||
-    previous.owner !== blocked.owner ||
-    previous.outputArtifacts.length !== 0 ||
-    !isDeepStrictEqual(history.at(-1)?.task, blocked)
-  )
-    throw new Error('Task result execution history missing');
-  for (const entry of history.slice(index + 1)) {
-    if (
-      !['blocked', 'running'].includes(entry.status) ||
-      entry.version !== entry.task.version ||
-      !isDeepStrictEqual(changeTask(previous, { status: entry.status }, entry.at), entry.task)
-    )
-      throw new Error('Task result snapshot changed since execution');
-    previous = entry.task;
-  }
-  if (blocked.dependencies.some((id) => tasks.get(id).status !== 'completed'))
-    throw new Error('Task dependencies are not complete');
+  const {
+    task: blocked,
+    message,
+    room,
+  } = verifyExecutionTaskResult(tasks, sessions, rooms, input, 'blocked');
   const running = tasks.update(blocked.id, { status: 'running' }, now(), blocked.version);
   try {
     return stagePendingExecutionResult(tasks, running, {
@@ -103,6 +122,56 @@ export function recoverExecutionTaskResult(
     }
     throw error;
   }
+}
+export function hasVerifiedInterruptedTaskResult(
+  tasks: Pick<TaskProvider, 'get' | 'history'>,
+  sessions: Pick<SessionStore, 'get'>,
+  rooms: Pick<RoomRepository, 'list' | 'get' | 'messages'>,
+  task: Task,
+): boolean {
+  if (
+    task.kind !== 'execution_task' ||
+    task.status !== 'running' ||
+    task.owner === null ||
+    task.outputArtifacts.length !== 0
+  )
+    return false;
+  // ponytail: scan local Room history; add an indexed result-reference query if startup cost warrants it.
+  const candidates = rooms
+    .list()
+    .filter((room) => room.type === 'task' && room.taskId === task.id)
+    .flatMap((room) => rooms.messages(room.id))
+    .filter((message) => {
+      const reference = message.metadata.taskExecution;
+      return (
+        reference !== null &&
+        typeof reference === 'object' &&
+        !Array.isArray(reference) &&
+        'taskId' in reference &&
+        reference.taskId === task.id &&
+        'version' in reference &&
+        reference.version === task.version
+      );
+    });
+  if (candidates.length === 0) return false;
+  if (candidates.length !== 1) throw new Error('Interrupted Task result is ambiguous');
+  const message = candidates[0];
+  if (!message) throw new Error('Interrupted Task result missing');
+  if (typeof message.metadata.sessionId !== 'string')
+    throw new Error('Task result Session reference missing');
+  verifyExecutionTaskResult(
+    tasks,
+    sessions,
+    rooms,
+    {
+      taskId: task.id,
+      sessionId: message.metadata.sessionId,
+      messageId: message.id,
+      expectedVersion: task.version,
+    },
+    'running',
+  );
+  return true;
 }
 export function stagePendingExecutionResult(
   provider: ExecutionResultWriter,

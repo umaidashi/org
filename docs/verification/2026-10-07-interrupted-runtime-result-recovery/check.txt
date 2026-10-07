@@ -1,0 +1,9 @@
+Local verification (2026-10-07)
+RED: native 2 pass / 1 fail, 4.50s; DI 2 pass / 1 fail, 48ms.
+Targeted GREEN: 7 pass / 0 fail, 4.97s; saved-proof DI 1 pass / 0 fail, 27ms.
+Final bun run check: 355 pass / 12 skip / 0 fail, 367 tests, 176 files, 93.93s, exit 0.
+Typecheck / Oxlint / Oxfmt 315 files / AST / nonempty Jev dry-run: success.
+Actual Jev: 1803 subjects, 114 warnings, missing 0, unsure 0, errors [], degraded [], exit 0.
+Fresh correctness/security review: Critical 0 / Important 0 / Minor 1 (requirements wording, updated).
+Ponytail: Lean already. Ship. No new table, Port, dependency or parallel recovery loop.
+Scope: owned local fixtures; not actual external business Issue acceptance or all-storage crash durability.

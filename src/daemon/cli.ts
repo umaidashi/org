@@ -35,7 +35,7 @@ import {
 } from '../a2a/service.js';
 import { acquireDatabaseLease } from './lease.js';
 import type { DatabaseLease } from './lease.js';
-import { runExecutionTask } from '../tasks/execution.js';
+import { runExecutionTask, hasVerifiedInterruptedTaskResult } from '../tasks/execution.js';
 import { recoverInterruptedExecutionTasks } from '../tasks/service.js';
 import { SqliteMemoryProvider } from '../memory/sqlite.js';
 import { projectReviewedTaskMemories } from '../memory/reviews.js';
@@ -276,7 +276,11 @@ function openOperations(
     runtime.recover();
     recoverWakeups(wakeupJournal, () => new Date().toISOString());
     recoverInterruptedTaskWorkflows(taskProvider, eventBus, () => new Date().toISOString());
-    recoverInterruptedExecutionTasks(taskProvider, () => new Date().toISOString());
+    recoverInterruptedExecutionTasks(
+      taskProvider,
+      () => new Date().toISOString(),
+      (task) => hasVerifiedInterruptedTaskResult(taskProvider, sessionStore, roomRepository, task),
+    );
     const activate = async (roomId: string, messageId: string) => {
       const source = roomRepository.messages(roomId).find((m) => m.id === messageId);
       if (source && 'a2a' in source.metadata) {

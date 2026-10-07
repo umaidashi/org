@@ -1,0 +1,8 @@
+# runningが残る通常Runtime結果の起動時復旧
+
+1. 既存native Session/Task fixtureへ、Artifact INSERTとblocked状態UPDATEの両方を拒否する所有SQLite障害を追加。元返信が保存されてもrunningのまま残り、修復後の起動でfailedとなるREDを確認する。
+2. 明示recover-resultの原本/履歴検証を、実際の2経路で共有する。起動時は現在runningと同versionの通常返信を一意に検証し、CASでblockedへ戻す。既存の一般復旧へ判定callbackを渡し、保存結果がある場合だけblockedを選び、Runtime/成果物の自動再実行はしない。
+3. markerなし/別version/WorkItem/reviewは従来復旧を維持。曖昧な複数原本や読み書き障害を握りつぶさず起動へ伝播する。依存やRoom/Session/ownerの照合は省略しない。
+4. 同DB/socket再起動→明示元返信再関連付け→人間review、counter一回/原本不変を実CLIで確認。DIで候補除外・曖昧性・CAS障害を検証。全check/実jev/独立Ponytail reviewとGit記録を行う。
+
+新table/Port/自動retry frameworkは追加しない。保存済み原本がない未確認Runtime turnは推測で再実行しない。全DB障害や停電耐久性の保証と、検証可能な通常返信の復旧を区別する。

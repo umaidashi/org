@@ -3,7 +3,11 @@ import { test } from 'bun:test';
 import { createTask, changeTask, attachArtifact } from '../src/tasks/domain.js';
 import { createRoom, createMessage } from '../src/rooms/domain.js';
 import { createSession } from '../src/sessions/domain.js';
-import { recoverExecutionTaskResult, TaskResultPendingError } from '../src/tasks/execution.js';
+import {
+  recoverExecutionTaskResult,
+  hasVerifiedInterruptedTaskResult,
+  TaskResultPendingError,
+} from '../src/tasks/execution.js';
 test('Runtime result recovery rejects altered evidence and retries only staging with original CAS', () => {
   const running = changeTask(
     changeTask(
@@ -89,6 +93,45 @@ test('Runtime result recovery rejects altered evidence and retries only staging 
       return current;
     },
   };
+  current = running;
+  const blockedHistory = history;
+  history = history.slice(0, 1);
+  let saved = [source, reply];
+  const hasResult = () =>
+    hasVerifiedInterruptedTaskResult(
+      tasks,
+      { get: () => session },
+      { list: () => [room], get: () => room, messages: () => saved },
+      current,
+    );
+  assert.equal(hasResult(), true);
+  saved = [source];
+  assert.equal(hasResult(), false);
+  saved = [
+    source,
+    {
+      ...reply,
+      metadata: { sessionId: 's', taskExecution: { taskId: 't', version: running.version - 1 } },
+    },
+  ];
+  assert.equal(hasResult(), false);
+  saved = [source, reply, { ...reply, id: 'duplicate' }];
+  assert.throws(hasResult, /ambiguous/);
+  saved = [
+    source,
+    {
+      ...reply,
+      metadata: {
+        sessionId: 's',
+        taskExecution: { taskId: 't', version: running.version, extra: true },
+      },
+    },
+  ];
+  assert.throws(hasResult, /reference/);
+  current = blocked;
+  history = blockedHistory;
+  assert.equal(hasResult(), false);
+  assert.equal(stages, 0);
   const recover = (version = current.version) =>
     recoverExecutionTaskResult(
       tasks,
