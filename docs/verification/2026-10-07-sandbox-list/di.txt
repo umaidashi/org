@@ -1,0 +1,10 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-jobs.test.ts:
+(pass) Sandbox slot cancels only its Task, drains before shutdown and rejects new launches [2.28ms]
+(pass) Sandbox slot releases a failed job so a later Task can run [0.51ms]
+(pass) Sandbox list accepts no target or execution options and refuses direct execution without touching Docker [0.30ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 1 file. [44.00ms]

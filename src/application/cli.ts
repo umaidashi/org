@@ -58,6 +58,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
        org sandbox artifact URI
        org sandbox cancel TASK_ID
+       org sandbox list [--json]
        org workflow run|status|cancel|list|history [OPTIONS]
        org schedule create|list|get|enable|disable [OPTIONS]
        org knowledge notion PAGE_ID [--room ROOM --human HUMAN] [--json]

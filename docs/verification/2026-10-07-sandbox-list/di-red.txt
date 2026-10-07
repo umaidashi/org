@@ -1,0 +1,19 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-jobs.test.ts:
+1 | import assert from 'node:assert/strict';
+2 | import { test } from 'bun:test';
+3 | import { SandboxJobs } from '../src/sandbox/jobs.js';
+4 | test('Sandbox slot cancels only its Task, drains before shutdown and rejects new launches', async () => {
+5 |   const jobs = new SandboxJobs();
+6 |   assert.deepEqual(jobs.list(), []);
+                            ^
+TypeError: jobs.list is not a function. (In 'jobs.list()', 'jobs.list' is undefined)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/sandbox-jobs.test.ts:6:25)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/sandbox-jobs.test.ts:4:93)
+(fail) Sandbox slot cancels only its Task, drains before shutdown and rejects new launches [0.53ms]
+(pass) Sandbox slot releases a failed job so a later Task can run [0.91ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [139.00ms]

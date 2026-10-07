@@ -113,7 +113,7 @@ CLIの原文は例示だが、例示した操作の提供有無を省略しな�
 | task list/assign | Task parser/CLI tests | 検証 |
 | workflow run --input | Workflow parserとJSON入力、Approval/native tests | 検証。任意業務Workflow実機は別 |
 | event publish --data | Event parser/CLI、JSON payload | 検証。必須sourceを追加指定 |
-| sandbox list | run/cancel/artifactはあるがlistなし | 実行中Sandbox一覧のCLI gap |
+| sandbox list | `sandbox/jobs.ts`、daemon composition、実Docker CLI/DI | daemon所有jobのrunning/cancelling snapshotを検証済み。direct/Docker全container/別daemon/終了履歴の一覧は対象外 |
 | logs tail AGENT | logs/audit listのTask/Event filterはあるがAgent tailなし | filter/追従のCLI gap |
 | org tui:Agents/Rooms/Tasks/Events | `tui/monitor.ts`、Session状態別counts、monitor/CLI/Room chat tests | 監視と対話あり。対話TTYの全操作実機証拠は未確認 |
 | thin client/local API/socket | daemon client/server、0600、PID/lease/inode、client/native tests | 検証。RPC/人間本人認証は未達 |
@@ -181,3 +181,7 @@ Local/Linearの実AsyncTaskProvider.updateを同じawait consumerとCLI/direct/d
 ## 2026-10-07 共通Core comment/artifact
 
 残二操作をAsyncTaskProviderと同じawait consumer/CLI/daemonに接続し、Local CAS原本/history rollback、Linear承認・Core ID/原本照合・credential取得前後metadata変更拒否・各一回/再送禁止・reopenを検証。[全gate](verification/2026-10-07-common-task-comment-artifact/check.txt):473成功/14skip/0失敗、487tests/197files165.42秒。実Jev2235subjects/missing・errors・degraded0。共通六操作の実接続は確認済み、実API/本人認証/全重要Audit/Memory残件/実業務納品を完了にしない。
+
+## 2026-10-07 daemon Sandbox list
+
+既存one-slot jobsとrunSandbox DIへread-only listを接続。idle/running/cancelling/解放後空、private lifecycle非公開、direct/余剰/実行option拒否を確認。[実Docker](verification/2026-10-07-sandbox-list/native-docker.txt):5成功/0失敗9.04秒。[全gate](verification/2026-10-07-sandbox-list/check.txt):474成功/14skip/0失敗488tests/197files167.28秒。実Jev2237subjects/missing・errors・degraded0。狭いCLI gapの充足で、本人認証/全重要Audit/Memory/実業務納品/全体完成を変更しない。

@@ -107,3 +107,7 @@ selected fieldsへtitle/descriptionを追加し、状態・担当・labels・pri
 ## 2026-10-07 共通TaskProvider六操作
 
 comment/artifactをLocal/Linear両Adapterと実await consumerへ接続。Localは同transactionでversion照合・原本保存、Linearは明示stage/承認対象一致・既存engineのreceiptを返し、隠れたLocal書込なし。取得中原本変更/NULを拒否、未承認・不一致送信ゼロ/再送禁止/reopenをDI/実CLI/daemon/HTTP/SQLiteで確認。[全gate](verification/2026-10-07-common-task-comment-artifact/check.txt):473成功/14skip/0失敗、実Jev2235subjects/missing・errors・degraded0。六操作の実接続は達成、実API/本人認証/全重要Audit/全Memory policy・source/実業務納品などの全体残件は未達。
+
+## 2026-10-07 Sandbox一覧CLI
+
+`org sandbox list`を既存daemonの一slot jobへ接続。実Docker idle→running→cancel/drain後空とSIGINT cleanup、DI cancelling/返却snapshot不変・direct/余剰option拒否を確認。[証拠](verification/2026-10-07-sandbox-list/)全gate474成功/14skip/0失敗、実Docker5成功、実Jev2237subjects/欠損・エラー・劣化0。Docker全container/終了履歴を示さず、他の全体残件は未達。次は[Agent log tail計画](superpowers/plans/2026-10-07-agent-log-tail.md)。

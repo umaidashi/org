@@ -1639,3 +1639,18 @@
 
 - 最終全check終了0:473成功/14skip/0失敗、487tests/197files165.42秒、static350files/AST成功。実Jev2235subjects/136warning/missing0/unsure0/review0/errors[]/degraded[]、直前dry-run対象確認済みでexcluded/undeclared/idleLanguages/silentRules0。fast UT166成功/56files326ms、native関連10成功/3files9.89秒。[証拠](verification/2026-10-07-common-task-comment-artifact/)保存、旧全体残件を維持。新Jevのvalidator失敗経路候補はnative/DI/SQLiteの実否定fixtureと独立reviewで評価し、ルール採点だけで新frameworkを追加しない。
 - 次のCLI確認でNotion07を既知snapshot IDから再取得成功（編集2026-10-04/verification unverified/切詰めなし）。先行リクエストは誤ったIDでvalidation_error、成果に数えず既知IDに訂正。raw snapshotは新証拠/Jevへ追加しない。
+
+## 2026-10-07 sandbox listの実CLI
+
+- Notion07と[最小一覧計画](superpowers/plans/2026-10-07-sandbox-list.md)に従い、既存SandboxJobs/private activeとthin clientを再利用。指針/リファレンス/quality-review/Ponytailを継続。全体goalはactive。
+- 実Docker29.4.0稼働確認。native RED1成功/1失敗2tests762ms（daemon sandbox list未対応で終了2）、job DI RED1成功/1失敗2tests139ms（list methodなし）。最小projectionと既存runSandbox compositionへlistを接続。初回実Docker GREEN4成功/0失敗2files8.90秒（idle/running/cancel後空と既存SIGINT cleanup）、static350files/AST終了0。追加DI3成功/0失敗44ms、cancelling/返却snapshot不変、target/実行option拒否・direct daemon必須を確認。
+- Ruling:一覧はdaemonが現在所有する一slot jobだけ — Task状態/Docker全container/別daemon/終了履歴を混同せず、taskIdとrunning/cancellingだけを返す — 誤ると全sandbox資源を監視できると誤認する。directはdaemon必須として失敗、追加DB/DDL/Docker psなし。
+- Ponytail review:既存runSandbox DI callbackをそのまま再利用し、新しいlist専用Port/Adapter/registryを作らない。controller/signal/completionの公開なし。削減候補なし、正しさ/安全性の独立reviewと全gateは続ける。
+- 前単位common six-operationのmain通常ff/push終了0、公開e9af6da、公開時点main/origin/main一致。Lefthook push対象全gate/実Jev成功186.81秒、forceなし。その後sandbox-list差分を専用featureへ移動。
+- 最終実Docker fixtureのdirect検査が旧run helperの--socketと相互排他になり終了2（4成功/1失敗）だったため、directをsocketなしの別プロセスに訂正。productのdaemon必須拒否は変更せず、nativeを再実行。
+- 独立最終review:Critical0/Important0/Minor0、focusedDI3成功/0失敗34ms、Ponytail Lean already/削減候補なし。C/I fix pass・再reviewなし。
+- Final: Ruling:実Docker/SIGINT/fullgate/実Jevは親terminal実測だけ — reviewerの未実行を成功へ数えない — 誤るとcleanup/退行検証を誤認する。
+- Final: Ruling:Notion07は親が原文再取得して計画に照合 — reviewerはその計画/ログをレビューし、原文再取得を重複しない — 誤ると原文との一致を独立確認済みと誤認する。
+- Final: Ruling:本人認証/全重要Audit/全Memory policy・source/実業務納品/全体完成は未達 — 狭いlist動作で完了にしない — 誤ると未納品業務を完成と誤認する。
+
+- 最終実Docker5成功/0失敗2files9.04秒。最終fullcheck終了0:474成功/14skip/0失敗488tests/197files167.28秒。native direct fixture訂正後の最終static350files/ASTも終了0、実Jev再実行終了0:2237subjects/136warning/missing0/unsure0/review0/errors[]/degraded[]、dry-run excluded/undeclared/idleLanguages/silentRules0。[証拠](verification/2026-10-07-sandbox-list/)保存。標準gateのDocker skipを成功にせず、実Docker別実測を区別。次の[Agent tail計画](superpowers/plans/2026-10-07-agent-log-tail.md)を保存、他人の操作を現在Task ownerへ付け替えないactor filterから小さく進める。

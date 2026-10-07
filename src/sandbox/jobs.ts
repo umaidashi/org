@@ -8,6 +8,16 @@ export class SandboxJobs {
       }
     | undefined;
   private closed = false;
+  list(): readonly { readonly taskId: string; readonly state: 'running' | 'cancelling' }[] {
+    return this.active
+      ? [
+          {
+            taskId: this.active.taskId,
+            state: this.active.controller.signal.aborted ? 'cancelling' : 'running',
+          },
+        ]
+      : [];
+  }
   async run(taskId: string, work: (signal: AbortSignal) => Promise<void>): Promise<void> {
     if (this.closed) throw new Error('Sandbox jobs are shut down');
     // ponytail: one Docker slot, use a bounded pool only when measured throughput requires it.

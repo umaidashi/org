@@ -745,6 +745,8 @@ function openOperations(
           },
           cancelSandbox: (taskId) => sandboxJobs.cancel(taskId),
           runSandbox: async (command) => {
+            if (command.action === 'list')
+              return JSON.stringify(sandboxJobs.list(), null, command.json ? undefined : 2);
             const output: string[] = [];
             if (command.action === 'run')
               await sandboxJobs.run(command.taskId, (signal) =>

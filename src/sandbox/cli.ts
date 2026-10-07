@@ -24,6 +24,7 @@ export type SandboxCommand = { readonly db: string; readonly json: boolean } & (
     ))
   | { readonly action: 'artifact'; readonly uri: string }
   | { readonly action: 'cancel'; readonly taskId: string }
+  | { readonly action: 'list' }
 );
 export function parseSandboxCommand(argv: string[]): SandboxCommand {
   const parsed = parseArgs({
@@ -43,11 +44,20 @@ export function parseSandboxCommand(argv: string[]): SandboxCommand {
     },
   });
   const [noun, action, target, ...extra] = parsed.positionals;
-  if (noun !== 'sandbox' || extra.length || !target?.trim())
+  if (noun !== 'sandbox' || extra.length || (action !== 'list' && !target?.trim()))
     throw new Error('Expected sandbox run TASK --code TS or sandbox artifact URI');
   const db = parsed.values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim() || db === ':memory:') throw new Error('Sandbox requires persistent DB');
   const base = { db, json: parsed.values.json ?? false };
+  if (action === 'list') {
+    if (
+      target !== undefined ||
+      Object.keys(parsed.values).some((key) => !['db', 'json'].includes(key))
+    )
+      throw new Error('Unexpected sandbox list argument');
+    return { ...base, action };
+  }
+  if (!target) throw new Error('Sandbox target required');
   if (action === 'cancel') {
     for (const key of Object.keys(parsed.values))
       if (!['db', 'json'].includes(key)) throw new Error(`Unexpected --${key}`);
@@ -84,7 +94,8 @@ export async function runSandboxCommand(
   output: (line: string) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  if (command.action === 'cancel') throw new Error('Sandbox cancel requires daemon');
+  if (command.action === 'cancel' || command.action === 'list')
+    throw new Error('Sandbox list/cancel requires daemon');
   const directory = command.db + '.artifacts';
   if (command.action === 'artifact') {
     output(await readSandboxArtifact(directory, command.uri));

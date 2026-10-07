@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
+import { parseSandboxCommand, runSandboxCommand } from '../src/sandbox/cli.js';
 import { SandboxJobs } from '../src/sandbox/jobs.js';
 test('Sandbox slot cancels only its Task, drains before shutdown and rejects new launches', async () => {
   const jobs = new SandboxJobs();
+  assert.deepEqual(jobs.list(), []);
   let stopped = false;
   const active = jobs.run('task', async (signal) => {
     await new Promise<void>((resolve) =>
@@ -17,8 +19,13 @@ test('Sandbox slot cancels only its Task, drains before shutdown and rejects new
   );
   assert.throws(() => jobs.cancel('other'), /not running/);
   assert.equal(stopped, false);
+  const snapshot = jobs.list();
+  assert.deepEqual(snapshot, [{ taskId: 'task', state: 'running' }]);
   jobs.cancel('task');
+  assert.deepEqual(snapshot, [{ taskId: 'task', state: 'running' }]);
+  assert.deepEqual(jobs.list(), [{ taskId: 'task', state: 'cancelling' }]);
   await active;
+  assert.deepEqual(jobs.list(), []);
   assert.equal(stopped, true);
   const running = jobs.run('second', async (signal) => {
     await new Promise<void>((resolve) =>
@@ -58,4 +65,29 @@ test('Sandbox slot releases a failed job so a later Task can run', async () => {
   await Promise.resolve();
   await assert.rejects(failing.shutdown(), /cleanup failure/);
   await failure;
+});
+
+test('Sandbox list accepts no target or execution options and refuses direct execution without touching Docker', async () => {
+  const command = parseSandboxCommand([
+    'sandbox',
+    'list',
+    '--db',
+    '/tmp/org-sandbox-list-parse.db',
+    '--json',
+  ]);
+  assert.equal(command.action, 'list');
+  for (const args of [
+    ['sandbox', 'list', 'task'],
+    ['sandbox', 'list', '--code', 'secret'],
+    ['sandbox', 'list', '--repo', '/tmp'],
+    ['sandbox', 'list', '--timeout-ms', '1'],
+  ])
+    assert.throws(() => parseSandboxCommand(args));
+  await assert.rejects(
+    () =>
+      runSandboxCommand(command, () => {
+        throw Error('unexpected output');
+      }),
+    /requires daemon/,
+  );
 });

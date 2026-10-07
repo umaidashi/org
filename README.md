@@ -878,3 +878,7 @@ Linearコメントは既存`task request-linear-comment`→`approval decide`の�
 Linear成果物はLocalで明示stage済みのoutputが必要です。既存`task request-linear-artifact`→`approval decide`の後、`task artifact --provider linear`へ同じartifact ID/URI/createdAt、actor/versionと`--title TITLE --approval APPROVAL_ID`を渡します。input、未stage、原本不一致を送信前に拒否し、結果`{task, reference}`は元Taskとconfirmed receipt IDを返します。外部操作はTask versionを変えません。created-atはCore metadataであり外部の作成時刻を示しません。
 
 応答不明やreceipt保存障害では、既存の`task observe-linear-comment` / `task observe-linear-artifact`で回収してください。同じ承認でwriteを再送しません。両操作は人間の明示管理操作で、本人認証・全重要Audit・実サービス受け入れは残件です。
+
+## 実行中Sandboxの一覧
+
+`bun run start sandbox list --json`は接続先daemonが現在所有するjobを`[{"taskId":"TASK_ID","state":"running"}]`の形で返します。cancel処理中はcancelling、slotが解放されたら空配列です。一覧取得は実行/キャンセル/Task変更を行いません。直接DB操作の`--direct`では利用できません。Docker全container、別daemon、終了履歴の一覧ではなく、既存daemonの一slotを照会します。

@@ -1,0 +1,14 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-sandbox-cli.test.ts:
+(pass) daemon Sandbox waits beyond five seconds, cancels and drains before DB close [8528.20ms]
+(pass) direct Sandbox SIGINT records failed and waits for cleanup [466.83ms]
+
+tests/sandbox-jobs.test.ts:
+(pass) Sandbox slot cancels only its Task, drains before shutdown and rejects new launches [1.22ms]
+(pass) Sandbox slot releases a failed job so a later Task can run [0.26ms]
+(pass) Sandbox list accepts no target or execution options and refuses direct execution without touching Docker [0.59ms]
+
+ 5 pass
+ 0 fail
+Ran 5 tests across 2 files. [9.04s]

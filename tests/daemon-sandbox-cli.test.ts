@@ -109,6 +109,17 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
           }
         });
       });
+      const idle = run(['sandbox', 'list', '--json']);
+      assert.equal(idle.status, 0, idle.stderr);
+      assert.deepEqual(JSON.parse(idle.stdout), []);
+      const direct = spawnSync(
+        process.execPath,
+        ['--no-env-file', cli, '--db', db, '--direct', 'sandbox', 'list', '--json'],
+        { encoding: 'utf8', timeout: 10000 },
+      );
+      assert.equal(direct.status, 1);
+      assert.match(direct.stderr, /requires daemon/);
+      assert.equal(run(['sandbox', 'list', 'unexpected']).status, 2);
       const long = launch('long', "await new Promise(r=>setTimeout(r,6000));console.log('done');");
       clients.push(long);
       const result = await long.done;
@@ -118,6 +129,9 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
       clients.push(cancel);
       await waitRunning('cancel');
       await Bun.sleep(300);
+      const active = run(['sandbox', 'list', '--json']);
+      assert.equal(active.status, 0, active.stderr);
+      assert.deepEqual(JSON.parse(active.stdout), [{ taskId: 'cancel', state: 'running' }]);
       const busy = run(['sandbox', 'run', 'busy', '--code', 'console.log(7)']);
       assert.equal(busy.status, 1);
       assert.match(busy.stderr, /busy/);
@@ -127,6 +141,7 @@ test.skipIf(process.env.ORG_DOCKER_TEST !== '1')(
       const cancelled = await cancel.done;
       assert.equal(cancelled.code, 1);
       assert.equal(tasks.get('cancel').status, 'failed');
+      assert.deepEqual(JSON.parse(run(['sandbox', 'list', '--json']).stdout), []);
       const stop = launch('stop', 'await new Promise(()=>{});');
       clients.push(stop);
       await waitRunning('stop');
