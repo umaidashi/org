@@ -1,0 +1,40 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-configuration-audit.test.ts:
+(pass) Agent registration and reporting changes expose immutable Audit with atomic rollback and no legacy backfill [12.01ms]
+ 95 |       { list: () => [] },
+ 96 |       agents,
+ 97 |       { list: () => [], history: () => [] },
+ 98 |       { list: () => [] },
+ 99 |     );
+100 |     assert.deepEqual(
+                 ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+... Skipped lines
+
+  [
+    1,
++   10,
++   11,
++   12,
+    2,
+    3,
+    4,
+    5,
+    6,
+...
+    9,
+-   10,
+-   11,
+-   12
+  ]
+
+      at innerFail (node:assert:36:32)
+      at deepStrictEqual (node:assert:134:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/agent-configuration-audit.test.ts:100:12)
+(fail) same-timestamp Agent configuration Audit retains numeric reporting chronology for recent logs [2.91ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [63.00ms]

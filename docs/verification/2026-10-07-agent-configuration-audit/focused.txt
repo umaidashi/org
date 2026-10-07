@@ -1,0 +1,25 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/sandbox-execution-audit.test.ts:
+(pass) Sandbox preserves actor/version-linked execution receipts without copying code or output for success and failures [40.60ms]
+(pass) Sandbox refuses to run when initial immutable Audit claim cannot be saved [13.20ms]
+(pass) Sandbox Audit decoder rejects completed receipts that claim another started result
+(pass) Sandbox rejects an invalid injected input digest before runner and Audit writes [0.38ms]
+(pass) Sandbox result Audit storage failure retains started receipt and rejects replay of that execution version [12.49ms]
+(pass) Sandbox started Audit records claim time independently of earlier Runtime Task start
+
+tests/agent-sqlite.test.ts:
+(pass) TypeScript reads the legacy Python SQLite schema without rewriting identity or creation time [4.71ms]
+(pass) an invalid agent does not reach the real repository and duplicate identity is not mislabeled as name conflict [0.52ms]
+(pass) Agent capabilities persist across reopen and reject malformed direct adapter input [2.41ms]
+
+tests/agent-configuration-audit.test.ts:
+(pass) Agent registration and reporting changes expose immutable Audit with atomic rollback and no legacy backfill [8.92ms]
+
+tests/agent-reporting.test.ts:
+(pass) reporting line preserves identity and rejects missing managers and direct or indirect cycles [0.31ms]
+(pass) reporting line service rejects invalid graph before writing and uses the injected timestamp [0.14ms]
+
+ 12 pass
+ 0 fail
+Ran 12 tests across 4 files. [141.00ms]

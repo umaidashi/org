@@ -1,3 +1,4 @@
+import type { AgentConfigurationReader } from '../agents/port.js';
 import { buildSandboxAudit } from './sandbox.js';
 import { buildLinearAudit } from './linear.js';
 import type { ApprovalStore } from '../approvals/port.js';
@@ -9,13 +10,14 @@ import { buildTaskExecutionAudit } from './tasks.js';
 import { buildWorkflowAudit } from './workflows.js';
 export function collectAudit(
   approvals: Pick<ApprovalStore, 'list'>,
-  agents: { capabilityHistory(): readonly CapabilityChange[] },
+  agents: AgentConfigurationReader & { capabilityHistory(): readonly CapabilityChange[] },
   tasks: Pick<TaskProvider, 'list' | 'history'>,
   events: Pick<EventBus, 'list'>,
 ): readonly AuditEntry[] {
   const decisions = approvals.list();
   const originals = events.list();
   return buildAudit(decisions, agents.capabilityHistory(), [
+    ...agents.configurationHistory(),
     ...tasks.list().flatMap((task) => buildTaskExecutionAudit(tasks.history(task.id))),
     ...buildWorkflowAudit(originals),
     ...buildSandboxAudit(originals),

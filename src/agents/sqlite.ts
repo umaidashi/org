@@ -1,3 +1,4 @@
+import type { AuditActor, AuditEntry } from '../audit/domain.js';
 import {
   createCapabilityChange,
   type CapabilitySnapshot,
@@ -63,6 +64,17 @@ export class SqliteAgentRepository
         CREATE TRIGGER IF NOT EXISTS capability_no_replace BEFORE INSERT ON agent_capability_history WHEN EXISTS(SELECT 1 FROM agent_capability_history WHERE (agent_id=NEW.agent_id AND revision=NEW.revision) OR approval_id=NEW.approval_id) BEGIN SELECT RAISE(ABORT,'Capability history is immutable');END;
         CREATE TRIGGER IF NOT EXISTS capability_no_update BEFORE UPDATE ON agent_capability_history BEGIN SELECT RAISE(ABORT,'Capability history is immutable');END;
         CREATE TRIGGER IF NOT EXISTS capability_no_delete BEFORE DELETE ON agent_capability_history BEGIN SELECT RAISE(ABORT,'Capability history is immutable');END;`);
+        this.db.exec(`CREATE TABLE IF NOT EXISTS agent_configuration_history (
+          id TEXT PRIMARY KEY, agent_id TEXT NOT NULL,
+          actor_kind TEXT NOT NULL CHECK(actor_kind IN ('human','agent','system')),
+          actor_id TEXT NOT NULL, tool TEXT NOT NULL CHECK(tool IN ('agent.register','agent.reporting.change')),
+          input_ref TEXT NOT NULL, output_ref TEXT NOT NULL, at TEXT NOT NULL
+        );
+        CREATE TRIGGER IF NOT EXISTS agent_configuration_no_replace BEFORE INSERT ON agent_configuration_history
+          WHEN EXISTS(SELECT 1 FROM agent_configuration_history WHERE id=NEW.id OR rowid=NEW.rowid)
+          BEGIN SELECT RAISE(ABORT,'Agent configuration history is immutable');END;
+        CREATE TRIGGER IF NOT EXISTS agent_configuration_no_update BEFORE UPDATE ON agent_configuration_history BEGIN SELECT RAISE(ABORT,'Agent configuration history is immutable');END;
+        CREATE TRIGGER IF NOT EXISTS agent_configuration_no_delete BEFORE DELETE ON agent_configuration_history BEGIN SELECT RAISE(ABORT,'Agent configuration history is immutable');END;`);
         this.db.exec(`CREATE TABLE IF NOT EXISTS agent_reporting_history (
           sequence INTEGER PRIMARY KEY AUTOINCREMENT, agent_id TEXT NOT NULL,
           previous_manager TEXT, manager TEXT, at TEXT NOT NULL
@@ -79,7 +91,7 @@ export class SqliteAgentRepository
     }
   }
 
-  insert(agent: Agent): void {
+  insert(agent: Agent, actor: AuditActor = { kind: 'system', id: 'unspecified' }): void {
     agent = createAgent(agent, agent);
     try {
       this.transaction(() => {
@@ -102,6 +114,15 @@ export class SqliteAgentRepository
           );
         if (agent.reportsTo !== undefined)
           this.appendReporting(agent.id, null, agent.reportsTo, agent.createdAt);
+        this.appendConfiguration(
+          'agent:' + encodeURIComponent(agent.id) + ':registration',
+          agent.id,
+          actor,
+          'agent.register',
+          `org://agents/${encodeURIComponent(agent.id)}`,
+          `org://agents/${encodeURIComponent(agent.id)}`,
+          agent.createdAt,
+        );
       });
     } catch (error) {
       if (error instanceof Error && 'errno' in error && error.errno === 2067) {
@@ -141,15 +162,21 @@ export class SqliteAgentRepository
     previous: string | null,
     manager: string | null,
     at: string,
-  ): void {
+  ): number {
     if (!at.trim()) throw new Error('Reporting timestamp must not be empty');
-    this.db
+    const result = this.db
       .query(
         'INSERT INTO agent_reporting_history(agent_id,previous_manager,manager,at) VALUES(?,?,?,?)',
       )
       .run(id, previous, manager, at);
+    return Number(result.lastInsertRowid);
   }
-  setReportsTo(id: string, manager: string | null, at: string): Agent {
+  setReportsTo(
+    id: string,
+    manager: string | null,
+    at: string,
+    actor: AuditActor = { kind: 'system', id: 'unspecified' },
+  ): Agent {
     if (!at.trim()) throw new Error('Reporting timestamp must not be empty');
     return this.transaction(() => {
       const agents = this.list();
@@ -158,7 +185,16 @@ export class SqliteAgentRepository
       if (!original) throw new Error('Agent not found');
       if ((original.reportsTo ?? null) === manager) return changed;
       this.db.query('UPDATE agents SET reports_to=? WHERE id=?').run(manager, id);
-      this.appendReporting(id, original.reportsTo ?? null, manager, at);
+      const sequence = this.appendReporting(id, original.reportsTo ?? null, manager, at);
+      this.appendConfiguration(
+        'agent:' + encodeURIComponent(id) + ':reporting:' + sequence,
+        id,
+        actor,
+        'agent.reporting.change',
+        `org://agents/${encodeURIComponent(id)}`,
+        `org://agents/${encodeURIComponent(id)}/reporting/${sequence}`,
+        at,
+      );
       return changed;
     });
   }
@@ -176,6 +212,55 @@ export class SqliteAgentRepository
         manager: nullableText(row.manager),
         at: String(row.at),
       }));
+  }
+
+  private appendConfiguration(
+    id: string,
+    agentId: string,
+    actor: AuditActor,
+    tool: string,
+    inputRef: string,
+    outputRef: string,
+    at: string,
+  ): void {
+    if (
+      !['human', 'agent', 'system'].includes(actor.kind) ||
+      !actor.id.trim() ||
+      actor.id.includes('\0') ||
+      actor.id.length > 128 ||
+      !at.trim()
+    )
+      throw new Error('Invalid Agent configuration Audit actor/timestamp');
+    this.db
+      .query(
+        'INSERT INTO agent_configuration_history(id,agent_id,actor_kind,actor_id,tool,input_ref,output_ref,at) VALUES(?,?,?,?,?,?,?,?)',
+      )
+      .run(id, agentId, actor.kind, actor.id, tool, inputRef, outputRef, at);
+  }
+  configurationHistory(): readonly AuditEntry[] {
+    return this.db
+      .query<Record<string, unknown>, []>(
+        'SELECT * FROM agent_configuration_history ORDER BY rowid',
+      )
+      .all()
+      .map((row) => {
+        const kind = text(row.actor_kind);
+        if (kind !== 'human' && kind !== 'agent' && kind !== 'system')
+          throw new Error('Invalid stored Agent configuration actor');
+        return {
+          id: text(row.id),
+          causalId: `org://agents/${encodeURIComponent(text(row.agent_id))}`,
+          actor: { kind, id: text(row.actor_id) },
+          taskId: null,
+          eventId: null,
+          tool: text(row.tool),
+          inputRef: text(row.input_ref),
+          outputRef: text(row.output_ref),
+          at: text(row.at),
+          result: 'succeeded',
+          approvalId: null,
+        };
+      });
   }
 
   capabilitySnapshot(id: string): CapabilitySnapshot {

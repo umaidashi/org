@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-configuration-audit.test.ts:
+22 |   try {
+23 |     agents.insert(agent('chief'));
+24 |     agents.insert(agent('worker'));
+25 |     agents.setReportsTo('worker', 'chief', 'changed');
+26 |     const records = audit();
+27 |     assert.equal(records.filter((entry) => entry.tool === 'agent.register').length, 2);
+                ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 2
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/agent-configuration-audit.test.ts:27:12)
+(fail) Agent registration and reporting changes expose immutable Audit with atomic rollback and no legacy backfill [8.54ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [61.00ms]

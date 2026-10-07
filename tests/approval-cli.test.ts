@@ -93,9 +93,10 @@ test('CLI applies a human-approved permission once and exposes its immutable Aud
     });
     const audit = json(['audit', 'list']);
     assert.ok(Array.isArray(audit));
-    assert.equal(audit.length, 3);
+    const permissionAudit = audit.filter((entry) => entry.tool !== 'agent.register');
+    assert.equal(permissionAudit.length, 3);
     assert.deepEqual(
-      audit.map((entry: unknown) => {
+      permissionAudit.map((entry: unknown) => {
         assert.ok(entry !== null && typeof entry === 'object' && 'result' in entry);
         return entry.result;
       }),

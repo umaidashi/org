@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/approval-cli.test.ts:
+91 |       revision: 1,
+92 |       capabilities: ['can_run_shell'],
+93 |     });
+94 |     const audit = json(['audit', 'list']);
+95 |     assert.ok(Array.isArray(audit));
+96 |     assert.equal(audit.length, 3);
+                ^
+AssertionError: Expected values to be strictly equal:
+
+4 !== 3
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/approval-cli.test.ts:96:12)
+(fail) CLI applies a human-approved permission once and exposes its immutable Audit [423.91ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [465.00ms]

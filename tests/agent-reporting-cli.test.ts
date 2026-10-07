@@ -85,6 +85,60 @@ test('Agent CLI creates, changes and clears reporting lines through the daemon w
     assert.ok(Array.isArray(history));
     assert.equal(history.length, 3);
     assert.equal(run(['agent', 'report', worker.id, '--to', root.id, '--clear']).status, 2);
+    const audit = json(['audit', 'list']);
+    assert.ok(Array.isArray(audit));
+    const configuration = audit.filter(
+      (entry) => entry.tool === 'agent.register' || entry.tool === 'agent.reporting.change',
+    );
+    assert.equal(configuration.length, 4);
+    for (const entry of configuration) {
+      assert.deepEqual(entry.actor, { kind: 'system', id: 'local-host' });
+      assert.equal(entry.taskId, null);
+      assert.equal(entry.eventId, null);
+      assert.equal(entry.approvalId, null);
+      assert.equal(entry.result, 'succeeded');
+      assert.ok(entry.inputRef.startsWith('org://agents/'));
+      assert.ok(entry.outputRef.startsWith('org://agents/'));
+      assert.ok(entry.at);
+      assert.ok(entry.id);
+    }
+    spawnSync(process.execPath, ['--no-env-file', cli, 'daemon', 'stop', '--socket', socket], {
+      timeout: 5000,
+    });
+    await exited;
+    const reopened = spawnSync(
+      process.execPath,
+      ['--no-env-file', cli, '--direct', '--db', db, 'audit', 'list', '--json'],
+      { encoding: 'utf8', timeout: 5000 },
+    );
+    assert.equal(reopened.status, 0, reopened.stderr);
+    assert.deepEqual(JSON.parse(reopened.stdout), audit);
+    const direct = spawnSync(
+      process.execPath,
+      [
+        '--no-env-file',
+        cli,
+        '--direct',
+        '--db',
+        db,
+        'agent',
+        'report',
+        worker.id,
+        '--clear',
+        '--json',
+      ],
+      { encoding: 'utf8', timeout: 5000 },
+    );
+    assert.equal(direct.status, 0, direct.stderr);
+    const updated = spawnSync(
+      process.execPath,
+      ['--no-env-file', cli, '--direct', '--db', db, 'audit', 'list', '--json'],
+      { encoding: 'utf8', timeout: 5000 },
+    );
+    assert.equal(updated.status, 0, updated.stderr);
+    const updatedAudit: unknown = JSON.parse(updated.stdout);
+    assert.ok(Array.isArray(updatedAudit));
+    assert.equal(updatedAudit.length, audit.length + 1);
   } finally {
     spawnSync(process.execPath, ['--no-env-file', cli, 'daemon', 'stop', '--socket', socket], {
       timeout: 5000,

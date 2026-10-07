@@ -438,7 +438,10 @@ async function runApplication(
     } else if (command.kind === 'report') {
       output(
         JSON.stringify(
-          setReportingLine(repository, command.id, command.manager, new Date().toISOString()),
+          setReportingLine(repository, command.id, command.manager, new Date().toISOString(), {
+            kind: 'system',
+            id: 'local-host',
+          }),
           null,
           command.json ? undefined : 2,
         ),
@@ -448,10 +451,15 @@ async function runApplication(
         JSON.stringify(repository.reportingHistory(command.id), null, command.json ? undefined : 2),
       );
     } else if (command.kind === 'create') {
-      const agent = registerAgent(repository, command.input, {
-        id: randomUUID(),
-        createdAt: new Date().toISOString(),
-      });
+      const agent = registerAgent(
+        repository,
+        command.input,
+        {
+          id: randomUUID(),
+          createdAt: new Date().toISOString(),
+        },
+        { kind: 'system', id: 'local-host' },
+      );
       output(`Created agent ${agent.name} (${agent.id})`);
     } else {
       const agents = repository.list();

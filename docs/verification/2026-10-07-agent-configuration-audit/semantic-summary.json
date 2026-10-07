@@ -1,0 +1,17 @@
+{
+  "stats": {
+    "subjects": 2388,
+    "reported": 145,
+    "missing": 0,
+    "unsure": 0,
+    "review": 0,
+    "byRule": {
+      "fn-name-promises": 25,
+      "test-name-verifies-claim": 17,
+      "tests-cover-failure-paths": 100,
+      "catch-hides-failure": 3
+    }
+  },
+  "errors": [],
+  "degraded": []
+}

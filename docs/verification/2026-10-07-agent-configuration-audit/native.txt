@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/logs-cli.test.ts:
+(pass) real CLI logs reads immutable approval Audit and rejects invalid filters before creating a database [866.29ms]
+
+tests/task-audit-cli.test.ts:
+(pass) Audit CLI reopens atomically saved Task execution history and includes its result snapshot [68.81ms]
+
+tests/agent-reporting-cli.test.ts:
+(pass) Agent CLI creates, changes and clears reporting lines through the daemon without cyclic history [828.57ms]
+
+tests/approval-cli.test.ts:
+(pass) CLI applies a human-approved permission once and exposes its immutable Audit [583.28ms]
+
+tests/agent-configuration-audit.test.ts:
+(pass) Agent registration and reporting changes expose immutable Audit with atomic rollback and no legacy backfill [10.25ms]
+
+ 5 pass
+ 0 fail
+Ran 5 tests across 5 files. [2.43s]

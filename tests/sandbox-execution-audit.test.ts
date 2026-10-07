@@ -86,7 +86,7 @@ test('Sandbox preserves actor/version-linked execution receipts without copying 
       assert.equal(receipts[1]?.payload.requestId, receipts[0]?.id);
       const audit = collectAudit(
         { list: () => [] },
-        { capabilityHistory: () => [] },
+        { capabilityHistory: () => [], configurationHistory: () => [] },
         tasks,
         events,
       ).filter((e) => e.tool === 'sandbox.run' && e.taskId === outcome);
@@ -300,7 +300,7 @@ test('Sandbox result Audit storage failure retains started receipt and rejects r
     assert.deepEqual(events.list(), originals);
     const audit = collectAudit(
       { list: () => [] },
-      { capabilityHistory: () => [] },
+      { capabilityHistory: () => [], configurationHistory: () => [] },
       tasks,
       events,
     ).filter((entry) => entry.tool === 'sandbox.run');

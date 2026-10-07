@@ -946,3 +946,5 @@ target名は大文字の`_TOKEN`/`_KEY`/`_SECRET`/`_PASSWORD`末尾に限定し�
 `task linear-get ISSUE_UUID --agent AGENT_ID`は既存scope/credential/capability検査に加え、原本Eventへ開始と成功/失敗を保存します。`audit list`/`agent tail`からactor・tool・Issue参照・時刻・resultを取得できます。Task/Event/Approvalに属さない単独読取では該当referenceはnullです。Issue本文やcredentialをAuditへコピーしません。開始保存に失敗すれば外部読取せず、結果保存に失敗すれば成功を返しません。startedだけの記録は未完了であり、外部読取が起きなかった証拠ではありません。
 
 Sandbox実行中にAgent権限またはTask owner/versionが変わった場合は、Docker完了後の共有再照合で成果物の返却・保存を拒否する。実行済みcodeや渡したcredentialの回収はしない。[検証](docs/verification/2026-10-07-sandbox-completion-authority/)。
+
+`org audit list`はAgent登録と報告先変更も表示する。実CLIの主体はtrusted local hostとして記録し、過去の主体不明な操作を補完しない。[検証](docs/verification/2026-10-07-agent-configuration-audit/)。

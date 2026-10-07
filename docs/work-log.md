@@ -1938,3 +1938,13 @@
 - Fresh reviewer C0/I0/M1、独立UT2成功。Deferred Minor: native非ゼロがtimeout等でも満たせるためstderr can_run_shell assert追加候補。unitは原因を直接検査、default defer、fixpassなし/再レビューなし。Ponytail Lean/net0、shared guardを再利用。
 - Ruling: 実行済みcode/秘密の回収と権限照合→後続保存の完全原子性を認定しない — 今回はDocker結果返却境界 — そこまで必要な実業務なら別実行契約が要る。独立reviewはnative/full/Jev/push未検証、親の結果と区別。
 - [証拠](verification/2026-10-07-sandbox-completion-authority/)を保存。[重要操作棚卸し](important-operation-audit-inventory.md)でAgent構成/Memory/Session等の原本と8field Auditを区別し、[Agent構成Audit計画](superpowers/plans/2026-10-07-agent-configuration-audit.md)へ続ける。設定有無のみ再確認: Linear/Notion CLI keysなし、Jevあり。既存業務Issue/変更先repo未指定、任意外部writeはしない。全体は未達。
+
+## 2026-10-07 — Agent構成操作Audit
+
+- 前Sandbox930b3b8 main通常push terminal0/localgate207.65秒。最終commit tree513成功21skip0失敗534tests209files183.54秒、remote exact headを確認。
+- [計画](superpowers/plans/2026-10-07-agent-configuration-audit.md)を実行。application CLI実callerのactorをsystem/local-hostでDI、互換内部actor未指定はsystem/unspecified。登録/報告先変更と同じ既存transaction内に不変原本、collectAuditへmandatory Readerで接続。ReportingHistory/CapabilityChange再利用、no-opは追加しない。
+- Ruling: trusted hostの実行主体と本人認証を区別 — CLIにはhuman認証がないためsystem/local-hostとする — 操作した人間を証明する必要がある場合は追加認証が要る。旧DBに偽のhuman/Agent過去Auditをbackfillしない。登録内の初期reportsToは登録操作一件として扱い別変更Auditを重複させない。
+- RED登録Auditゼロ→focused12成功141ms。原本障害時登録/報告先/ReportingHistory rollback、no-op、不変replace/update/delete、legacyDB/reopenを検証。既存Approval CLIの3期待が登録含め4で失敗したため、承認固有assertのみ登録を除外。初回指定した二test名は存在せずBunは既存一fileだけ実行、rg --filesで実名を確認しnative5files/5成功2.43秒を確定。
+- Fresh reviewer P2一件をImportantとして採用: 同時刻数値sequenceが文字列順になり最新ログが誤る。12変更RED→existing causalIdとstable sortで1行修正、finalfocused4成功1.52秒。onefixpass/no rereview、Deferred Minorなし。Ponytail Lean/net0、新sort/engine/dependencyは不要。
+- 修正前full514成功21skip0失敗535tests210files183.44秒。最終terminal0 full515成功21skip0失敗536tests210files184.88秒、type/Oxlint/Oxfmt367files/非空AST/dry-run成功。実Jev2388subjects145warnings、missing/unsure/review/errors/degraded0、変更source/newtestのbyFile対象あり。具体counterexampleのないモデルwarningから追加実装しない。
+- [証拠](verification/2026-10-07-agent-configuration-audit/)、棚卸し更新。実actor認証/trusted host原本捏造防止/全重要操作/全体は認定しない。次は01 permissions fieldと実Room guardの具体gapを[最小Room policy計画](superpowers/plans/2026-10-07-agent-room-permissions.md)で進める。Memory等のAudit/実業務APIも残件。

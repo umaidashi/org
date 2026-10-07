@@ -1,11 +1,12 @@
 import type { Agent } from './domain.js';
+import type { AuditActor, AuditEntry } from '../audit/domain.js';
 
 export interface AgentRepository {
-  insert(agent: Agent): void;
+  insert(agent: Agent, actor?: AuditActor): void;
   list(): readonly Agent[];
 }
 export interface AgentReportingWriter {
-  setReportsTo(id: string, manager: string | null, at: string): Agent;
+  setReportsTo(id: string, manager: string | null, at: string, actor?: AuditActor): Agent;
 }
 export interface ReportingHistory {
   readonly sequence: number;
@@ -23,4 +24,8 @@ export interface AgentPermissionWriter {
     at: string,
   ): import('./permissions.js').CapabilityChange;
   capabilityHistory(id?: string): readonly import('./permissions.js').CapabilityChange[];
+}
+
+export interface AgentConfigurationReader {
+  configurationHistory(): readonly AuditEntry[];
 }

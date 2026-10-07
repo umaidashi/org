@@ -1,0 +1,15 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/agent-reporting-cli.test.ts:
+(pass) Agent CLI creates, changes and clears reporting lines through the daemon without cyclic history [842.86ms]
+
+tests/approval-cli.test.ts:
+(pass) CLI applies a human-approved permission once and exposes its immutable Audit [620.75ms]
+
+tests/agent-configuration-audit.test.ts:
+(pass) Agent registration and reporting changes expose immutable Audit with atomic rollback and no legacy backfill [11.02ms]
+(pass) same-timestamp Agent configuration Audit retains numeric reporting chronology for recent logs [1.75ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 3 files. [1.52s]
