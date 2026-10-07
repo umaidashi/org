@@ -1,6 +1,7 @@
 import {
   requestLinearCommentApproval,
   applyApprovedLinearComment,
+  observeApprovedLinearComment,
   linearCommentDigest,
   type LinearCommentInput,
 } from '../linear/comment.js';
@@ -37,6 +38,10 @@ import { SqliteSessionStore } from '../sessions/sqlite.js';
 import { recoverExecutionTaskResult } from './execution.js';
 
 type TaskAction =
+  | {
+      kind: 'observe-linear-comment';
+      input: { readonly taskId: string; readonly actor: string; readonly approvalId: string };
+    }
   | { kind: 'request-linear-comment'; input: LinearCommentInput & { readonly key: string } }
   | { kind: 'apply-linear-comment'; input: LinearCommentInput & { readonly approvalId: string } }
   | { kind: 'linear-list'; input: LinearIssueListInput }
@@ -126,6 +131,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const allowed: Record<string, readonly string[]> = {
     'request-linear-comment': ['expected-version', 'actor', 'body', 'key'],
     'apply-linear-comment': ['expected-version', 'actor', 'body', 'approval'],
+    'observe-linear-comment': ['actor', 'approval'],
     'linear-list': ['team', 'limit', 'after'],
     'linear-get': [],
     'import-linear': [],
@@ -168,6 +174,21 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const db = values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('The database path must not be empty');
   const common = { db, json: values.json ?? false };
+  if (action === 'observe-linear-comment') {
+    const taskId = required(id, 'WorkItem ID');
+    linearWorkItemIssueId(taskId);
+    return {
+      ...common,
+      action: {
+        kind: action,
+        input: {
+          taskId,
+          actor: required(values.actor, '--actor'),
+          approvalId: required(values.approval, '--approval'),
+        },
+      },
+    };
+  }
   if (action === 'request-linear-comment' || action === 'apply-linear-comment') {
     const input = {
       taskId: required(id, 'WorkItem ID'),
@@ -420,6 +441,7 @@ export async function runTaskCommand(
     const action = command.action;
     let result: unknown;
     switch (action.kind) {
+      case 'observe-linear-comment':
       case 'request-linear-comment':
       case 'apply-linear-comment': {
         const approvals = new SqliteApprovalStore(command.db);
@@ -435,19 +457,31 @@ export async function runTaskCommand(
               const secrets = new EnvironmentSecretStore([
                 {
                   actorId: 'linear:host',
-                  reference: 'linear:write',
+                  reference:
+                    action.kind === 'observe-linear-comment' ? 'linear:read' : 'linear:write',
                   environmentVariable: 'LINEAR_API_KEY',
                 },
               ]);
-              result = await applyApprovedLinearComment(
-                provider,
-                approvals,
-                events,
-                secrets,
-                fetch,
-                action.input,
-                () => new Date().toISOString(),
-              );
+              result =
+                action.kind === 'observe-linear-comment'
+                  ? await observeApprovedLinearComment(
+                      provider,
+                      approvals,
+                      events,
+                      secrets,
+                      fetch,
+                      action.input,
+                      () => new Date().toISOString(),
+                    )
+                  : await applyApprovedLinearComment(
+                      provider,
+                      approvals,
+                      events,
+                      secrets,
+                      fetch,
+                      action.input,
+                      () => new Date().toISOString(),
+                    );
             } finally {
               events.close();
             }

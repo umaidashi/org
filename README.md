@@ -693,7 +693,15 @@ bun --env-file=.env src/cli.ts --direct task apply-linear-comment linear:issue:I
 
 対象・本文digest・WorkItem version・要求humanが承認内容と一致する場合にだけ、コメントを一回POSTします。本文は32KiBまで。通信不明や成功receipt保存障害でもclaimを残し、再POSTを拒否します。claim保存前の障害では投稿せず、修復後に試せます。`logs --task WORKITEM_ID --json`で承認と実行の参照を確認できます。
 
-WorkItem原本・versionは更新しません。Human本人認証やAgent自律投稿、投稿後の不明結果のstatus-only回収は未実装です。実Linear APIへの投稿は未検証で、所有HTTP/SQLite fixtureによる証拠と区別します。
+不明結果は、同じ承認とコメントIDを読んで回収できます。本文を再入力する必要はありません。
+
+```sh
+bun --env-file=.env src/cli.ts --direct task observe-linear-comment linear:issue:ISSUE_UUID --actor HUMAN --approval APPROVAL_ID --json
+```
+
+対象Issue・本文digestを照合して成功receiptを保存し、既知の成功は保存済みの原本をHTTPなしで返します（その後の外部編集・削除を監視する操作ではありません）。不在や本文変更は成功扱いにせず、再投稿もしません。読取や保存障害は修復後に観測を再試行できます。WorkItemの現在versionが進んでいても同じIssueなら観測できます。
+
+WorkItem原本・versionは更新しません。Human本人認証やAgent自律投稿は未実装です。実Linear APIへの投稿は未検証で、所有HTTP/SQLite fixtureによる証拠と区別します。
 
 ### 実Claude二Agentのコード生成
 

@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { createApprovalRequest, createApprovalDecision } from '../approvals/domain.js';
 import { validateLinearCommentUrl } from '../approvals/domain.js';
+import type { ApprovalRequest, LinearCommentOperation } from '../approvals/domain.js';
+import type { Event } from '../events/domain.js';
 import type { ApprovalStore } from '../approvals/port.js';
 import type { TaskProvider } from '../tasks/port.js';
 import type { SecretStore } from '../secrets/port.js';
@@ -88,19 +90,9 @@ export async function applyApprovedLinearComment(
   now: () => string,
 ) {
   const fields = snapshot(tasks, input);
-  const approval = approvals.get(input.approvalId),
-    { request: original, decision } = approval;
-  createApprovalRequest(original, original);
-  if (!decision || decision.decision !== 'approve')
-    throw new Error('Linear comment must be approved');
-  createApprovalDecision(original, decision, decision.createdAt);
+  const original = approvedComment(approvals, input);
   const operation = original.operation;
   if (
-    original.id !== input.approvalId ||
-    decision.approvalId !== original.id ||
-    operation.kind !== 'linear_comment' ||
-    !isDeepStrictEqual(original.actor, { kind: 'human', id: input.actor }) ||
-    original.taskId !== input.taskId ||
     !isDeepStrictEqual(operation, {
       kind: 'linear_comment',
       ...fields,
@@ -112,21 +104,14 @@ export async function applyApprovedLinearComment(
   // ponytail: scan immutable receipts; add an indexed existence query if measured log volume warrants it.
   if (events.list().some((event) => event.id === claimId))
     throw new Error('Linear comment already claimed; do not retry POST');
-  const payload = {
-    claimId,
-    approvalId: original.id,
-    actorKind: 'human',
-    actorId: input.actor,
-    taskId: input.taskId,
-    operation: { ...operation },
-  };
-  const publish = (type: string, id: string, commentUrl?: string) =>
+  const payload = claimPayload(original);
+  const publish = (type: string, id: string) =>
     events.publish(
       createEvent(
         {
           type,
           source: 'linear:host',
-          payload: { ...payload, ...(commentUrl === undefined ? {} : { commentUrl }) },
+          payload,
         },
         { id, createdAt: now() },
       ),
@@ -158,27 +143,11 @@ export async function applyApprovedLinearComment(
       !('comment' in result)
     )
       throw new Error('Invalid Linear comment response');
-    const comment = result.comment;
-    if (
-      !comment ||
-      typeof comment !== 'object' ||
-      Array.isArray(comment) ||
-      !('id' in comment) ||
-      comment.id !== operation.commentId ||
-      !('body' in comment) ||
-      comment.body !== input.body ||
-      !('issue' in comment) ||
-      !comment.issue ||
-      typeof comment.issue !== 'object' ||
-      !('id' in comment.issue) ||
-      comment.issue.id !== operation.issueId ||
-      !('url' in comment)
-    )
-      throw new Error('Invalid Linear comment response');
-    return publish(
-      'linear.comment.created',
-      claimId + ':created',
-      validateLinearCommentUrl(operation, comment.url),
+    return saveVerifiedComment(
+      events,
+      original,
+      verifiedCommentUrl(operation, result.comment),
+      now,
     );
   } catch (error) {
     if (claimed) {
@@ -192,5 +161,135 @@ export async function applyApprovedLinearComment(
       }
     }
     throw error;
+  }
+}
+
+function approvedComment(
+  approvals: Pick<ApprovalStore, 'get'>,
+  input: { readonly taskId: string; readonly actor: string; readonly approvalId: string },
+): ApprovalRequest & { readonly operation: LinearCommentOperation } {
+  const { request, decision } = approvals.get(input.approvalId);
+  createApprovalRequest(request, request);
+  if (!decision || decision.decision !== 'approve')
+    throw new Error('Linear comment must be approved');
+  createApprovalDecision(request, decision, decision.createdAt);
+  if (
+    request.id !== input.approvalId ||
+    decision.approvalId !== request.id ||
+    request.operation.kind !== 'linear_comment' ||
+    !isDeepStrictEqual(request.actor, { kind: 'human', id: input.actor }) ||
+    request.taskId !== input.taskId
+  )
+    throw new Error('Linear comment Approval does not match input');
+  return { ...request, operation: request.operation };
+}
+function claimPayload(request: ApprovalRequest & { readonly operation: LinearCommentOperation }) {
+  return {
+    claimId: `linear-comment:${request.operation.commentId}`,
+    approvalId: request.id,
+    actorKind: request.actor.kind,
+    actorId: request.actor.id,
+    taskId: request.taskId,
+    operation: { ...request.operation },
+  };
+}
+function verifiedCommentUrl(operation: LinearCommentOperation, comment: unknown): string {
+  if (
+    !comment ||
+    typeof comment !== 'object' ||
+    Array.isArray(comment) ||
+    !('id' in comment) ||
+    comment.id !== operation.commentId ||
+    !('body' in comment) ||
+    typeof comment.body !== 'string' ||
+    linearCommentDigest(comment.body) !== operation.inputDigest ||
+    !('issue' in comment) ||
+    !comment.issue ||
+    typeof comment.issue !== 'object' ||
+    !('id' in comment.issue) ||
+    comment.issue.id !== operation.issueId ||
+    !('url' in comment)
+  )
+    throw new Error('Invalid Linear comment response');
+  return validateLinearCommentUrl(operation, comment.url);
+}
+export async function observeApprovedLinearComment(
+  tasks: Pick<TaskProvider, 'get'>,
+  approvals: Pick<ApprovalStore, 'get'>,
+  events: Pick<EventBus, 'list' | 'publish'>,
+  secrets: Pick<SecretStore, 'getSecret'>,
+  request: (url: string, init: RequestInit) => Promise<Response>,
+  input: { readonly taskId: string; readonly actor: string; readonly approvalId: string },
+  now: () => string,
+): Promise<Event> {
+  const original = approvedComment(approvals, input),
+    operation = original.operation;
+  const validateTarget = () => {
+    const task = tasks.get(input.taskId);
+    if (
+      linearWorkItemIssueId(input.taskId) !== operation.issueId ||
+      task.id !== input.taskId ||
+      task.kind !== 'work_item' ||
+      task.externalRef !== operation.issueUrl
+    )
+      throw new Error('Linear comment target changed');
+  };
+  validateTarget();
+  const payload = claimPayload(original),
+    claimId = payload.claimId;
+  const receipts = events.list(),
+    claim = receipts.find((e) => e.id === claimId);
+  if (
+    !claim ||
+    claim.type !== 'linear.comment.claimed' ||
+    claim.source !== 'linear:host' ||
+    !isDeepStrictEqual(claim.payload, payload)
+  )
+    throw new Error('Linear comment claim missing or mismatched');
+  const known = receipts.find((e) => e.id === claimId + ':created');
+  if (known) return verifiedReceipt(original, known);
+  const data = await queryLinear(
+    request,
+    secrets,
+    'query KernelCommentStatus($id: String!) { comment(id: $id) { id body url issue { id } } }',
+    { id: operation.commentId },
+  );
+  const commentUrl = verifiedCommentUrl(operation, data.comment);
+  validateTarget();
+  return saveVerifiedComment(events, original, commentUrl, now);
+}
+function verifiedReceipt(
+  original: ApprovalRequest & { readonly operation: LinearCommentOperation },
+  event: Event,
+): Event {
+  const payload = claimPayload(original);
+  const commentUrl = validateLinearCommentUrl(original.operation, event.payload.commentUrl);
+  if (
+    event.id !== payload.claimId + ':created' ||
+    event.type !== 'linear.comment.created' ||
+    event.source !== 'linear:host' ||
+    !isDeepStrictEqual(event.payload, { ...payload, commentUrl })
+  )
+    throw new Error('Linear comment receipt mismatch');
+  return event;
+}
+function saveVerifiedComment(
+  events: Pick<EventBus, 'list' | 'publish'>,
+  original: ApprovalRequest & { readonly operation: LinearCommentOperation },
+  commentUrl: string,
+  now: () => string,
+): Event {
+  const payload = claimPayload(original);
+  const created = createEvent(
+    { type: 'linear.comment.created', source: 'linear:host', payload: { ...payload, commentUrl } },
+    { id: payload.claimId + ':created', createdAt: now() },
+  );
+  try {
+    return events.publish(created);
+  } catch (error) {
+    // ponytail: immutable ID elects one receipt; accept a concurrent winner only when the verified payload is identical.
+    const winner = events.list().find((e) => e.id === created.id);
+    if (!winner || !isDeepStrictEqual(winner.payload, created.payload)) throw error;
+    return verifiedReceipt(original, winner);
   }
 }

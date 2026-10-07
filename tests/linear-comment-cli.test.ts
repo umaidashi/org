@@ -25,7 +25,9 @@ test.each(['success', 'unknown', 'receipt-failure', 'claim-failure', 'terminal-f
       url: 'https://linear.app/org/issue/ORG-1/existing',
     };
     const taskId = 'linear:issue:' + issue.id;
-    let posts = 0;
+    let posts = 0,
+      reads = 0;
+    let remoteComment: Record<string, unknown> | undefined;
     const server = Bun.serve({
       hostname: '127.0.0.1',
       port: 0,
@@ -35,6 +37,12 @@ test.each(['success', 'unknown', 'receipt-failure', 'claim-failure', 'terminal-f
         assert.ok(
           record(payload) && typeof payload.query === 'string' && record(payload.variables),
         );
+        if (payload.query.includes('KernelCommentStatus')) {
+          reads++;
+          assert.deepEqual(payload.variables, { id: remoteComment?.id });
+          assert.ok(!payload.query.includes('mutation'));
+          return Response.json({ data: { comment: remoteComment } });
+        }
         if (!payload.query.includes('commentCreate')) return Response.json({ data: { issue } });
         assert.equal(payload.variables.issueId, issue.id);
         assert.equal(payload.variables.body, 'Verified fixture result');
@@ -43,6 +51,12 @@ test.each(['success', 'unknown', 'receipt-failure', 'claim-failure', 'terminal-f
           /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
         );
         posts++;
+        remoteComment = {
+          id: payload.variables.id,
+          body: payload.variables.body,
+          issue: { id: issue.id },
+          url: issue.url + '#comment-' + String(payload.variables.id),
+        };
         if (fault === 'unknown') return new Response('owned uncertain response', { status: 503 });
         return Response.json({
           data: {
@@ -239,6 +253,54 @@ test.each(['success', 'unknown', 'receipt-failure', 'claim-failure', 'terminal-f
         ],
       );
       assert.doesNotMatch(logs.stdout, /Verified fixture result/);
+      const observe = () =>
+        run([
+          'task',
+          'observe-linear-comment',
+          taskId,
+          '--actor',
+          'operator',
+          '--approval',
+          approvalId,
+          '--json',
+        ]);
+      const observed = await Promise.all([observe(), observe()]);
+      for (const result of observed) assert.equal(result.code, 0, result.stderr);
+      assert.equal(posts, 1);
+      assert.equal(reads === 0, fault === 'success' || fault === 'claim-failure');
+      const readCount = reads;
+      const reopened = await observe();
+      assert.equal(reopened.code, 0, reopened.stderr);
+      assert.equal(reads, readCount);
+      const after = await run(['logs', '--task', taskId, '--json']);
+      assert.equal(after.code, 0, after.stderr);
+      const recoveredAudit: unknown = JSON.parse(after.stdout);
+      assert.ok(Array.isArray(recoveredAudit));
+      assert.equal(
+        recoveredAudit.filter(
+          (entry: unknown) =>
+            record(entry) && entry.tool === 'linear.comment' && entry.result === 'succeeded',
+        ).length,
+        1,
+      );
+      assert.doesNotMatch(
+        after.stdout + reopened.stdout,
+        /Verified fixture result|fixture-comment-key/,
+      );
+      const store = new SqliteEventBus(db);
+      try {
+        const receipts = store.list();
+        assert.equal(receipts.filter((e) => e.type === 'linear.comment.claimed').length, 1);
+        assert.equal(receipts.filter((e) => e.type === 'linear.comment.created').length, 1);
+        assert.equal(
+          receipts.filter((e) => e.type === 'linear.comment.unconfirmed').length,
+          fault === 'unknown' || fault === 'receipt-failure' ? 1 : 0,
+        );
+      } finally {
+        store.close();
+      }
+      const unchanged = await run(['task', 'get', taskId, '--json']);
+      assert.equal(unchanged.stdout, originalTask.stdout);
     } finally {
       await server.stop(true);
       rmSync(home, { recursive: true, force: true });

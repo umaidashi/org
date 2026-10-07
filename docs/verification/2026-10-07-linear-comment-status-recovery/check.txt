@@ -1,0 +1,16 @@
+2026-10-07 Linear comment status-only recovery
+Native CLI: RED 0 pass / 5 fail / 2.56s -> GREEN 5 pass / 3.30s.
+DI: new observer RED 4 pass / 3 fail / 61ms -> GREEN 7 pass / 44ms.
+Mutation response / observation race: RED 7 pass / 1 fail / 46ms -> GREEN 8 pass / 41ms.
+Final targeted DI + native: 13 pass / 0 fail / 3.27s.
+Fast UT: 116 pass / 45 files / 157ms.
+Full bun run check: exit 0; 370 pass / 12 skip / 0 fail; 382 tests / 178 files / 98.33s.
+Typecheck, type-aware Oxlint, Oxfmt 319 files, AST: passed.
+Actual Jev: exit 0; 1870 subjects / 116 advisory warnings; missing/unsure/review 0; errors/degraded empty.
+Dry-run: 1870 subjects / 15 requests; not treated as actual review.
+Owned HTTP + SQLite fixtures only, no business Issue writes.
+Status query validates frozen UUID/Issue/body digest and exact approved claim; never calls mutation.
+Known success returns historic receipt without HTTP; does not monitor later edit/deletion.
+Claim/unconfirmed originals and Task remain unchanged; receipt persistence can be retried by query only.
+Independent final correctness/Ponytail review pending at this checkpoint.
+Actual Linear API authentication, human authentication, Agent posting and business Issue-to-Draft-PR round trip remain unverified/incomplete.

@@ -1264,3 +1264,13 @@
 - fresh最終レビュー: Critical/Important/Minor各0、独立対象テスト6 pass。Ponytail: Lean already. Ship. 既存Approval/Event/HTTP境界を再利用し、新規依存・table・frameworkを追加しない。再レビュー不要。
 - [検証証拠](verification/2026-10-07-approved-linear-existing-issue-comment/check.txt)と要件/MVP表を更新。実API送信・本人認証・Agent投稿・結果不明のstatus-only回収・実業務IssueからDraft PRの一周は未完了。全体目標は未達成、継続する。
 - Git記録: `ce76ce4`（native RED）→`4dce496`（実装/テスト/文書）。mainへfast-forwardし、通常push成功。pre-push commit対象検査114.15s成功。次は不明結果のstatus-only回収を設計し、投稿再送を追加しない。完了した当該planのscratch ledgerのみ削除。
+
+### 2026-10-07 Linearコメントstatus-only回収
+
+- 前ターンは実装・全check・実Jev・main公開を完了し進捗あり。現在main b411dd9（公開実装4dce496）、cleanからfeatureへ分離。Notion Task原則を再取得し、WorkItem原本と内部Execution分離を維持。公式SDLのcomment(id: String): Comment!を確認（sandbox内curl DNS不可→read-only network許可で取得成功）。
+- [設計/実装計画](superpowers/plans/2026-10-07-linear-comment-status-recovery.md)。同じUUID/対象/本文digestの読取だけで成功receiptを回収する。現在WorkItem versionが進んだだけでは過去の承認済み投稿の観測を拒否しない。新Issue・自動再投稿・新依存・tableは追加しない。
+- TDD: native CLI 0 pass / 5 fail / 2.56s（observe未対応）、DB不要UT 4 pass / 3 fail / 61ms（観測service未実装）を確認。既存fixtureにread query/原本保持/並行回収/no replay/reopen/Auditを追加。
+- 初回GREEN: DB不要UT 7 pass / 44ms、native5 pass / 3.30s。fixture型検査のdecision narrowingを修正。追加競合テスト: 観測が先にcreated原本を保存した時のapply重複保存をRED（7 pass / 1 fail / 46ms）で確認。fixture編集の一時ReferenceErrorは修正して本来のREDを再確認。成功receipt保存を両経路で共有し、完全一致winnerだけ再利用する。
+- 競合修正GREEN: DB不要UT8 pass / 41ms。成功receipt保存をapply/observeで共有し、原本と同一payloadの並行winner以外は保存例外を伝播。型・Oxlint/Oxfmt（319 files）・AST成功。Ponytail自己点検: 二経路の承認/response/receipt保存を共有、未使用optional URL引数を削除。新規依存/table/frameworkなし。
+- 対象最終検証13 pass / 0 fail / 3.27s。高速UT116 pass / 45 files / 157ms。実Jev exit0、1870 subjects / 116 advisory warnings、missing/unsure/review 0、errors/degradedなし。dry-run 1870 subjects / 15 requestsを先に確認。変更箇所のapprovedComment/observeの命名advisoryは、承認要求の返却/読取後の原本保存という実動作と照合する。parseTaskCommandの失敗経路候補は非網羅性を全面保証へ読み替えない。
+- 全gate `bun run check` exit0、370 pass / 12 skip / 0 fail、382 tests / 178 files / 98.33s。非空AST/lint/Jev対象を確認。README・要件・MVP表と[証拠](verification/2026-10-07-linear-comment-status-recovery/check.txt)を更新。保存済み成功原本の返却は外部編集/削除の監視と区別。独立最終レビュー待ち、全体目標は未達成。
