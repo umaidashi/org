@@ -127,3 +127,7 @@ comment/artifactをLocal/Linear両Adapterと実await consumerへ接続。Local�
 ## 2026-10-07 department/project Context関連付け
 
 ホスト明示Room/Agent pairを`daemon --memory-context-config PATH`へ接続し、manual Sessionでdepartment/projectだけの選択・別pair/別scope/失効済み除外・再起動/設定なし互換を確認。[証拠](verification/2026-10-07-memory-context-scopes/)に最終全gateと実Jevを保存。三reply経路を共通wrapperへ集約し旧回帰を維持するが、Task/自動wake-up/rebuildの追加scope直接実機受け入れは[次の計画](superpowers/plans/2026-10-07-memory-context-acceptance.md)に残す。本人認証/全permission/全Memory抽出/業務納品/全体は未達。
+
+## 2026-10-07 scope全reply経路の直接受け入れ
+
+前単位の残るscope経路を同じ実CLI fixtureで補足。保存Kernel Sessionでの再起動後reply、failed Session rebuild、TaskのContext/実行version参照、自動wake-up、無効grantの起動拒否・runtime未実行・socket cleanup・訂正後起動を確認。[証拠](verification/2026-10-07-memory-context-acceptance/)に最終全gateと実Jevを保存。provider resume argv自体は当fixtureで未検査。本人認証/全permission/全Memory抽出/実業務納品/全体は未達。

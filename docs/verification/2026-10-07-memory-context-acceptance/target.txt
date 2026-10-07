@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-context-scopes-cli.test.ts:
+(pass) native Runtime selects host Room and Agent department/project scopes through restart rebuild Task and automatic wake-up without granting other memberships [4907.89ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [4.96s]

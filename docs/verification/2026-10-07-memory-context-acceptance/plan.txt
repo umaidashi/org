@@ -1,0 +1,108 @@
+$ bun --no-env-file node_modules/jev-lint/dist/cli.js check src tests scripts --dry-run --json
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+{
+  "dryRun": true,
+  "subjects": 2259,
+  "cached": 2254,
+  "requests": 2,
+  "tokens": 9625,
+  "usd": 0.00040425000000000004,
+  "retry": 1,
+  "batches": [
+    {
+      "file": "tests/memory-context-scopes-cli.test.ts",
+      "rule": null,
+      "subjects": 1,
+      "arm": "bare",
+      "tokens": 2548,
+      "degraded": null
+    },
+    {
+      "file": "tests/memory-context-scopes-cli.test.ts",
+      "rule": null,
+      "subjects": 4,
+      "arm": "located",
+      "tokens": 7077,
+      "degraded": null
+    }
+  ],
+  "byRule": [
+    {
+      "rule": "fn-name-promises",
+      "subjects": 4,
+      "requests": 1,
+      "tokens": 7077,
+      "usd": 0.000297234,
+      "share": 0.7352727272727273
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "subjects": 1,
+      "requests": 1,
+      "tokens": 2548,
+      "usd": 0.000107016,
+      "share": 0.2647272727272727
+    },
+    {
+      "rule": "catch-hides-failure",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-block",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "comment-describes-declaration",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "org-functional-core",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "subjects": 0,
+      "requests": 0,
+      "tokens": 0,
+      "usd": 0,
+      "share": 0
+    }
+  ],
+  "commits": null,
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 8,
+    "files": [
+      "src/audit/service.ts",
+      "src/linear/config.ts",
+      "src/runtime/guardian.ts",
+      "src/runtime/http.ts",
+      "src/tasks/proposal.ts",
+      "src/tui/room-chat.ts"
+    ]
+  },
+  "excluded": 0,
+  "undeclared": [],
+  "idleLanguages": [],
+  "silentRules": []
+}

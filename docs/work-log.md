@@ -1721,3 +1721,20 @@
 - [残るscope実CLI受け入れ計画](superpowers/plans/2026-10-07-memory-context-acceptance.md)を保存。新機能を増やす前にreviewの直接証拠不足を埋める。次単位は今回reviewの対象外、完了宣言なし。
 
 - 最終全check終了0:479 pass / 14 skip / 0 fail / Ran 493 tests across 200 files. [170.21s]。static354files/AST成功、実Jev2258subjects/137warning/missing0/unsure0/review0/errors[]/degraded[]。fast UT167成功56files263ms。[証拠](verification/2026-10-07-memory-context-scopes/)保存。manual以外の新scope実機受け入れを残し、全体goalはactive。
+
+## 2026-10-07 Memory Contextの全reply経路受け入れ補足
+
+- [前reviewで残った受け入れ計画](superpowers/plans/2026-10-07-memory-context-acceptance.md)に従い、同じnative fixtureを拡張。製品source変更なし。前単位scopeの113a111 pushはcommitted tree検査中で、この追加test差分はpush対象に混ぜない。
+- 不存在Agent/非参加Agent/archived Roomの起動拒否、socket cleanup/runtime未実行と後続正常起動、失敗Sessionの明示rebuild、保存Sessionの再起動後resume、Taskのscoped replyと実行version参照、自動wake-upを実CLI確認。初回追加fixtureはtask runの既存task/reply戻り値をTaskそのものと扱って失敗し、さらにArtifact stageとwaiting_approvalで増えるversionを実行versionと混同して失敗。製品不具合ではなくfixture契約を既存公開戻り値/割当versionへ訂正し、GREEN1成功4.77秒を実測。
+- Ruling:追加単位は既存機能の受け入れ補足で製品変更なし — 観測したfixtureの失敗を製品REDとして捏造せず、実CLI原本/Task参照/Runtime未実行をassertする — 誤ると新不具合を修正したと誤認する。
+- Ponytail review:新engine/依存なし、同じDB/driver/daemon fixtureを再利用し重複assertを既存checkへ集約。製品sourceは前単位と一致。source機能増加より直接証拠の不足を埋める。
+- 前単位scope実装main通常ff/push終了0、公開113a111、公開時点main/origin/main一致。committed tree全gate/実Jev成功192.76秒、forceなし。その後追加受け入れをtest/memory-context-acceptanceへ移動。
+- 最終focused native1成功/0失敗（Task/自動wake-up/rebuild/保存Session再起動reply/無効grant拒否）とstatic354files/AST成功。実Jev直前dry-run2259subjects、excluded/undeclared/idleLanguages/silentRules0。
+- 独立final review:Critical0/Important0/Minor1（provider resume引数の直接検査なし）、git diff --check成功。scope経路/起動拒否の前Minorは新fixtureで直接証拠を補った。Ponytail Lean already、新engine/依存/抽象化なし。
+- Final: minor (deferred):fixture Driverはargvを検査せず同じprovider IDを返すため、provider CLIのresume引数そのものを証明しない。resume argv assertionの候補を保留。
+- Final: Ruling:今回証明した再起動継続は保存Kernel Sessionのscoped reply — provider resume argvの独立証明とは表現しない — 誤るとfixtureの同ID応答を実provider resume受け入れと誤認する。既存sourceの保存provider ID伝達はreviewで確認した。
+- Final: Ruling:native/fullcheck/実Jevは親terminal実測 — reviewerは重複実行せずコード/計画/ログを照合 — 誤ると独立native実行済みと誤認する。
+- Final: Ruling:本人認証/全Memory/実外部API/実業務納品/全体完成は未達 — 既存scope機能の実CLI経路補足だけを完了とする — 誤ると全業務受け入れ完成と誤認する。
+- [次の候補根拠接続計画](superpowers/plans/2026-10-07-memory-candidate-evidence.md)を保存。新source storeや抽出engineを作らず既存capture Readerを再利用し、同Roomのtyped候補へURI根拠を追加する。次単位の詳細契約は今回review対象外、実装済みとは扱わない。
+
+- 最終全check終了0:479 pass / 14 skip / 0 fail / Ran 493 tests across 200 files. [172.59s]、static354files/AST成功。実Jev2259subjects/137warning/missing0/unsure0/review0/errors[]/degraded[]。最終focused native1成功4.96秒。[証拠](verification/2026-10-07-memory-context-acceptance/)保存。製品source変更なし、前単位の全reply経路/登録guardの不足を補い、provider resume argv/本人認証/全体未達を維持。
