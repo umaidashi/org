@@ -2,6 +2,7 @@ import {
   parseTaskWorkflowBinding,
   parseLinearCommentOperation,
   parseLinearArtifactLinkOperation,
+  parseLinearIssueUpdateOperation,
 } from './domain.js';
 import { Database } from 'bun:sqlite';
 import { mkdirSync } from 'node:fs';
@@ -17,6 +18,7 @@ import type {
   PermissionOperation,
   LinearCommentOperation,
   LinearArtifactLinkOperation,
+  LinearIssueUpdateOperation,
 } from './domain.js';
 import type { ApprovalStore } from './port.js';
 import { validateCapabilities } from '../agents/domain.js';
@@ -48,7 +50,8 @@ function request(raw: unknown): ApprovalRequest {
     | WorkflowOperation
     | PermissionOperation
     | LinearCommentOperation
-    | LinearArtifactLinkOperation;
+    | LinearArtifactLinkOperation
+    | LinearIssueUpdateOperation;
   if (operation.kind === 'agent_capabilities' && typeof operation.expectedRevision === 'number')
     parsed = {
       kind: operation.kind,
@@ -74,6 +77,8 @@ function request(raw: unknown): ApprovalRequest {
   else if (operation.kind === 'linear_comment') parsed = parseLinearCommentOperation(operation);
   else if (operation.kind === 'linear_artifact_link')
     parsed = parseLinearArtifactLinkOperation(operation);
+  else if (operation.kind === 'linear_issue_update')
+    parsed = parseLinearIssueUpdateOperation(operation);
   else throw new Error('Invalid stored Approval operation');
   return createApprovalRequest(
     {

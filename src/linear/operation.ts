@@ -4,6 +4,7 @@ import type {
   ApprovalRequest,
   LinearCommentOperation,
   LinearArtifactLinkOperation,
+  LinearIssueUpdateOperation,
 } from '../approvals/domain.js';
 import type { ApprovalStore } from '../approvals/port.js';
 import type { EventBus } from '../events/port.js';
@@ -28,14 +29,19 @@ export function requireApprovedLinearRequest(
 }
 export function linearClaimPayload(
   request: ApprovalRequest & {
-    readonly operation: LinearCommentOperation | LinearArtifactLinkOperation;
+    readonly operation:
+      | LinearCommentOperation
+      | LinearArtifactLinkOperation
+      | LinearIssueUpdateOperation;
   },
 ) {
   return {
     claimId:
       request.operation.kind === 'linear_comment'
         ? `linear-comment:${request.operation.commentId}`
-        : `linear-artifact:${request.id}`,
+        : request.operation.kind === 'linear_artifact_link'
+          ? `linear-artifact:${request.id}`
+          : `linear-update:${request.id}`,
     approvalId: request.id,
     actorKind: request.actor.kind,
     actorId: request.actor.id,

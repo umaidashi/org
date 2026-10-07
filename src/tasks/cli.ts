@@ -6,6 +6,12 @@ import {
   type LinearArtifactInput,
 } from '../linear/artifact.js';
 import {
+  requestLinearUpdateApproval,
+  applyApprovedLinearUpdate,
+  validateLinearUpdateInput,
+  type LinearUpdateInput,
+} from '../linear/update.js';
+import {
   requestLinearCommentApproval,
   applyApprovedLinearComment,
   observeApprovedLinearComment,
@@ -45,6 +51,8 @@ import { SqliteSessionStore } from '../sessions/sqlite.js';
 import { recoverExecutionTaskResult } from './execution.js';
 
 type TaskAction =
+  | { kind: 'request-linear-update'; input: LinearUpdateInput & { readonly key: string } }
+  | { kind: 'apply-linear-update'; input: LinearUpdateInput & { readonly approvalId: string } }
   | {
       kind: 'observe-linear-artifact';
       input: {
@@ -120,6 +128,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       'room-message': { type: 'string' },
       kind: { type: 'string' },
       title: { type: 'string' },
+      description: { type: 'string' },
       status: { type: 'string' },
       owner: { type: 'string' },
       priority: { type: 'string' },
@@ -149,6 +158,8 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const allowed: Record<string, readonly string[]> = {
     'request-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'key'],
     'apply-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'approval'],
+    'request-linear-update': ['title', 'description', 'expected-version', 'actor', 'key'],
+    'apply-linear-update': ['title', 'description', 'expected-version', 'actor', 'approval'],
     'observe-linear-artifact': ['title', 'actor', 'approval'],
     'request-linear-comment': ['expected-version', 'actor', 'body', 'key'],
     'apply-linear-comment': ['expected-version', 'actor', 'body', 'approval'],
@@ -195,6 +206,27 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const db = values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('The database path must not be empty');
   const common = { db, json: values.json ?? false };
+  if (action === 'request-linear-update' || action === 'apply-linear-update') {
+    if (values.description === undefined) throw new Error('Expected --description');
+    const input = {
+      taskId: required(id, 'WorkItem ID'),
+      title: required(values.title, '--title'),
+      description: values.description,
+      expectedVersion: priority(required(values['expected-version'], '--expected-version')),
+      actor: required(values.actor, '--actor'),
+    };
+    validateLinearUpdateInput(input);
+    return {
+      ...common,
+      action:
+        action === 'request-linear-update'
+          ? { kind: action, input: { ...input, key: required(values.key, '--key') } }
+          : {
+              kind: action,
+              input: { ...input, approvalId: required(values.approval, '--approval') },
+            },
+    };
+  }
   if (action === 'request-linear-artifact' || action === 'apply-linear-artifact') {
     const input = {
       taskId: required(id, 'WorkItem ID'),
@@ -484,6 +516,8 @@ export async function runTaskCommand(
     let result: unknown;
     switch (action.kind) {
       case 'request-linear-artifact':
+      case 'request-linear-update':
+      case 'apply-linear-update':
       case 'apply-linear-artifact':
       case 'observe-linear-comment':
       case 'observe-linear-artifact':
@@ -504,30 +538,34 @@ export async function runTaskCommand(
           else {
             const events = new SqliteEventBus(command.db);
             try {
-              const secrets = new EnvironmentSecretStore([
-                {
+              const references =
+                action.kind === 'request-linear-update' || action.kind === 'apply-linear-update'
+                  ? ['linear:read', 'linear:write']
+                  : [
+                      action.kind === 'observe-linear-comment' ||
+                      action.kind === 'observe-linear-artifact'
+                        ? 'linear:read'
+                        : 'linear:write',
+                    ];
+              const secrets = new EnvironmentSecretStore(
+                references.map((reference) => ({
                   actorId: 'linear:host',
-                  reference:
-                    action.kind === 'observe-linear-comment' ||
-                    action.kind === 'observe-linear-artifact'
-                      ? 'linear:read'
-                      : 'linear:write',
+                  reference,
                   environmentVariable: 'LINEAR_API_KEY',
-                },
-              ]);
+                })),
+              );
               result =
-                action.kind === 'observe-linear-artifact'
-                  ? await observeApprovedLinearArtifact(
+                action.kind === 'request-linear-update'
+                  ? await requestLinearUpdateApproval(
                       provider,
                       approvals,
-                      events,
                       secrets,
                       fetch,
                       action.input,
-                      () => new Date().toISOString(),
+                      { id: randomUUID(), createdAt: new Date().toISOString() },
                     )
-                  : action.kind === 'observe-linear-comment'
-                    ? await observeApprovedLinearComment(
+                  : action.kind === 'apply-linear-update'
+                    ? await applyApprovedLinearUpdate(
                         provider,
                         approvals,
                         events,
@@ -536,8 +574,8 @@ export async function runTaskCommand(
                         action.input,
                         () => new Date().toISOString(),
                       )
-                    : action.kind === 'apply-linear-artifact'
-                      ? await applyApprovedLinearArtifact(
+                    : action.kind === 'observe-linear-artifact'
+                      ? await observeApprovedLinearArtifact(
                           provider,
                           approvals,
                           events,
@@ -546,15 +584,35 @@ export async function runTaskCommand(
                           action.input,
                           () => new Date().toISOString(),
                         )
-                      : await applyApprovedLinearComment(
-                          provider,
-                          approvals,
-                          events,
-                          secrets,
-                          fetch,
-                          action.input,
-                          () => new Date().toISOString(),
-                        );
+                      : action.kind === 'observe-linear-comment'
+                        ? await observeApprovedLinearComment(
+                            provider,
+                            approvals,
+                            events,
+                            secrets,
+                            fetch,
+                            action.input,
+                            () => new Date().toISOString(),
+                          )
+                        : action.kind === 'apply-linear-artifact'
+                          ? await applyApprovedLinearArtifact(
+                              provider,
+                              approvals,
+                              events,
+                              secrets,
+                              fetch,
+                              action.input,
+                              () => new Date().toISOString(),
+                            )
+                          : await applyApprovedLinearComment(
+                              provider,
+                              approvals,
+                              events,
+                              secrets,
+                              fetch,
+                              action.input,
+                              () => new Date().toISOString(),
+                            );
             } finally {
               events.close();
             }

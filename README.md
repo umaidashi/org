@@ -724,6 +724,20 @@ bun --env-file=.env src/cli.ts --direct task observe-linear-artifact WORKITEM_ID
 
 不明結果は`linear:read`で対象IssueのURL完全一致リンクを照会し、唯一の結果のIssue/URI/title/UUIDを承認原本と照合して成功記録を回収します。WorkItemのversion進行は許可しますが、Issue mappingとoutput Artifact原本の維持が必要です。未承認・別actor/title・不正claimでは秘密取得/HTTP前に拒否します。結果なし・不一致・複数・不完全page・保存障害では不明状態を保持し、mutationを再送しません。保存済み成功原本はHTTPなしで返します。これは一致する外部状態の読取証拠であり、過去のupsertだけがその状態を作ったという証明や外部編集/削除の監視ではありません。Agent投稿・実Linear API認証は未完了です。
 
+### 承認付き既存Linear Issueの明示更新
+
+titleとdescriptionを両方指定します。description空文字は明示削除です。requestは外部Issueを読み、入力digestと要求時の外部baselineを別々に固定します。
+
+```sh
+bun --env-file=.env src/cli.ts --direct task request-linear-update WORKITEM_ID --title '変更後のtitle' --description '' --expected-version VERSION --actor HUMAN --key UPDATE_KEY --json
+bun --no-env-file src/cli.ts --direct approval decide APPROVAL_ID --actor REVIEWER --decision approve --reason 'title変更とdescription削除を確認'
+bun --env-file=.env src/cli.ts --direct task apply-linear-update WORKITEM_ID --title '変更後のtitle' --description '' --expected-version VERSION --actor HUMAN --approval APPROVAL_ID --json
+```
+
+pending/reject/別actor/入力/versionでは秘密取得やHTTP前に拒否します。送信前に外部baselineを再読取し、変化があれば新しいkeyでの承認要求が必要です。readとwriteを跨ぐ他writerとの原子的排他は保証しません。一回claim後の不明応答/成功記録保存障害では再送せず、`logs --task WORKITEM_ID --json`に不明結果を残します。Issue UUID/番号/workspaceと返却title/descriptionを確認し、同IssueのURL slug変更は受理します。Auditにはdigestと参照URLを残し、title/descriptionの本文を格納しません。
+
+送信だけではLocal WorkItemを変更しません。必要なら既存の`task refresh-linear WORKITEM_ID --expected-version VERSION --json`で明示的に反映します。refreshは同Issueのslug変更を許可して元externalRefを保持し、返った現在URLをobjectiveの出典へ使用します。別Issue/workspaceへの変更は拒否します。結果不明updateの読取回収、status/owner/labels更新、Agent操作・実API認証・TaskProvider全体の非同期交換は未完了です。
+
 ### 実Claude二Agentのコード生成
 
 実Claude二Agentのコード生成・生成Bunテスト・独立Docker検証・生成物の隔離 `bun run check`・review/Memory/restartは、`ORG_CLAUDE_CODE_TEST=1 bun test tests/coordinator-claude-real.test.ts` でopt-in実行します。DockerとClaude Maxログインが必要です。依存準備だけ公開package/lockでnetworkを使い、生成コード実行時はnetworkなし・host mountなしです。runtime-valid explicit-anyの拒否検証は `ORG_GENERATED_GATE_TEST=1`。業務IssueやDraft PRはこの専用fixtureとは別に検証します。

@@ -5,6 +5,39 @@ import {
   createApprovalDecision,
   requireApprovedPermission,
 } from '../src/approvals/domain.js';
+test('Linear Issue update approval freezes baseline and proposed input separately', () => {
+  const input = {
+    key: 'update',
+    actor: { kind: 'human' as const, id: 'operator' },
+    taskId: 'linear:issue:11111111-1111-4111-8111-111111111111',
+    eventId: null,
+    operation: {
+      kind: 'linear_issue_update' as const,
+      issueId: '11111111-1111-4111-8111-111111111111',
+      issueUrl: 'https://linear.app/org/issue/ORG-1/existing',
+      taskVersion: 0,
+      inputDigest: 'a'.repeat(64),
+      baselineDigest: 'b'.repeat(64),
+    },
+  };
+  const identity = { id: 'update-approval', createdAt: 'now' };
+  assert.deepEqual(createApprovalRequest(input, identity).operation, input.operation);
+  for (const invalid of [
+    { ...input, actor: { kind: 'agent' as const, id: 'worker' } },
+    { ...input, taskId: 'other' },
+    { ...input, eventId: 'event' },
+    ...[
+      { baselineDigest: '' },
+      { baselineDigest: 'B'.repeat(64) },
+      { inputDigest: 'bad' },
+      { taskVersion: -1 },
+      { issueId: 'ORG-1' },
+      { issueUrl: input.operation.issueUrl + '?key=x' },
+      { title: 'raw content' },
+    ].map((patch) => ({ ...input, operation: { ...input.operation, ...patch } })),
+  ])
+    assert.throws(() => createApprovalRequest(invalid, identity));
+});
 test('Permission changes remain unavailable until a matching human approval', () => {
   const request = createApprovalRequest(
     {

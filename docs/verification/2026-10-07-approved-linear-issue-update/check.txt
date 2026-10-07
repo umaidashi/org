@@ -1,0 +1,17 @@
+2026-10-07 Approved existing Linear Issue title/description update
+Approval RED: 3 pass / 1 fail / 46ms; new kind rejected. GREEN pure/SQLite 6 pass / 42ms, reopen/requestOnce baseline preserved.
+Native RED: 0 pass / 3 fail / 373ms. Audit RED: 1 pass / 2 fail / 1.45s.
+DI new update/existing comment/Artifact: 19 pass / 61ms; later URL boundary coverage 19 pass / 78ms.
+Same-Issue URL slug regression: native 2 pass / 1 fail / 1.32s; GREEN 3 pass / 1.46s.
+Next request regression: native 2 pass / 1 fail / 1.51s; refresh regression 1 pass / 1 fail / 39ms.
+Same-Issue source-reference GREEN: update/refresh/existing comment 13 pass / 61ms; native 3 pass / 1.54s includes next request and explicit refresh.
+Fast UT: 133 pass / 48 files / 175ms.
+Final bun run check: exit 0; 393 pass / 12 skip / 0 fail; 405 tests / 182 files / 104.71s.
+Typecheck/Oxlint/Oxfmt 326 files/AST: passed; nonempty lint/AST fixtures.
+Dry-run: 1973 subjects / 12 requests / excluded 0.
+Actual Jev: exit 0; 1973 subjects / 118 advisory warnings; missing/unsure/review 0; errors/degraded empty.
+Native owned HTTP/SQLite fixture: import/read request, same-key stable Approval, pending no HTTP, human decision, concurrent apply one mutation, stale baseline zero mutation, no replay after unknown/success, Local Task unchanged, Audit no raw title/description/credential.
+DI fault proof: pending/reject/input/version/actor, remote baseline, credential/Local change, claim/receipt/terminal persistence, transport, credential reflection, Issue/title/null description/URI/workspace/query/fragment, forged output digest.
+Empty description is explicit deletion; updated slug accepted only for same Issue identifier/workspace, canonical URL. Original Local externalRef retained; explicit refresh projects new source fields under Local CAS.
+Read and write are not an atomic remote CAS; edits after preflight read can race. Real Linear server/authentication remain unverified.
+Final fresh review pending. Update unknown-result observation, status/owner/labels, Agent actions, asynchronous TaskProvider exchange and business Draft PR remain incomplete.

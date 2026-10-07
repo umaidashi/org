@@ -2,6 +2,7 @@ import { createTask } from '../tasks/domain.js';
 import type { Task } from '../tasks/domain.js';
 import type { TaskProvider, WorkItemImporter } from '../tasks/port.js';
 import { validateLinearIssueId } from './read.js';
+import { validateLinearUpdatedIssueUrl } from '../approvals/domain.js';
 import type { readLinearIssue } from './read.js';
 export async function importLinearWorkItem(
   writer: WorkItemImporter,
@@ -44,8 +45,12 @@ export async function refreshLinearWorkItem(
     throw new Error('Refresh requires an imported WorkItem');
   if (original.version !== expectedVersion) throw new Error('WorkItem version conflict');
   const issue = await read();
-  if (issue.id !== issueId || issue.url !== original.externalRef)
+  if (issue.id !== issueId) throw new Error('Linear WorkItem identity conflict');
+  try {
+    validateLinearUpdatedIssueUrl({ issueUrl: original.externalRef }, issue.url);
+  } catch {
     throw new Error('Linear WorkItem identity conflict');
+  }
   const current = provider.get(taskId);
   if (current.version !== expectedVersion) throw new Error('WorkItem version conflict');
   const objective = `Linear source: ${issue.url}\n\n${issue.description ?? issue.title}`;

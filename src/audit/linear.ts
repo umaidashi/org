@@ -4,7 +4,8 @@ import { isDeepStrictEqual } from 'node:util';
 import {
   createApprovalRequest,
   createApprovalDecision,
-  validateLinearCommentUrl,
+  validateLinearIssueReferenceUrl,
+  validateLinearUpdatedIssueUrl,
   validateLinearArtifactUri,
 } from '../approvals/domain.js';
 import type { Approval } from '../approvals/domain.js';
@@ -27,6 +28,9 @@ export function buildLinearAudit(
           'linear.artifact.claimed',
           'linear.artifact.linked',
           'linear.artifact.unconfirmed',
+          'linear.update.claimed',
+          'linear.update.updated',
+          'linear.update.unconfirmed',
         ].includes(event.type),
     )
     .map((event) => {
@@ -35,7 +39,9 @@ export function buildLinearAudit(
       const claim = originals.get(claimId);
       if (
         !claim ||
-        !['linear.comment.claimed', 'linear.artifact.claimed'].includes(claim.type) ||
+        !['linear.comment.claimed', 'linear.artifact.claimed', 'linear.update.claimed'].includes(
+          claim.type,
+        ) ||
         claim.source !== event.source ||
         typeof claim.payload.approvalId !== 'string'
       )
@@ -48,12 +54,19 @@ export function buildLinearAudit(
       createApprovalDecision(request, decision, decision.createdAt);
       const operation = request.operation;
       if (
-        (operation.kind !== 'linear_comment' && operation.kind !== 'linear_artifact_link') ||
+        (operation.kind !== 'linear_comment' &&
+          operation.kind !== 'linear_artifact_link' &&
+          operation.kind !== 'linear_issue_update') ||
         decision.approvalId !== request.id
       )
         throw new Error('Linear Audit operation mismatch');
       const payload = linearClaimPayload({ ...request, operation });
-      const prefix = operation.kind === 'linear_comment' ? 'linear.comment' : 'linear.artifact';
+      const prefix =
+        operation.kind === 'linear_comment'
+          ? 'linear.comment'
+          : operation.kind === 'linear_artifact_link'
+            ? 'linear.artifact'
+            : 'linear.update';
       if (claim.id !== payload.claimId || claim.type !== prefix + '.claimed')
         throw new Error('Linear Audit operation mismatch');
       if (!isDeepStrictEqual(claim.payload, payload))
@@ -65,7 +78,7 @@ export function buildLinearAudit(
         if (operation.kind !== 'linear_comment') throw new Error('Linear Audit operation mismatch');
         result = 'succeeded';
         expectedId += ':created';
-        const commentUrl = validateLinearCommentUrl(operation, event.payload.commentUrl);
+        const commentUrl = validateLinearIssueReferenceUrl(operation, event.payload.commentUrl);
         if (!isDeepStrictEqual(event.payload, { ...payload, commentUrl }))
           throw new Error('Linear comment Audit success mismatch');
         outputRef = commentUrl;
@@ -84,6 +97,21 @@ export function buildLinearAudit(
         )
           throw new Error('Linear Audit Artifact mismatch');
         outputRef = artifactUri;
+      } else if (event.type === 'linear.update.updated') {
+        if (operation.kind !== 'linear_issue_update')
+          throw new Error('Linear Audit operation mismatch');
+        const issueUrl = validateLinearUpdatedIssueUrl(operation, event.payload.issueUrl);
+        if (
+          !isDeepStrictEqual(event.payload, {
+            ...payload,
+            issueUrl,
+            outputDigest: operation.inputDigest,
+          })
+        )
+          throw new Error('Linear Audit update mismatch');
+        result = 'succeeded';
+        expectedId += ':updated';
+        outputRef = issueUrl;
       } else if (event.type === prefix + '.unconfirmed') {
         result = 'unconfirmed';
         expectedId += ':unconfirmed';
@@ -100,7 +128,7 @@ export function buildLinearAudit(
         tool: prefix,
         inputRef:
           event.type === prefix + '.claimed'
-            ? `org://${operation.kind === 'linear_comment' ? 'linear-comment' : 'linear-artifact'}-inputs/${operation.inputDigest}`
+            ? `org://${prefix.replace('.', '-')}-inputs/${operation.inputDigest}`
             : `org://events/${encodeURIComponent(claimId)}`,
         outputRef,
         at: event.createdAt,

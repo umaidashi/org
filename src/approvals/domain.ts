@@ -75,6 +75,34 @@ export interface LinearArtifactLinkOperation extends LinearTarget {
   readonly artifactId: string;
   readonly artifactUriDigest: string;
 }
+export interface LinearIssueUpdateOperation extends LinearTarget {
+  readonly kind: 'linear_issue_update';
+  readonly baselineDigest: string;
+}
+export function parseLinearIssueUpdateOperation(value: unknown): LinearIssueUpdateOperation {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    Object.keys(value).some(
+      (key) =>
+        !['kind', 'issueId', 'issueUrl', 'taskVersion', 'inputDigest', 'baselineDigest'].includes(
+          key,
+        ),
+    ) ||
+    !('kind' in value) ||
+    value.kind !== 'linear_issue_update' ||
+    !('baselineDigest' in value) ||
+    typeof value.baselineDigest !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(value.baselineDigest)
+  )
+    throw new Error('Invalid Linear Issue update operation');
+  return {
+    kind: 'linear_issue_update',
+    ...parseLinearTarget(value),
+    baselineDigest: value.baselineDigest,
+  };
+}
 function parseLinearTarget(value: unknown): LinearTarget {
   if (
     !value ||
@@ -200,8 +228,8 @@ export function validateLinearArtifactUri(value: unknown): string {
     throw new Error('Invalid shared Artifact URI');
   return value;
 }
-export function validateLinearCommentUrl(
-  operation: LinearCommentOperation,
+export function validateLinearIssueReferenceUrl(
+  operation: Pick<LinearTarget, 'issueUrl'>,
   value: unknown,
 ): string {
   if (typeof value !== 'string' || value.length > 2048)
@@ -216,6 +244,7 @@ export function validateLinearCommentUrl(
   if (
     url.protocol !== 'https:' ||
     url.hostname !== 'linear.app' ||
+    url.origin !== original.origin ||
     url.port ||
     url.username ||
     url.password ||
@@ -229,6 +258,14 @@ export function validateLinearCommentUrl(
     throw new Error('Invalid Linear comment URL');
   return value;
 }
+export function validateLinearUpdatedIssueUrl(
+  operation: Pick<LinearTarget, 'issueUrl'>,
+  value: unknown,
+): string {
+  const issueUrl = validateLinearIssueReferenceUrl(operation, value);
+  if (issueUrl.includes('?') || issueUrl.includes('#')) throw new Error('Invalid Linear Issue URL');
+  return issueUrl;
+}
 export interface ApprovalRequestInput {
   readonly key: string;
   readonly actor: Participant;
@@ -238,7 +275,8 @@ export interface ApprovalRequestInput {
     | PermissionOperation
     | WorkflowOperation
     | LinearCommentOperation
-    | LinearArtifactLinkOperation;
+    | LinearArtifactLinkOperation
+    | LinearIssueUpdateOperation;
 }
 export interface ApprovalRequest extends ApprovalRequestInput {
   readonly id: string;
@@ -284,7 +322,8 @@ export function createApprovalRequest(
     | PermissionOperation
     | WorkflowOperation
     | LinearCommentOperation
-    | LinearArtifactLinkOperation;
+    | LinearArtifactLinkOperation
+    | LinearIssueUpdateOperation;
   if (input.operation.kind === 'agent_capabilities') {
     text(input.operation.agentId);
     if (
@@ -342,12 +381,15 @@ export function createApprovalRequest(
     };
   } else if (
     input.operation.kind === 'linear_comment' ||
-    input.operation.kind === 'linear_artifact_link'
+    input.operation.kind === 'linear_artifact_link' ||
+    input.operation.kind === 'linear_issue_update'
   ) {
     operation =
       input.operation.kind === 'linear_comment'
         ? parseLinearCommentOperation(input.operation)
-        : parseLinearArtifactLinkOperation(input.operation);
+        : input.operation.kind === 'linear_artifact_link'
+          ? parseLinearArtifactLinkOperation(input.operation)
+          : parseLinearIssueUpdateOperation(input.operation);
     if (
       input.actor.kind !== 'human' ||
       input.taskId !== `linear:issue:${operation.issueId}` ||

@@ -83,7 +83,7 @@ export async function queryLinear(
   if (containsCredential(value.data, credential)) throw new Error('Invalid Linear response');
   return value.data as Record<string, unknown>;
 }
-function parseLinearIssue(issue: unknown): LinearIssue {
+export function parseLinearIssue(issue: unknown): LinearIssue {
   if (
     issue === null ||
     typeof issue !== 'object' ||

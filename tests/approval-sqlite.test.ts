@@ -4,6 +4,50 @@ import { Database } from 'bun:sqlite';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { SqliteApprovalStore } from '../src/approvals/sqlite.js';
 import { createApprovalRequest } from '../src/approvals/domain.js';
+test('Linear update approval baseline survives reopening and rejects changed intent under the same key', () => {
+  const home = mkdtempSync('/tmp/org-update-approval-'),
+    path = home + '/org.db';
+  const request = createApprovalRequest(
+    {
+      key: 'update',
+      actor: { kind: 'human', id: 'operator' },
+      taskId: 'linear:issue:11111111-1111-4111-8111-111111111111',
+      eventId: null,
+      operation: {
+        kind: 'linear_issue_update',
+        issueId: '11111111-1111-4111-8111-111111111111',
+        issueUrl: 'https://linear.app/org/issue/ORG-1/existing',
+        taskVersion: 0,
+        inputDigest: 'a'.repeat(64),
+        baselineDigest: 'b'.repeat(64),
+      },
+    },
+    { id: 'update', createdAt: 'before' },
+  );
+  const a = new SqliteApprovalStore(path);
+  try {
+    assert.deepEqual(a.requestOnce(request), request);
+  } finally {
+    a.close();
+  }
+  const b = new SqliteApprovalStore(path);
+  try {
+    assert.deepEqual(b.get('update').request, request);
+    assert.deepEqual(b.requestOnce({ ...request, id: 'repeat', createdAt: 'later' }), request);
+    assert.ok(request.operation.kind === 'linear_issue_update');
+    assert.throws(
+      () =>
+        b.requestOnce({
+          ...request,
+          operation: { ...request.operation, baselineDigest: 'c'.repeat(64) },
+        }),
+      /conflict/,
+    );
+  } finally {
+    b.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+});
 test('Approval requests and decisions are immutable, idempotent and visible across adapters', () => {
   const home = mkdtempSync('/tmp/org-approval-'),
     path = home + '/org.db';

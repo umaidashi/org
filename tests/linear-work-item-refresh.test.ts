@@ -82,7 +82,7 @@ test('explicit Linear refresh preserves internal state, replaces source fields a
   await assert.rejects(
     refreshLinearWorkItem(
       provider,
-      async () => ({ ...issue, url: issue.url + '-changed' }),
+      async () => ({ ...issue, url: 'https://linear.app/other/issue/ORG-1/changed' }),
       initial.id,
       2,
       '2026-10-06T00:04:00Z',
@@ -113,4 +113,24 @@ test('explicit Linear refresh preserves internal state, replaces source fields a
     /WorkItem/,
   );
   assert.equal(reads, 2);
+});
+test('Linear refresh accepts same-Issue slug changes and retains the original source reference', async () => {
+  let current = initial;
+  const result = await refreshLinearWorkItem(
+    {
+      get: () => current,
+      update: (_id, patch, at, version) => {
+        assert.equal(version, 0);
+        current = { ...changeTask(current, patch, at), externalRef: initial.externalRef };
+        return current;
+      },
+    },
+    async () => ({ ...issue, url: issue.url + '-renamed' }),
+    initial.id,
+    0,
+    'later',
+  );
+  assert.equal(result.title, 'Remote');
+  assert.equal(result.externalRef, initial.externalRef);
+  assert.equal(result.objective, 'Linear source: ' + issue.url + '-renamed\n\nUpdated');
 });

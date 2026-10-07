@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { createApprovalRequest } from '../approvals/domain.js';
-import { validateLinearCommentUrl } from '../approvals/domain.js';
+import { validateLinearIssueReferenceUrl } from '../approvals/domain.js';
 import type { ApprovalRequest, LinearCommentOperation } from '../approvals/domain.js';
 import type { Event } from '../events/domain.js';
 import type { ApprovalStore } from '../approvals/port.js';
@@ -196,7 +196,7 @@ function verifiedCommentUrl(operation: LinearCommentOperation, comment: unknown)
     !('url' in comment)
   )
     throw new Error('Invalid Linear comment response');
-  return validateLinearCommentUrl(operation, comment.url);
+  return validateLinearIssueReferenceUrl(operation, comment.url);
 }
 export async function observeApprovedLinearComment(
   tasks: Pick<TaskProvider, 'get'>,
@@ -248,7 +248,7 @@ function verifiedReceipt(
   event: Event,
 ): Event {
   const payload = linearClaimPayload(original);
-  const commentUrl = validateLinearCommentUrl(original.operation, event.payload.commentUrl);
+  const commentUrl = validateLinearIssueReferenceUrl(original.operation, event.payload.commentUrl);
   if (
     event.id !== payload.claimId + ':created' ||
     event.type !== 'linear.comment.created' ||

@@ -1316,3 +1316,16 @@
 - Final Ruling: human文字列照合を本人認証やDB所有者の直接改竄耐性と扱わない。既存ローカル権限境界と未完了要件を維持。判断が誤れば別人/DB管理者操作を同一承認と扱うため、本人認証は別途実装/受け入れる。
 - Final Ruling: 履歴回収は一致状態の観測証拠とし、継続監視/過去upsertの排他的起源証明は提供しない。判断が誤れば後の編集/削除や既存一致を実行結果保証と誤認するため、READMEに限界を明記。
 - 公開結果: 7a113c4実装＋ec033feレビュー記録をmainへfast-forwardし通常push exit0。pre-pushの対象commit検査/実Jev119.69s成功、384 pass / 12 skip / 0 fail、396 tests / 180 files / 102.69s。HEAD/origin/main同一ec033feとclean確認。当該scratchのみ削除、全Ruling/Minorはログへ保持。この公開結果追記をGit保存し、次は既存Issue明示updateを進める。全体目標active。
+
+### 2026-10-07 承認付き既存Linear Issueの明示更新
+
+- 前ターンはArtifact回収の実装/検証/公開まで進捗あり。main9a80247、cleanからfeatureへ分離。Notion 04 Taskと指針/referenceを再読し、WorkItem/内部Execution分離と照合。[設計/計画](superpowers/plans/2026-10-07-approved-linear-issue-update.md)。
+- Ruling: title/descriptionを両方明示してinput digest、外部read結果のbaseline digestを別に固定する。read→writeは非原子的で、今回のissueUpdateにserver CASを含めない。判断が誤ればread後の他者編集を上書きし得るため、保証の範囲をREADMEに明記して実API受け入れを残す。新Issue/status/owner/labelや暗黙のLocal変更は加えない。
+- Approval RED 3 pass / 1 fail / 46ms（新kind拒否）。closed operation/human/Issue/version/入力とbaselineのhashを接続。GREEN pure/SQLite6 pass / 42ms、再open/same key同原本/別baseline conflictを確認。
+- Native RED 0 pass / 3 fail / 373ms（未対応CLI）。接続時のdescription option未登録を確認し修正。Audit接続前は1 pass / 2 fail / 1.45s（成功/不明結果のAudit欠落）。接続後3 pass / 1.43s。並行apply一回mutation、pending no HTTP、外部baseline変更時ゼロmutation、再open no replay、Local原本不変を確認。
+- DB不要update/既存comment/Artifact19 pass / 61ms。pending/reject/別actor/title/description/version、baseline/credential/Local変更/claim保存/transport/receipt保存/terminal保存、資格情報反射/Issue/URL/title/null descriptionと偽造Auditを検査。fixtureの本文非漏洩regexpが参照URLのslugにも一致したため本文だけを検査へ訂正。native.sort comparatorのOxlint違反を修正後、型/Oxlint/Oxfmt326 files/AST成功。
+- 追加回帰RED: 同Issueのtitle変更によるURL slug変更を完全URL一致で拒否（native2 pass / 1 fail / 1.32s）。共有Issue参照validatorの全callerを検索し、UUID/番号/workspace保持とcanonical URLで検証するよう修正。元comment callerも共有名へ移行しcompat wrapperは作らない。GREEN19 pass / 86ms、native3 pass / 1.46s。
+- 続く回帰RED: slug変更後の同WorkItemで次のrequestが拒否（native2 pass / 1 fail / 1.51s）、既存refreshも拒否（1 pass / 1 fail / 39ms）。request/refreshを同一共有validatorへ接続し、同Issueのslugは許可、別Issue/workspace/query/fragmentを拒否。GREEN update/refresh/既存comment13 pass / 61ms、native3 pass / 1.54s（次要求→明示refresh→元externalRef保持も確認）。
+- Ruling: Local WorkItemの元externalRefは出典として保持し、同Issueの現在URLを新しいobjective/成功receiptの参照に使う。古い完全URL文字列の不変を外部entityの同一性と混同しない。判断が誤れば無効な旧参照や別entityを許容し得るため、UUID/番号/workspaceの検証と明示refresh/元参照保持を実CLIで確認する。
+- 初回全gate392 pass / 12 skip / 0 fail / 404 tests / 182 files / 103.80s。slug受理修正時も392 pass / 104.13s。以後の次要求/refresh修正は別の最終gateで検証する。最終高速UT133 pass / 48 files / 175ms。Ponytail自己点検: 既存query/read/claim/receipt/Auditと共有URL検証を使用、新依存/table/frameworkなし。不要な重複候補なし。全体目標active、最終全gate/実Jev/独立review待ち。
+- 最終全gate exit0、393 pass / 12 skip / 0 fail、405 tests / 182 files / 104.71s。型/Oxlint/Oxfmt326 files/非空AST成功。最終dry-run1973 subjects / 12 requests / excluded0を確認後、実Jev exit0、1973 subjects / 118 advisory warnings、missing/unsure/review0、errors/degradedなし。Approval/CLI/importの失敗経路候補と既存命名候補は実際の境界/保存検査へ照合し、機械的修正や全面網羅保証に扱わない。[証拠](verification/2026-10-07-approved-linear-issue-update/check.txt)。README/要件/MVP表を更新し、独立最終review待ち。

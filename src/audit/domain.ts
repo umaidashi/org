@@ -45,7 +45,9 @@ export function buildAudit(
             ? 'linear.comment.request'
             : request.operation.kind === 'linear_artifact_link'
               ? 'linear.artifact.request'
-              : 'workflow.invoke.request',
+              : request.operation.kind === 'linear_issue_update'
+                ? 'linear.update.request'
+                : 'workflow.invoke.request',
       inputRef:
         request.operation.kind === 'agent_capabilities'
           ? `org://agents/${encodeURIComponent(request.operation.agentId)}/capabilities/${request.operation.expectedRevision}`
@@ -53,7 +55,9 @@ export function buildAudit(
             ? `org://linear-comment-inputs/${request.operation.inputDigest}`
             : request.operation.kind === 'linear_artifact_link'
               ? `org://linear-artifact-inputs/${request.operation.inputDigest}`
-              : `org://workflow-inputs/${request.operation.inputDigest}`,
+              : request.operation.kind === 'linear_issue_update'
+                ? `org://linear-update-inputs/${request.operation.inputDigest}`
+                : `org://workflow-inputs/${request.operation.inputDigest}`,
       outputRef: ref,
       at: request.createdAt,
       result: 'pending',
