@@ -16,8 +16,32 @@ function record(value: unknown): value is Record<string, unknown> {
 }
 
 for (const mode of ['content', 'fields'])
-  for (const outcome of ['success', 'approval-save', 'task-save', 'invalid', 'ambiguous'])
-    test(`native Runtime Linear ${mode} ${outcome} proposal waits for operation approval without mutation or replay`, async () => {
+  for (const outcome of [
+    'success',
+    'approval-save',
+    'task-save',
+    'invalid',
+    'ambiguous',
+    'resume',
+    'unknown',
+    'artifact',
+    'stage',
+    'claim',
+    'receipt',
+    'blocked',
+    'crash',
+  ])
+    test(`native Runtime Linear ${mode} ${outcome} preserves approval, one-send and restart boundaries`, async () => {
+      const continuing = [
+        'resume',
+        'unknown',
+        'artifact',
+        'stage',
+        'claim',
+        'receipt',
+        'blocked',
+        'crash',
+      ].includes(outcome);
       const home = mkdtempSync('/tmp/org-runtime-linear-'),
         db = home + '/org.db',
         socket = home + '/org.sock';
@@ -28,6 +52,7 @@ for (const mode of ['content', 'fields'])
         driver = home + '/driver.ts';
       const runtime = home + '/runtime.json',
         calls = home + '/calls.txt',
+        remote = home + '/remote.json',
         turns = home + '/turns.txt';
       const issue = {
         id: issueId,
@@ -107,11 +132,12 @@ for (const mode of ['content', 'fields'])
         home + '/sandbox.json',
         JSON.stringify({ writable: false, files: [], timeoutMs: 1000, maxOutputBytes: 4096 }),
       );
+      writeFileSync(remote, JSON.stringify(issue));
       writeFileSync(calls, '');
       writeFileSync(turns, '');
       writeFileSync(
         preload,
-        `const original=globalThis.fetch;globalThis.fetch=async (url,init)=>{if(String(url)!=='https://api.linear.app/graphql')return original(url,init);if(init.headers.Authorization!=='fixture-agent-key')throw new Error('Wrong key');const body=JSON.parse(init.body);if(body.query.includes('mutation'))throw new Error('Unapproved mutation');await Bun.write(${JSON.stringify(calls)},await Bun.file(${JSON.stringify(calls)}).text()+'R');return Response.json({data:{issue:${JSON.stringify(issue)}}});};`,
+        `const original=globalThis.fetch;globalThis.fetch=async (url,init)=>{if(String(url)!=='https://api.linear.app/graphql')return original(url,init);if(init.headers.Authorization!=='fixture-agent-key')throw new Error('Wrong key');const body=JSON.parse(init.body),path=${JSON.stringify(calls)};let issue=await Bun.file(${JSON.stringify(remote)}).json();if(body.query.includes('mutation')){if(!${continuing})throw new Error('Unapproved mutation');if(body.variables.id!==issue.id)throw new Error('Wrong Issue');const values=body.variables.input??{title:body.variables.title,description:body.variables.description};issue={...issue,...values,...('labelIds' in values?{labels:{nodes:values.labelIds.map(id=>({id})),pageInfo:{hasNextPage:false}}}:{})};await Bun.write(${JSON.stringify(remote)},JSON.stringify(issue));await Bun.write(path,await Bun.file(path).text()+'W');if(${JSON.stringify(outcome)}==='crash')await new Promise(resolve=>setTimeout(resolve,60000));if(${JSON.stringify(outcome)}==='unknown'||${JSON.stringify(outcome)}==='blocked')throw new Error('fixture lost response');return Response.json({data:{issueUpdate:{success:true,issue}}});}await Bun.write(path,await Bun.file(path).text()+'R');return Response.json({data:{issue}});};`,
       );
       writeFileSync(
         driver,
@@ -133,7 +159,14 @@ for (const mode of ['content', 'fields'])
       const raw = async (args: string[]) => {
         const child = spawn(
           process.execPath,
-          ['--no-env-file', cli, '--db', db, '--socket', socket, ...args],
+          [
+            '--no-env-file',
+            cli,
+            '--db',
+            db,
+            ...(args.includes('--direct') ? [] : ['--socket', socket]),
+            ...args,
+          ],
           { env },
         );
         let out = '',
@@ -153,6 +186,11 @@ for (const mode of ['content', 'fields'])
         const result = await raw([...args, '--json']);
         assert.equal(result.code, 0, result.err);
         return JSON.parse(result.out);
+      };
+      const entity = async (args: string[]) => {
+        const value = await run(args);
+        assert.ok(record(value));
+        return value;
       };
       let daemon: ReturnType<typeof spawn> | undefined, exited: Promise<number | null> | undefined;
       const start = async () => {
@@ -237,7 +275,7 @@ for (const mode of ['content', 'fields'])
           '--room-message',
           'input',
         ];
-        if (outcome !== 'success') {
+        if (outcome !== 'success' && !continuing) {
           const failed = await raw(executionArgs);
           assert.equal(failed.code, 1, failed.err);
           const task = await run(['task', 'get', 'execution']);
@@ -303,6 +341,35 @@ for (const mode of ['content', 'fields'])
           ).code,
           1,
         );
+        if (continuing) {
+          assert.equal(
+            (
+              await raw([
+                'task',
+                'resume-linear-task',
+                'execution',
+                '--approval',
+                request.id,
+                '--expected-version',
+                String(waiting.version),
+                '--actor',
+                'spoof',
+              ])
+            ).code,
+            2,
+          );
+          const pending = await raw([
+            'task',
+            'resume-linear-task',
+            'execution',
+            '--approval',
+            request.id,
+            '--expected-version',
+            String(waiting.version),
+          ]);
+          assert.equal(pending.code, 1, pending.err);
+          assert.equal(readFileSync(calls, 'utf8'), 'R');
+        }
         await run([
           'approval',
           'decide',
@@ -310,7 +377,7 @@ for (const mode of ['content', 'fields'])
           '--actor',
           'founder',
           '--decision',
-          mode === 'content' ? 'approve' : 'reject',
+          continuing || mode === 'content' ? 'approve' : 'reject',
           '--reason',
           'Checked operation',
         ]);
@@ -333,6 +400,154 @@ for (const mode of ['content', 'fields'])
           ).code,
           1,
         );
+        if (continuing) {
+          const fault = new Database(db);
+          try {
+            if (outcome === 'claim' || outcome === 'receipt')
+              fault.run(
+                "CREATE TRIGGER resume_event_fault BEFORE INSERT ON events WHEN json_extract(NEW.data,'$.type')='linear.update." +
+                  (outcome === 'claim' ? 'claimed' : 'updated') +
+                  "' BEGIN SELECT RAISE(ABORT,'fixture event fault'); END",
+              );
+            if (outcome === 'stage')
+              fault.run(
+                "CREATE TRIGGER resume_stage_fault BEFORE INSERT ON task_artifacts BEGIN SELECT RAISE(ABORT,'fixture stage fault'); END",
+              );
+            if (outcome === 'blocked')
+              fault.run(
+                "CREATE TRIGGER resume_blocked_fault BEFORE UPDATE ON tasks WHEN json_extract(NEW.data,'$.status')='blocked' BEGIN SELECT RAISE(ABORT,'fixture blocked fault'); END",
+              );
+          } finally {
+            fault.close();
+          }
+          if (outcome === 'artifact')
+            writeFileSync(db + '.artifacts', 'fixture cannot create directory');
+          const args = [
+            'task',
+            'resume-linear-task',
+            'execution',
+            '--approval',
+            request.id,
+            '--expected-version',
+            String(waiting.version),
+          ];
+          const pendingAttempts = Promise.all([raw(args), raw(args)]);
+          if (outcome === 'crash') {
+            const deadline = Date.now() + 3000;
+            while (!readFileSync(calls, 'utf8').includes('W')) {
+              assert.ok(Date.now() < deadline, 'Linear mutation not dispatched');
+              await Bun.sleep(10);
+            }
+            daemon?.kill('SIGKILL');
+            await exited;
+            daemon = undefined;
+          }
+          const attempts = await pendingAttempts;
+          assert.equal(attempts.filter((r) => r.code === 0).length, outcome === 'resume' ? 1 : 0);
+          let current = await entity([
+            ...(outcome === 'crash' ? ['--direct'] : []),
+            'task',
+            'get',
+            'execution',
+          ]);
+          assert.ok(record(current));
+          assert.equal(
+            current.status,
+            outcome === 'resume'
+              ? 'waiting_approval'
+              : outcome === 'claim'
+                ? 'failed'
+                : ['blocked', 'crash'].includes(outcome)
+                  ? 'running'
+                  : 'blocked',
+          );
+          assert.equal(
+            readFileSync(calls, 'utf8').split('W').length - 1,
+            outcome === 'claim' ? 0 : 1,
+          );
+          assert.equal(readFileSync(turns, 'utf8'), 'TT');
+          if (daemon) await stop();
+          const repair = new Database(db);
+          try {
+            for (const name of ['resume_event_fault', 'resume_stage_fault', 'resume_blocked_fault'])
+              repair.run('DROP TRIGGER IF EXISTS ' + name);
+          } finally {
+            repair.close();
+          }
+          if (outcome === 'artifact') rmSync(db + '.artifacts');
+          await run(['--direct', 'task', 'update', workId, '--title', 'Local WorkItem progressed']);
+          await start();
+          current = await entity(['task', 'get', 'execution']);
+          assert.ok(record(current));
+          if (['blocked', 'crash'].includes(outcome)) assert.equal(current.status, 'blocked');
+          if (outcome !== 'resume' && outcome !== 'claim') {
+            const observeArgs = [
+              'task',
+              'observe-linear-task',
+              'execution',
+              '--approval',
+              request.id,
+              '--expected-version',
+              String(current.version),
+            ];
+            const observations = await Promise.all([
+              raw([...observeArgs, '--json']),
+              raw([...observeArgs, '--json']),
+            ]);
+            const winners = observations.filter((result) => result.code === 0);
+            assert.equal(winners.length, 1);
+            const observed: unknown = JSON.parse(winners[0]?.out ?? 'null');
+            assert.ok(record(observed));
+            current = observed;
+            assert.equal(current.status, 'waiting_approval');
+          }
+          if (outcome !== 'claim') {
+            assert.ok(
+              Array.isArray(current.outputArtifacts) && current.outputArtifacts.length === 1,
+            );
+            const content = await run([
+              'task',
+              'artifact-content',
+              'execution',
+              '--artifact',
+              String(current.outputArtifacts[0]),
+            ]);
+            assert.ok(record(content) && typeof content.content === 'string');
+            const proof: unknown = JSON.parse(content.content);
+            assert.ok(record(proof));
+            assert.equal(
+              proof.type,
+              ['unknown', 'blocked', 'crash', 'receipt'].includes(outcome)
+                ? 'linear.update.observed'
+                : 'linear.update.updated',
+            );
+            await run([
+              'task',
+              'review',
+              'execution',
+              '--decision',
+              'approve',
+              '--actor',
+              'founder',
+              '--reason',
+              'Verified native receipt',
+              '--expected-version',
+              String(current.version),
+            ]);
+            const completed = await run(['task', 'get', 'execution']);
+            assert.ok(record(completed));
+            assert.equal(completed.status, 'completed');
+          }
+          assert.notEqual((await raw(args)).code, 0);
+          assert.deepEqual(await run(['approval', 'get', request.id]), saved);
+          assert.equal(
+            readFileSync(calls, 'utf8').split('W').length - 1,
+            outcome === 'claim' ? 0 : 1,
+          );
+          assert.equal(readFileSync(turns, 'utf8'), 'TT');
+          await stop();
+          return;
+        }
         assert.equal(readFileSync(calls, 'utf8'), 'R');
         assert.equal(readFileSync(turns, 'utf8'), 'TT');
         const messages = await run(['room', 'messages', 'room']);

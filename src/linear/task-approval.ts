@@ -32,7 +32,7 @@ export interface TaskLinearApprovalInput {
   readonly key: string;
   readonly phase?: 'running';
 }
-function resolveTaskLinearProposal(
+export function resolveTaskLinearProposal(
   tasks: Pick<TaskProvider, 'get'>,
   agents: Pick<AgentRepository, 'list'>,
   rooms: Pick<RoomRepository, 'get' | 'messages'>,
@@ -172,6 +172,7 @@ export async function executeApprovedTaskLinearUpdate(
   input: { readonly taskId: string; readonly approvalId: string },
   now: () => string,
   mode: 'apply' | 'observe',
+  phase?: 'running',
 ) {
   const executionId = input.taskId,
     approvalId = input.approvalId;
@@ -200,6 +201,7 @@ export async function executeApprovedTaskLinearUpdate(
     expectedVersion: binding.taskVersion,
     roomId: decodeURIComponent(parts[3] ?? ''),
     messageId: decodeURIComponent(parts[5] ?? ''),
+    ...(phase === undefined ? {} : { phase }),
   };
   const resolve = () => resolveTaskLinearProposal(tasks, agents, rooms, configured, source);
   const initial = resolve();

@@ -61,6 +61,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org session start|send|resume|reply|stop|get|list|history [OPTIONS]
        org task observe-workflow ID --expected-version N
        org task resume-workflow ID --approval ID --expected-version N
+       org task resume-linear-task|observe-linear-task ID --approval ID --expected-version N
        org task linear-get|import-linear ISSUE_ID [--json]
        org task linear-list --team TEAM_KEY [--limit 1..50] [--after CURSOR] [--json]
        org task refresh-linear LOCAL_TASK_ID --expected-version N [--json]
@@ -233,6 +234,12 @@ export interface ApplicationContext extends SessionContext {
     expectedVersion: number,
   ) => Promise<unknown>;
   readonly runTask?: (id: string, sessionId: string, messageId: string) => Promise<unknown>;
+  readonly linearTaskUpdate?: (
+    id: string,
+    approvalId: string,
+    expectedVersion: number,
+    mode: 'apply' | 'observe',
+  ) => Promise<unknown>;
 }
 
 async function runApplication(
@@ -284,6 +291,26 @@ async function runApplication(
     return;
   }
   if (command.kind === 'task') {
+    if (
+      command.command.action.kind === 'resume-linear-task' ||
+      command.command.action.kind === 'observe-linear-task'
+    ) {
+      if (!sessions?.linearTaskUpdate) throw new Error('Linear Task execution requires daemon');
+      const { id, approvalId, expectedVersion, kind } = command.command.action;
+      output(
+        JSON.stringify(
+          await sessions.linearTaskUpdate(
+            id,
+            approvalId,
+            expectedVersion,
+            kind === 'resume-linear-task' ? 'apply' : 'observe',
+          ),
+          null,
+          command.command.json ? undefined : 2,
+        ),
+      );
+      return;
+    }
     if (command.command.action.kind === 'observe-workflow') {
       if (!sessions?.observeTaskWorkflow) throw new Error('Workflow observation requires daemon');
       const { id, expectedVersion } = command.command.action;

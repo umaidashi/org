@@ -99,6 +99,8 @@ type TaskAction =
   | { kind: 'review'; id: string; input: TaskReviewInput }
   | { kind: 'observe-workflow'; id: string; expectedVersion: number }
   | { kind: 'resume-workflow'; id: string; approvalId: string; expectedVersion: number }
+  | { kind: 'resume-linear-task'; id: string; approvalId: string; expectedVersion: number }
+  | { kind: 'observe-linear-task'; id: string; approvalId: string; expectedVersion: number }
   | { kind: 'run'; id: string; sessionId: string; messageId: string }
   | {
       kind: 'recover-result';
@@ -210,6 +212,8 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     'recover-result': ['session', 'room-message', 'expected-version'],
     'resume-workflow': ['approval', 'expected-version'],
     'observe-workflow': ['expected-version'],
+    'resume-linear-task': ['approval', 'expected-version'],
+    'observe-linear-task': ['approval', 'expected-version'],
     create: ['objective', 'kind', 'priority', 'parent', 'dependency', 'label'],
     list: ['kind', 'status', 'owner'],
     get: [],
@@ -464,7 +468,11 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
         expectedVersion: priority(required(values['expected-version'], '--expected-version')),
       },
     };
-  if (action === 'resume-workflow')
+  if (
+    action === 'resume-workflow' ||
+    action === 'resume-linear-task' ||
+    action === 'observe-linear-task'
+  )
     return {
       ...common,
       action: {
@@ -856,6 +864,9 @@ export async function runTaskCommand(
       case 'observe-workflow':
       case 'resume-workflow':
         throw new Error('Workflow resume requires daemon');
+      case 'resume-linear-task':
+      case 'observe-linear-task':
+        throw new Error('Linear Task resume or observation requires daemon');
       case 'run':
         throw new Error('Task run requires daemon');
       case 'create': {

@@ -783,4 +783,8 @@ stateIdは状態の変更、assigneeIdのnullは担当解除、labelIdsの空配
 
 Runtimeはhostが示すWorkItem versionに対し、既存のclosed `linear-update` JSONでcontentまたはfieldsを提案します。hostは原本running Task/owner/Room Message、Issue scope、四capabilityをbaseline読取前後と専用read credential取得前後に照合し、Agent操作Approvalを作成します。外部mutationや成果物の保存は行わず、Taskはartifactなしの`waiting_approval`になります。通常のTask result reviewでは完了できません。`approval list/get/decide`で人間が操作承認を判断します。Runtimeへキーを渡しません。
 
-この段階では、Runtime由来の待機Taskを承認後に再開する経路は未接続です。既存のassigned管理CLIのapply/observeを待機Taskへ流用できません。再起動でRuntimeや外部更新を自動再送しません。Approval保存とTaskの待機保存は別々で、後者が失敗するとTaskはfailed・Approval原本は残ります。人間の承認だけではそれを実行しません。実API認証・本人認証・実業務Draft PRは引き続き未完了です。
+承認後は`task resume-linear-task EXECUTION --approval APPROVAL --expected-version N`で明示再開します。承認時のrunning原本から現在の操作待機まで、状態以外が変わっていないことを履歴で照合し、owner/親WorkItem/原本Message/入力/四capability/write scope/依存完了を確認します。既存のassigned管理CLIのapply/observeを流用できません。Core Task状態を維持し、専用credentialで一回claimして送信、検証済みreceiptをhash Artifactへ保存・関連付けして成果物付きwaiting_approvalへ進めます。人間の結果reviewで完了します。Runtimeは再呼出ししません。
+
+送信後の応答不明・receipt/Artifact/Task保存失敗はblockedに残します。`task observe-linear-task EXECUTION --approval APPROVAL --expected-version N`で読取だけの回収を行い、known updated/observed receiptがあればHTTPなしで再利用します。現在値のobservedは送信者や送信成功の証明ではありません。外部送信後にdaemonが中断してrunningに残った場合も、元承認/claim/Task履歴を確認し起動時にblockedへ回収し、自動再送しません。並行再開/観測はTask version CASで一つだけ進みます。
+
+Approval保存と最初のTask待機保存は別々で、後者が失敗するとTaskはfailed・Approval原本は残ります。人間の承認だけではそれを実行しません。source照合→claim/外部writeの跨process原子性・外部CAS・送信後の即時権限撤回は保証しません。host scopeは起動時snapshotです。実API認証・本人認証・実業務Draft PRは引き続き未完了です。

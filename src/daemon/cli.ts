@@ -10,6 +10,10 @@ import {
 import { SqliteApprovalStore } from '../approvals/sqlite.js';
 import { requestTaskWorkflowApproval } from '../workflows/task-approval.js';
 import { requestTaskLinearUpdateApproval } from '../linear/task-approval.js';
+import {
+  resumeTaskLinearUpdate,
+  recoverInterruptedTaskLinearUpdates,
+} from '../linear/task-resume.js';
 import { linearAgentScopes } from '../linear/config.js';
 import type { LinearAgentScope } from '../linear/agent-read.js';
 import { EnvironmentSecretStore } from '../secrets/environment.js';
@@ -289,6 +293,9 @@ function openOperations(
     runtime.recover();
     recoverWakeups(wakeupJournal, () => new Date().toISOString());
     recoverInterruptedTaskWorkflows(taskProvider, eventBus, () => new Date().toISOString());
+    recoverInterruptedTaskLinearUpdates(taskProvider, approvalStore, eventBus, () =>
+      new Date().toISOString(),
+    );
     recoverInterruptedExecutionTasks(
       taskProvider,
       () => new Date().toISOString(),
@@ -681,6 +688,42 @@ function openOperations(
           runtime,
           activateRoom: activate,
           runTask: execute,
+          linearTaskUpdate: (taskId, approvalId, expectedVersion, mode) => {
+            if (!linearScopes.length) throw new Error('Linear Task host scope opt-in missing');
+            return resumeTaskLinearUpdate(
+              taskProvider,
+              agentRepository,
+              roomRepository,
+              approvalStore,
+              eventBus,
+              linearScopes,
+              new EnvironmentSecretStore(
+                linearScopes.flatMap((scope) =>
+                  [
+                    'linear:read',
+                    ...(scope.effect === 'write' && mode === 'apply' ? ['linear:write'] : []),
+                  ].map((reference) => ({
+                    actorId: scope.agentId,
+                    reference,
+                    environmentVariable: scope.apiKeyEnv,
+                  })),
+                ),
+              ),
+              (url, init) =>
+                fetch(url, {
+                  ...init,
+                  signal: AbortSignal.any([
+                    workflowController.signal,
+                    ...(init.signal ? [init.signal] : []),
+                  ]),
+                }),
+              { taskId, approvalId, expectedVersion },
+              (bytes) => saveSandboxArtifact(db + '.artifacts', bytes),
+              () => new Date().toISOString(),
+              mode,
+              workflowController.signal,
+            );
+          },
           observeTaskWorkflow: (taskId, expectedVersion) => {
             return observe(taskId, expectedVersion);
           },
