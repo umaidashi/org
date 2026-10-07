@@ -1517,3 +1517,4 @@
 - 修正後check初回は共有parserのformatを拒否（全テストへ進む前に終了1）。Oxfmtを適用して再実行。修正後fast UT153成功/0失敗54files260ms。実Jev終了0、2143subjects/133warning/missing0/unsure0/review0/errors[]/degraded[]、非空dry-runの未宣言・空rule・除外0。新projection失敗経路候補0.75/0.68は不正mapping/未mapping/Agent欠落・取得中変更/不完全page/identity/日時/credential/実CLI先行拒否で判定し、モデル候補だけで追加frameworkや全分岐網羅を主張しない。
 - 修正後native全check終了0:453成功/14skip/0失敗、467tests/193files/160.30秒、static344files/AST成功。Final:fixed UUID identity bypass — 同一性否定fixture RED→GREEN、全suite453成功。実機opt-in14skipは成功へ数えない。[全検査/実Jev/RED/GREEN証拠](verification/2026-10-07-linear-core-projection/)を保存。読取snapshotだけで永続同期/共通六操作/実API/全体goalを完了扱いにしない。
 - 次の[永続Core同期計画](superpowers/plans/2026-10-07-linear-core-sync.md)を保存。Local関係/成果物/原本を保持し、外部snapshot更新と内部Execution遷移の違いを全callerへ照合してから、明示CASと既存SQLite transactionへ接続する。
+- main通常fast-forwardとorigin/main push終了0、公開commit70e44ed、公開時点HEAD/origin/main一致。Lefthookはpush対象treeを全検査・実Jevで検査し公開を許可。Core読取の成果を確定し、保存済み永続同期計画に従って次のTDDへ進む。全体goalはactive。
