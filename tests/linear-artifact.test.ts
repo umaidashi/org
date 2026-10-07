@@ -148,6 +148,8 @@ test('Linear Artifact approval rejects unshared or unrelated output before stori
     'https://example.com/x#private',
     'https://127.0.0.1/x',
     'https://localhost/x',
+    'https://localhost./private',
+    'https://sub.localhost./private',
   ])
     assert.throws(() => fixture(uri).request());
   const f = fixture();

@@ -15,5 +15,9 @@ HTTP fixtures only: human Approval/digest/Artifact output/version, one concurren
 Only title and existing HTTPS URI are sent; no content upload, commentBody/metadata/icon/subtitle inputs.
 Artifact URI digest independently binds Audit output; same-time causality and forged receipt rejection covered.
 Shared Linear input/response boundary rejects raw JSON and URI encodings (including percent hex case); not an arbitrary steganography detector.
-Independent final review pending.
+Independent final review: Critical 0 / Important 1 / Minor 0; targeted 22 pass / 94ms, native 9 pass / 5.99s.
+Important fixed once: dotted localhost/sub.localhost boundary; RED 5 pass / 1 fail / 44ms, GREEN 6 pass / 41ms.
+Post-fix full check: exit 0; 382 pass / 12 skip / 0 fail; 394 tests / 180 files / 101.58s.
+Post-fix actual Jev: exit 0; 1918 subjects / 118 advisory warnings; missing/unsure/review 0; errors/degraded empty.
+No second final review; shared hostname normalization preserves valid HTTPS acceptance. Ponytail: Lean already.
 Actual Linear authentication, Agent operations, artifact unknown-status recovery, full asynchronous TaskProvider exchange and business Issue-to-Draft-PR acceptance remain incomplete.

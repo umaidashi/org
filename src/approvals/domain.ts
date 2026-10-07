@@ -183,6 +183,7 @@ export function validateLinearArtifactUri(value: unknown): string {
   } catch {
     throw new Error('Invalid shared Artifact URI');
   }
+  const hostname = url.hostname.replace(/\.+$/, '');
   if (
     url.protocol !== 'https:' ||
     url.username ||
@@ -191,8 +192,8 @@ export function validateLinearArtifactUri(value: unknown): string {
     value.includes('?') ||
     value.includes('#') ||
     url.toString() !== value ||
-    url.hostname === 'localhost' ||
-    url.hostname.endsWith('.localhost') ||
+    hostname === 'localhost' ||
+    hostname.endsWith('.localhost') ||
     /^[0-9.]+$/.test(url.hostname) ||
     url.hostname.includes(':')
   )

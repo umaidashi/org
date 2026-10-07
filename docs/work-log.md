@@ -1292,3 +1292,9 @@
 - 最終ローカルgate `bun run check` exit0、382 pass / 12 skip / 0 fail、394 tests / 180 files、102.40s。型・Oxlint/Oxfmt323 files・非空AST/fixture成功。高速UT126 pass / 47 files / 158ms。
 - 実Jev exit0、1918 subjects / 117 advisory warnings、missing/unsure/review 0、errors/degradedなし。dry-run1918 subjects / 44 requestsを先に確認。snapshot/承認helper/observeの命名候補は元状態の取得・承認照合・観測receipt保存という責務へ照合し、機械的renameはしない。Audit/parserの失敗経路advisoryは全入力/保存障害の網羅保証とは扱わず、独立reviewで確認する。
 - Ponytail自己点検: 共通target検証・承認照合・claim payload・success原本保存・Auditを二つの実操作で共有し、別projectionのコピーを作らない。新依存/table/frameworkなし。[検証証拠](verification/2026-10-07-approved-linear-artifact-link/check.txt)。全体目標は未達成、独立最終review待ち。
+- 独立最終review: Critical 0 / Important 1 / Minor 0。末尾ドット付きlocalhostが共有URI検証を通る指摘を採用。独立対象22 pass / 94ms、native Artifact/既存comment9 pass / 5.99s。sandbox listen失敗後のowned fixture権限付き実行で成功。Ponytail: Lean already. Ship after URI boundary fix.
+- 一回の修正pass: dotted localhost/sub.localhost拒否を追加してRED 5 pass / 1 fail / 44msを確認。全caller（Artifact snapshot/Audit）を検索し共有validatorでhostname末尾ドットを除いて比較。パッチのconst配置を誤りReferenceErrorとなったため、該当関数へ移して訂正。GREEN 6 pass / 0 fail / 41ms。既存HTTPS成功も維持。DNS問い合わせや新依存を追加しない。再reviewは行わず全gateで検証する。
+- 修正後実Jev exit0、1918 subjects / 118 advisory warnings、missing/unsure/review 0、errors/degradedなし。advisoryは境界の実装・テストと照合し、機械的変更や全面網羅保証に読み替えない。
+- Final Ruling: 実API認証・human本人認証・Agent操作・Artifact不明結果回収・TaskProvider全交換・実業務Issue→Draft PRは今回のfixture受け入れと分離し残件を維持。判断が誤れば実運用に固有の不足を見逃すため、各実受け入れを別途完了する。
+- Final Ruling: 任意hostnameのDNS private address解決/到達性と任意多重エンコードの全面分類は今回保証しない。明示したlocalhost除外と標準URI encodingの境界を検証する。判断が誤ればURL共有判断や別encodingの漏洩を見逃すため、必要な業務境界で検証を追加する。
+- 修正後全gate `bun run check` exit0、382 pass / 12 skip / 0 fail、394 tests / 180 files / 101.58s。型・Oxlint/Oxfmt・非空AST/dry-run成功。Ponytail修正差分点検: 共有validator一か所と既存テストへの2ケース追加のみ、削減候補なし（Lean already）。限定sliceを公開へ進める。全体目標はactive。
