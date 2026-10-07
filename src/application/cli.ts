@@ -69,6 +69,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org task linear-get|import-linear ISSUE_ID [--json]
        org task linear-list --team TEAM_KEY [--limit 1..50] [--after CURSOR] [--json]
        org task refresh-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task sync-linear LOCAL_TASK_ID --expected-version N [--json]
        org task artifact-content ID --artifact ARTIFACT_ID [--json]
        org [--db PATH] daemon --once [--json]
        org [--db PATH] daemon deliveries [--json]

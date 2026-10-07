@@ -88,15 +88,13 @@ const transitions: Readonly<Record<TaskStatus, readonly TaskStatus[]>> = {
   completed: [],
   failed: [],
 };
-function validateTask(task: Task): void {
+function validateTaskFields(task: Task): void {
   for (const field of ['id', 'title', 'objective', 'createdAt', 'updatedAt'] as const) {
     if (!task[field].trim()) throw new Error(`Task ${field} must not be empty`);
   }
   if (!Number.isInteger(task.priority) || task.priority < 0)
     throw new Error('Priority must be a nonnegative integer');
   if (task.owner !== null && !task.owner.trim()) throw new Error('Owner must not be empty');
-  if (task.status !== 'pending' && task.status !== 'failed' && task.owner === null)
-    throw new Error('Task state requires an owner');
   for (const values of [
     task.dependencies,
     task.labels,
@@ -108,6 +106,42 @@ function validateTask(task: Task): void {
     if (new Set(values).size !== values.length)
       throw new Error('Duplicate task references or labels');
   }
+}
+function validateTask(task: Task): void {
+  validateTaskFields(task);
+  if (task.status !== 'pending' && task.status !== 'failed' && task.owner === null)
+    throw new Error('Task state requires an owner');
+}
+export function mergeWorkItemSnapshot(current: Task, snapshot: WorkItem, at: string): Task {
+  if (
+    current.kind !== 'work_item' ||
+    snapshot.kind !== 'work_item' ||
+    current.id !== snapshot.id ||
+    !current.externalRef?.trim() ||
+    current.externalRef !== snapshot.externalRef ||
+    !isTaskStatus(snapshot.status) ||
+    !Number.isSafeInteger(current.version) ||
+    current.version < 0
+  )
+    throw new Error('Sync requires the same external WorkItem');
+  const task = {
+    ...current,
+    title: snapshot.title,
+    objective: snapshot.objective,
+    status: snapshot.status,
+    owner: snapshot.owner,
+    priority: snapshot.priority,
+    labels: [...snapshot.labels],
+    version: current.version + 1,
+    updatedAt: at,
+  };
+  validateTaskFields(task);
+  if (!Number.isSafeInteger(task.version)) throw new Error('WorkItem version overflow');
+  return (['title', 'objective', 'status', 'owner', 'priority', 'labels'] as const).every(
+    (field) => JSON.stringify(current[field]) === JSON.stringify(task[field]),
+  )
+    ? current
+    : task;
 }
 export function createTask(
   input: TaskInput,
@@ -190,7 +224,10 @@ export function validateTaskReferences(task: Task, tasks: readonly Task[]): void
     stack.push({ id: entry.id, exit: true });
     for (const dependency of node.dependencies) stack.push({ id: dependency, exit: false });
   }
-  if (task.status === 'running' || task.status === 'completed') {
+  if (
+    (task.status === 'running' || task.status === 'completed') &&
+    (task.kind === 'execution_task' || task.externalRef === null)
+  ) {
     for (const id of task.dependencies)
       if (get(id).status !== 'completed') throw new Error('Task dependencies are not completed');
   }

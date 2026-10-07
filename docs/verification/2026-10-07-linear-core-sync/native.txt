@@ -1,0 +1,11 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-core-projection-cli.test.ts:
+(pass) mapped Linear CLI reads and explicitly syncs external WorkItems without altering internal ExecutionTasks [1229.07ms]
+
+tests/linear-issue-cli.test.ts:
+(pass) Linear CLI read preserves existing issue without creating database and rejects missing credentials [1600.70ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 2 files. [2.87s]

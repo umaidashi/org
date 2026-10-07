@@ -1,13 +1,16 @@
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { spawn } from 'node:child_process';
 import { cli } from './cli-path.js';
 import { SqliteAgentRepository } from '../src/agents/sqlite.js';
 import { createAgent } from '../src/agents/domain.js';
-test('mapped Linear CLI returns Core WorkItem fields without altering Local Tasks', async () => {
+test('mapped Linear CLI reads and explicitly syncs external WorkItems without altering internal ExecutionTasks', async () => {
   const home = mkdtempSync('/tmp/org-linear-core-'),
-    db = home + '/org.db';
+    db = home + '/org.db',
+    socket = home + '/org.sock';
   const state = '22222222-2222-4222-8222-222222222222',
+    completedState = '55555555-5555-4555-8555-555555555555',
     user = '33333333-3333-4333-8333-333333333333';
   const issue = {
     id: '11111111-1111-4111-8111-111111111111',
@@ -57,13 +60,22 @@ test('mapped Linear CLI returns Core WorkItem fields without altering Local Task
     preload = home + '/http.ts';
   writeFileSync(
     mapping,
-    JSON.stringify({ states: { [state]: 'running' }, owners: { [user]: 'reader' } }),
+    JSON.stringify({
+      states: { [state]: 'running', [completedState]: 'completed' },
+      owners: { [user]: 'reader' },
+    }),
   );
   writeFileSync(
     preload,
     `const original=globalThis.fetch;globalThis.fetch=(url,init)=>original(String(url)==='https://api.linear.app/graphql'?${JSON.stringify(server.url.href)}:url,init);`,
   );
-  const run = async (args: string[], config = mapping) => {
+  const env = {
+    ...process.env,
+    LINEAR_API_KEY: 'fixture-core-key',
+    ORG_LINEAR_TASK_MAPPING: mapping,
+  };
+  let daemon: ReturnType<typeof spawn> | undefined, daemonExited: Promise<unknown> | undefined;
+  const run = async (args: string[], config = mapping, direct = true) => {
     const child = Bun.spawn(
       [
         process.execPath,
@@ -71,15 +83,14 @@ test('mapped Linear CLI returns Core WorkItem fields without altering Local Task
         '--preload',
         preload,
         cli,
-        '--direct',
+        ...(direct ? ['--direct'] : ['--socket', socket]),
         '--db',
         db,
         ...args,
       ],
       {
         env: {
-          ...process.env,
-          LINEAR_API_KEY: 'fixture-core-key',
+          ...env,
           ORG_LINEAR_TASK_MAPPING: config,
         },
         stdout: 'pipe',
@@ -160,8 +171,112 @@ test('mapped Linear CLI returns Core WorkItem fields without altering Local Task
     const value: unknown = JSON.parse(unassigned.stdout);
     assert.ok(value !== null && typeof value === 'object' && 'owner' in value);
     assert.equal(value.owner, null);
+    const imported = await run(['task', 'import-linear', issue.id, '--json']);
+    assert.equal(imported.status, 0, imported.stderr);
+    const taskId = 'linear:issue:' + issue.id;
+    const sync = await run(['task', 'sync-linear', taskId, '--expected-version', '0', '--json']);
+    assert.equal(sync.status, 0, sync.stderr);
+    const synced: unknown = JSON.parse(sync.stdout);
+    assert.ok(
+      synced !== null &&
+        typeof synced === 'object' &&
+        'status' in synced &&
+        'owner' in synced &&
+        'version' in synced,
+    );
+    assert.equal(synced.status, 'running');
+    assert.equal(synced.owner, null);
+    assert.equal(synced.version, 1);
+    const reread = await run(['task', 'get', taskId, '--json']);
+    assert.equal(reread.status, 0, reread.stderr);
+    assert.deepEqual(JSON.parse(reread.stdout), synced);
+    const beforeStale = calls;
+    const stale = await run(['task', 'sync-linear', taskId, '--expected-version', '0', '--json']);
+    assert.equal(stale.status, 1, stale.stderr);
+    assert.equal(calls, beforeStale);
+    const unchanged = await run([
+      'task',
+      'sync-linear',
+      taskId,
+      '--expected-version',
+      '1',
+      '--json',
+    ]);
+    assert.equal(unchanged.status, 0, unchanged.stderr);
+    assert.deepEqual(JSON.parse(unchanged.stdout), synced);
+    const originalHistory = await run(['task', 'history', taskId, '--json']);
+    assert.equal(originalHistory.status, 0, originalHistory.stderr);
+    assert.equal(JSON.parse(originalHistory.stdout).length, 2);
+    issue.state.id = user;
+    const unmapped = await run([
+      'task',
+      'sync-linear',
+      taskId,
+      '--expected-version',
+      '1',
+      '--json',
+    ]);
+    assert.equal(unmapped.status, 1, unmapped.stderr);
+    assert.deepEqual(
+      JSON.parse((await run(['task', 'history', taskId, '--json'])).stdout),
+      JSON.parse(originalHistory.stdout),
+    );
+    issue.state.id = completedState;
+    const completed = await run([
+      'task',
+      'sync-linear',
+      taskId,
+      '--expected-version',
+      '1',
+      '--json',
+    ]);
+    assert.equal(completed.status, 0, completed.stderr);
+    assert.equal(JSON.parse(completed.stdout).status, 'completed');
+    assert.equal(JSON.parse(completed.stdout).version, 2);
+    issue.state.id = state;
+    issue.assignee = { id: user };
+    daemon = spawn(
+      process.execPath,
+      ['--no-env-file', '--preload', preload, cli, '--db', db, 'daemon', '--socket', socket],
+      { env },
+    );
+    daemonExited = new Promise((resolve) => daemon?.once('exit', resolve));
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => reject(Error('daemon not ready')), 5000);
+      daemon?.stdout?.on('data', (data: Buffer) => {
+        if (data.toString().includes('"ready"')) {
+          clearTimeout(timer);
+          resolve();
+        }
+      });
+    });
+    const reopened = await run(
+      ['task', 'sync-linear', taskId, '--expected-version', '2', '--json'],
+      mapping,
+      false,
+    );
+    assert.equal(reopened.status, 0, reopened.stderr);
+    assert.equal(JSON.parse(reopened.stdout).status, 'running');
+    assert.equal(JSON.parse(reopened.stdout).owner, 'reader');
+    assert.equal(JSON.parse(reopened.stdout).version, 3);
+    const stopped = await run(['daemon', 'stop'], mapping, false);
+    assert.equal(stopped.status, 0, stopped.stderr);
+    await daemonExited;
+    daemon = undefined;
+    assert.deepEqual(
+      JSON.parse((await run(['task', 'get', taskId, '--json'])).stdout),
+      JSON.parse(reopened.stdout),
+    );
+    assert.deepEqual(
+      JSON.parse((await run(['task', 'history', internal.id, '--json'])).stdout),
+      JSON.parse(history.stdout),
+    );
   } finally {
+    if (daemon) {
+      daemon.kill('SIGTERM');
+      await daemonExited;
+    }
     await server.stop(true);
     rmSync(home, { recursive: true, force: true });
   }
-});
+}, 20000);

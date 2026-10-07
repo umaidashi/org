@@ -1,0 +1,23 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-work-item-sync.test.ts:
+(pass) external WorkItem merge preserves Local fields and accepts remote reopening without weakening internal transitions [0.64ms]
+28 |   assert.throws(() => changeTask({ ...execution, owner: 'agent', status: 'completed' }, { status: 'running' }, 'now'));
+29 | });
+30 | test('external snapshot status does not assert Local prerequisite completion while ExecutionTask still requires it', () => {
+31 |   const dependency = createTask({ title: 'Dependency', objective: 'Pending' }, { id: 'dep', createdAt: 'now' });
+32 |   const remote = { ...snapshot, dependencies: ['dep'] };
+33 |   assert.doesNotThrow(() => validateTaskReferences(remote, [dependency]));
+              ^
+AssertionError: Got unwanted exception.
+Actual message: "Task dependencies are not completed"
+      at innerFail (node:assert:36:32)
+      at expectsNoError (node:assert:458:14)
+      at doesNotThrow (node:assert:476:17)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/linear-work-item-sync.test.ts:33:10)
+(fail) external snapshot status does not assert Local prerequisite completion while ExecutionTask still requires it [0.59ms]
+(pass) Linear Core sync refuses wrong identity, versions and authority before write and rejects changes during read [1.27ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [34.00ms]

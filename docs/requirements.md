@@ -83,3 +83,7 @@ MVPのPhaseごとの現在の実装・検査・実機証拠と未達は[受け�
 ## 2026-10-07 Linear Core形式の読取
 
 既存linear-get --mappedへホスト明示state/owner対応を接続。登録Agent、不完全labels page、Issue同一性、priority、日時を検証し、内部ExecutionTaskと履歴を保持する。version0/空関係fieldsは未合成の読取snapshot。共通非同期六操作と永続同期・実API認証の完了とは扱わない。[責任境界](task-provider-design.md)を参照。
+
+## 2026-10-07 Linear Core snapshotの永続同期
+
+既存import済みWorkItemへtask sync-linearを追加。host明示mappingのCore state/owner/priority/labels/title/objectiveを、Local親・依存・成果物・初回時刻・元externalRefを保持して保存する。明示CASを取得前後/保存時に検証し、Taskと履歴を原子的に記録、無変更は履歴を増やさない。外部無担当・terminal再openと内部Executionの厳密な状態/依存完了・成果物受理を分離。DI/実SQLite rollback/実HTTP fixtureのdirect/daemon/reopen/旧refresh互換を含む[全gate](verification/2026-10-07-linear-core-sync/check.txt)で457成功/14skip/0失敗、471tests/195files/161.35秒。実Jev2158subjects/missing・errors・degraded0。共通非同期六操作、双方向Core mapping、背景sync、実API認証、全体goalは未達。

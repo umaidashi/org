@@ -4,8 +4,14 @@ import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
 import { planTaskReview } from './review.js';
 import type { TaskReview, TaskReviewWriter } from './review.js';
-import { attachArtifact, changeTask, isTaskStatus, validateTaskReferences } from './domain.js';
-import type { Task, TaskPatch, TaskArtifact, TaskComment } from './domain.js';
+import {
+  attachArtifact,
+  changeTask,
+  isTaskStatus,
+  validateTaskReferences,
+  mergeWorkItemSnapshot,
+} from './domain.js';
+import type { Task, TaskPatch, TaskArtifact, TaskComment, WorkItem } from './domain.js';
 import type { IdempotentTaskWriter, TaskFilter, TaskHistory, TaskProvider } from './port.js';
 
 function record(value: unknown): value is Record<string, unknown> {
@@ -203,6 +209,22 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
           'UPDATE tasks SET version = ?, data = ? WHERE id = ?',
         )
         .run(task.version, JSON.stringify(task), id);
+      this.append(task);
+      return task;
+    });
+  }
+  syncWorkItem(snapshot: WorkItem, expectedVersion: number, at: string): Task {
+    if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 0)
+      throw new Error('Invalid expected version');
+    return this.transaction(() => {
+      const current = this.get(snapshot.id);
+      if (current.version !== expectedVersion) throw new Error('WorkItem version conflict');
+      const task = mergeWorkItemSnapshot(current, snapshot, at);
+      if (task === current) return current;
+      this.validateReferences(task);
+      this.db
+        .query('UPDATE tasks SET version=?, data=? WHERE id=?')
+        .run(task.version, JSON.stringify(task), task.id);
       this.append(task);
       return task;
     });

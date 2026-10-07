@@ -24,6 +24,7 @@ import { SqliteEventBus } from '../events/sqlite.js';
 import {
   importLinearWorkItem,
   refreshLinearWorkItem,
+  syncLinearWorkItem,
   linearWorkItemIssueId,
 } from '../linear/import.js';
 import {
@@ -97,6 +98,7 @@ type TaskAction =
   | { kind: 'linear-get'; id: string; agentId?: string; mapped?: boolean }
   | { kind: 'import-linear'; id: string }
   | { kind: 'refresh-linear'; id: string; expectedVersion: number }
+  | { kind: 'sync-linear'; id: string; expectedVersion: number }
   | { kind: 'review'; id: string; input: TaskReviewInput }
   | { kind: 'observe-workflow'; id: string; expectedVersion: number }
   | { kind: 'resume-workflow'; id: string; approvalId: string; expectedVersion: number }
@@ -208,6 +210,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     'linear-get': ['agent', 'mapped'],
     'import-linear': [],
     'refresh-linear': ['expected-version'],
+    'sync-linear': ['expected-version'],
     review: ['actor', 'reason', 'decision', 'expected-version'],
     reviews: [],
     run: ['session', 'room-message'],
@@ -435,12 +438,12 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     };
   }
   const taskId = required(id, 'task id');
-  if (action === 'refresh-linear') {
+  if (action === 'refresh-linear' || action === 'sync-linear') {
     linearWorkItemIssueId(taskId);
     return {
       ...common,
       action: {
-        kind: 'refresh-linear',
+        kind: action,
         id: taskId,
         expectedVersion: priority(required(values['expected-version'], '--expected-version')),
       },
@@ -696,6 +699,36 @@ export async function runTaskCommand(
         ? await listLinearIssues(fetch, secrets, command.action.input)
         : await readLinearIssue(fetch, secrets, command.action.id);
     output(JSON.stringify(result, null, command.json ? undefined : 2));
+    return;
+  }
+  if (command.action.kind === 'sync-linear') {
+    const mapping = linearTaskMapping();
+    const provider = new SqliteTaskProvider(command.db);
+    try {
+      const agents = new SqliteAgentRepository(command.db);
+      try {
+        const secrets = new EnvironmentSecretStore([
+          {
+            actorId: 'linear:host',
+            reference: 'linear:read',
+            environmentVariable: 'LINEAR_API_KEY',
+          },
+        ]);
+        const id = command.action.id;
+        const result = await syncLinearWorkItem(
+          provider,
+          () => readLinearCoreWorkItem(fetch, secrets, agents, mapping, linearWorkItemIssueId(id)),
+          id,
+          command.action.expectedVersion,
+          () => new Date().toISOString(),
+        );
+        output(JSON.stringify(result, null, command.json ? undefined : 2));
+      } finally {
+        agents.close();
+      }
+    } finally {
+      provider.close();
+    }
     return;
   }
   if (command.action.kind === 'import-linear' || command.action.kind === 'refresh-linear') {

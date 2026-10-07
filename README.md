@@ -619,7 +619,11 @@ host管理のJSONを`ORG_LINEAR_TASK_MAPPING`へ設定し、state UUIDをCore st
 ORG_LINEAR_TASK_MAPPING=/path/to/mapping.json bun run start task linear-get ORG-1 --mapped --json
 ```
 
-既存host読取credentialを使います。未知state/未mappingの担当/非登録Agent/不完全labelsを拒否し、無担当ならowner nullを返します。priority、全labels名、remote日時を保持します。`--agent`とは併用できず、RPCからmapping file pathは指定できません。結果は読取snapshotで、version0や空の関係fieldsはLocal履歴/CASを意味しません。Local Task・履歴を変更せず、永続同期・共通六操作は引き続き未完了です。
+既存host読取credentialを使います。未知state/未mappingの担当/非登録Agent/不完全labelsを拒否し、無担当ならowner nullを返します。priority、全labels名、remote日時を保持します。`--agent`とは併用できず、RPCからmapping file pathは指定できません。結果は読取snapshotで、version0や空の関係fieldsはLocal履歴/CASを意味しません。読取だけではLocal Task・履歴を変更しません。共通非同期六操作は未完了です。
+
+既存Issueを`task import-linear`で取込後、`task sync-linear WORKITEM_ID --expected-version N --json`で同じhost mappingを使って明示同期できます。外部title/objective/status/owner/priority/labelsを反映し、Localの親・依存・成果物・初回作成時刻・元externalRefを保持します。取得前後とSQLite保存時にversionを照合し、変更時だけLocal versionとcommit時刻を更新してTask/不変履歴を原子的に保存します。再読取が同じなら履歴を増やしません。
+
+外部WorkItemの無担当状態やterminalからの再openはsnapshotとして反映します。内部ExecutionTaskの遷移・terminal不変条件・依存完了・成果物受理は維持します。外部snapshotの状態から内部ジョブを実行しません。既存refreshは本文だけを更新する別操作です。外部readとLocal commitの跨system原子性、remote日時の継続的な単調鮮度、実API認証、双方向の共通Provider完成は保証しません。
 
 ## 不変原本をMemoryの根拠にする
 

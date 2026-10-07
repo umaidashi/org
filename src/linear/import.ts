@@ -1,6 +1,6 @@
 import { createTask } from '../tasks/domain.js';
-import type { Task } from '../tasks/domain.js';
-import type { TaskProvider, WorkItemImporter } from '../tasks/port.js';
+import type { Task, WorkItem } from '../tasks/domain.js';
+import type { TaskProvider, WorkItemImporter, WorkItemSynchronizer } from '../tasks/port.js';
 import { validateLinearIssueId } from './read.js';
 import { validateLinearUpdatedIssueUrl } from '../approvals/domain.js';
 import type { readLinearIssue } from './read.js';
@@ -56,4 +56,30 @@ export async function refreshLinearWorkItem(
   const objective = `Linear source: ${issue.url}\n\n${issue.description ?? issue.title}`;
   if (current.title === issue.title && current.objective === objective) return current;
   return provider.update(taskId, { title: issue.title, objective }, at, expectedVersion);
+}
+export async function syncLinearWorkItem(
+  provider: WorkItemSynchronizer,
+  read: () => Promise<WorkItem>,
+  taskId: string,
+  expectedVersion: number,
+  now: () => string,
+): Promise<Task> {
+  linearWorkItemIssueId(taskId);
+  if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 0)
+    throw new Error('Invalid expected version');
+  const original = provider.get(taskId);
+  if (original.id !== taskId || original.kind !== 'work_item' || !original.externalRef)
+    throw new Error('Sync requires an imported WorkItem');
+  if (original.version !== expectedVersion) throw new Error('WorkItem version conflict');
+  validateLinearUpdatedIssueUrl({ issueUrl: original.externalRef }, original.externalRef);
+  const snapshot = await read();
+  if (snapshot.id !== taskId) throw new Error('Linear WorkItem identity conflict');
+  validateLinearUpdatedIssueUrl({ issueUrl: original.externalRef }, snapshot.externalRef ?? '');
+  if (provider.get(taskId).version !== expectedVersion)
+    throw new Error('WorkItem version conflict');
+  return provider.syncWorkItem(
+    { ...snapshot, externalRef: original.externalRef },
+    expectedVersion,
+    now(),
+  );
 }

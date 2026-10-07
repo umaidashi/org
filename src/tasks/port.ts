@@ -1,4 +1,12 @@
-import type { Task, TaskKind, TaskPatch, TaskStatus, TaskComment, TaskArtifact } from './domain.js';
+import type {
+  Task,
+  TaskKind,
+  TaskPatch,
+  TaskStatus,
+  TaskComment,
+  TaskArtifact,
+  WorkItem,
+} from './domain.js';
 export interface IdempotentTaskWriter {
   createAssignedOnce(task: Task, owner: string, at: string): Task;
 }
@@ -31,4 +39,8 @@ export interface ExecutionResultWriter {
 
 export interface WorkItemImporter {
   importWorkItemOnce(task: Task): Task;
+}
+export interface WorkItemSynchronizer {
+  get(id: string): Task;
+  syncWorkItem(snapshot: WorkItem, expectedVersion: number, at: string): Task;
 }

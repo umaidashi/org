@@ -1,0 +1,13 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-work-item-sync-sqlite.test.ts:
+(pass) Core WorkItem synchronization uses atomic CAS and immutable history, preserves Local originals and survives reopen [20.47ms]
+
+tests/linear-work-item-sync.test.ts:
+(pass) external WorkItem merge preserves Local fields and accepts remote reopening without weakening internal transitions
+(pass) external snapshot status does not assert Local prerequisite completion while ExecutionTask still requires it [0.56ms]
+(pass) Linear Core sync refuses wrong identity, versions and authority before write and rejects changes during read [1.35ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 2 files. [61.00ms]
