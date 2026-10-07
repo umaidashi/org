@@ -1367,3 +1367,7 @@
 - ponytail-review: Lean already. Ship. title/descriptionの更新serviceとApproval/claim/receipt/Audit/observeを再利用し、専用の重複write/retry層・新依存・新tableは追加なし。UUID/選択response/labels完全性はtrust境界として保持。正しさ・安全性はテストと独立最終reviewで別途確認。
 - 全`bun run check`終了0: 402成功/12skip/0失敗、414tests/182files/106.97秒。型/Oxlint/Oxfmt327files/AST fixture/非空dry-run成功。12skipは実機opt-inの残件である。[証拠](verification/2026-10-07-approved-linear-field-update/check.txt)。
 - dry-run2012対象/25requests確認後、実Jev終了0: 2012subjects/122warning/missing0/unsure0/review0/errors[]/degraded[]。変更箇所の候補は旧requireApprovedPermission命名0.72、workflow/Approval/CLI等失敗経路0.70–0.85、observe命名0.63、mask/legacy承認テスト名0.73/0.71、readLinearUpdateIssue失敗経路0.71。候補は型/具体native/DI/旧経路検証と独立reviewで判断し、未校正閾値だけで機械renameや全失敗経路網羅を主張しない。
+- 独立最終review（`ceadedc..6f0ac40`）Ready merge、Critical0/Important0/Minor1。closed mask/入力/選択baseline/応答digest、未指定field保持、旧content digest/schema互換、先行claim/no replay/観測区別、redaction/CLI/SQLite保存を確認。独立focused13成功/0失敗63ms、full/Jevは記録された証拠を確認したもので独立再実行ではない。Ponytail: Lean already. Ship.
+- Final minor (deferred): baseline await中のcaller fields変更と、外部未選択fieldだけの変更を直接扱う回帰caseは未追加。canonical copyと送信前target再照合は正しいと評価。既存DIの変更入力/読取中Local version競合とnative全選択fieldのproofから、全ケース網羅へ拡大して主張しない。
+- Final Ruling: 実Linear認証/Team/参照のサーバ適用はfixtureから判断しない。誤ると実参照の拒否・異なる適用を見逃す。human文字列は本人認証ではない。誤るとなりすましを権限と誤認する。全MVP/実業務Issue→Draft PRの完了をslice公開から主張しない。誤ると業務の未納品を見逃す。原子的な外部競合排除は保証せずselected baseline preflightに限定する。誤ると読取後の選択field編集を上書きし得る。
+- Ruling: labelsは100個まで、照合は完全pageを要求する。続きの無視によるfalse successを避ける。誤ると100個超の正当なlabels更新をこの経路で扱えなくなるため境界をREADMEへ明記。
