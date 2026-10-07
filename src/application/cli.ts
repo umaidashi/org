@@ -48,6 +48,7 @@ export const usage = `Usage: org [--db PATH] agent create NAME --role ROLE --run
        org audit list [--json]
        org tui [--socket PATH] [--room ID --human ID]
        org logs [--task ID] [--event ID] [--limit N] [--json]
+       org logs tail AGENT_ID [--limit N] [--json]
        org agent capabilities|capability-history ID [--json]
        org agent reporting-history ID [--json]
        org [--db PATH] task create TITLE --objective OBJECTIVE [--json]

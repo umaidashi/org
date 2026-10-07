@@ -882,3 +882,7 @@ Linear成果物はLocalで明示stage済みのoutputが必要です。既存`tas
 ## 実行中Sandboxの一覧
 
 `bun run start sandbox list --json`は接続先daemonが現在所有するjobを`[{"taskId":"TASK_ID","state":"running"}]`の形で返します。cancel処理中はcancelling、slotが解放されたら空配列です。一覧取得は実行/キャンセル/Task変更を行いません。直接DB操作の`--direct`では利用できません。Docker全container、別daemon、終了履歴の一覧ではなく、既存daemonの一slotを照会します。
+
+## Agentの監査ログtail
+
+`bun run start logs tail AGENT_ID --limit 20 --json`は登録Agentのactor IDに一致する最新Audit snapshotを返します。`--task`/`--event`で追加filterできます。過去Taskの現在ownerへ主体を付け替えず、同じIDのhumanも除外します。結果は既存input/output/approval reference付きAuditEntry配列です。directとdaemonで使用できます。引数だけでは継続followしません。Runtime stdoutのstreamや全重要操作の収集完了を示すものではありません。

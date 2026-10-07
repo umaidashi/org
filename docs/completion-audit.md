@@ -114,7 +114,7 @@ CLIの原文は例示だが、例示した操作の提供有無を省略しな�
 | workflow run --input | Workflow parserとJSON入力、Approval/native tests | 検証。任意業務Workflow実機は別 |
 | event publish --data | Event parser/CLI、JSON payload | 検証。必須sourceを追加指定 |
 | sandbox list | `sandbox/jobs.ts`、daemon composition、実Docker CLI/DI | daemon所有jobのrunning/cancelling snapshotを検証済み。direct/Docker全container/別daemon/終了履歴の一覧は対象外 |
-| logs tail AGENT | logs/audit listのTask/Event filterはあるがAgent tailなし | filter/追従のCLI gap |
+| logs tail AGENT | `audit/logs.ts`、Approval CLI parser/registry、実direct/daemon/reopen | exact immutable Agent actorの最新Audit snapshotを検証済み。連続follow/Runtime stdout/全重要Audit収集は別範囲 |
 | org tui:Agents/Rooms/Tasks/Events | `tui/monitor.ts`、Session状態別counts、monitor/CLI/Room chat tests | 監視と対話あり。対話TTYの全操作実機証拠は未確認 |
 | thin client/local API/socket | daemon client/server、0600、PID/lease/inode、client/native tests | 検証。RPC/人間本人認証は未達 |
 | scheduler/event polling/runtime管理/execution state/timeout/wake-up | 各daemon stages、Schedule/Runtime/Task/native tests | 検証 |
@@ -185,3 +185,7 @@ Local/Linearの実AsyncTaskProvider.updateを同じawait consumerとCLI/direct/d
 ## 2026-10-07 daemon Sandbox list
 
 既存one-slot jobsとrunSandbox DIへread-only listを接続。idle/running/cancelling/解放後空、private lifecycle非公開、direct/余剰/実行option拒否を確認。[実Docker](verification/2026-10-07-sandbox-list/native-docker.txt):5成功/0失敗9.04秒。[全gate](verification/2026-10-07-sandbox-list/check.txt):474成功/14skip/0失敗488tests/197files167.28秒。実Jev2237subjects/missing・errors・degraded0。狭いCLI gapの充足で、本人認証/全重要Audit/Memory/実業務納品/全体完成を変更しない。
+
+## 2026-10-07 Agent監査ログtail
+
+既存collectAudit/selectAuditLogsへAgent actor filterを接続し、他Agent/human同ID除外、filter後limit、登録対象照合、DB前parser拒否を検証。Task現在ownerを過去主体へ付け替えず、direct/daemon/停止後reopenで同結果を確認。[全gate](verification/2026-10-07-agent-log-tail/check.txt):475成功/14skip/0失敗489tests/197files166.02秒、実Jev2238subjects/missing・errors・degraded0。最新snapshotの明示操作で、Runtime stdout stream/全重要Audit/本人認証/実業務納品/全体完成を主張しない。

@@ -1,0 +1,12 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/logs-cli.test.ts:
+(pass) real CLI logs reads immutable approval Audit and rejects invalid filters before creating a database [863.34ms]
+
+tests/audit-logs.test.ts:
+(pass) logs filters exact Task and Event before taking the latest records in causal order [0.29ms]
+(pass) Agent tail selects immutable Agent actors before limiting and never attributes a human or another Agent to that ID [0.20ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 2 files. [916.00ms]

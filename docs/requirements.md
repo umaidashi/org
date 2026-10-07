@@ -111,3 +111,7 @@ comment/artifactをLocal/Linear両Adapterと実await consumerへ接続。Local�
 ## 2026-10-07 Sandbox一覧CLI
 
 `org sandbox list`を既存daemonの一slot jobへ接続。実Docker idle→running→cancel/drain後空とSIGINT cleanup、DI cancelling/返却snapshot不変・direct/余剰option拒否を確認。[証拠](verification/2026-10-07-sandbox-list/)全gate474成功/14skip/0失敗、実Docker5成功、実Jev2237subjects/欠損・エラー・劣化0。Docker全container/終了履歴を示さず、他の全体残件は未達。次は[Agent log tail計画](superpowers/plans/2026-10-07-agent-log-tail.md)。
+
+## 2026-10-07 Agent logs tail
+
+`org logs tail AGENT_ID`を登録Agentと既存immutable Audit actor filterへ接続。filter後latest limit、別Agent/human除外、現在Task ownerの誤帰属防止、direct/daemon/reopen・不正入力DB前拒否を確認。[証拠](verification/2026-10-07-agent-log-tail/)全gate475成功/14skip/0失敗、実Jev2238subjects/欠損・エラー・劣化0。snapshotとcontinuous streamを区別し、本人認証/全重要Audit/業務納品/全体未達を維持。次は[Room open/実TTY計画](superpowers/plans/2026-10-07-room-open-tty.md)。

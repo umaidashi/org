@@ -83,10 +83,15 @@ export function parseApprovalCommand(argv: string[]): ApprovalCommand {
   for (const key of Object.keys(parsed.values))
     if (!['db', 'json', ...allowed].includes(key)) throw new Error(`Unexpected --${key}`);
   if (noun === 'logs') {
-    if (action !== undefined) throw new Error('Unexpected logs argument');
+    if (
+      (action !== undefined && action !== 'tail') ||
+      (action === undefined && target !== undefined)
+    )
+      throw new Error('Unexpected logs argument');
     const value = parsed.values.limit ?? '100';
     if (!/^[1-9][0-9]*$/.test(value)) throw new Error('Invalid --limit');
     const filter: LogFilter = {
+      ...(action === 'tail' ? { agentId: required(target, 'Agent ID') } : {}),
       limit: Number(value),
       ...(parsed.values.task === undefined
         ? {}
@@ -277,6 +282,12 @@ export function runApprovalCommand(command: ApprovalCommand, output: (line: stri
       case 'logs':
       case 'audit': {
         agents = new SqliteAgentRepository(command.db);
+        if (
+          command.action === 'logs' &&
+          command.filter.agentId !== undefined &&
+          !agents.list().some((agent) => agent.id === command.filter.agentId)
+        )
+          throw new Error('Agent not found');
         const tasks = new SqliteTaskProvider(command.db);
         try {
           const events = new SqliteEventBus(command.db);

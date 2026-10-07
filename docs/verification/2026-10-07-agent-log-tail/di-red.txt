@@ -1,0 +1,40 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/audit-logs.test.ts:
+(pass) logs filters exact Task and Event before taking the latest records in causal order [0.84ms]
+32 | });
+33 | 
+34 | test('Agent tail selects immutable Agent actors before limiting and never attributes a human or another Agent to that ID', () => {
+35 |   const base:AuditEntry={id:'first',actor:{kind:'agent',id:'cto'},taskId:'task',eventId:null,tool:'task.execution',inputRef:'in',outputRef:'out',at:'same',result:'started',approvalId:null};
+36 |   const records=[base,{...base,id:'other',actor:{kind:'agent' as const,id:'researcher'}},{...base,id:'human',actor:{kind:'human' as const,id:'cto'}},{...base,id:'latest'}, {...base,id:'later-other',actor:{kind:'agent' as const,id:'researcher'}}];
+37 |   assert.deepEqual(selectAuditLogs(records,{agentId:'cto',limit:1}),[records[3]]);
+              ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
+    {
+      actor: {
++       id: 'researcher',
+-       id: 'cto',
+        kind: 'agent'
+      },
+      approvalId: null,
+      at: 'same',
+      eventId: null,
++     id: 'later-other',
+-     id: 'latest',
+      inputRef: 'in',
+      outputRef: 'out',
+      result: 'started',
+      taskId: 'task',
+      tool: 'task.execution'
+
+      at innerFail (node:assert:36:32)
+      at deepStrictEqual (node:assert:134:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/audit-logs.test.ts:37:10)
+(fail) Agent tail selects immutable Agent actors before limiting and never attributes a human or another Agent to that ID [2.34ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [29.00ms]

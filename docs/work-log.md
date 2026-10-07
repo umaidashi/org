@@ -1654,3 +1654,18 @@
 - Final: Ruling:本人認証/全重要Audit/全Memory policy・source/実業務納品/全体完成は未達 — 狭いlist動作で完了にしない — 誤ると未納品業務を完成と誤認する。
 
 - 最終実Docker5成功/0失敗2files9.04秒。最終fullcheck終了0:474成功/14skip/0失敗488tests/197files167.28秒。native direct fixture訂正後の最終static350files/ASTも終了0、実Jev再実行終了0:2237subjects/136warning/missing0/unsure0/review0/errors[]/degraded[]、dry-run excluded/undeclared/idleLanguages/silentRules0。[証拠](verification/2026-10-07-sandbox-list/)保存。標準gateのDocker skipを成功にせず、実Docker別実測を区別。次の[Agent tail計画](superpowers/plans/2026-10-07-agent-log-tail.md)を保存、他人の操作を現在Task ownerへ付け替えないactor filterから小さく進める。
+
+## 2026-10-07 Agent監査ログtail
+
+- [Agent tail計画](superpowers/plans/2026-10-07-agent-log-tail.md)に従い、既存collectAudit/selectAuditLogsと登録Agent、immutable Task execution Auditを再利用。Notion07原文/指針/リファレンス/quality-review/Ponytailを継続、全体goalはactive。
+- CLI RED0成功/1失敗311ms（logs tail未対応で終了2）。純粋filter RED1成功/1失敗29ms（別Agentの最新recordを返した）。初回fixtureでは対象Agentが配列末尾だったためfilter不在を検出せず、別Agentを末尾へ置いて目的のREDを確認。
+- 初回GREEN3成功/0失敗2files678ms、最終direct/daemon/stop後reopen GREEN3成功/0失敗916ms。現在Task ownerが別Agentになっても過去Audit actorのctoを返し、別Agent/human同IDを含めない。filter後のlatest limit、missing登録Agent、空/未知verb/余剰/不正limitを拒否。型/Oxlint/Oxfmt350files/AST終了0。
+- Ruling:tailは明示Agent actorの最新Audit snapshot — Task現在ownerや他humanの操作を過去のAgent主体へ付け替えず、引数だけで継続followしない — 誤るとRuntime stdout/連続stream/全重要操作収集と誤認する。新log storage/stream protocolは追加せず既存Audit referenceを保持する。
+- Ponytail review:既存logs action/filter/collectAudit/登録AgentRepositoryを再利用、新Port/adapter/DDL/pollerなし。削減候補なし。未知対象は実registryに照合する。正しさ/安全性は別の独立reviewと全gateを続ける。
+- 前単位sandbox listのmain通常ff/push終了0、公開ccdb3aa、公開時点main/origin/main一致。Lefthook committed tree全gate/実Jev成功186.66秒、forceなし。その後Agent tail差分を専用featureへ移動。
+- 最終fresh review:Critical0/Important0/Minor1、純粋filter2成功。reviewerのCLIはsandbox Unix socket EPERMでdaemon起動できずtimeout。個別stderrで環境制約と切り分け、親の許可環境GREENとは区別する。再reviewなし。
+- Final: minor (deferred):approvals/cli.tsの`action === undefined && target !== undefined`は連続positionalsで到達不能、既存拒否を保つ一条件へ縮小可能。Ponytail net -4lines候補、polishとして保留（ correctness/security指摘なし）。
+- Final: Ruling:全gate/実Jevの成否は親terminal実測だけ — reviewerのCLI環境制約/focusedを代用しない — 誤ると未実行を成功に数える。
+- Final: Ruling:実API/本人認証/全重要Audit/業務納品/全体完成は未達 — exact actor snapshotだけを成果とする — 誤ると実務全体の受け入れと誤認する。
+
+- 最終fullcheck終了0:475成功/14skip/0失敗489tests/197files166.02秒、static350files/AST成功。実Jev2238subjects/137warning/missing0/unsure0/review0/errors[]/degraded[]、dry-run excluded/undeclared/idleLanguages/silentRules0。最終fast UT166成功56files262ms。[証拠](verification/2026-10-07-agent-log-tail/)保存、最終gateを確認してからcompletion-auditの旧Agent tail行を実績へ更新。[次のRoom alias/実TTY計画](superpowers/plans/2026-10-07-room-open-tty.md)保存、全体goalはactive。
