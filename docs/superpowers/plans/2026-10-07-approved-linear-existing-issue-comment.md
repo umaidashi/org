@@ -10,6 +10,12 @@
 - 外部呼出し前に既存EventBusで排他的な一回claimを不変保存し、成功結果も参照receiptへ保存。通信不明/receipt保存障害で自動再POSTしない。失敗を成功や空値へ変えない。credential取得失敗などclaim前に判定できるものは先に拒否する。
 - local CLIのhuman actorは現在の他Approval同様、信頼するローカルhostが明示するIdentityであり本人認証ではない。Agent投稿/capability/専用scopeは別sliceで追加し、未完了を保持する。
 
+## 公式schemaの確認（2026-10-07）
+
+[Linear公式SDL](https://github.com/linear/linear/blob/master/packages/sdk/src/schema.graphql)を一時領域へ取得して確認。commentCreateはCommentCreateInputを受け、UUID v4のidを指定でき、既存IssueをissueIdと本文bodyで指定する。CommentPayloadはsuccessとcomment、Commentはid/body/issue/urlを持つ（issueはnullableなので一致確認を省略しない）。UUID指定を自動retry保証とは扱わない。成功応答の対象/ID一致と一回claimを検査する。
+
+CLIの最初の契約は`task request-linear-comment WORKITEM --expected-version VERSION --actor HUMAN --body TEXT --key KEY`と`task apply-linear-comment WORKITEM --expected-version VERSION --actor HUMAN --body TEXT --approval APPROVAL_ID`。既存`approval decide`を使う。コメントUUIDはhostが生成/保存し、ユーザーに実装上のID選択を要求しない。HTTP変数はissueId/body/id、返却commentのIssue/IDを照合する。
+
 ## TDD / 検証手順
 
 1. 既存Approval/Task/HTTP/Auditの全callerと保存契約を読み、CLIの未対応REDを確認。鍵なし・固定HTTP fixtureを使い、外部業務Issueを変更しない。

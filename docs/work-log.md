@@ -1243,3 +1243,7 @@
 - native CLI用Notion/Linearキーは値を出さず設定有無falseを確認。org公開GitHubのopen Issue一覧は空。Linear connectorのorg/Kernel/AIカンパニー検索も空（全workspaceのIssue不存在とは断定しない）。対象指定の既存質問を維持し、任意業務write/新Issueは行わない。
 - Ponytail review: Lean already. Ship. 受け入れ表は既存コード・実行記録へリンクし、新verifier/schema/CI/ライブラリは追加しない。正しさレビューは全体要件・現在mainの実機結果・古い別opt-in証拠・fixtureと実業務の境界を照合。全体目標は未達のままactive。
 - Notion MVPを再取得し編集2026-10-04の6 Phaseが変わっていないことを確認。受け入れ文書の56ローカル参照の実在を確認、欠落0、diff check成功。次の[既存Issueコメント計画](superpowers/plans/2026-10-07-approved-linear-existing-issue-comment.md)を保存。最初の非同期外部writeを明示human Approval付きで作り、Local同期Portは維持する。公式GraphQL/ページング資料を参照し、具体mutation schemaは実装前に確認する。
+- 1b15462のmain通常push成功、pre-push全gate111.13秒。次のfeatureブランチfeat/approved-linear-existing-issue-commentで実CLI REDを作成。0成功1失敗98ms、request-linear-comment/新flag未対応で終了2を確認。所有HTTP fixtureのPOSTはまだ実行されていない。
+- Linear公式SDLを一時領域に取得しcommentCreate/CommentCreateInputのUUID v4 ID・既存issueId/body、success/commentと返却Issue nullableを確認し計画へ反映。公式SDK追加は不要。native fixtureは5秒の子プロセス上限・20秒全体上限・finally清掃とfake credentialのみで構成。実業務コメントは送信していない。実装/DI/全check/実Jev/独立final reviewは次の作業として未完了。
+- RED fixture初回staticはclosureでのunknown narrowing、次に非await server.stopで停止。Approval IDをstring局所値へ固定し清掃stopをawaitして修正。fixtureの型/Oxlint/Oxfmt316files/ASTは成功。改めてnative RED0成功1失敗96ms、未実装requestの終了2で停止。成功経路・全テストはまだ未検証。
+- Ponytail review: Lean already. Ship. 一つの既存Issue・HTTP fixture・CLI再openで承認gateと一回投稿を検証する最小のnative testを保持。新サービス/SDK/テストframeworkは追加しない。RED testと設計ログをfeature branchだけにコミットし、mainへはGREEN/全gate/実Jev/final review後に進める。
