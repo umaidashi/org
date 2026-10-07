@@ -81,7 +81,17 @@ test('persisted Room rules wake native Runtime only for matching human metadata 
     });
   };
   try {
-    run(['agent', 'create', 'worker', '--role', 'Read Room and reply', '--runtime', 'codex']);
+    run([
+      'agent',
+      'create',
+      'worker',
+      '--role',
+      'Read Room and reply',
+      '--runtime',
+      'codex',
+      '--capability',
+      'can_read',
+    ]);
     const agent = list(['agent', 'list'])[0];
     assert.ok(record(agent) && typeof agent.id === 'string');
     const room = entity([

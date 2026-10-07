@@ -56,7 +56,17 @@ test('CLI rebuilds a broken provider into a fresh Session with Room history, sco
   };
   let daemon: ReturnType<typeof spawn> | undefined, exited: Promise<unknown> | undefined;
   try {
-    run(['agent', 'create', 'worker', '--role', 'Read scoped Room context', '--runtime', 'codex']);
+    run([
+      'agent',
+      'create',
+      'worker',
+      '--role',
+      'Read scoped Room context',
+      '--runtime',
+      'codex',
+      '--capability',
+      'can_read',
+    ]);
     const agent: unknown = list(['agent', 'list'])[0];
     assert.ok(record(agent) && typeof agent.id === 'string');
     const room = entity([

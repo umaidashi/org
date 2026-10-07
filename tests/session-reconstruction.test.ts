@@ -8,7 +8,7 @@ import { rebuildSessionForAgent } from '../src/sessions/reconstruction.js';
 test('Session reconstruction atomically retires a failed provider and creates fresh identity without replaying a turn', () => {
   const store = new SqliteSessionStore(':memory:');
   const agent = createAgent(
-      { name: 'worker', role: 'check', runtime: 'codex' },
+      { name: 'worker', role: 'check', runtime: 'codex', capabilities: ['can_read'] },
       { id: 'worker', createdAt: 'before' },
     ),
     room = createRoom(
@@ -108,7 +108,7 @@ test('Session reconstruction atomically retires a failed provider and creates fr
 
 test('Session reconstruction validates current authority before the injected atomic store without a database', () => {
   const agent = createAgent(
-      { name: 'worker', role: 'check', runtime: 'codex' },
+      { name: 'worker', role: 'check', runtime: 'codex', capabilities: ['can_read'] },
       { id: 'worker', createdAt: 'before' },
     ),
     room = createRoom(

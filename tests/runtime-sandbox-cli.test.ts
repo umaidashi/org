@@ -119,6 +119,8 @@ dockerTest(
           'can_write',
           '--memory-policy',
           'reviewed-tasks',
+          '--capability',
+          'can_read',
         ]).status,
         0,
       );

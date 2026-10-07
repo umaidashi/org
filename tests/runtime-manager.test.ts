@@ -3,7 +3,16 @@ import { test } from 'bun:test';
 import { SqliteSessionStore } from '../src/sessions/sqlite.js';
 import { LocalAgentRuntime } from '../src/runtime/manager.js';
 const agents = {
-  list: () => [{ id: 'a', name: 'chief', role: 'Chief', runtime: 'codex', createdAt: 't0' }],
+  list: () => [
+    {
+      id: 'a',
+      name: 'chief',
+      role: 'Chief',
+      runtime: 'codex',
+      createdAt: 't0',
+      capabilities: ['can_read' as const],
+    },
+  ],
 };
 const rooms = {
   get: () => ({

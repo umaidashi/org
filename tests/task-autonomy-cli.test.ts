@@ -102,7 +102,18 @@ test('Event subscription wakes assigned ExecutionTask with scoped Memory and sta
   let daemon: ReturnType<typeof launch> | undefined;
   try {
     assert.equal(
-      run(['--direct', 'agent', 'create', 'chief', '--role', 'Chief', '--runtime', 'codex']).status,
+      run([
+        '--direct',
+        'agent',
+        'create',
+        'chief',
+        '--role',
+        'Chief',
+        '--runtime',
+        'codex',
+        '--capability',
+        'can_read',
+      ]).status,
       0,
     );
     const agents = json(['--direct', 'agent', 'list']);
@@ -277,6 +288,8 @@ test('Event subscription wakes assigned ExecutionTask with scoped Memory and sta
         'codex',
         '--capability',
         'can_delegate',
+        '--capability',
+        'can_read',
       ]).status,
       0,
     );

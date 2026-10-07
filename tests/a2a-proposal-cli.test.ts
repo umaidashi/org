@@ -121,6 +121,8 @@ test.each([
           'research',
           '--runtime',
           'codex',
+          '--capability',
+          'can_read',
         ]).status,
         0,
       );

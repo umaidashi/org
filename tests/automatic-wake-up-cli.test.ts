@@ -100,7 +100,18 @@ test('daemon automatic wake-up persists outcomes once, drains cancelled turns an
   try {
     for (const name of ['chief', 'cto'])
       assert.equal(
-        run(['--direct', 'agent', 'create', name, '--role', name, '--runtime', 'codex']).status,
+        run([
+          '--direct',
+          'agent',
+          'create',
+          name,
+          '--role',
+          name,
+          '--runtime',
+          'codex',
+          '--capability',
+          'can_read',
+        ]).status,
         0,
       );
     const agents = json(['--direct', 'agent', 'list']);

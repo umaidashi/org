@@ -14,7 +14,16 @@ for (const runtime of ['codex', 'claude'] as const) {
     const dir = mkdtempSync(join(tmpdir(), 'org-session-runtime-'));
     const store = new SqliteSessionStore(join(dir, 'org.db'));
     const agents = {
-      list: () => [{ id: 'a', name: 'chief', role: 'Chief', runtime, createdAt: 't0' }],
+      list: () => [
+        {
+          id: 'a',
+          name: 'chief',
+          role: 'Chief',
+          runtime,
+          createdAt: 't0',
+          capabilities: ['can_read' as const],
+        },
+      ],
     };
     const rooms = {
       get: () => ({

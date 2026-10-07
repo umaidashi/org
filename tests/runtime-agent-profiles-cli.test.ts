@@ -64,7 +64,18 @@ test('native daemon selects Agent cwd and aliased env across resume, preserves d
     ]) {
       assert.ok(name && runtime);
       assert.equal(
-        run(['--direct', 'agent', 'create', name, '--role', name, '--runtime', runtime]).status,
+        run([
+          '--direct',
+          'agent',
+          'create',
+          name,
+          '--role',
+          name,
+          '--runtime',
+          runtime,
+          '--capability',
+          'can_read',
+        ]).status,
         0,
       );
       const listed = run(['--direct', 'agent', 'list', '--json']);

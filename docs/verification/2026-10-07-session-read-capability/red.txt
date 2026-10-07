@@ -1,0 +1,61 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-service.test.ts:
+(pass) Session service validates references before creation and runs explicit provider resume via minimal Ports [1.62ms]
+(pass) Session failure and restart recovery preserve provider identity without persisting external error text [0.71ms]
+(pass) Session stop wins over a late runtime response and parallel turns are rejected [0.77ms]
+150 | });
+151 | 
+152 | test('Session rejects legacy and missing read grants before creation, begin or Runtime invocation', async () => {
+153 |   for(const capabilities of [undefined,[],['can_write'] as const]) {
+154 |     const repository={list:()=>[{...agent,...(capabilities===undefined?{}:{capabilities})}]};
+155 |     assert.throws(()=>createSessionForAgent({create:()=>assert.fail('must not create')},repository,rooms,{agentId:'a',roomId:'r'},{id:'s',at:'now'}),/can_read/);
+                 ^
+AssertionError: The input did not match the regular expression /can_read/. Input:
+
+'AssertionError [ERR_ASSERTION]: must not create'
+
+ generatedMessage: true,
+   expected: /can_read/,
+   operator: "throws",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/session-service.test.ts:155:12
+      at /Users/umaidashi/Documents/git/org/tests/session-service.test.ts:152:101
+
+33 | ): Session {
+34 |   const agent = sessionAgent(agents, rooms, input.agentId, input.roomId);
+35 |   if (agent.runtime !== 'codex' && agent.runtime !== 'claude')
+36 |     throw new Error('Unsupported Session runtime');
+37 |   const session = createSession({ ...input, runtime: agent.runtime }, identity);
+38 |   store.create(session);
+             ^
+AssertionError: must not create
+ generatedMessage: false,
+     actual: undefined,
+   expected: undefined,
+   operator: "fail",
+       code: "ERR_ASSERTION"
+
+      at createSessionForAgent (/Users/umaidashi/Documents/git/org/src/sessions/service.ts:38:9)
+      at getActual (node:assert:380:7)
+      at throws (node:assert:470:33)
+      at /Users/umaidashi/Documents/git/org/tests/session-service.test.ts:155:12
+      at /Users/umaidashi/Documents/git/org/tests/session-service.test.ts:152:101
+(fail) Session rejects legacy and missing read grants before creation, begin or Runtime invocation [0.90ms]
+AssertionError: Missing expected rejection.
+ generatedMessage: false,
+     actual: undefined,
+   expected: /can_read/,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at innerFail (node:assert:36:27)
+      at expectsError (node:assert:425:14)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+(fail) Session refuses late completion after read capability is revoked during Runtime [0.61ms]
+
+ 3 pass
+ 2 fail
+Ran 5 tests across 1 file. [34.00ms]

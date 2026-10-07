@@ -204,3 +204,7 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 ### 2026-10-07 Runtime既知private環境値の反射拒否
 
 全default/per-Agent runtime選択envのprivate非空値を共通wrapperで検査し、成功stdout解析前と復号後text/provider IDの反射を全応答拒否。Process例外反射は固定Error、既存非zero stderrはreason-onlyを維持。実Room activation/auto Memoryでprivate提案の返信・Memory保存拒否とsafe提案採用を対照検証し、再起動原本保持を確認。[証拠](verification/2026-10-07-runtime-secret-reflection/)全gate496成功/14skip/0失敗510tests203files178.37秒、実Jev2319subjects/欠損・エラー・劣化0、DI3成功37ms。既知literal/信頼されたpublic target設定だけの保護であり、未知・変換/auth-cache secret・同UID隔離の保証ではない。全体未達、[次のcan_read境界](superpowers/plans/2026-10-07-session-read-capability.md)へ進む。
+
+### 2026-10-07 Session Contextのcan_read境界
+
+共通sessionAgentでlegacy/空read grantを作成・開始前に拒否し、Runtime完了後も登録/runtime/active Room参加/can_readを保存前照合。旧provider IDを保持したgrant/runtime/archive/participant変更4ケースをmutation RED→GREENで検証。実CLIでhuman Approval失効後resume/rebuild/Room activation/ExecutionTask拒否、Runtime counter不増・成果物ゼロ・再起動原本保持。[証拠](verification/2026-10-07-session-read-capability/)全gate502成功/14skip/0失敗516tests204files181.86秒、実Jev2330subjects/欠損・エラー・劣化0、DI13成功38ms。trusted local hostの読取と本人認証/全resource permission、送信済みContext回収を区別。全体未達、[次のHTTP Webhook受信](superpowers/plans/2026-10-07-github-webhook-http.md)へ進む。

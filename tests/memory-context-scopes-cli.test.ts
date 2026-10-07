@@ -45,7 +45,17 @@ test('native Runtime selects host Room and Agent department/project scopes throu
   };
   try {
     for (const name of ['a', 'b'])
-      run(['agent', 'create', name, '--role', 'worker', '--runtime', 'codex']);
+      run([
+        'agent',
+        'create',
+        name,
+        '--role',
+        'worker',
+        '--runtime',
+        'codex',
+        '--capability',
+        'can_read',
+      ]);
     const agents = run(['agent', 'list']);
     assert.ok(Array.isArray(agents));
     const a = id(agents[0]),

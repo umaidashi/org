@@ -113,7 +113,20 @@ test('Room activation runs only the coordinator or explicit Agent, reuses provid
       });
     });
     for (const name of ['chief', 'cto'])
-      assert.equal(run(['agent', 'create', name, '--role', name, '--runtime', 'codex']).status, 0);
+      assert.equal(
+        run([
+          'agent',
+          'create',
+          name,
+          '--role',
+          name,
+          '--runtime',
+          'codex',
+          '--capability',
+          'can_read',
+        ]).status,
+        0,
+      );
     const agents = json(['agent', 'list']);
     assert.ok(Array.isArray(agents));
     const id = (name: string) => {

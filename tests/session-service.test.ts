@@ -6,9 +6,16 @@ import {
   stopSession,
   recoverSessions,
 } from '../src/sessions/service.js';
-import { createSession } from '../src/sessions/domain.js';
+import { createSession, transitionSession } from '../src/sessions/domain.js';
 import type { Session } from '../src/sessions/domain.js';
-const agent = { id: 'a', name: 'chief', role: 'Chief', runtime: 'codex', createdAt: 't0' };
+const agent = {
+  id: 'a',
+  name: 'chief',
+  role: 'Chief',
+  runtime: 'codex',
+  createdAt: 't0',
+  capabilities: ['can_read' as const],
+};
 const agents = { list: () => [agent] };
 const room = {
   id: 'r',
@@ -148,3 +155,76 @@ test('Session stop wins over a late runtime response and parallel turns are reje
   assert.equal(store.get().status, 'stopped');
   assert.equal(store.get().providerSessionId, null);
 });
+
+test('Session rejects legacy and missing read grants before creation, begin or Runtime invocation', async () => {
+  for (const capabilities of [undefined, [], ['can_write'] as const]) {
+    const { capabilities: _capabilities, ...legacy } = agent;
+    const repository = {
+      list: () => [{ ...legacy, ...(capabilities === undefined ? {} : { capabilities }) }],
+    };
+    assert.throws(
+      () =>
+        createSessionForAgent(
+          { create: () => assert.fail('must not create') },
+          repository,
+          rooms,
+          { agentId: 'a', roomId: 'r' },
+          { id: 's', at: 'now' },
+        ),
+      /can_read/,
+    );
+    const store = memory();
+    await assert.rejects(
+      sendSession(
+        store,
+        repository,
+        rooms,
+        async () => assert.fail('must not invoke'),
+        { id: 's', message: 'read', instruction: 'private context' },
+        () => 'now',
+      ),
+      /can_read/,
+    );
+    assert.equal(store.get().status, 'idle');
+    assert.equal(store.get().version, 0);
+  }
+});
+
+test.each(['grant', 'runtime', 'archive', 'participant'] as const)(
+  'Session refuses late completion after %s changes and preserves the prior provider identity',
+  async (change) => {
+    let currentAgent = { ...agent };
+    let currentRoom: Omit<typeof room, 'archivedAt'> & { archivedAt: string | null } = { ...room };
+    const repository = { list: () => [currentAgent] };
+    const roomRepository = { get: () => currentRoom };
+    const store = memory();
+    store.save(transitionSession(store.get(), { type: 'begin', at: 'before' }), 0);
+    store.save(
+      transitionSession(store.get(), {
+        type: 'complete',
+        providerSessionId: 'previous-provider',
+        at: 'before',
+      }),
+      1,
+    );
+    await assert.rejects(
+      sendSession(
+        store,
+        repository,
+        roomRepository,
+        async () => {
+          if (change === 'grant') currentAgent = { ...currentAgent, capabilities: [] };
+          if (change === 'runtime') currentAgent = { ...currentAgent, runtime: 'claude' };
+          if (change === 'archive') currentRoom = { ...currentRoom, archivedAt: 'now' };
+          if (change === 'participant') currentRoom = { ...currentRoom, participants: [] };
+          return { sessionId: 'new-provider', text: 'private response' };
+        },
+        { id: 's', message: 'read', instruction: 'context' },
+        () => 'now',
+      ),
+      /can_read|runtime changed|archived|participant/,
+    );
+    assert.equal(store.get().status, 'failed');
+    assert.equal(store.get().providerSessionId, 'previous-provider');
+  },
+);

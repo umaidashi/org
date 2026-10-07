@@ -78,8 +78,18 @@ test.each([false, true])(
     const pending: ReturnType<typeof spawn>[] = [];
     try {
       assert.equal(
-        run(['--direct', 'agent', 'create', 'chief', '--role', 'Chief', '--runtime', 'codex'])
-          .status,
+        run([
+          '--direct',
+          'agent',
+          'create',
+          'chief',
+          '--role',
+          'Chief',
+          '--runtime',
+          'codex',
+          '--capability',
+          'can_read',
+        ]).status,
         0,
       );
       const list = json(['--direct', 'agent', 'list']);

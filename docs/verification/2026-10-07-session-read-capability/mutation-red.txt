@@ -1,0 +1,112 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-service.test.ts:
+AssertionError: The input did not match the regular expression /can_read|runtime changed|archived|participant/. Input:
+
+'Error: Session provider ID mismatch'
+
+ generatedMessage: true,
+   expected: /can_read|runtime changed|archived|participant/,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at expectedException (node:assert:367:33)
+      at expectsError (node:assert:435:20)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+
+ 99 |       if (current.status !== 'running') throw new Error('Session turn not running');
+100 |       if (
+101 |         current.providerSessionId !== null &&
+102 |         current.providerSessionId !== action.providerSessionId
+103 |       )
+104 |         throw new Error('Session provider ID mismatch');
+                        ^
+error: Session provider ID mismatch
+      at transitionSession (/Users/umaidashi/Documents/git/org/src/sessions/domain.ts:104:19)
+      at sendSession (/Users/umaidashi/Documents/git/org/src/sessions/service.ts:68:23)
+      at async <anonymous> (/Users/umaidashi/Documents/git/org/tests/session-service.test.ts:210:18)
+(fail) Session refuses late completion after grant changes and preserves the prior provider identity [1.29ms]
+AssertionError: The input did not match the regular expression /can_read|runtime changed|archived|participant/. Input:
+
+'Error: Session provider ID mismatch'
+
+ generatedMessage: true,
+   expected: /can_read|runtime changed|archived|participant/,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at expectedException (node:assert:367:33)
+      at expectsError (node:assert:435:20)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+
+ 99 |       if (current.status !== 'running') throw new Error('Session turn not running');
+100 |       if (
+101 |         current.providerSessionId !== null &&
+102 |         current.providerSessionId !== action.providerSessionId
+103 |       )
+104 |         throw new Error('Session provider ID mismatch');
+                        ^
+error: Session provider ID mismatch
+      at transitionSession (/Users/umaidashi/Documents/git/org/src/sessions/domain.ts:104:19)
+      at sendSession (/Users/umaidashi/Documents/git/org/src/sessions/service.ts:68:23)
+      at async <anonymous> (/Users/umaidashi/Documents/git/org/tests/session-service.test.ts:210:18)
+(fail) Session refuses late completion after runtime changes and preserves the prior provider identity [1.57ms]
+AssertionError: The input did not match the regular expression /can_read|runtime changed|archived|participant/. Input:
+
+'Error: Session provider ID mismatch'
+
+ generatedMessage: true,
+   expected: /can_read|runtime changed|archived|participant/,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at expectedException (node:assert:367:33)
+      at expectsError (node:assert:435:20)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+
+ 99 |       if (current.status !== 'running') throw new Error('Session turn not running');
+100 |       if (
+101 |         current.providerSessionId !== null &&
+102 |         current.providerSessionId !== action.providerSessionId
+103 |       )
+104 |         throw new Error('Session provider ID mismatch');
+                        ^
+error: Session provider ID mismatch
+      at transitionSession (/Users/umaidashi/Documents/git/org/src/sessions/domain.ts:104:19)
+      at sendSession (/Users/umaidashi/Documents/git/org/src/sessions/service.ts:68:23)
+      at async <anonymous> (/Users/umaidashi/Documents/git/org/tests/session-service.test.ts:210:18)
+(fail) Session refuses late completion after archive changes and preserves the prior provider identity [0.13ms]
+AssertionError: The input did not match the regular expression /can_read|runtime changed|archived|participant/. Input:
+
+'Error: Session provider ID mismatch'
+
+ generatedMessage: true,
+   expected: /can_read|runtime changed|archived|participant/,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at expectedException (node:assert:367:33)
+      at expectsError (node:assert:435:20)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+
+ 99 |       if (current.status !== 'running') throw new Error('Session turn not running');
+100 |       if (
+101 |         current.providerSessionId !== null &&
+102 |         current.providerSessionId !== action.providerSessionId
+103 |       )
+104 |         throw new Error('Session provider ID mismatch');
+                        ^
+error: Session provider ID mismatch
+      at transitionSession (/Users/umaidashi/Documents/git/org/src/sessions/domain.ts:104:19)
+      at sendSession (/Users/umaidashi/Documents/git/org/src/sessions/service.ts:68:23)
+      at async <anonymous> (/Users/umaidashi/Documents/git/org/tests/session-service.test.ts:210:18)
+(fail) Session refuses late completion after participant changes and preserves the prior provider identity [0.09ms]
+
+ 0 pass
+ 4 filtered out
+ 4 fail
+Ran 4 tests across 1 file. [40.00ms]

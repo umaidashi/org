@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-read-capability-cli.test.ts:
+(pass) native Session and Room activation refuse absent or revoked read grants before Runtime across restart [2519.39ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [2.57s]

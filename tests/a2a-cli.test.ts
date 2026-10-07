@@ -111,7 +111,7 @@ test('A2A request and result retain correlation, Task and immutable Room evidenc
           name,
           '--runtime',
           'claude',
-          ...(name === 'cto' ? ['--capability', 'can_delegate'] : []),
+          ...(name === 'cto' ? ['--capability', 'can_delegate', '--capability', 'can_read'] : []),
         ]).status,
         0,
       );

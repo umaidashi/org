@@ -1836,3 +1836,24 @@
 - 最終focused7成功/0失敗3files5.35秒。DIだけは3成功/2filter/0失敗37ms。実Jev2319subjects/141warnings、missing/unsure/review/errors/degraded0、変更対象へのfindingなし。既存未校正warningは保証へ置換しない。証拠は[検証ディレクトリ](verification/2026-10-07-runtime-secret-reflection/)へ保存。最終全gateは実行中、成功の先行記載なし。
 
 - 最終全gate terminal0: 型/Oxlint/Oxfmt/AST（358files）、496成功/14skip/0失敗510tests203files178.37秒、Jev dry-run2319subjects/excluded0/undeclared・idle・silent空を確認。実Jev/全gate/RED/GREEN/fast証拠を保存し、README/要件/監査を更新。全体未達を維持。
+
+## 2026-10-07 Session Contextのcan_read境界
+
+- [計画](superpowers/plans/2026-10-07-session-read-capability.md)を実行。全体未達の具体的なSession読取漏れを既存sessionAgent/requireCapabilityで修正、新store/interface/DI containerなし。
+- RED: legacy/空grant/他capabilityの作成・開始拒否と非同期中can_read失効の完了拒否が失敗、既存3成功/追加2失敗34ms。作成Portが実際に呼ばれる観測と失効後の応答採用を確認。
+- 共通sessionAgentへcan_readを要求し、Runtime応答後も登録Agent/runtime/active Room参加/capabilityを保存前再照合。既存failure履歴を維持。legacy/defaultは既定拒否、肯定fixtureだけ必要な明示grantを追加。
+- GREEN DI: Session/manager/reconstruction10成功54ms。実CLI: legacy start/明示read成功、Room activation no-read拒否、human Approvalによるread失効後resume/rebuild/Task/activation拒否、Runtime counter一回も追加せず成果物ゼロ、同DB/socket再起動後も権限と原本維持。最終native1成功2.57秒。
+- 検証中のfixture誤り: 多Agentのdirect Roomをgroupへ訂正。Taskは既定WorkItemで実行拒否されたためexplicit execution_taskへ訂正。製品障害とは扱わない。型がoptional capabilities undefinedを拒否したためlegacyはfield省略で構築。
+- Ruling: 主体は引き続きtrusted local host、Room参加は既存resource制約 — can_readだけでprincipal認証/全permissions fieldを完成とはしない — multi-user/remoteや他resourceで追加制約が必要。
+- Ruling: Runtime実行中に失効しても過去に送ったContextを回収できない — 今回は完了/provider ID/返信保存前の再照合で境界を閉じる — cancellation/外部副作用/全resource revocationは別要件。
+- Runtime反射保護はcommit8452adaをmainへff/通常push、push対象全gate/実Jev hook202.39秒terminal0を確認。次単位はfeat/session-read-capabilityで分離。
+- Fresh reviewer: C0/I0/M1、focused独立10成功43ms、Ponytail Lean already、削減候補なし。Minorは非同期後runtime/Room archive/参加解除/既存provider ID保持の直接検査不足。効果でImportantへ再判定: 新しい完了前の安全境界と原ID保持の受け入れを退行検出するため一回test fix passへ入れる。
+- 一回fix pass: 既存provider ID付きのresumeに対してgrant/runtime/archive/participant変更を4ケース表へ拡張。完了前guardだけ除去したmutation RED4失敗、finallyでsource復元、対象13成功（結果時間は実出力参照）。製品bugを追加発見したとはしない。再レビューしない。Deferred minors本単位なし。
+- Final Ruling: Context構築時のhost読取/保存済み返信再取得はtrusted local hostの処理で、新Runtime入力を無権限Agentへ送る保証と区別 — principal/resource全般の認証ではない — 誤解すると既存データ閲覧の認可を過大主張。
+- Final Ruling: 送信済みContext回収/取消/外部副作用は今回の失効後保存拒否から推論しない — 既存Promptを巻戻せない — 別実行境界にも失効が必要になる。
+- Final Ruling: reviewerはnative/full/Jev/外部認証/push/全体を独立判断しない — 親の観測と要件残件を維持 — 独立focusedを実納品証拠へ置換しない。READMEの明示grant/Approval/再照合/旧provider保持を計画通り更新。
+- Next Ruling: 具体的permissions/sandbox credentialはscopeと実境界の棚卸しを残し、次の独立単位は既存署名検証へlocal HTTP受信を接続する — Triggerの実callerに直結し余計なproviderを作らない — これだけで公開GitHub配送や全permissionを完成扱いしない。[計画](superpowers/plans/2026-10-07-github-webhook-http.md)を保存。
+- 実Jev最終2330subjects/141warnings、missing/unsure/review/errors/degraded0。sendSessionの既存catch一般failure-path候補とrecoverSessionsのname候補を確認: 具体的反例なし、変更後guard4ケース/旧provider保持/既存Runtime failure・recoveryを直接検証。Ruling: 未校正の抽象warningで追加実装を推測しない — 独立reviewと具体assertへ照合 — 未検査の既存storage全面停止などは全復旧保証に含めない。
+- 一回fix pass最終DI13成功/0失敗3files38ms。native1成功/0失敗2.57秒。最終全gateは実行中で先行成功記録なし。
+
+- 最終全gate terminal0: 型/Oxlint/Oxfmt/AST359files、502成功14skip0失敗516tests204files181.86秒、Jev dry-run2330subjects/excluded0/undeclared・idle・silent空。全証拠・README・要件・監査・次計画をGitへ記録する。全体未達、独立残件を継続。
