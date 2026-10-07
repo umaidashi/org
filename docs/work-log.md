@@ -1278,3 +1278,4 @@
 - Final Ruling: 実Linear認証/投稿の受け入れは未完了として維持する — 今回の回収sliceはowned HTTP/SQLiteの証拠で反映する — 判断が誤れば実API固有の挙動を見逃すため、native資格情報設定後に実測が必要。
 - Final Ruling: 実業務Issue→Draft PRの受け入れは全体目標の残件とする — 対象Issue/repo未指定で任意業務writeはしない — 判断が誤れば業務対象に固有の不足が残るため、指定された対象での一周を別途完了する。
 - Nativeキー存在のみ再確認: NOTION_API_KEY/LINEAR_API_KEYはfalse。値の記録なし。Notion Security原則も再取得し、HTTPでの境界制御/不変Approval/Auditと全体の未完了を照合。
+- 公開結果: `804115c`実装＋`d470ca6`レビュー記録をmainへfast-forwardし通常push成功（exit0）。pre-push対象commitの全検査/実Jev115.43s成功。main/origin/main同一d470ca6、作業tree cleanを確認。当該planのscratchのみ削除。全体目標はactive、次は既存Issue更新・Artifact連携を外部API/Core境界と照合する。
