@@ -716,7 +716,13 @@ bun --env-file=.env src/cli.ts --direct task apply-linear-artifact WORKITEM_ID -
 
 `VERSION`はローカルのArtifact関連付け後に返ったWorkItem versionです。対象Issue・output Artifact・URI/title digest・version・humanを照合し、既存claimで一回だけmutationします。同Issue・同URLにリンクがある場合は、[Linearの公式仕様](https://linear.app/developers/attachments)に従い既存リンクの表示タイトル更新になります。metadata/commentBody等は送信しません。
 
-外部送信ではWorkItem・Artifact原本を変更しません。HTTP不明や成功receipt保存障害では再mutationを拒否し、`logs --task WORKITEM_ID --json`へunconfirmedを残します。claim保存前なら投稿はなく、修復後に実行できます。Artifactリンクの不明結果status-only回収・Agent投稿・実Linear API認証は未完了です。
+外部送信ではWorkItem・Artifact原本を変更しません。HTTP不明や成功receipt保存障害では再mutationを拒否し、`logs --task WORKITEM_ID --json`へunconfirmedを残します。claim保存前なら投稿はなく、修復後に実行できます。
+
+```sh
+bun --env-file=.env src/cli.ts --direct task observe-linear-artifact WORKITEM_ID --title '承認時のリンク表示タイトル' --actor HUMAN --approval APPROVAL_ID --json
+```
+
+不明結果は`linear:read`で対象IssueのURL完全一致リンクを照会し、唯一の結果のIssue/URI/title/UUIDを承認原本と照合して成功記録を回収します。WorkItemのversion進行は許可しますが、Issue mappingとoutput Artifact原本の維持が必要です。未承認・別actor/title・不正claimでは秘密取得/HTTP前に拒否します。結果なし・不一致・複数・不完全page・保存障害では不明状態を保持し、mutationを再送しません。保存済み成功原本はHTTPなしで返します。これは一致する外部状態の読取証拠であり、過去のupsertだけがその状態を作ったという証明や外部編集/削除の監視ではありません。Agent投稿・実Linear API認証は未完了です。
 
 ### 実Claude二Agentのコード生成
 

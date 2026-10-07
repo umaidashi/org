@@ -135,8 +135,213 @@ function fixture(uri = 'https://github.com/example/repo/pull/1') {
       { ...input, ...patch, approvalId: 'approval' },
       () => 'same',
     );
-  return { state, input, request, approve, apply };
+  return { state, input, request, approve, apply, tasks };
 }
+
+test('Linear Artifact observation recovers a verified link after uncertainty without replaying mutation', async () => {
+  const f = fixture();
+  f.approve();
+  f.state.failure = 'transport';
+  await assert.rejects(f.apply);
+  f.state.failure = '';
+  f.state.task = {
+    ...changeTask(f.state.task, { title: 'later title' }, 'later'),
+    externalRef: f.state.task.externalRef,
+  };
+  const before = JSON.stringify(f.state.task);
+  let reads = 0;
+  const observe = () =>
+    artifactLink.observeApprovedLinearArtifact(
+      f.tasks,
+      {
+        get: () => {
+          assert.ok(f.state.approval);
+          return f.state.approval;
+        },
+      },
+      {
+        list: () => f.state.events,
+        publish: (event: Event) => {
+          if (f.state.events.some((e) => e.id === event.id)) throw Error('duplicate');
+          f.state.events.push(event);
+          return event;
+        },
+      },
+      {
+        getSecret: (actor, reference) => {
+          assert.equal(actor, 'linear:host');
+          assert.equal(reference, 'linear:read');
+          return 'fixture-artifact-key';
+        },
+      },
+      async (_url, init) => {
+        reads++;
+        assert.ok(typeof init.body === 'string');
+        const payload: unknown = JSON.parse(init.body);
+        assert.ok(
+          payload &&
+            typeof payload === 'object' &&
+            'query' in payload &&
+            typeof payload.query === 'string',
+        );
+        assert.ok(payload.query.startsWith('query KernelArtifactStatus('));
+        return Response.json({
+          data: {
+            issue: {
+              id: '11111111-1111-4111-8111-111111111111',
+              attachments: {
+                nodes: [
+                  {
+                    id: '22222222-2222-4222-8222-222222222222',
+                    title: f.input.title,
+                    url: 'https://github.com/example/repo/pull/1',
+                    issue: { id: '11111111-1111-4111-8111-111111111111' },
+                  },
+                ],
+                pageInfo: { hasNextPage: false },
+              },
+            },
+          },
+        });
+      },
+      {
+        taskId: f.input.taskId,
+        title: f.input.title,
+        actor: f.input.actor,
+        approvalId: 'approval',
+      },
+      () => 'later',
+    );
+  const result = await observe();
+  assert.equal(result.type, 'linear.artifact.linked');
+  assert.deepEqual(await observe(), result);
+  assert.equal(reads, 1);
+  assert.equal(f.state.calls, 1);
+  assert.equal(JSON.stringify(f.state.task), before);
+});
+
+test('Linear Artifact observation refuses altered approvals, targets, ambiguous responses and forged receipts', async () => {
+  for (const fault of [
+    'pending',
+    'actor',
+    'title',
+    'claim',
+    'mapping',
+    'artifact',
+    'missing',
+    'duplicate',
+    'page',
+    'issue',
+    'uuid',
+    'remote-title',
+    'remote-uri',
+    'change',
+    'receipt',
+    'winner',
+    'forged',
+  ]) {
+    const f = fixture();
+    f.approve();
+    f.state.failure = 'transport';
+    await assert.rejects(f.apply);
+    const approval = f.state.approval;
+    assert.ok(approval);
+    if (fault === 'pending') f.state.approval = { request: approval.request, decision: null };
+    if (fault === 'claim') f.state.events = [];
+    if (fault === 'mapping')
+      f.state.task = { ...f.state.task, externalRef: 'https://linear.app/org/issue/ORG-2/other' };
+    if (fault === 'artifact') f.state.artifacts = [];
+    if (fault === 'forged')
+      f.state.events.push({
+        id: 'linear-artifact:approval:linked',
+        type: 'linear.artifact.linked',
+        source: 'other',
+        createdAt: 'later',
+        payload: {},
+      });
+    let reads = 0,
+      lookups = 0;
+    const observe = () =>
+      artifactLink.observeApprovedLinearArtifact(
+        f.tasks,
+        {
+          get: () => {
+            assert.ok(f.state.approval);
+            return f.state.approval;
+          },
+        },
+        {
+          list: () => f.state.events,
+          publish: (event: Event) => {
+            if (fault === 'receipt') throw Error('owned receipt failure');
+            f.state.events.push(event);
+            if (fault === 'winner') throw Error('owned concurrent winner');
+            return event;
+          },
+        },
+        {
+          getSecret: () => {
+            lookups++;
+            return 'fixture-artifact-key';
+          },
+        },
+        async () => {
+          reads++;
+          if (fault === 'change')
+            f.state.task = {
+              ...f.state.task,
+              externalRef: 'https://linear.app/org/issue/ORG-2/other',
+            };
+          const attachment = {
+            id: fault === 'uuid' ? 'bad' : '22222222-2222-4222-8222-222222222222',
+            title: fault === 'remote-title' ? 'changed' : f.input.title,
+            url:
+              fault === 'remote-uri'
+                ? 'https://example.com/other'
+                : 'https://github.com/example/repo/pull/1',
+            issue: { id: '11111111-1111-4111-8111-111111111111' },
+          };
+          return Response.json({
+            data: {
+              issue: {
+                id: fault === 'issue' ? 'other' : '11111111-1111-4111-8111-111111111111',
+                attachments: {
+                  nodes:
+                    fault === 'missing'
+                      ? []
+                      : fault === 'duplicate'
+                        ? [attachment, attachment]
+                        : [attachment],
+                  pageInfo: { hasNextPage: fault === 'page' },
+                },
+              },
+            },
+          });
+        },
+        {
+          taskId: f.input.taskId,
+          actor: fault === 'actor' ? 'other' : f.input.actor,
+          title: fault === 'title' ? 'changed' : f.input.title,
+          approvalId: 'approval',
+        },
+        () => 'later',
+      );
+    if (fault === 'winner') assert.equal((await observe()).type, 'linear.artifact.linked');
+    else await assert.rejects(observe);
+    if (['pending', 'actor', 'title', 'claim', 'mapping', 'artifact', 'forged'].includes(fault)) {
+      assert.equal(reads, 0);
+      assert.equal(lookups, 0);
+    }
+    assert.equal(f.state.calls, 1);
+    if (fault !== 'winner')
+      assert.equal(
+        f.state.events.filter(
+          (e) => e.type === 'linear.artifact.linked' && e.source === 'linear:host',
+        ).length,
+        0,
+      );
+  }
+});
 
 test('Linear Artifact approval rejects unshared or unrelated output before storing a request', () => {
   for (const uri of [

@@ -23,6 +23,7 @@ test.each(['success', 'unknown', 'claim-failure', 'receipt-failure'])(
     const taskId = 'linear:issue:' + issue.id,
       uri = 'https://github.com/example/repo/pull/1';
     let mutations = 0;
+    let observations = 0;
     const server = Bun.serve({
       hostname: '127.0.0.1',
       port: 0,
@@ -34,6 +35,32 @@ test.each(['success', 'unknown', 'claim-failure', 'receipt-failure'])(
         );
         if (payload.query.startsWith('query KernelIssue('))
           return Response.json({ data: { issue } });
+        if (payload.query.startsWith('query KernelArtifactStatus(')) {
+          observations++;
+          assert.equal(
+            payload.query,
+            'query KernelArtifactStatus($issueId: String!, $url: String!) { issue(id: $issueId) { id attachments(filter: { url: { eq: $url } }, first: 2) { nodes { id title url issue { id } } pageInfo { hasNextPage } } } }',
+          );
+          assert.deepEqual(payload.variables, { issueId: issue.id, url: uri });
+          return Response.json({
+            data: {
+              issue: {
+                id: issue.id,
+                attachments: {
+                  nodes: [
+                    {
+                      id: '22222222-2222-4222-8222-222222222222',
+                      title: 'Reviewed artifact',
+                      url: uri,
+                      issue: { id: issue.id },
+                    },
+                  ],
+                  pageInfo: { hasNextPage: false },
+                },
+              },
+            },
+          });
+        }
         assert.equal(
           payload.query,
           'mutation KernelArtifact($issueId: String!, $title: String!, $url: String!) { attachmentCreate(input: { issueId: $issueId, title: $title, url: $url }) { success attachment { id title url issue { id } } } }',
@@ -231,6 +258,39 @@ test.each(['success', 'unknown', 'claim-failure', 'receipt-failure'])(
         fault === 'success' || fault === 'claim-failure' ? 'succeeded' : 'unconfirmed',
       );
       assert.doesNotMatch(logs.stdout, /Reviewed artifact|fixture-artifact-key/);
+      const observe = () =>
+        run([
+          'task',
+          'observe-linear-artifact',
+          taskId,
+          '--title',
+          'Reviewed artifact',
+          '--actor',
+          'operator',
+          '--approval',
+          approvalId,
+          '--json',
+        ]);
+      const observed = await observe();
+      assert.equal(observed.code, 0, observed.stderr);
+      assert.equal(observations, fault === 'unknown' || fault === 'receipt-failure' ? 1 : 0);
+      const reopened = await observe();
+      assert.equal(reopened.code, 0, reopened.stderr);
+      assert.equal(reopened.stdout, observed.stdout);
+      assert.equal(observations, fault === 'unknown' || fault === 'receipt-failure' ? 1 : 0);
+      assert.equal((await apply()).code, 1);
+      assert.equal(mutations, 1);
+      assert.equal((await run(['task', 'get', taskId, '--json'])).stdout, original.stdout);
+      assert.equal(
+        (await run(['task', 'artifacts', taskId, '--json'])).stdout,
+        originalArtifacts.stdout,
+      );
+      const recoveredLogs = await run(['logs', '--task', taskId, '--json']);
+      const recovered: unknown = JSON.parse(recoveredLogs.stdout);
+      assert.ok(Array.isArray(recovered));
+      const terminal: unknown = recovered.at(-1);
+      assert.ok(record(terminal));
+      assert.equal(terminal.result, 'succeeded');
     } finally {
       await server.stop(true);
       rmSync(home, { recursive: true, force: true });

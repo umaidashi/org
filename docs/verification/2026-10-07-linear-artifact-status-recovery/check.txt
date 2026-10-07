@@ -1,0 +1,15 @@
+2026-10-07 Linear Artifact status-only recovery
+Native RED: 0 pass / 4 fail / 2.94s, unsupported CLI.
+DI GREEN with existing comments: 16 pass / 0 fail / 68ms.
+Native GREEN: 4 pass / 0 fail / 3.89s; final fixed query check 4 pass / 3.83s.
+Typecheck/Oxlint/Oxfmt 323 files/AST: passed.
+Full bun run check: exit 0; 384 pass / 12 skip / 0 fail; 396 tests / 180 files / 102.16s.
+Dry-run: 1931 subjects / 13 requests / excluded 0.
+Actual Jev: 1931 subjects / 119 advisory warnings; missing/unsure/review 0, errors/degraded empty.
+Scope: human Approval, original output Artifact URI/title digest, exact claim; read-only Issue URL eq query, unique complete result, validated Issue/title/URI/UUID.
+Known receipt returned without HTTP; advanced local version allowed with original identity/output intact.
+Mutation count remains one after recovery/reopen, original Task/Artifact unchanged, Audit success projected.
+Rejected pending/actor/title/claim/mapping/artifact, zero/multiple/incomplete result, malformed remote identity/URI/title/UUID, changed mapping during HTTP, forged known receipt; receipt failure and exact parallel winner checked.
+Matching external state is evidence of observation, not exclusive proof of the historical upsert or ongoing monitoring.
+Actual Linear authentication, Agent actions, full asynchronous TaskProvider and business Issue-to-Draft-PR remain incomplete.
+Final independent review pending.

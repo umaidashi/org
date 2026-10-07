@@ -1,11 +1,16 @@
 import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
-import { createApprovalRequest, validateLinearArtifactUri } from '../approvals/domain.js';
+import {
+  createApprovalRequest,
+  validateLinearArtifactUri,
+  type ApprovalRequest,
+  type LinearArtifactLinkOperation,
+} from '../approvals/domain.js';
 import type { ApprovalStore } from '../approvals/port.js';
 import type { TaskProvider } from '../tasks/port.js';
 import type { EventBus } from '../events/port.js';
 import type { SecretStore } from '../secrets/port.js';
-import { createEvent, type Identity } from '../events/domain.js';
+import { createEvent, type Identity, type Event } from '../events/domain.js';
 import { linearWorkItemIssueId } from './import.js';
 import { queryLinear } from './read.js';
 import {
@@ -135,35 +140,12 @@ export async function applyApprovedLinearArtifact(
       !('attachment' in result)
     )
       throw new Error('Invalid Linear Artifact response');
-    const attachment = result.attachment;
-    if (
-      !attachment ||
-      typeof attachment !== 'object' ||
-      Array.isArray(attachment) ||
-      !('id' in attachment) ||
-      typeof attachment.id !== 'string' ||
-      !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(attachment.id) ||
-      !('title' in attachment) ||
-      attachment.title !== input.title ||
-      !('url' in attachment) ||
-      attachment.url !== fields.uri ||
-      !('issue' in attachment) ||
-      !attachment.issue ||
-      typeof attachment.issue !== 'object' ||
-      !('id' in attachment.issue) ||
-      attachment.issue.id !== fields.operation.issueId
-    )
-      throw new Error('Invalid Linear Artifact response');
-    return publishVerifiedLinearReceipt(
+    return saveLinkedArtifact(
       events,
-      createEvent(
-        {
-          type: 'linear.artifact.linked',
-          source: 'linear:host',
-          payload: { ...payload, attachmentId: attachment.id, artifactUri: fields.uri },
-        },
-        { id: payload.claimId + ':linked', createdAt: now() },
-      ),
+      { ...original, operation: original.operation },
+      fields.uri,
+      verifiedAttachment(result.attachment, fields.operation, input.title, fields.uri),
+      now,
     );
   } catch (error) {
     if (claimed) {
@@ -178,4 +160,147 @@ export async function applyApprovedLinearArtifact(
     }
     throw error;
   }
+}
+function verifiedAttachment(
+  attachment: unknown,
+  operation: LinearArtifactLinkOperation,
+  title: string,
+  uri: string,
+): string {
+  if (
+    !attachment ||
+    typeof attachment !== 'object' ||
+    Array.isArray(attachment) ||
+    !('id' in attachment) ||
+    typeof attachment.id !== 'string' ||
+    !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(attachment.id) ||
+    !('title' in attachment) ||
+    attachment.title !== title ||
+    !('url' in attachment) ||
+    attachment.url !== uri ||
+    !('issue' in attachment) ||
+    !attachment.issue ||
+    typeof attachment.issue !== 'object' ||
+    !('id' in attachment.issue) ||
+    attachment.issue.id !== operation.issueId
+  )
+    throw new Error('Invalid Linear Artifact response');
+  return attachment.id;
+}
+function saveLinkedArtifact(
+  events: Pick<EventBus, 'list' | 'publish'>,
+  original: ApprovalRequest & { readonly operation: LinearArtifactLinkOperation },
+  uri: string,
+  attachmentId: string,
+  now: () => string,
+): Event {
+  const payload = linearClaimPayload(original);
+  return publishVerifiedLinearReceipt(
+    events,
+    createEvent(
+      {
+        type: 'linear.artifact.linked',
+        source: 'linear:host',
+        payload: { ...payload, attachmentId, artifactUri: uri },
+      },
+      { id: payload.claimId + ':linked', createdAt: now() },
+    ),
+  );
+}
+
+export async function observeApprovedLinearArtifact(
+  tasks: Pick<TaskProvider, 'get' | 'artifacts'>,
+  approvals: Pick<ApprovalStore, 'get'>,
+  events: Pick<EventBus, 'list' | 'publish'>,
+  secrets: Pick<SecretStore, 'getSecret'>,
+  request: (url: string, init: RequestInit) => Promise<Response>,
+  input: {
+    readonly taskId: string;
+    readonly title: string;
+    readonly actor: string;
+    readonly approvalId: string;
+  },
+  now: () => string,
+): Promise<Event> {
+  const approved = requireApprovedLinearRequest(approvals, input);
+  if (approved.operation.kind !== 'linear_artifact_link')
+    throw new Error('Linear Artifact Approval does not match input');
+  const original = { ...approved, operation: approved.operation };
+  const fields = () => {
+    const current = snapshot(tasks, {
+      ...input,
+      artifactId: original.operation.artifactId,
+      expectedVersion: tasks.get(input.taskId).version,
+    });
+    if (
+      !isDeepStrictEqual(
+        { ...current.operation, taskVersion: original.operation.taskVersion },
+        original.operation,
+      )
+    )
+      throw new Error('Linear Artifact target or input changed');
+    return current;
+  };
+  const pinned = fields(),
+    payload = linearClaimPayload(original),
+    receipts = events.list();
+  const claim = receipts.find((e) => e.id === payload.claimId);
+  if (
+    !claim ||
+    claim.type !== 'linear.artifact.claimed' ||
+    claim.source !== 'linear:host' ||
+    !isDeepStrictEqual(claim.payload, payload)
+  )
+    throw new Error('Linear Artifact claim missing or mismatched');
+  const known = receipts.find((e) => e.id === payload.claimId + ':linked');
+  if (known) {
+    if (
+      known.type !== 'linear.artifact.linked' ||
+      known.source !== 'linear:host' ||
+      typeof known.payload.attachmentId !== 'string' ||
+      !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(
+        known.payload.attachmentId,
+      ) ||
+      !isDeepStrictEqual(known.payload, {
+        ...payload,
+        attachmentId: known.payload.attachmentId,
+        artifactUri: pinned.uri,
+      })
+    )
+      throw new Error('Linear Artifact receipt mismatch');
+    return known;
+  }
+  const data = await queryLinear(
+    request,
+    secrets,
+    'query KernelArtifactStatus($issueId: String!, $url: String!) { issue(id: $issueId) { id attachments(filter: { url: { eq: $url } }, first: 2) { nodes { id title url issue { id } } pageInfo { hasNextPage } } } }',
+    { issueId: original.operation.issueId, url: pinned.uri },
+  );
+  const issue = data.issue;
+  if (
+    !issue ||
+    typeof issue !== 'object' ||
+    !('id' in issue) ||
+    issue.id !== original.operation.issueId ||
+    !('attachments' in issue)
+  )
+    throw new Error('Invalid Linear Artifact status');
+  const connection = issue.attachments;
+  if (
+    !connection ||
+    typeof connection !== 'object' ||
+    !('nodes' in connection) ||
+    !Array.isArray(connection.nodes) ||
+    connection.nodes.length !== 1 ||
+    !('pageInfo' in connection) ||
+    !connection.pageInfo ||
+    typeof connection.pageInfo !== 'object' ||
+    !('hasNextPage' in connection.pageInfo) ||
+    connection.pageInfo.hasNextPage !== false
+  )
+    throw new Error('Linear Artifact status missing or ambiguous');
+  const attachment: unknown = connection.nodes[0];
+  const attachmentId = verifiedAttachment(attachment, original.operation, input.title, pinned.uri);
+  fields();
+  return saveLinkedArtifact(events, original, pinned.uri, attachmentId, now);
 }

@@ -1299,3 +1299,13 @@
 - Final Ruling: 任意hostnameのDNS private address解決/到達性と任意多重エンコードの全面分類は今回保証しない。明示したlocalhost除外と標準URI encodingの境界を検証する。判断が誤ればURL共有判断や別encodingの漏洩を見逃すため、必要な業務境界で検証を追加する。
 - 修正後全gate `bun run check` exit0、382 pass / 12 skip / 0 fail、394 tests / 180 files / 101.58s。型・Oxlint/Oxfmt・非空AST/dry-run成功。Ponytail修正差分点検: 共有validator一か所と既存テストへの2ケース追加のみ、削減候補なし（Lean already）。限定sliceを公開へ進める。全体目標はactive。
 - 公開結果: 実装5e4debaと境界修正/レビュー51c1ddfをmainへfast-forwardし通常push成功（exit0）。pre-pushのpush対象tree検査/実Jev118.61s成功、394 tests / 180 files / 382 pass / 12 skip / 0 fail / 101.30s。HEAD/origin/main同一51c1ddfとclean確認。当該planのscratchのみ削除、Rulingはログへ保存。次はArtifact不明結果の読取回収。公開結果の追記は次commitとして保存する。
+
+### 2026-10-07 Linear Artifact不明結果の読取回収
+
+- 前ターンは実装/修正/検証/公開の進捗あり。main 11c377d、cleanからfeatureを分離。Notion 04 Taskを再取得し、既存WorkItem/内部Execution分離、output Artifact原本、指針/referenceと照合。[設計/計画](superpowers/plans/2026-10-07-linear-artifact-status-recovery.md)。
+- Ruling: global URL検索の先頭pageを使わず、公式SDLのIssue.attachments URL eq filter/first:2/pageInfoで唯一の結果を照合する。判断が誤れば別Issueの結果や不完全な検索を採用し得るため、query/response境界を検証する。観測は一致する外部状態の証拠で、過去のupsert起源の証明や継続監視とは扱わない。
+- Native RED 0 pass / 4 fail / 2.94s（未対応observe CLI）。DB不要新テストも未実装関数による失敗を確認。既存applyのAttachment検証と成功原本保存を二経路へ共有。承認時のtitle/URI/Artifact digestとclaim照合後、linear:readだけで観測し、mutationを行わない。WorkItem version進行は許可しIssue mapping/output原本は維持を要求する。
+- GREEN: native4 pass / 0 fail / 3.89s（不明応答/receipt保存障害/既知成功/claim障害修復、再open/一回mutation/原本不変/Audit）。DB不要Artifact+既存comment16 pass / 68ms。pending/別actor/title/claim/mapping/原本、別Issue/URI/title/UUID、ゼロ/複数/不完全page、HTTP中mapping変更、保存障害/並行winner/偽造knownを確認。初回type narrowingとfixture body stringificationの静的失敗を修正後、型・Oxlint/Oxfmt323files・AST成功。
+- 非空dry-run1931 subjects / 13 requests / excluded0。実Jev exit0、1931 subjects / 119 advisory warnings、missing/unsure/review0、errors/degradedなし。observeの命名候補は外部読取から原本receipt保存までの責務と照合、機械的renameはしない。apply失敗経路候補を全経路の網羅保証に読み替えない。
+- Ponytail自己点検: 実際のapply/observeだけで検証・保存を共有、既存query/receipt競合処理/Auditを再利用。新table/依存/frameworkなし。不要な抽象化の削減候補なし。全gate/独立最終reviewは実行結果確認後に追記。全体目標active。
+- 全gate exit0、384 pass / 12 skip / 0 fail、396 tests / 180 files / 102.16s。最後に固定query完全一致assertを追加したnativeも4 pass / 3.83sで確認。[証拠](verification/2026-10-07-linear-artifact-status-recovery/check.txt)。要件/README/MVPをfixtureで実証済みの回収と実認証未完了へ更新。独立最終review待ち。
