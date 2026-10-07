@@ -1298,3 +1298,4 @@
 - Final Ruling: 実API認証・human本人認証・Agent操作・Artifact不明結果回収・TaskProvider全交換・実業務Issue→Draft PRは今回のfixture受け入れと分離し残件を維持。判断が誤れば実運用に固有の不足を見逃すため、各実受け入れを別途完了する。
 - Final Ruling: 任意hostnameのDNS private address解決/到達性と任意多重エンコードの全面分類は今回保証しない。明示したlocalhost除外と標準URI encodingの境界を検証する。判断が誤ればURL共有判断や別encodingの漏洩を見逃すため、必要な業務境界で検証を追加する。
 - 修正後全gate `bun run check` exit0、382 pass / 12 skip / 0 fail、394 tests / 180 files / 101.58s。型・Oxlint/Oxfmt・非空AST/dry-run成功。Ponytail修正差分点検: 共有validator一か所と既存テストへの2ケース追加のみ、削減候補なし（Lean already）。限定sliceを公開へ進める。全体目標はactive。
+- 公開結果: 実装5e4debaと境界修正/レビュー51c1ddfをmainへfast-forwardし通常push成功（exit0）。pre-pushのpush対象tree検査/実Jev118.61s成功、394 tests / 180 files / 382 pass / 12 skip / 0 fail / 101.30s。HEAD/origin/main同一51c1ddfとclean確認。当該planのscratchのみ削除、Rulingはログへ保存。次はArtifact不明結果の読取回収。公開結果の追記は次commitとして保存する。
