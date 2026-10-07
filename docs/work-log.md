@@ -1221,3 +1221,13 @@
 - 最終check355成功12skip0失敗367tests176files93.93秒、型/Oxlint/Oxfmt315files/AST/非空plan成功exit0。実jev1803対象114warning、missing/unsure0/errors/degraded空exit0。[検証](verification/2026-10-07-interrupted-runtime-result-recovery/check.txt)。Jevの復旧failure-path候補は原本/旧参照/曖昧性/変更履歴/stage/CASのDI・実CLIで照合。全DB停止やすべてのStorage例外を網羅した保証とはしない。
 - 独立review Critical0/Important0/Minor1（要件書の一般running→failedと未完了記述が古い）。検証後に更新。Ponytail: Lean already. Ship. 既存復旧callbackと二経路の共有原本照合を維持し、別ループ/新Portは不要と判断。
 - Next:通常Runtimeのorg://rooms成果物はtask artifact-contentがSandbox blob専用のため読めない。Task/Room/原本参照の検証を保つ小さなCLI e2eへ進む。実業務Issue/Draft PR/外部native認証/一般retry等が残り、全体目標はactive。
+
+
+### 2026-10-07 通常RuntimeのRoom成果物をCLIで参照
+
+- 6553f47をmainへffし、pre-push全gate109.98秒・通常remote push成功。Notion Task抽象化を再取得し、Provider/内部ExecutionTask/原本参照の方針を再照合（編集2026-10-04、原文は保存・APIレビュー送信しない）。
+- [計画](superpowers/plans/2026-10-07-runtime-room-artifact-content.md)。artifact-contentの全callerと既存Sandbox integrity test、通常Runtimeのorg://rooms URI生成を確認。生成済み通常成果物を取得できない実ユーザー経路を次の小さなe2e対象とした。
+- native RED1成功2失敗3.93秒、recover-result後の通常Room成果物読取りがInvalid Artifact URIで停止。既存artifact所属確認とSandbox hash経路を残し、Room Portでcanonical URI/Task所属/原本Messageの一致を検証してcontentを読む。外部fetchやURI registryは追加しない。
+- GREEN既存Sandbox+native4成功5.15秒、通常元内容/再関連付けURI/実行counter一回を確認。DB不要DI3成功25ms、Unicode・slashのID、正規URI round-trip、不正query/fragment/percent、別Task/Room、原本欠落、storage障害伝播を確認。
+- 最終check356成功12skip0失敗368tests176files94.64秒、型/Oxlint/Oxfmt315files/AST/非空plan成功exit0。実jev1807対象114warning、missing/unsure0/errors/degraded空exit0。変更したservice/UTのJev候補なし。[検証](verification/2026-10-07-runtime-room-artifact-content/check.txt)。
+- 独立review Critical0/Important0/Minor0、関連テスト4成功75ms。Ponytail: Lean already. Ship. 既存Room PortとTask artifactsを再利用し、新table/registry/外部fetch/依存は不要と判断。READMEと要件書へ検証済み範囲を反映。全体目標は実業務Issue/Draft PR、外部native認証、一般tool loop/Scheduler cron等が残りactive。

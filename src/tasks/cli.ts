@@ -22,7 +22,7 @@ import { SqliteAgentRepository } from '../agents/sqlite.js';
 import { createTask, isTaskStatus } from './domain.js';
 import type { TaskInput, TaskKind, TaskPatch, TaskStatus } from './domain.js';
 import type { TaskFilter } from './port.js';
-import { assignTask } from './service.js';
+import { assignTask, readTaskRoomArtifact } from './service.js';
 import { SqliteTaskProvider } from './sqlite.js';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
 import { SqliteSessionStore } from '../sessions/sqlite.js';
@@ -449,9 +449,18 @@ export async function runTaskCommand(
           .artifacts(action.id)
           .find((candidate) => candidate.id === action.artifact);
         if (!artifact) throw new Error('Task artifact not found');
+        let content: string;
+        if (artifact.uri.startsWith('org://rooms/')) {
+          const rooms = new SqliteRoomRepository(command.db);
+          try {
+            content = readTaskRoomArtifact(rooms, action.id, artifact.uri);
+          } finally {
+            rooms.close();
+          }
+        } else content = await readSandboxArtifact(command.db + '.artifacts', artifact.uri);
         result = {
           ...artifact,
-          content: await readSandboxArtifact(command.db + '.artifacts', artifact.uri),
+          content,
         };
         break;
       }

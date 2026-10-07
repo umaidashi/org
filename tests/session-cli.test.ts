@@ -338,6 +338,19 @@ test.each([false, true])(
       assert.equal(artifacts.length, 1);
       assert.ok(record(artifacts[0]));
       assert.equal(artifacts[0].uri, `org://rooms/${taskRoom.id}/messages/${original.id}`);
+      const content = json([
+        '--socket',
+        socket,
+        'task',
+        'artifact-content',
+        task.id,
+        '--artifact',
+        original.id,
+      ]);
+      assert.ok(record(content));
+      assert.equal(content.content, original.content);
+      assert.equal(content.uri, artifacts[0].uri);
+      assert.equal(readFileSync(taskTurns, 'utf8'), 'turn\n');
       const history = json(['--socket', socket, 'task', 'history', task.id]);
       assert.ok(Array.isArray(history));
       assert.ok(history.some((row: unknown) => record(row) && row.status === 'running'));

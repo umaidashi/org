@@ -437,6 +437,8 @@ Workflow設定にAgent別の許可と専用キー参照を追加します。
 
 成功した実行IDとWorkflowを照合してTask成果物を保存します。`task artifacts TASK_ID --json`でIDを取得し、`task artifact-content TASK_ID --artifact ARTIFACT_ID --json`で内容とintegrityを確認できます。人間のTask review後、設定済みMemory policyに従ってMemoryへ記録します。実Claude Maxとローカル公式n8nで一周と再起動後no replayを検証済みです。
 
+通常RuntimeのRoom返信成果物も`task artifact-content TASK_ID --artifact ARTIFACT_ID --json`で元の内容を取得できます。Taskへの関連付け、URI、元RoomのTask所属、MessageのRoom一致を照合します。Sandbox成果物は従来どおり内容hashを検証します。
+
 read_onlyは信頼済みhostが宣言する契約で、n8n各nodeの副作用を自動判定する機能ではありません。Agent Taskからの書込みWorkflowは、後述の操作Approval待機・再開を使用します。Workflowの観測窓は既定30秒で、停止時にはHTTPを中断します。不明な結果はclaimを保持して再送しません。検証済みstarted後の継続観測は後述のobserve-workflowを使用します。業務出力とAgent RPC認証は未完了です。
 
 ## Workflow操作の承認記録
