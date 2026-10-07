@@ -154,3 +154,7 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 ### 2026-10-07 Session Contextのcan_read境界
 
 共通sessionAgentでlegacy/空read grantを作成・開始前に拒否し、Runtime完了後も登録/runtime/active Room参加/can_readを保存前照合。旧provider IDを保持したgrant/runtime/archive/participant変更4ケースをmutation RED→GREENで検証。実CLIでhuman Approval失効後resume/rebuild/Room activation/ExecutionTask拒否、Runtime counter不増・成果物ゼロ・再起動原本保持。[証拠](verification/2026-10-07-session-read-capability/)全gate502成功/14skip/0失敗516tests204files181.86秒、実Jev2330subjects/欠損・エラー・劣化0、DI13成功38ms。trusted local hostの読取と本人認証/全resource permission、送信済みContext回収を区別。全体未達、[次のHTTP Webhook受信](superpowers/plans/2026-10-07-github-webhook-http.md)へ進む。
+
+### 2026-10-07 GitHub Webhook local HTTP受信
+
+明示continuous daemonのrepo/port pairで127.0.0.1へnative HTTP受信を追加し、既存署名/公開repo scope/反射/不変冪等を再利用。native本文64KiB/idle10秒、body取得後closing再照合、shutdown listener停止/Runtime drain/DB cleanupを維持。BOM正規化で署名流用可能な具体例をRED→fatal UTF8/BOM保持decodeで修正。実HTTP→Event→Subscription→Task一件、拒否/重複/restart/occupiedport cleanupを検証。[証拠](verification/2026-10-07-github-webhook-http/)全gate506成功14skip0失敗520tests206files182.60秒、実Jev2346subjects/欠損・エラー・劣化0。公開ingress/実GitHub配送/業務指定/全体は未達。[次のCodex shell境界](superpowers/plans/2026-10-07-codex-shell-boundary.md)へ進む。

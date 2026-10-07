@@ -1,3 +1,6 @@
+import { validateGithubRepository } from '../events/github.js';
+import { importGithubWebhook } from '../events/github-webhook.js';
+import { receiveGithubWebhook } from '../events/github-webhook-http.js';
 import { parseMemoryContextGrants, type MemoryContextGrant } from '../context/scopes.js';
 import { validateRoomAllowlist } from '../rooms/domain.js';
 import { extractRoomReplyMemories } from '../memory/extraction.js';
@@ -80,6 +83,7 @@ export interface DaemonCommand {
   readonly socket: string;
   readonly socketClient: boolean;
   readonly interval: number;
+  readonly githubWebhook?: { readonly repository: string; readonly port: number };
   readonly runtimeConfig?: string;
   readonly memoryContextConfig?: string;
   readonly sandboxConfig?: string;
@@ -103,6 +107,8 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
       once: { type: 'boolean' },
       socket: { type: 'string' },
       'poll-interval': { type: 'string' },
+      'github-webhook-repo': { type: 'string' },
+      'github-webhook-port': { type: 'string' },
       'runtime-config': { type: 'string' },
       'memory-context-config': { type: 'string' },
       'sandbox-config': { type: 'string' },
@@ -157,6 +163,26 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
   if (consolidationScopes !== undefined && (action !== undefined || parsed.values.once))
     throw new Error('--memory-consolidation-scope requires continuous mode');
   if (noun !== 'daemon' || extra.length) throw new Error('Expected daemon command');
+  let githubWebhook: DaemonCommand['githubWebhook'];
+  if (
+    parsed.values['github-webhook-repo'] !== undefined ||
+    parsed.values['github-webhook-port'] !== undefined
+  ) {
+    const repository = parsed.values['github-webhook-repo'];
+    const rawPort = parsed.values['github-webhook-port'];
+    if (
+      action !== undefined ||
+      parsed.values.once ||
+      repository === undefined ||
+      rawPort === undefined ||
+      !/^[0-9]+$/.test(rawPort)
+    )
+      throw new Error('GitHub webhook requires repo/port pair and continuous mode');
+    const port = Number(rawPort);
+    if (!Number.isInteger(port) || port < 1 || port > 65535)
+      throw new Error('Invalid GitHub webhook port');
+    githubWebhook = { repository: validateGithubRepository(repository), port };
+  }
   const db = parsed.values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('Database path must not be empty');
   const rawSocket = parsed.values.socket ?? socketForDatabase(db);
@@ -204,6 +230,7 @@ export function parseDaemonCommand(argv: string[]): DaemonCommand {
   )
     throw new Error('--memory-context-config requires continuous mode and --runtime-config');
   const base = {
+    ...(githubWebhook === undefined ? {} : { githubWebhook }),
     ...(parsed.values['memory-context-config'] === undefined
       ? {}
       : { memoryContextConfig: resolve(parsed.values['memory-context-config']) }),
@@ -250,6 +277,7 @@ function openOperations(
   linearScopes: readonly LinearAgentScope[] = [],
   memoryGrants: readonly MemoryContextGrant[] = [],
   consolidationScopes: readonly string[] = [],
+  githubWebhook?: DaemonCommand['githubWebhook'],
 ): DaemonOperations {
   const journal = new SqliteDeliveryJournal(db);
   let events: SqliteEventBus | undefined;
@@ -261,6 +289,8 @@ function openOperations(
   let memory: SqliteMemoryProvider | undefined;
   let wakeups: SqliteWakeupJournal | undefined;
   let approvals: SqliteApprovalStore | undefined;
+  let webhookServer: import('bun').Server<undefined> | undefined;
+  let acceptingWebhook = true;
   try {
     const approvalStore = new SqliteApprovalStore(db);
     approvals = approvalStore;
@@ -641,6 +671,29 @@ function openOperations(
         signal,
       );
     };
+    if (githubWebhook) {
+      const secrets = new EnvironmentSecretStore([
+        {
+          actorId: 'github:host',
+          reference: 'github:webhook',
+          environmentVariable: 'GITHUB_WEBHOOK_SECRET',
+        },
+      ]);
+      webhookServer = Bun.serve({
+        hostname: '127.0.0.1',
+        port: githubWebhook.port,
+        maxRequestBodySize: 65536,
+        idleTimeout: 10,
+        fetch: (request) =>
+          receiveGithubWebhook(
+            request,
+            githubWebhook.repository,
+            (input) => importGithubWebhook(eventBus, secrets, input),
+            () => acceptingWebhook,
+          ),
+        error: () => new Response('Webhook rejected', { status: 400 }),
+      });
+    }
     return {
       dispatch: () => {
         pollSchedules(scheduleRepository, eventBus, () => Date.now());
@@ -816,10 +869,22 @@ function openOperations(
           },
           reply: (id, messageId, instruction) => reply({ sessionId: id, messageId, instruction }),
         }),
-      shutdown,
-      close: async () => {
+      shutdown: async () => {
+        acceptingWebhook = false;
         try {
+          await webhookServer?.stop(true);
+        } finally {
           await shutdown();
+        }
+      },
+      close: async () => {
+        acceptingWebhook = false;
+        try {
+          try {
+            await webhookServer?.stop(true);
+          } finally {
+            await shutdown();
+          }
         } finally {
           releaseResources([
             approvalStore,
@@ -837,6 +902,7 @@ function openOperations(
       },
     };
   } catch (error) {
+    acceptingWebhook = false;
     try {
       releaseResources(
         [
@@ -902,6 +968,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
           linearScopes,
           memoryGrants,
           command.consolidationScopes,
+          command.githubWebhook,
         );
       });
     } finally {

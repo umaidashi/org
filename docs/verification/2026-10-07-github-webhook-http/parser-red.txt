@@ -1,0 +1,26 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-parser.test.ts:
+(pass) socket flags cannot silently target a different database in once mode [2.11ms]
+(pass) automatic wake-up is opt-in and requires a configured continuous daemon [0.15ms]
+(pass) daemon Sandbox host policy is explicit and requires continuous configured Runtime [0.13ms]
+(pass) daemon Workflow host config enables continuous Workflow polling without Agent credentials [0.08ms]
+(pass) automatic delegation Room allowlist requires configured continuous wake-up and rejects invalid IDs [0.41ms]
+(pass) Memory extraction Room opt-in rejects duplicate or malformed IDs and requires continuous wake-up [0.14ms]
+(pass) Workflow status observation opt-in requires configured continuous mode [0.14ms]
+(pass) Runtime Linear proposals require explicit configured continuous opt-in [0.16ms]
+91 |   readonly extractionRooms?: readonly string[];
+92 |   readonly observeWorkflows?: boolean;
+93 |   readonly linearUpdates?: boolean;
+94 | }
+95 | export function parseDaemonCommand(argv: string[]): DaemonCommand {
+96 |   const parsed = parseArgs({
+                      ^
+TypeError: Unknown option '--github-webhook-repo'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--github-webhook-repo"
+      at parseDaemonCommand (/Users/umaidashi/Documents/git/org/src/daemon/cli.ts:96:18)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/daemon-parser.test.ts:124:22)
+(fail) daemon HTTP webhook is an explicit validated repo and port pair in continuous mode only [0.27ms]
+
+ 8 pass
+ 1 fail
+Ran 9 tests across 1 file. [63.00ms]

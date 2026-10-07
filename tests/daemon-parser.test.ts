@@ -119,3 +119,26 @@ test('Runtime Linear proposals require explicit configured continuous opt-in', (
   ])
     assert.throws(() => parseDaemonCommand(args));
 });
+
+test('daemon HTTP webhook is an explicit validated repo and port pair in continuous mode only', () => {
+  const configured = parseDaemonCommand([
+    'daemon',
+    '--github-webhook-repo',
+    'Fixture/Repo',
+    '--github-webhook-port',
+    '32123',
+  ]);
+  assert.deepEqual(configured.githubWebhook, { repository: 'fixture/repo', port: 32123 });
+  for (const argv of [
+    ['daemon', '--github-webhook-repo', 'fixture/repo'],
+    ['daemon', '--github-webhook-port', '32123'],
+    ['daemon', '--github-webhook-repo', '../repo', '--github-webhook-port', '32123'],
+    ['daemon', '--github-webhook-repo', 'fixture/repo', '--github-webhook-port', '0'],
+    ['daemon', '--github-webhook-repo', 'fixture/repo', '--github-webhook-port', '65536'],
+    ['daemon', '--github-webhook-repo', 'fixture/repo', '--github-webhook-port', '1.2'],
+    ['daemon', '--once', '--github-webhook-repo', 'fixture/repo', '--github-webhook-port', '32123'],
+    ['daemon', 'status', '--github-webhook-repo', 'fixture/repo', '--github-webhook-port', '32123'],
+  ])
+    assert.throws(() => parseDaemonCommand(argv));
+  assert.equal(parseDaemonCommand(['daemon']).githubWebhook, undefined);
+});

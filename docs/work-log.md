@@ -1857,3 +1857,24 @@
 - 一回fix pass最終DI13成功/0失敗3files38ms。native1成功/0失敗2.57秒。最終全gateは実行中で先行成功記録なし。
 
 - 最終全gate terminal0: 型/Oxlint/Oxfmt/AST359files、502成功14skip0失敗516tests204files181.86秒、Jev dry-run2330subjects/excluded0/undeclared・idle・silent空。全証拠・README・要件・監査・次計画をGitへ記録する。全体未達、独立残件を継続。
+
+## 2026-10-07 GitHub Webhook local HTTP受信
+
+- [計画](superpowers/plans/2026-10-07-github-webhook-http.md)を実行。明示repo/port pairでcontinuous daemonの127.0.0.1 /hooks/githubへBun native HTTPを追加。設定なしlistenerなし、once/status等は事前拒否。既存importGithubWebhookの署名/scope/反射/不変冪等とSecretStore/EventBusを再利用、新engine/store/dependencyなし。
+- RED: 新daemon optionはunknownとして拒否され、parser既存8成功/追加1失敗63ms。HTTP handler testは新moduleなしのmodule-not-found（0成功1失敗1error23ms）であり、個別入力拒否を既存実装で観測したREDとはしない。
+- GREEN: parser/HTTP adapter/既存署名Unit11成功64ms。実HTTP→Event→Subscription→assigned Task一件、bad signature/event/repo/oversize拒否、delivery変更を含む重複/restart原本維持、stop後listenerなし、port occupied起動失敗socket/lock cleanupと同DB再起動。既存daemon lifecycleを含むnative9成功2files2.81秒。
+- daemon shutdown/closeは受付flagを先行停止し、HTTP native stopをawait、finallyでRuntime drainと既存DB解放を維持。body await後にも受付flagを再照合。Bun native maxRequestBodySize65536/idleTimeout10で上限を置き、独自buffer engine不要。HTTP応答はEvent IDだけ、失敗は固定文面、本文/credential/例外本文を返さない。
+- fixture誤り: agent createの--jsonは既存list専用契約により拒否、非JSON登録へ訂正。型/lintはBun HTTP stopのPromise未awaitを拒否し、既存finally lifecycleへawait接続。最終静的型/lint/format/AST362files成功。
+- Ruling: --directはglobal modifierの既存local daemon起動意味を維持し、新受信portがstatus/onceの管理commandへ漏れないようparser pairを制約 — 不必要なglobal CLI変更なし — remote/direct全般の別認可ではない。
+- Ruling: 127.0.0.1の署名付き実HTTPを公開GitHub ingress/hook登録/実業務Issue配送へ置換しない — 外部対象未回答で任意hook/Issue/writeを作らない — public ingressを実運用する際は別設定・実配送受け入れが必要。
+- 前単位Session認可はd6d0ea3をmainへff/通常push、commit対象全gate/実Jev hook204.79秒terminal0を確認。HTTP単位はfeat/github-webhook-httpで分離。
+- Fresh whole-unit reviewer C0/I0/M1（raw byte契約）+予定済み文書更新。独立focused11成功57ms。Request.textがUTF8 BOMを消し、BOMを付けた本文へ元JSONの署名を再利用すると202保存される具体例を確認。
+- 効果でImportantへ再判定: HMACが実受信byte列へ結び付かないのは信頼境界/署名契約の不足。本文内容の任意置換やcredential漏洩を発見したとは主張しない。一回fix passで追加テストRED（BOMが202、期待400、0成功1失敗55ms）→stdlib fatal UTF8/ignoreBOM decode(arrayBuffer)でbyteを保持し不正UTF8を拒否→Unit12成功56ms。再レビューしない。
+- Ponytail candidate: daemon cli listener stop/drain wrapperを既存shutdown closureへ再利用で約6行削減可能。Final minor (deferred): この重複整理は現在のfinally/受付停止の正しさを変えないpolishなので既定延期、追加抽象化は不要。
+- Final Ruling: 公開ingress/外部hook登録/実配送をlocal HTTPから推論しない — 外部対象未指定を維持 — 実配送なしで納品を完成扱いすると誤る。
+- Final Ruling: principal/resource permission/全体は本単位外 — 既存要件残件を維持 — HMAC受信をAgent本人認証と混同しない。
+- Final Ruling: native/full/Jev/pushはreviewer独立未実行 — 親のterminal観測のみで確定 — 独立Unitを実配送/全gate証明へ置換しない。README/要件更新は予定済み完了作業として継続。
+- 次の境界棚卸し: 現Codex features listでshell_tool/unified_execがstableかつ有効と確認。既存read-only/approval neverはhost shell起動を禁止するものではない。公式referenceでも両設定を確認し、[最小修正計画](superpowers/plans/2026-10-07-codex-shell-boundary.md)を保存。
+- Ruling: shell実行は権限/Audit付きSandboxへ残し、Codex Runtimeではnative2flagを無効化する — 同じ処理をhost shellで迂回させない — 全外部tool/sameUID隔離の無条件保証へ広げない。generic tools.disable_defaults調査commandはglobal --ignore-user-config適用外でexit2、設定対応の証拠とは扱わない。third-party検索結果は判断根拠にせず、公式referenceとinstalled CLIだけを使用。
+
+- 最終gate terminal0: 型/Oxlint/Oxfmt/AST362files、506成功14skip0失敗520tests206files182.60秒、dry-run2346subjects/excluded0/undeclared・idle・silent空。実Jev2346subjects141warnings/missing・unsure・review・errors・degraded0、parser/runDaemon一般failure-path候補を追加拒否群/実bind障害/既存failure回帰へ照合、具体的欠陥なし。証拠とREADME/要件/監査/次計画を保存。全体未達を維持。

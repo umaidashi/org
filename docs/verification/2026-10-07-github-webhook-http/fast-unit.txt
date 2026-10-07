@@ -1,0 +1,23 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/github-webhook.test.ts:
+(pass) signed Issue webhook validates bytes and scope before publishing and deduplicates changed delivery headers [1.77ms]
+
+tests/github-webhook-http.test.ts:
+(pass) HTTP adapter delegates verified scoped Issue delivery once and never returns payload or credential [1.10ms]
+(pass) HTTP signature validation rejects BOM and invalid UTF8 byte normalization despite valid decoded signatures [0.48ms]
+
+tests/daemon-parser.test.ts:
+(pass) socket flags cannot silently target a different database in once mode [0.14ms]
+(pass) automatic wake-up is opt-in and requires a configured continuous daemon
+(pass) daemon Sandbox host policy is explicit and requires continuous configured Runtime
+(pass) daemon Workflow host config enables continuous Workflow polling without Agent credentials [0.93ms]
+(pass) automatic delegation Room allowlist requires configured continuous wake-up and rejects invalid IDs [0.44ms]
+(pass) Memory extraction Room opt-in rejects duplicate or malformed IDs and requires continuous wake-up [0.09ms]
+(pass) Workflow status observation opt-in requires configured continuous mode
+(pass) Runtime Linear proposals require explicit configured continuous opt-in [0.25ms]
+(pass) daemon HTTP webhook is an explicit validated repo and port pair in continuous mode only
+
+ 12 pass
+ 0 fail
+Ran 12 tests across 3 files. [56.00ms]

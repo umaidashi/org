@@ -363,7 +363,7 @@ bun run start -- event subscribe github.pull_request.opened --subscriber-type ag
 
 公開RESTを認証なしGETで読み、GitHub repo ID/Event IDを保存IDへ変換します。PullRequestEvent/action openedはgithub.pull_request.opened、PushEventはgithub.pushになります。payloadはGitHub Event全体で、filterはidやrepoなどの原fieldを指定します。再取込は最初の原本を保持し、SubscriptionとdaemonでTaskを一度だけ作ります。
 
-固定API host・redirect拒否・ページ10秒/4MiB・最大300件で、Agentが外部操作をする機能ではありません。取込途中の保存失敗は再実行で原本を再利用します。[公式API](https://docs.github.com/en/rest/activity/events)は最新300件/30日、30秒〜6時間遅延です。自動poll・webhook・private repoの認証は後続です。
+固定API host・redirect拒否・ページ10秒/4MiB・最大300件で、Agentが外部操作をする機能ではありません。取込途中の保存失敗は再実行で原本を再利用します。[公式API](https://docs.github.com/en/rest/activity/events)は最新300件/30日、30秒〜6時間遅延です。自動poll・private repoの認証は未達です。署名付きissuesはCLI取込と下記の明示local HTTP受信へ接続しています。公開ingress/実GitHub側hook登録・配送は未検証です。
 
 ### 承認済みTaskのMemory
 
@@ -908,3 +908,16 @@ Roomのtyped Memory候補は、必須の過去同Room `sourceMessageIds` に加�
 Runtime設定で選択した環境値のうち、公開process設定（`PATH/HOME/TMPDIR/LANG/LC_ALL/TZ/NO_COLOR/FORCE_COLOR`）以外の非空値は、全Agent profile/defaultを通じて反射検査します。成功stdout・復号後の返信/provider IDに一致した場合は全応答を拒否し、秘密値入りのRoom返信やMemoryを保存しません。Process例外の反射は固定エラーへ置換し、安全なstderrの既存reason-only挙動を維持します。
 
 公開設定へsecretをaliasしないことがhost側の契約です。literal一致だけなので短いprivate通常値は誤検出し得ます。未知・変換済み・auth cache credentialや同UID隔離の保証ではありません。高速検証は `bun --no-env-file test tests/runtime-secret-reflection.test.ts -t 'DI|private matching'`、実CLIの保存拒否と安全な提案採用は `tests/runtime-secret-reflection-cli.test.ts`。
+
+
+### GitHub Webhookのlocal HTTP受信
+
+`GITHUB_WEBHOOK_SECRET`をhostの環境またはGit除外済み.envへ設定し、明示repo/portの組で起動します。
+
+```sh
+bun --env-file=.env src/cli.ts daemon --github-webhook-repo OWNER/REPO --github-webhook-port 32123
+```
+
+`http://127.0.0.1:32123/hooks/github`へのPOSTだけを受け付けます。`X-GitHub-Event: issues`、delivery UUID、`X-Hub-Signature-256`と生UTF8本文の署名を照合し、設定済み公開repoのopened/edited/closed/reopened Issueだけを既存Eventへ保存します。BOM/不正UTF8の正規化で署名を流用できません。本文上限64KiB、idle timeout10秒、成功応答はEvent IDだけです。既存SubscriptionがTaskへ投影し、同内容の再送やdaemon再起動で原本/Taskを増やしません。
+
+設定なしではHTTP listenerを作りません。once/status等には指定できず、stopで受付とlistenerを閉じます。127.0.0.1だけへbindし、公開ingress/hook登録を自動作成しません。実HTTP e2eは合成署名からlocal Event/Taskへの検証で、実GitHub配送・業務Issue受け入れの証拠ではありません。

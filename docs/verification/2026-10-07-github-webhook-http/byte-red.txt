@@ -1,0 +1,28 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/github-webhook-http.test.ts:
+106 |  const encoded=new TextEncoder().encode(body);
+107 |  const bom=new Uint8Array([0xef,0xbb,0xbf,...encoded]);
+108 |  // Return a synthetic successful Event only if the old decoder authenticates tampered bytes.
+109 |  const authenticated=(input:Parameters<typeof importGithubWebhook>[2])=>importGithubWebhook({list:()=>[],publishOnce:(event)=>event},{getSecret:()=>secret},input);
+110 |  const response=await receiveGithubWebhook(new Request('http://localhost/hooks/github',{method:'POST',headers,body:bom}),'fixture/repo',authenticated,()=>true);
+111 |  assert.equal(response.status,400);
+              ^
+AssertionError: Expected values to be strictly equal:
+
+202 !== 400
+
+ generatedMessage: true,
+     actual: 202,
+   expected: 400,
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/github-webhook-http.test.ts:111:9
+      at processTicksAndRejections (native:7:39)
+(fail) HTTP signature validation rejects BOM and invalid UTF8 byte normalization despite valid decoded signatures [2.78ms]
+
+ 0 pass
+ 1 filtered out
+ 1 fail
+Ran 1 test across 1 file. [55.00ms]

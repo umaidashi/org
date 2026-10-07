@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/github-webhook-http-cli.test.ts:
+(pass) native local HTTP signed webhook reaches one Task and preserves originals across replay and restart with listener cleanup [926.35ms]
+
+tests/daemon-server.test.ts:
+(pass) stale daemon ownership refuses live, modified and substituted entries before exactly one concurrent restart [754.60ms]
+(pass) SIGINT releases the daemon while preserving replacement socket and lock entries [79.91ms]
+(pass) continuous daemon polls new Events, serves local clients and releases socket across restart [719.83ms]
+(pass) daemon refuses to replace an existing file and client failure creates no database [124.13ms]
+{"state":"ready","socket":"/tmp/org-server-cleanup-OKHM5S/org.sock"}
+(pass) adapter close failure still releases owned socket, lock and process umask [5.27ms]
+{"state":"ready","socket":"/tmp/org-server-poll-wKT1nC/org.sock"}
+(pass) poll errors remain visible through status and periodic polling recovers without restart [26.33ms]
+{"state":"ready","socket":"/tmp/org-server-wake-lQ0OmT/org.sock"}
+(pass) automatic wake-up tick never overlaps and shutdown drains it before closing adapters [64.06ms]
+{"state":"ready","socket":"/tmp/org-server-wake-error-6TFYMP/org.sock"}
+(pass) shutdown error still drains the active wake-up before adapter close [86.21ms]
+
+ 9 pass
+ 0 fail
+Ran 9 tests across 2 files. [2.86s]
