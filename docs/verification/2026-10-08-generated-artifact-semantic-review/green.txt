@@ -1,0 +1,16 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/semantic-runner.test.ts:
+invalid JSON
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":1},"errors":["network failure"],"degraded":[]}
+{"findings":[{"severity":"warning"}],"stats":{"subjects":2,"missing":0},"errors":[],"degraded":[]}
+(pass) semantic process runner rejects exit failures and incomplete or malformed output [71.64ms]
+
+tests/semantic-review.test.ts:
+(pass) semantic review accepts complete warning-only results [0.05ms]
+(pass) semantic review rejects incomplete results even when warnings exist [0.16ms]
+(pass) semantic review requires verdict subjects for each generated code and test file [0.12ms]
+
+ 4 pass
+ 0 fail
+Ran 4 tests across 2 files. [98.00ms]

@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/semantic-review.test.ts:
+(pass) semantic review accepts complete warning-only results [0.89ms]
+(pass) semantic review rejects incomplete results even when warnings exist [0.19ms]
+32 | });
+33 | 
+34 | test('semantic review requires verdict subjects for each generated code and test file', () => {
+35 |   const required = ['src/fixture/domain.ts', 'src/fixture/answer.test.ts'];
+36 |   for (const byFile of [undefined, {}, { [required[0] ?? '']: { subjects: 2 } }]) {
+37 |     assert.throws(() => validateSemanticReview({ ...complete, stats: { ...complete.stats, byFile } }, required));
+                ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/semantic-review.test.ts:37:12)
+(fail) semantic review requires verdict subjects for each generated code and test file [0.33ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [31.00ms]

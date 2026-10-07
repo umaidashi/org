@@ -3,7 +3,11 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { validateSemanticReview } from './semantic-result.ts';
 
-export function runSemanticReview(snapshot: string, root: string): void {
+export function runSemanticReview(
+  snapshot: string,
+  root: string,
+  requiredFiles: readonly string[] = [],
+): void {
   const envFile = join(root, '.env');
   const result = spawnSync(
     process.execPath,
@@ -30,5 +34,5 @@ export function runSemanticReview(snapshot: string, root: string): void {
   if (result.status !== 0)
     throw new Error(`Semantic review failed (${result.status ?? result.signal})`);
   const parsed: unknown = JSON.parse(result.stdout);
-  validateSemanticReview(parsed);
+  validateSemanticReview(parsed, requiredFiles);
 }

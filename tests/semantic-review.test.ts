@@ -30,3 +30,24 @@ test('semantic review rejects incomplete results even when warnings exist', () =
     assert.throws(() => validateSemanticReview(result));
   }
 });
+
+test('semantic review requires verdict subjects for each generated code and test file', () => {
+  const required = ['src/fixture/domain.ts', 'src/fixture/answer.test.ts'];
+  for (const byFile of [undefined, {}, { [required[0] ?? '']: { subjects: 2 } }]) {
+    assert.throws(() =>
+      validateSemanticReview({ ...complete, stats: { ...complete.stats, byFile } }, required),
+    );
+  }
+  assert.doesNotThrow(() =>
+    validateSemanticReview(
+      {
+        ...complete,
+        stats: {
+          ...complete.stats,
+          byFile: Object.fromEntries(required.map((path) => [path, { subjects: 1 }])),
+        },
+      },
+      required,
+    ),
+  );
+});

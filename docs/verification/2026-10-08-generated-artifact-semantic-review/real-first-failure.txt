@@ -1,0 +1,26 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/coordinator-claude-real.test.ts:
+(pass) real proof uniqueness guard rejects duplicate delegation with distinct Task IDs [0.98ms]
+(pass) real proof polling permits a result at the configured 120 second Runtime boundary [0.68ms]
+(pass) real proof rejects incorrect results containing the expected token [0.31ms]
+(pass) code proof refuses a successful process with zero executed generated tests [0.62ms]
+(pass) code proof polling permits combined Runtime and Docker limits [0.40ms]
+(skip) real Claude Coordinator and specialist preserve Artifact review Memory and same provider session across restart
+292 |     assert.equal(adopted.to, worker.id);
+293 |     const task = await wait(() => {
+294 |       const candidate = list(['task', 'list']).find(
+295 |         (t) => t.externalRef === `org://rooms/${room.id}/messages/${adoptedId}`,
+296 |       );
+297 |       if (candidate?.status === 'failed') throw new Error('Specialist execution failed');
+                                                          ^
+error: Specialist execution failed
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/coordinator-claude-real.test.ts:297:53)
+      at waitForProjection (/Users/umaidashi/Documents/git/org/tests/coordinator-claude-real.test.ts:26:19)
+(fail) real Claude delegation generates code and tests in Docker before human review Memory and restart [116134.60ms]
+(pass) generated code gate rejects runtime-valid explicit-any source [1922.53ms]
+
+ 6 pass
+ 1 skip
+ 1 fail
+Ran 8 tests across 1 file. [118.10s]

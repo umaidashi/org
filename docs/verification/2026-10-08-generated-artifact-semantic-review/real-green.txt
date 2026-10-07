@@ -1,0 +1,107 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/coordinator-claude-real.test.ts:
+(pass) real proof uniqueness guard rejects duplicate delegation with distinct Task IDs [0.91ms]
+(pass) real proof polling permits a result at the configured 120 second Runtime boundary [0.63ms]
+(pass) real proof rejects incorrect results containing the expected token [0.20ms]
+(pass) code proof refuses a successful process with zero executed generated tests [0.65ms]
+(pass) code proof polling permits combined Runtime and Docker limits [0.37ms]
+(skip) real Claude Coordinator and specialist preserve Artifact review Memory and same provider session across restart
+GENERATED_BUN_CHECK_OK
+Public content checked: 20 files
+{
+  "findings": [
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/quality-ast.test.ts",
+      "line": 8,
+      "endLine": 25,
+      "value": 0.69,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.045,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    }
+  ],
+  "review": [],
+  "stats": {
+    "subjects": 15,
+    "reported": 1,
+    "missing": 0,
+    "unsure": 0,
+    "review": 0,
+    "byRule": {
+      "test-name-verifies-claim": 1
+    },
+    "byFile": {
+      "tests/quality-ast.test.ts": {
+        "findings": 1,
+        "subjects": 1
+      },
+      "src/fixture/domain.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "src/fixture/answer.test.ts": {
+        "findings": 0,
+        "subjects": 12
+      }
+    }
+  },
+  "degraded": [],
+  "silentRules": [
+    "typescript/catch-hides-failure",
+    "typescript/comment-describes-block",
+    "typescript/comment-describes-declaration",
+    "typescript/tests-cover-failure-paths"
+  ],
+  "idleLanguages": [],
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 1,
+    "files": [
+      "src/fixture/domain.ts"
+    ]
+  },
+  "retry": 1,
+  "spent": {
+    "calls": 3,
+    "inputTokens": 14350,
+    "outputTokens": 289,
+    "ms": 1255,
+    "retried": 0,
+    "rateLimited": 0,
+    "tokensPerSecond": 200000,
+    "splits": 0,
+    "usd": 0.0006027000000000001,
+    "wallMs": 535
+  },
+  "errors": [],
+  "elapsedMs": 611
+}
+using /private/tmp/org-generated-gate-YhOkWE/.jev-lint.yaml
+recorded 15 answer(s) to /Users/umaidashi/Documents/git/org/.jev-lint/latest-run.json
+GENERATED_SEMANTIC_REVIEW_OK
+LOCAL_GIT_HANDOFF_OK
+(pass) real Claude delegation generates code and tests in Docker before human review Memory and restart [114929.30ms]
+(pass) generated code gate rejects runtime-valid explicit-any source [1373.34ms]
+
+ 7 pass
+ 1 skip
+ 0 fail
+Ran 8 tests across 1 file. [116.37s]

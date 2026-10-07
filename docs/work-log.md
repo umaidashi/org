@@ -2081,3 +2081,20 @@
 - fixture grant変更はreviewで正当、product guard/不要write/network追加なし。source/test semanticsはこれで固定。実機RED→GREENと通常5成功3skip36msを区別。最終全gate/実Jevを実行して本単位を記録後、必須Nextへ続く。
 
 - 最終固定tree全gate terminal0: 532成功21skip0失敗553tests217files166.81秒/static374files。実Jev2439対象、missing/unsure/review 0/errors/degraded空。証拠を保存。生成Artifact実意味レビューは必須Nextとして継続、全体未達。
+
+## 2026-10-08 — 実生成Artifactの意味レビュー
+
+- 前再照合f9e3ae1 commit/pre-commit1.66秒 terminal0、main ff済み、通常pushはpre-push進行中。専用計画に従いfeat/generated-artifact-semantic-reviewで開始。Git branch作成のsandbox権限不足は承認済み操作としてescalated実行成功。auto-review rejectionではない。
+- RED2成功1失敗31ms: overall subjects非ゼロでも必要な生成code/testのbyFile subjectsが欠ける結果を旧validatorが受理。既存validator/runnerへ必要file指定だけを追加し、Docker gate後の所有snapshotをpublic scan→既存実Jevへ接続。hostでは生成codeを実行せず、元root.envはsnapshotへコピーしない。新engine/dependencyなし。
+- 最小UT/runnerとstaticはterminal0、実生成経路はこれから。実機対象・complete verdict・cleanupを確認するまで達成とは記録しない。
+- 最小GREEN4成功2files98ms、static374files、diff whitespace成功。Fresh whole-unit reviewと実Claude生成/Docker/実Jevを開始。親Ponytailは既存runner/public scannerとstdlib symlinkだけを使用、新依存/汎用engineなし。生成ファイル個別subjects確認を省略しない。全gate中はsource/test固定。
+- Fresh review C0/I0/M0、独立4成功2files77ms。公開scanner→固定生成TS/test→既存Jevのdata解析、元.env非コピー、既存caller互換、byFile形式/ignored cacheを確認。Ponytail削減候補なし/net0、一fixpassなし/再レビューなし。
+- Final Ruling: reviewerが判定対象外とした実機/全体受入はauthoritative terminalと必要外部証拠でのみ認定し、今は進行中/未達。既存semantic subprocessの全体timeoutなし・Docker cleanup失敗時tmp削除に到達しない点は今回新保証とせず、無条件cleanupを主張しない。誤認時のcostは長期待機/残存tmpであり、現在実機結果のcleanupを確認する。
+- psによる補助process一覧はsandboxで禁止、実行結果は取得不能。確認成功とは扱わず、既存PTY handleと検証出力で追跡する。
+- 実機初回terminal1: 6成功1skip1失敗118.10秒。生成物gate/新Jevへ到達前にSpecialist Taskがfailed、negative explicit-any拒否は成功。private debugはGit/Jevへ送らない。調査初回にarrayのlist変換でsynthetic debug内容までtool出力した読取誤りを訂正し、以後は選択したboolean/件数だけを出力する。
+- 最新private proposalはtrusted Bun parserで構文有効（実行なし）、生成testにMAX_SAFE_INTEGER+MIN_SAFE_INTEGERを-1とする誤った期待を確認（実値0）。provider生成の誤テストを拒否した失敗として保存。product/test gateを緩めず同じ条件の新Claude生成一周を再実行する。全体成功/新Jev成功と扱わない。
+- 前再照合f9e3ae1 main通常push terminal0/pre-push196.43秒、remote main更新完了。最終local/remote一致は別確認する。
+- 固定tree全gate terminal0: 533成功21skip0失敗554tests217files170.22秒/static374files。repo実Jev2440対象146reported、missing/unsure/review 0/errors/degraded空。変更runner/validator/UTに新指摘なし。これは生成物の再実機完了とは区別、生成物実Jevは再実行待ち。
+- 再生成Artifactの実Jevへ到達: 15subjects/1reported、generated domain2subjects/test12subjects、両file findings0。missing/unsure/review 0/errors/degraded空。1warningは既存quality-ast test context。GENERATED_SEMANTIC_REVIEW_OK/LOCAL_GIT_HANDOFF_OKを観測、review/Memory/restartの残りとterminalはまだ未確認。
+
+- 再生成実一周terminal0: 7成功1skip0失敗116.37秒、code一周114.93秒/negative gate1.37秒。実Jev15subjects（domain2/test12）完全判定→local Git handoff→human review/Memory/same provider restart成功。owned Docker cleanup assertions/finally tmp削除まで完了。初回生成誤りも別保存。現在必須ローカルNextは未発見、外部認証/指定既存業務受入は未充足で全体未達。

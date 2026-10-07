@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { runPublicReview } from '../scripts/public-review.js';
+import { runSemanticReview } from '../scripts/semantic-review.js';
 import { runProcess } from '../src/runtime/process.js';
 export async function checkGeneratedCode(
   files: readonly { readonly path: string; readonly base64: string }[],
@@ -106,6 +108,10 @@ export async function checkGeneratedCode(
     assert.ok((checked.stdout + checked.stderr).includes('every architecture rule fixture runs'));
     assert.ok(checked.stdout.includes('src/fixture/domain.ts'));
     console.log('GENERATED_BUN_CHECK_OK');
+    runPublicReview(directory, root);
+    symlinkSync(join(root, 'node_modules'), join(directory, 'node_modules'));
+    runSemanticReview(directory, root, ['src/fixture/domain.ts', 'src/fixture/answer.test.ts']);
+    console.log('GENERATED_SEMANTIC_REVIEW_OK');
   } finally {
     if (built) {
       const stopped = await docker(['rm', '--force', container], 30000);
