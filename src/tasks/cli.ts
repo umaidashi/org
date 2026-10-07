@@ -38,6 +38,7 @@ import { readFileSync } from 'node:fs';
 import { parseLinearAgentScopes, readAgentLinearIssue } from '../linear/agent-read.js';
 import {
   requestTaskLinearUpdateApproval,
+  executeApprovedTaskLinearUpdate,
   type TaskLinearApprovalInput,
 } from '../linear/task-approval.js';
 import { readSandboxArtifact } from '../sandbox/artifact.js';
@@ -59,6 +60,14 @@ import { recoverExecutionTaskResult } from './execution.js';
 import { parseLinearIssueFields, type LinearIssueFields } from '../linear/fields.js';
 
 type TaskAction =
+  | {
+      kind: 'apply-task-linear-update';
+      input: { taskId: string; approvalId: string };
+    }
+  | {
+      kind: 'observe-task-linear-update';
+      input: { taskId: string; approvalId: string };
+    }
   | { kind: 'request-task-linear-update'; input: TaskLinearApprovalInput }
   | {
       kind: 'observe-linear-update';
@@ -172,6 +181,8 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const [command, action, id, ...extra] = positionals;
   if (command !== 'task' || extra.length > 0) throw new Error('Unexpected task argument');
   const allowed: Record<string, readonly string[]> = {
+    'apply-task-linear-update': ['approval'],
+    'observe-task-linear-update': ['approval'],
     'request-task-linear-update': ['room', 'room-message', 'expected-version', 'key'],
     'request-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'key'],
     'apply-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'approval'],
@@ -231,6 +242,17 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const db = values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('The database path must not be empty');
   const common = { db, json: values.json ?? false };
+  if (action === 'apply-task-linear-update' || action === 'observe-task-linear-update')
+    return {
+      ...common,
+      action: {
+        kind: action,
+        input: {
+          taskId: required(id, 'Execution Task ID'),
+          approvalId: required(values.approval, '--approval'),
+        },
+      },
+    };
   if (action === 'request-task-linear-update') {
     const version = required(values['expected-version'], '--expected-version');
     if (!/^(0|[1-9][0-9]*)$/.test(version) || !Number.isSafeInteger(Number(version)))
@@ -556,36 +578,67 @@ export async function runTaskCommand(
   command: TaskCommand,
   output: (line: string) => void = console.log,
 ): Promise<void> {
-  if (command.action.kind === 'request-task-linear-update') {
+  if (
+    command.action.kind === 'request-task-linear-update' ||
+    command.action.kind === 'apply-task-linear-update' ||
+    command.action.kind === 'observe-task-linear-update'
+  ) {
     const scopes = linearAgentScopes();
     const secrets = new EnvironmentSecretStore(
-      scopes.map((scope) => ({
-        actorId: scope.agentId,
-        reference: 'linear:read',
-        environmentVariable: scope.apiKeyEnv,
-      })),
+      scopes.flatMap((scope) =>
+        [
+          'linear:read',
+          ...(scope.effect === 'write' && command.action.kind === 'apply-task-linear-update'
+            ? ['linear:write']
+            : []),
+        ].map((reference) => ({
+          actorId: scope.agentId,
+          reference,
+          environmentVariable: scope.apiKeyEnv,
+        })),
+      ),
     );
     const tasks = new SqliteTaskProvider(command.db);
     let agents: SqliteAgentRepository | undefined,
       rooms: SqliteRoomRepository | undefined,
-      approvals: SqliteApprovalStore | undefined;
+      approvals: SqliteApprovalStore | undefined,
+      events: SqliteEventBus | undefined;
     try {
       agents = new SqliteAgentRepository(command.db);
       rooms = new SqliteRoomRepository(command.db);
       approvals = new SqliteApprovalStore(command.db);
-      const result = await requestTaskLinearUpdateApproval(
-        tasks,
-        agents,
-        rooms,
-        approvals,
-        scopes,
-        secrets,
-        fetch,
-        command.action.input,
-        { id: randomUUID(), createdAt: new Date().toISOString() },
-      );
+      let result;
+      if (command.action.kind === 'request-task-linear-update')
+        result = await requestTaskLinearUpdateApproval(
+          tasks,
+          agents,
+          rooms,
+          approvals,
+          scopes,
+          secrets,
+          fetch,
+          command.action.input,
+          { id: randomUUID(), createdAt: new Date().toISOString() },
+        );
+      else {
+        events = new SqliteEventBus(command.db);
+        result = await executeApprovedTaskLinearUpdate(
+          tasks,
+          agents,
+          rooms,
+          approvals,
+          events,
+          scopes,
+          secrets,
+          fetch,
+          command.action.input,
+          () => new Date().toISOString(),
+          command.action.kind === 'apply-task-linear-update' ? 'apply' : 'observe',
+        );
+      }
       output(JSON.stringify(result, null, command.json ? undefined : 2));
     } finally {
+      events?.close();
       approvals?.close();
       rooms?.close();
       agents?.close();

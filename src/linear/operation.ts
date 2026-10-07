@@ -12,20 +12,21 @@ import type { Event } from '../events/domain.js';
 export function requireApprovedLinearRequest(
   approvals: Pick<ApprovalStore, 'get'>,
   input: { readonly taskId: string; readonly actor: string; readonly approvalId: string },
+  actorKind: 'human' | 'agent' = 'human',
 ): ApprovalRequest {
   const { request, decision } = approvals.get(input.approvalId);
-  createApprovalRequest(request, request);
+  const canonical = createApprovalRequest(request, request);
   if (!decision || decision.decision !== 'approve')
     throw new Error('Linear operation must be approved');
   createApprovalDecision(request, decision, decision.createdAt);
   if (
     request.id !== input.approvalId ||
     decision.approvalId !== request.id ||
-    !isDeepStrictEqual(request.actor, { kind: 'human', id: input.actor }) ||
+    !isDeepStrictEqual(request.actor, { kind: actorKind, id: input.actor }) ||
     request.taskId !== input.taskId
   )
     throw new Error('Linear Approval does not match input');
-  return request;
+  return canonical;
 }
 export function linearClaimPayload(
   request: ApprovalRequest & {

@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { createApprovalRequest, validateLinearUpdatedIssueUrl } from '../approvals/domain.js';
+import type { ApprovalRequest } from '../approvals/domain.js';
 import type { ApprovalStore } from '../approvals/port.js';
 import type { TaskProvider } from '../tasks/port.js';
 import type { EventBus } from '../events/port.js';
@@ -86,6 +87,27 @@ function target(tasks: Pick<TaskProvider, 'get'>, input: LinearUpdateInput) {
       : { fields: parseLinearIssueFieldMask(Object.keys(parseLinearIssueFields(input.fields))) }),
   };
 }
+export { target as linearUpdateTarget };
+function requireUpdateRequest(
+  approvals: Pick<ApprovalStore, 'get'>,
+  input: { readonly taskId: string; readonly actor: string; readonly approvalId: string },
+  authorizeAgent?: () => ApprovalRequest,
+) {
+  if (!authorizeAgent) return requireApprovedLinearRequest(approvals, input);
+  // The Task-bound authorizer is a trusted composition dependency, never a CLI/RPC argument.
+  const candidate = authorizeAgent(),
+    approved = createApprovalRequest(candidate, candidate);
+  if (
+    approved.id !== input.approvalId ||
+    approved.taskId !== input.taskId ||
+    approved.actor.kind !== 'agent' ||
+    approved.actor.id !== input.actor ||
+    approved.operation.kind !== 'linear_issue_update' ||
+    !approved.operation.binding
+  )
+    throw new Error('Task Linear update Approval does not match input');
+  return approved;
+}
 function baseline(issue: LinearUpdateIssue): string {
   return digest({
     id: issue.id,
@@ -139,14 +161,16 @@ export async function applyApprovedLinearUpdate(
   request: (url: string, init: RequestInit) => Promise<Response>,
   input: LinearUpdateInput & { readonly approvalId: string },
   now: () => string,
+  authorizeAgent?: () => ApprovalRequest,
 ) {
-  const approved = requireApprovedLinearRequest(approvals, input),
+  const approved = requireUpdateRequest(approvals, input, authorizeAgent),
     current = target(tasks, input);
   if (
     approved.operation.kind !== 'linear_issue_update' ||
     !isDeepStrictEqual(approved.operation, {
       ...current,
       baselineDigest: approved.operation.baselineDigest,
+      ...(authorizeAgent ? { binding: approved.operation.binding } : {}),
     })
   )
     throw new Error('Linear Issue update Approval does not match input');
@@ -162,6 +186,14 @@ export async function applyApprovedLinearUpdate(
   );
   if (baseline(issue) !== original.operation.baselineDigest)
     throw new Error('Linear Issue baseline changed; request new approval');
+  const validateAuthority = () => {
+    if (
+      authorizeAgent &&
+      !isDeepStrictEqual(requireUpdateRequest(approvals, input, authorizeAgent), approved)
+    )
+      throw new Error('Task Linear update authority changed');
+  };
+  validateAuthority();
   const receipt = (type: string, suffix: string) =>
     createEvent(
       { type, source: 'linear:host', payload },
@@ -183,6 +215,7 @@ export async function applyApprovedLinearUpdate(
       {
         reference: 'linear:write',
         beforeRequest: () => {
+          validateAuthority();
           if (!isDeepStrictEqual(target(tasks, input), current))
             throw new Error('Linear Issue update target changed');
           events.publish(receipt('linear.update.claimed', ''));
@@ -245,12 +278,20 @@ export async function observeApprovedLinearUpdate(
   request: (url: string, init: RequestInit) => Promise<Response>,
   input: { readonly taskId: string; readonly actor: string; readonly approvalId: string },
   now: () => string,
+  authorizeAgent?: () => ApprovalRequest,
 ) {
-  const approved = requireApprovedLinearRequest(approvals, input);
+  const approved = requireUpdateRequest(approvals, input, authorizeAgent);
   if (approved.operation.kind !== 'linear_issue_update')
     throw new Error('Linear Issue update Approval does not match input');
   const original = { ...approved, operation: approved.operation },
     operation = original.operation;
+  const validateAuthority = () => {
+    if (
+      authorizeAgent &&
+      !isDeepStrictEqual(requireUpdateRequest(approvals, input, authorizeAgent), approved)
+    )
+      throw new Error('Task Linear update authority changed');
+  };
   const validateTarget = () => {
     const task = tasks.get(input.taskId);
     if (
@@ -286,6 +327,7 @@ export async function observeApprovedLinearUpdate(
       })
     )
       throw new Error('Linear Issue update receipt mismatch');
+    validateAuthority();
     return known;
   }
   const issue = await readLinearUpdateIssue(request, secrets, operation.issueId, operation.fields),
@@ -293,6 +335,7 @@ export async function observeApprovedLinearUpdate(
   if (digest(outputChanges(issue)) !== operation.inputDigest)
     throw new Error('Linear Issue current contents do not match approval');
   validateTarget();
+  validateAuthority();
   // ponytail: this is a point-in-time observation, not proof of which writer changed the Issue or ongoing synchronization.
   return publishVerifiedLinearReceipt(
     events,
