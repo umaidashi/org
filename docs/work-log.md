@@ -2098,3 +2098,5 @@
 - 再生成Artifactの実Jevへ到達: 15subjects/1reported、generated domain2subjects/test12subjects、両file findings0。missing/unsure/review 0/errors/degraded空。1warningは既存quality-ast test context。GENERATED_SEMANTIC_REVIEW_OK/LOCAL_GIT_HANDOFF_OKを観測、review/Memory/restartの残りとterminalはまだ未確認。
 
 - 再生成実一周terminal0: 7成功1skip0失敗116.37秒、code一周114.93秒/negative gate1.37秒。実Jev15subjects（domain2/test12）完全判定→local Git handoff→human review/Memory/same provider restart成功。owned Docker cleanup assertions/finally tmp削除まで完了。初回生成誤りも別保存。現在必須ローカルNextは未発見、外部認証/指定既存業務受入は未充足で全体未達。
+- 現在.envの設定有無だけ再確認: Linear false/Notion false/semantic true。全体実サービス受入の必要情報として既存Linear Issue URL/変更先GitHub repoと、両キー設定後の通知をasync質問した。値の送信は求めない。情報が揃うまで任意Issue作成/業務writeを実行しない。現在ローカル必須Nextは未発見、全体は未達。
+- 生成物意味レビュー01f95da commit/pre-commit terminal0（public1343files）。main ff/通常push terminal0、pre-push全gate189.50秒。main/origin main一致とclean code treeを確認後、必要情報質問とpush結果をログのみ追加記録する。
