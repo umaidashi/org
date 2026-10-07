@@ -10,6 +10,8 @@
 
 監査後の進捗: `agent send`を既存Message/Room activationへ接続した。[計画](superpowers/plans/2026-10-07-agent-send.md)と[最終検査](verification/2026-10-07-agent-send/check.txt)を参照。448成功/14skip/0失敗、実Jevと独立review成功。以下のCLI欠落表は監査baselineの記録で、この一件は解消済み。他の未達と全体未完了の判定は維持する。
 
+Memoryの追加進捗: `memory capture --source-event EVENT_ID`で、既存Event原本の存在/IDを保存前に検証する経路を接続。CLI再読取り、原本不変、拒否時の保存ゼロを確認し、TaskReview専用selectorも維持する。Event由来の自動候補抽出やWorkflow/Artifact/一般Decisionの全provenanceは未達のまま。
+
 ## 取得した原文
 
 [root](https://app.notion.com/p/3ee8a4020cb681d18daacc1e0016d596)と00–10を全て再取得した。root/10は編集2026-10-07、00–09は2026-10-04。取得レスポンスに切詰め・未知block警告なし。Notion自身のverificationはunverifiedで、ユーザー指定の設計資料として照合した。raw本文・認証情報を新しい公開証拠やJev入力へ追加しない。

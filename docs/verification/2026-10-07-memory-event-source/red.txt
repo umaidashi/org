@@ -1,0 +1,61 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-cli.test.ts:
+12 |       encoding: 'utf8',
+13 |       timeout: 10000,
+14 |     });
+15 |   const json = (args: string[]): unknown => {
+16 |     const p = run([...args, '--json']);
+17 |     assert.equal(p.status, 0, p.stderr);
+                ^
+AssertionError: Error: Unknown option '--source-event'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--source-event"
+Usage: org [--db PATH] agent create NAME --role ROLE --runtime RUNTIME
+       org [--db PATH] agent list [--json]
+       org agent send AGENT_ID MESSAGE --room ROOM_ID --human HUMAN_ID [--json]
+       org agent report ID --to MANAGER_ID|--clear [--json]
+       org approval request|get|list|decide|apply [OPTIONS]
+       org audit list [--json]
+       org tui [--socket PATH] [--room ID --human ID]
+       org logs [--task ID] [--event ID] [--limit N] [--json]
+       org agent capabilities|capability-history ID [--json]
+       org agent reporting-history ID [--json]
+       org [--db PATH] task create TITLE --objective OBJECTIVE [--json]
+       org [--db PATH] task list|get|assign|update|history|review|reviews [OPTIONS]
+       org [--db PATH] room create|list|get|archive|send|messages|targets|activate [OPTIONS]
+       org [--db PATH] event publish|import-github|import-github-webhook|get|list|subscribe|subscriptions|matches|enable|disable [OPTIONS]
+       org sandbox run TASK --code TS [--writable] [--timeout-ms MS]
+       org sandbox artifact URI
+       org sandbox cancel TASK_ID
+       org workflow run|status|cancel|list|history [OPTIONS]
+       org schedule create|list|get|enable|disable [OPTIONS]
+       org knowledge notion PAGE_ID [--room ROOM --human HUMAN] [--json]
+       org a2a send|adopt|get|list [OPTIONS]
+       org memory capture|extract|consolidate|consolidations|get|list|search|invalidate [OPTIONS]
+       org session start|send|resume|reply|stop|get|list|history [OPTIONS]
+       org task observe-workflow ID --expected-version N
+       org task resume-workflow ID --approval ID --expected-version N
+       org task resume-linear-task|observe-linear-task ID --approval ID --expected-version N
+       org task linear-get|import-linear ISSUE_ID [--json]
+       org task linear-list --team TEAM_KEY [--limit 1..50] [--after CURSOR] [--json]
+       org task refresh-linear LOCAL_TASK_ID --expected-version N [--json]
+       org task artifact-content ID --artifact ARTIFACT_ID [--json]
+       org [--db PATH] daemon --once [--json]
+       org [--db PATH] daemon deliveries [--json]
+       org [--db PATH] daemon [--socket PATH] [--poll-interval MS] [--workflow-config PATH] [--observe-workflows] [--linear-updates]
+       org daemon status|dispatch|wakeups|stop --socket PATH [--json]
+
+Register and list persistent Agent identities. Runtime processes are not started.
+Default DB: ~/.local/share/org/org.db
+
+
+2 !== 0
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at json (/Users/umaidashi/Documents/git/org/tests/memory-cli.test.ts:17:12)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-cli.test.ts:210:23)
+(fail) Memory CLI captures evidence, supersedes without altering history, and persists invalidation [1108.29ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [1151.00ms]

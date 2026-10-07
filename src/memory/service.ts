@@ -1,5 +1,6 @@
 import type { RoomRepository } from '../rooms/port.js';
-import { createMemory, taskReviewSource } from './domain.js';
+import { createMemory, eventSource, taskReviewSource } from './domain.js';
+import type { EventBus } from '../events/port.js';
 import type { Memory, MemoryInput } from './domain.js';
 import type { MemoryProvider } from './port.js';
 import type { TaskProvider } from '../tasks/port.js';
@@ -10,10 +11,17 @@ export function captureMemory(
   input: MemoryInput,
   identity: { readonly id: string; readonly at: string },
   tasks?: Pick<TaskProvider, 'get'> & TaskReviewReader,
+  events?: Pick<EventBus, 'get'>,
 ): Memory {
   const memory = createMemory(input, identity);
   for (const ref of memory.sourceRefs) {
     if ('uri' in ref) {
+      if (ref.uri.startsWith('org://events/')) {
+        if (!events) throw new Error('Memory Event reader required');
+        const id = eventSource(ref.uri);
+        if (events.get(id).id !== id) throw new Error('Memory source Event not found');
+        continue;
+      }
       if (!tasks) throw new Error('Memory TaskReview reader required');
       const { taskId, reviewId } = taskReviewSource(ref.uri);
       if (

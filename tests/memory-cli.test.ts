@@ -44,6 +44,36 @@ test('Memory CLI captures evidence, supersedes without altering history, and per
     );
     assert.equal(invalidSource.status, 2, invalidSource.stderr);
     assert.equal(existsSync(join(home, 'uncreated')), false);
+    for (const sourceOptions of [
+      ['--source-event', ' '],
+      ['--source-event', 'event', '--source-review', 'org://tasks/task/reviews/review'],
+      ['--source-review', 'org://events/event'],
+    ]) {
+      const invalid = spawnSync(
+        process.execPath,
+        [
+          '--no-env-file',
+          cli,
+          '--direct',
+          '--db',
+          uncreated,
+          'memory',
+          'capture',
+          '--type',
+          'episodic',
+          '--scope',
+          'company',
+          '--content',
+          'fact',
+          '--confidence',
+          '1',
+          ...sourceOptions,
+        ],
+        { encoding: 'utf8', timeout: 10000 },
+      );
+      assert.equal(invalid.status, 2, invalid.stderr);
+      assert.equal(existsSync(join(home, 'uncreated')), false);
+    }
     assert.equal(
       run(['agent', 'create', 'chief', '--role', 'Chief', '--runtime', 'codex']).status,
       0,
@@ -204,6 +234,46 @@ test('Memory CLI captures evidence, supersedes without altering history, and per
       json(['memory', 'search', 'temporary', '--at', '2026-06-01T00:00:00.000Z']),
       [],
     );
+    const event = json(['event', 'publish', 'task.completed', '--source', 'test']);
+    assert.ok(
+      event !== null && typeof event === 'object' && 'id' in event && typeof event.id === 'string',
+    );
+    const eventCapture = [
+      'memory',
+      'capture',
+      '--type',
+      'episodic',
+      '--scope',
+      'company',
+      '--content',
+      'Event observed',
+      '--confidence',
+      '1',
+      '--source-event',
+      event.id,
+    ];
+    const fromEvent = json(eventCapture);
+    assert.ok(
+      fromEvent !== null &&
+        typeof fromEvent === 'object' &&
+        'id' in fromEvent &&
+        typeof fromEvent.id === 'string' &&
+        'sourceRefs' in fromEvent,
+    );
+    assert.deepEqual(fromEvent.sourceRefs, [
+      { uri: 'org://events/' + encodeURIComponent(event.id) },
+    ]);
+    assert.deepEqual(json(['memory', 'get', fromEvent.id]), fromEvent);
+    assert.deepEqual(json(['event', 'list']), [event]);
+    const memoriesBefore = json(['memory', 'list']);
+    assert.equal(run([...eventCapture.slice(0, -1), 'absent']).status, 1);
+    assert.equal(
+      run([...eventCapture, '--source-review', 'org://tasks/task/reviews/review']).status,
+      2,
+    );
+    assert.equal(run([...eventCapture, '--room', room.id, '--message', source.id]).status, 2);
+    assert.equal(run([...eventCapture.slice(0, -1), ' ']).status, 2);
+    assert.deepEqual(json(['memory', 'list']), memoriesBefore);
     const messages = json(['room', 'messages', room.id]);
     assert.ok(Array.isArray(messages));
     assert.equal(messages.length, 1);

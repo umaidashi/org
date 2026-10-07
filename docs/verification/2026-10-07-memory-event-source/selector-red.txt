@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/memory-service.test.ts:
+(pass) Memory capture verifies original Message references through injected ports before saving [1.00ms]
+143 |   ];
+144 |   const command = parseMemoryCommand(args);
+145 |   assert.equal(command.action, 'capture');
+146 |   assert.ok(command.action === 'capture');
+147 |   assert.deepEqual(command.input.sourceRefs, input.sourceRefs);
+148 |   assert.throws(() => parseMemoryCommand([...args.slice(0, -2), '--source-review', uri]));
+               ^
+AssertionError: Missing expected exception.
+      at innerFail (node:assert:36:32)
+      at expectsError (node:assert:425:14)
+      at throws (node:assert:470:15)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/memory-service.test.ts:148:10)
+(fail) Memory Event evidence requires a canonical existing original before writing [0.63ms]
+(pass) Memory capture validates immutable Task review evidence through injected readers before saving
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [38.00ms]

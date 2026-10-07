@@ -3,6 +3,7 @@ import { test } from 'bun:test';
 import assert from 'node:assert/strict';
 import { captureMemory } from '../src/memory/service.js';
 import { createRoom, createMessage } from '../src/rooms/domain.js';
+import { parseMemoryCommand } from '../src/memory/cli.js';
 test('Memory capture verifies original Message references through injected ports before saving', () => {
   const room = createRoom(
     {
@@ -47,6 +48,110 @@ test('Memory capture verifies original Message references through injected ports
   );
   assert.equal(saved, 1);
   assert.equal(message.content, 'source');
+});
+
+test('Memory Event evidence requires a canonical existing original before writing', () => {
+  const uri = 'org://events/event%3A%E6%97%A5%E6%9C%AC';
+  const input = {
+    type: 'episodic' as const,
+    scope: 'company',
+    content: 'Event observed',
+    confidence: 1,
+    sourceRefs: [{ uri }],
+  };
+  const event = {
+    id: 'event:日本',
+    type: 'task.completed',
+    source: 'test',
+    payload: {},
+    createdAt: 'now',
+  };
+  let saved = 0;
+  const provider = {
+    create: (memory: Memory) => {
+      saved++;
+      return memory;
+    },
+  };
+  const capture = (uri: string, events?: { get(id: string): typeof event }) =>
+    captureMemory(
+      provider,
+      undefined,
+      { ...input, sourceRefs: [{ uri }] },
+      { id: 'memory', at: 'now' },
+      undefined,
+      events,
+    );
+  for (const uri of [
+    'org://events/',
+    'org://events/%20',
+    'org://events/event%3a%E6%97%A5%E6%9C%AC',
+    'org://events/%',
+    'org://events/one/two',
+    'https://example.invalid/event',
+  ])
+    assert.throws(() => capture(uri, { get: () => event }));
+  assert.throws(() => capture(uri));
+  assert.throws(() => capture(uri, { get: () => ({ ...event, id: 'foreign' }) }));
+  assert.throws(
+    () =>
+      capture(uri, {
+        get: () => {
+          throw new Error('read failed');
+        },
+      }),
+    /read failed/,
+  );
+  assert.equal(saved, 0);
+  const memory = capture(uri, {
+    get: (id) => {
+      assert.equal(id, event.id);
+      return event;
+    },
+  });
+  assert.deepEqual(memory.sourceRefs, input.sourceRefs);
+  assert.equal(saved, 1);
+  assert.throws(
+    () =>
+      captureMemory(
+        {
+          create: () => {
+            throw new Error('write failed');
+          },
+        },
+        undefined,
+        input,
+        { id: 'memory', at: 'now' },
+        undefined,
+        { get: () => event },
+      ),
+    /write failed/,
+  );
+  const args = [
+    'memory',
+    'capture',
+    '--type',
+    'episodic',
+    '--scope',
+    'company',
+    '--content',
+    'Event observed',
+    '--confidence',
+    '1',
+    '--source-event',
+    event.id,
+  ];
+  const command = parseMemoryCommand(args);
+  assert.equal(command.action, 'capture');
+  assert.ok(command.action === 'capture');
+  assert.deepEqual(command.input.sourceRefs, input.sourceRefs);
+  assert.throws(() => parseMemoryCommand([...args.slice(0, -2), '--source-review', uri]));
+  for (const extra of [
+    ['--source-review', 'org://tasks/t/reviews/r'],
+    ['--room', 'r'],
+    ['--message', 'm'],
+  ])
+    assert.throws(() => parseMemoryCommand([...args, ...extra]));
 });
 
 test('Memory capture validates immutable Task review evidence through injected readers before saving', () => {

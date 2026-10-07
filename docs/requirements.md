@@ -8,6 +8,8 @@
 
 [全体の証拠監査](completion-audit.md)に、再取得したroot/00–10の明示項目と、将来候補・未決定設計・各CLI操作・Port契約・直接証拠・未達を記録する。既存の残件を消去せず、原文が指定していない拡張を必須実装と混同しない。
 
+追加進捗: `memory capture --source-event EVENT_ID`で不変Eventの存在/IDを照合しcanonical sourceRefsを保存する。本文の真実性やEvent候補の自動抽出は未達として区別する。全検査の最新結果は作業ログ/検証証拠で追跡する。
+
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
 | 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで実Claude Linear opt-inを含む447成功/12skipの459テストをローカル検証（残る外部・OS実機12件は今回未実行）。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
