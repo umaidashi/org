@@ -1,0 +1,16 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/coordinator-claude-real.test.ts:
+(pass) real proof uniqueness guard rejects duplicate delegation with distinct Task IDs [0.87ms]
+(pass) real proof polling permits a result at the configured 120 second Runtime boundary [0.47ms]
+(pass) real proof rejects incorrect results containing the expected token [0.35ms]
+(pass) code proof refuses a successful process with zero executed generated tests [0.44ms]
+(pass) code proof polling permits combined Runtime and Docker limits [0.45ms]
+(skip) real Claude Coordinator and specialist preserve Artifact review Memory and same provider session across restart
+(skip) real Claude delegation generates code and tests in Docker before human review Memory and restart
+(skip) generated code gate rejects runtime-valid explicit-any source
+
+ 5 pass
+ 3 skip
+ 0 fail
+Ran 8 tests across 1 file. [36.00ms]

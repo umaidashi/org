@@ -196,16 +196,9 @@ async function proof(code = false) {
         'claude',
         '--memory-policy',
         'reviewed-tasks',
-        ...(code
-          ? [
-              '--capability',
-              'can_run_shell',
-              '--capability',
-              'can_write',
-              '--capability',
-              'can_read',
-            ]
-          : []),
+        '--capability',
+        'can_read',
+        ...(code ? ['--capability', 'can_run_shell', '--capability', 'can_write'] : []),
       ]).status,
       0,
     );
@@ -213,6 +206,7 @@ async function proof(code = false) {
     const chief = agents.find((a) => a.name === 'Chief'),
       worker = agents.find((a) => a.name === 'Specialist');
     assert.ok(chief && worker && typeof chief.id === 'string' && typeof worker.id === 'string');
+    assert.ok(Array.isArray(worker.capabilities) && worker.capabilities.includes('can_read'));
     json(['--direct', 'agent', 'report', worker.id, '--to', chief.id]);
     const work = code ? entity(['--direct', 'task', 'import-linear', 'ORG-1']) : undefined;
     const room = entity([

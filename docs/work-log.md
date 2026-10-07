@@ -2061,3 +2061,23 @@
 - .envは存在booleanだけ再確認: LINEAR_API_KEYなし/NOTION_API_KEYなし/TYPESAFE_API_KEYあり。値は出力・ログ・Git・Jevへ記録しない。connector実取得とproduct CLI REST認証は別、実業務Issue/変更repo指定を推測しない。
 
 - 最終固定tree全gate terminal0: 532成功21skip0失敗553tests217files167.31秒、static374files。実Jev2439対象146reported、missing/unsure/review 0/errors/degraded空。変更Event/Schedule writer/Reader/追加UTに新指摘なし。[最終証拠](verification/2026-10-08-event-schedule-operation-audit/)へ保存。
+
+## 2026-10-08 — 全体要件・現在head受入の再照合開始
+
+- Event/Schedule f2b6f04 commit terminal0、pre-commit1.68秒/public1325files。main ff/通常pushはpre-push実行中、成功未認定。次docs/goal-reassessment-2026-10-08で[計画](superpowers/plans/2026-10-08-goal-reassessment.md)を開始。
+- 原文00/02–07を内容まで照合、01/09とroot取得・10「設計中/実装・issue作成対象外」を確認。08は今回の各Audit単位で照合済み。初期Adapter/defaultと将来候補/例示を区別し、private例示名を新記録へ入れない。
+- 次の実在検証経路はcoordinator-claude-realの実Claude Max委譲/生成code+test/Docker/人間review/Memory/restart。現在headで証拠を更新する。ORG_CLAUDE_DELEGATION_TEST/ORG_CLAUDE_CODE_TEST等の既存gateを確認しただけで、実行成功は未主張。
+- Ponytail: 既存実機E2EとAdapter/host controllerを再利用、新engine/新providerなし。全体は未達。外部API実認証と指定業務は必要情報依存を維持。
+- 現在環境Claude Code2.1.293/Docker server29.4.0を実commandで確認。coordinator-claude-real全文とgenerated-code-check/code-git-handoffの処理を追跡。Runtime envはPATH/HOME/USER/LOGNAME、Linearはpreload fixture key/HTTP、Gitは所有tmp内file protocol bare remoteのみ、finallyでdaemon/owned container/image/tmpを解放。新外部業務writeなし。
+- ORG_CLAUDE_DELEGATION_TEST/ORG_CLAUDE_CODE_TEST/ORG_GENERATED_GATE_TESTを有効にした実CLI一周を開始。生成物gateはDocker内bun check（Jevはdry-run）であり、実意味レビューと同一視しない。実サービス受入/実Draft PRとは別の現在head実機証拠として確認する。
+- Event/Schedule f2b6f04 main通常push terminal0/pre-push189.88秒/local remote一致を確認。
+- 現head実Claude/Dockerの初回terminal1: 7成功1失敗8tests140.22秒。code生成→独立Docker assertions→生成物bun check→所有local Git handoff→human review/Memory/restartは成功、explicit-anyの生成物gate拒否も成功。一方、旧非code Coordinator fixtureはSpecialistにcapabilityを一切付与せず、現sessionAgent can_read guardでTaskが失敗する構成。code fixtureにはreadが既にあった。全体を成功と扱わない。
+- 旧Specialistの登録でcan_readを両経路に明示し、code側の重複grantを除去。実登録結果にもread grant assertionを追加。product拒否境界を緩めない。実Coordinatorだけを再検証中。
+
+- Coordinator fixture read grant修正後terminal0: 6成功2skip0失敗8tests40.97秒。5補助checks+実Claude Coordinator/specialist→Artifact→human review→Memory→same provider resume/restart成功。code/negative-generated-gateの2skipは今回再実行対象外で、初回別実行のcode成功131.03秒/negative成功と区別。[実機証拠](verification/2026-10-08-goal-reassessment/)。product f2b6f04は同じまま、fixtureだけ明示grantへ修正。
+- fixture修正後static初回format:checkのみ失敗、未整形の追加assertionをOxfmtで整形後static terminal0。意味的REDとして扱わない。通常補助testも実行し、実機flagのないskipと実Claude成功を区別する。source semantics変更なし、独立review待ち。
+
+- Fresh再照合review C0/I1/M0、独立diff whitespace/Oxfmt成功。Important採用: 実生成code/testはDocker内Jev dry-run後に削除され、後続repo実Jevに入らない。曖昧な「照合するNext」を必須の実Jev/完全verdict/証拠保存へ確定し、[最小計画](superpowers/plans/2026-10-08-generated-artifact-semantic-review.md)を保存。外部認証/業務指定と独立であり止めない。一fixpass、再レビューなし。Ponytail net0、新engineなし/既存runner再利用。
+- fixture grant変更はreviewで正当、product guard/不要write/network追加なし。source/test semanticsはこれで固定。実機RED→GREENと通常5成功3skip36msを区別。最終全gate/実Jevを実行して本単位を記録後、必須Nextへ続く。
+
+- 最終固定tree全gate terminal0: 532成功21skip0失敗553tests217files166.81秒/static374files。実Jev2439対象、missing/unsure/review 0/errors/degraded空。証拠を保存。生成Artifact実意味レビューは必須Nextとして継続、全体未達。
