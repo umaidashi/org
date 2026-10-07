@@ -12,6 +12,8 @@
 
 Memoryの追加進捗: `memory capture --source-event EVENT_ID`で、既存Event原本の存在/IDを保存前に検証する経路を接続。CLI再読取り、原本不変、拒否時の保存ゼロを確認し、TaskReview専用selectorも維持する。Event由来の自動候補抽出やWorkflow/Artifact/一般Decisionの全provenanceは未達のまま。
 
+hash Artifact追加進捗: `--source-artifact org://artifacts/HASH`を既存captureへ接続し、既存readerのno-follow/サイズ/hash検証を保存前にawaitする。missing/corrupt/symlinkの拒否、原本bytes不変とMemory再読取りを検証。ローカルhash blobの存在/整合性に限定し、全Artifact種別や自動候補抽出の完成とは扱わない。
+
 ## 取得した原文
 
 [root](https://app.notion.com/p/3ee8a4020cb681d18daacc1e0016d596)と00–10を全て再取得した。root/10は編集2026-10-07、00–09は2026-10-04。取得レスポンスに切詰め・未知block警告なし。Notion自身のverificationはunverifiedで、ユーザー指定の設計資料として照合した。raw本文・認証情報を新しい公開証拠やJev入力へ追加しない。

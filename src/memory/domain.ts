@@ -8,6 +8,11 @@ export function memorySearchPhrase(query: string): string {
 export type SourceRef =
   | { readonly roomId: string; readonly messageId: string }
   | { readonly uri: string };
+export function artifactSource(uri: string): string {
+  const digest = /^org:\/\/artifacts\/([a-f0-9]{64})$/.exec(uri)?.[1];
+  if (digest === undefined) throw new Error('Invalid Memory Artifact source');
+  return digest;
+}
 export function eventSource(uri: string): string {
   const match = /^org:\/\/events\/([^/]+)$/.exec(uri);
   if (!match?.[1]) throw new Error('Invalid Memory Event source');
@@ -39,6 +44,7 @@ function memorySource(value: unknown): SourceRef {
   const keys = Object.keys(value);
   if ('uri' in value && typeof value.uri === 'string' && keys.length === 1) {
     if (value.uri.startsWith('org://events/')) eventSource(value.uri);
+    else if (value.uri.startsWith('org://artifacts/')) artifactSource(value.uri);
     else taskReviewSource(value.uri);
     return { uri: value.uri };
   }

@@ -2,9 +2,10 @@ import { cli } from './cli-path.js';
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, readFileSync, writeFileSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
-test('Memory CLI captures evidence, supersedes without altering history, and persists invalidation', () => {
+import { saveSandboxArtifact } from '../src/sandbox/artifact.js';
+test('Memory CLI captures evidence, supersedes without altering history, and persists invalidation', async () => {
   const home = mkdtempSync('/tmp/org-memory-cli-');
   const db = join(home, 'org.db');
   const run = (args: string[]) =>
@@ -48,6 +49,8 @@ test('Memory CLI captures evidence, supersedes without altering history, and per
       ['--source-event', ' '],
       ['--source-event', 'event', '--source-review', 'org://tasks/task/reviews/review'],
       ['--source-review', 'org://events/event'],
+      ['--source-artifact', 'https://example.invalid/artifact'],
+      ['--source-artifact', 'org://artifacts/' + 'A'.repeat(64)],
     ]) {
       const invalid = spawnSync(
         process.execPath,
@@ -234,6 +237,47 @@ test('Memory CLI captures evidence, supersedes without altering history, and per
       json(['memory', 'search', 'temporary', '--at', '2026-06-01T00:00:00.000Z']),
       [],
     );
+    const bytes = Buffer.from('owned original Artifact');
+    const artifactUri = await saveSandboxArtifact(db + '.artifacts', bytes);
+    const artifactPath = join(db + '.artifacts', artifactUri.slice('org://artifacts/'.length));
+    const artifactCapture = [
+      'memory',
+      'capture',
+      '--type',
+      'episodic',
+      '--scope',
+      'company',
+      '--content',
+      'Artifact observed',
+      '--confidence',
+      '1',
+      '--source-artifact',
+      artifactUri,
+    ];
+    const artifactMemory = json(artifactCapture);
+    assert.ok(
+      artifactMemory !== null &&
+        typeof artifactMemory === 'object' &&
+        'id' in artifactMemory &&
+        typeof artifactMemory.id === 'string' &&
+        'sourceRefs' in artifactMemory,
+    );
+    assert.deepEqual(artifactMemory.sourceRefs, [{ uri: artifactUri }]);
+    assert.deepEqual(json(['memory', 'get', artifactMemory.id]), artifactMemory);
+    assert.deepEqual(readFileSync(artifactPath), bytes);
+    const beforeBadArtifact = json(['memory', 'list']);
+    writeFileSync(join(db + '.artifacts', '0'.repeat(64)), 'corrupt');
+    symlinkSync(artifactPath, join(db + '.artifacts', '1'.repeat(64)));
+    for (const digest of ['0'.repeat(64), '1'.repeat(64), '2'.repeat(64)])
+      assert.equal(run([...artifactCapture.slice(0, -1), 'org://artifacts/' + digest]).status, 1);
+    for (const extra of [
+      ['--source-event', 'event'],
+      ['--source-review', 'org://tasks/t/reviews/r'],
+      ['--room', room.id, '--message', source.id],
+    ])
+      assert.equal(run([...artifactCapture, ...extra]).status, 2);
+    assert.deepEqual(json(['memory', 'list']), beforeBadArtifact);
+    assert.deepEqual(readFileSync(artifactPath), bytes);
     const event = json(['event', 'publish', 'task.completed', '--source', 'test']);
     assert.ok(
       event !== null && typeof event === 'object' && 'id' in event && typeof event.id === 'string',

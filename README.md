@@ -611,7 +611,15 @@ daemon起動時にWorkflow claimを持つrunning Taskを検出すると、blocke
 観測再開はdaemon専用で、保存済みexecutionのstatusだけを読み、invokeしません。現在のTask/version/owner/capability/dependency、原本Messageとreceipt、host/Agent scopeを照合し、write/irreversibleは元のhuman Approvalも再確認します。成功を検証するとArtifactを保存して結果レビュー待ちへ戻り、まだ不明ならblockedを保持します。daemon再起動でも自動再送しません。`daemon --workflow-config PATH --observe-workflows`を明示すると、起動済み・観測不確定、または成功receiptがありArtifact保存待ちのblocked Executionをstatus-onlyで自動観測します。観測pendingはTask/historyを増やさず、完了後は同じ再認可とArtifact保存を通します。保存・Task関連付け例外はblockedへ戻し、保存先やDBの障害を修復後にmanual/autoで回復できます。未起動Approval待ちは対象外です。一件の観測エラーでも他Taskを観測し、最後にpoll失敗を報告します。保存再試行はhost poll間隔に従いTask/historyを更新します。一般retry/backoff・部分blob破損からの復旧は未完了です。
 
 
-## Event原本をMemoryの根拠にする
+## 不変原本をMemoryの根拠にする
+
+hash Artifactも同じcapture経路で根拠にできます。
+
+```sh
+bun run start memory capture --type episodic --scope company --content '検証した成果物' --confidence 1 --source-artifact org://artifacts/LOWERCASE_SHA256 --json
+```
+
+対象はDBに対応するローカルhash blobです。既存readerでregular file、最終fileのsymlink拒否、1MiB上限、SHA-256一致を確認してから保存します。sourceRefsにURIを保持し、blobは変更しません。任意URLやhost file pathは受理せず、他source selectorとの併用も拒否します。Artifact directoryはhost管理下を前提とし、内容の真実性やArtifactからの自動抽出は保証しません。
 
 ```sh
 bun run start memory capture --type episodic --scope company --content '確認した出来事' --confidence 1 --source-event EVENT_ID --json

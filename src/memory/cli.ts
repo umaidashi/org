@@ -2,7 +2,8 @@ import { parseArgs } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { createMemory, memorySearchPhrase, taskReviewSource } from './domain.js';
+import { artifactSource, createMemory, memorySearchPhrase, taskReviewSource } from './domain.js';
+import { readSandboxArtifact } from '../sandbox/artifact.js';
 import { selectMemories } from './retrieval.js';
 import type { MemoryInput, MemoryType } from './domain.js';
 import { SqliteMemoryProvider } from './sqlite.js';
@@ -85,6 +86,7 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       importance: { type: 'string' },
       'source-review': { type: 'string' },
       'source-event': { type: 'string' },
+      'source-artifact': { type: 'string' },
     },
   });
   const [noun, action, id, ...extra] = parsed.positionals;
@@ -118,6 +120,7 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
                 'importance',
                 'source-review',
                 'source-event',
+                'source-artifact',
               ]
             : action === 'list' || action === 'search'
               ? ['db', 'json', 'scope', 'at', 'type', 'tag', 'entity']
@@ -159,12 +162,15 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       [
         parsed.values['source-review'] !== undefined,
         parsed.values['source-event'] !== undefined,
+        parsed.values['source-artifact'] !== undefined,
         parsed.values.room !== undefined || parsed.values.message !== undefined,
       ].filter(Boolean).length > 1
     )
       throw new Error('Memory source options are mutually exclusive');
     if (parsed.values['source-review'] !== undefined)
       taskReviewSource(parsed.values['source-review']);
+    if (parsed.values['source-artifact'] !== undefined)
+      artifactSource(parsed.values['source-artifact']);
     const input: MemoryInput = {
       ...(parsed.values.tag === undefined ? {} : { tags: parsed.values.tag }),
       ...(parsed.values.entity === undefined ? {} : { entities: parsed.values.entity }),
@@ -176,22 +182,24 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
       content: required(parsed.values.content, 'content'),
       confidence: Number(required(parsed.values.confidence, 'confidence')),
       sourceRefs:
-        parsed.values['source-event'] !== undefined
-          ? [
-              {
-                uri:
-                  'org://events/' +
-                  encodeURIComponent(required(parsed.values['source-event'], 'source-event')),
-              },
-            ]
-          : parsed.values['source-review'] !== undefined
-            ? [{ uri: required(parsed.values['source-review'], 'source-review') }]
-            : [
+        parsed.values['source-artifact'] !== undefined
+          ? [{ uri: required(parsed.values['source-artifact'], 'source-artifact') }]
+          : parsed.values['source-event'] !== undefined
+            ? [
                 {
-                  roomId: required(parsed.values.room, 'room'),
-                  messageId: required(parsed.values.message, 'message'),
+                  uri:
+                    'org://events/' +
+                    encodeURIComponent(required(parsed.values['source-event'], 'source-event')),
                 },
-              ],
+              ]
+            : parsed.values['source-review'] !== undefined
+              ? [{ uri: required(parsed.values['source-review'], 'source-review') }]
+              : [
+                  {
+                    roomId: required(parsed.values.room, 'room'),
+                    messageId: required(parsed.values.message, 'message'),
+                  },
+                ],
       ...(parsed.values['valid-from'] === undefined
         ? {}
         : { validFrom: memoryTime(parsed.values['valid-from']) }),
@@ -237,7 +245,10 @@ export function parseMemoryCommand(argv: string[]): MemoryCommand {
     'Expected memory capture|extract|consolidate|consolidations|get|list|search|invalidate',
   );
 }
-export function runMemoryCommand(command: MemoryCommand, output: (line: string) => void): void {
+export async function runMemoryCommand(
+  command: MemoryCommand,
+  output: (line: string) => void,
+): Promise<void> {
   const provider = new SqliteMemoryProvider(command.db);
   try {
     let result: unknown;
@@ -288,7 +299,7 @@ export function runMemoryCommand(command: MemoryCommand, output: (line: string) 
             )
           )
             events = new SqliteEventBus(command.db);
-          result = captureMemory(
+          result = await captureMemory(
             provider,
             rooms,
             command.input,
@@ -298,6 +309,7 @@ export function runMemoryCommand(command: MemoryCommand, output: (line: string) 
             },
             tasks,
             events,
+            (uri) => readSandboxArtifact(command.db + '.artifacts', uri),
           );
         } finally {
           try {

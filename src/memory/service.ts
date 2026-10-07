@@ -5,17 +5,23 @@ import type { Memory, MemoryInput } from './domain.js';
 import type { MemoryProvider } from './port.js';
 import type { TaskProvider } from '../tasks/port.js';
 import type { TaskReviewReader } from '../tasks/review.js';
-export function captureMemory(
+export async function captureMemory(
   provider: Pick<MemoryProvider, 'create'>,
   rooms: Pick<RoomRepository, 'get' | 'messages'> | undefined,
   input: MemoryInput,
   identity: { readonly id: string; readonly at: string },
   tasks?: Pick<TaskProvider, 'get'> & TaskReviewReader,
   events?: Pick<EventBus, 'get'>,
-): Memory {
+  readArtifact?: (uri: string) => Promise<string>,
+): Promise<Memory> {
   const memory = createMemory(input, identity);
   for (const ref of memory.sourceRefs) {
     if ('uri' in ref) {
+      if (ref.uri.startsWith('org://artifacts/')) {
+        if (!readArtifact) throw new Error('Memory Artifact reader required');
+        await readArtifact(ref.uri);
+        continue;
+      }
       if (ref.uri.startsWith('org://events/')) {
         if (!events) throw new Error('Memory Event reader required');
         const id = eventSource(ref.uri);

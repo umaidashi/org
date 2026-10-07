@@ -326,7 +326,7 @@ async function runApplication(
     return;
   }
   if (command.kind === 'memory') {
-    runMemoryCommand({ ...command.command, db }, output);
+    await runMemoryCommand({ ...command.command, db }, output);
     return;
   }
   if (command.kind === 'session') {

@@ -10,6 +10,8 @@
 
 追加進捗: `memory capture --source-event EVENT_ID`で不変Eventの存在/IDを照合しcanonical sourceRefsを保存する。本文の真実性やEvent候補の自動抽出は未達として区別する。全検査の最新結果は作業ログ/検証証拠で追跡する。
 
+hash Artifactも`--source-artifact`で既存readerの整合性検証後に参照できる。ローカルhash blobに限定し、他Artifact種別・自動候補抽出・Workflow/一般Decisionの残件を維持する。
+
 | 領域 | 必要な動作・不変条件 | 現在の証拠・状況 |
 |---|---|---|
 | 言語 | TypeScript、型検査、unit/integration/e2e、再現可能なセットアップ | Bunへ統一。tsgo・Oxlint/Oxfmt・AST・unit/integration/e2eで実Claude Linear opt-inを含む447成功/12skipの459テストをローカル検証（残る外部・OS実機12件は今回未実行）。Agent/TaskのDIによる最小UT11件35msにRoom/Event/Daemon UTを追加。新規依存インストールでも全検査を検証 |
