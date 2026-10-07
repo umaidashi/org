@@ -18,6 +18,8 @@ export function codexCommand(
     'sandbox_mode="read-only"',
     '-c',
     'approval_policy="never"',
+    '-c',
+    'features.shell_tool=false',
   );
   if (input.sessionId !== undefined) argv.push(input.sessionId);
   argv.push('-');

@@ -42,6 +42,9 @@ for (const runtime of ['codex', 'claude'] as const) {
       const message = ${runtime === 'codex' ? 'JSON.parse(raw).message' : 'raw'};
       if (message === 'wait') setInterval(() => {}, 100);
       else if (${JSON.stringify(runtime)} === 'codex') {
+        for(const flag of ['features.shell_tool=false']) {
+          const index=process.argv.indexOf(flag);if(index<1||process.argv[index-1]!=='-c')throw new Error('Native shell boundary missing');
+        }
         console.log(JSON.stringify({type:'thread.started',thread_id:'provider'}));
         console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:message}}));
         console.log(JSON.stringify({type:'turn.completed',usage:{}}));

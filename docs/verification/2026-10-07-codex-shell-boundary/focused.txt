@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/codex-turn.test.ts:
+(pass) Codex command injects role and instructions via stdin and resumes only the requested session [2.22ms]
+(pass) Codex response requires a completed turn and rejects protocol failures or inconsistent sessions
+(pass) Codex turn runner uses the injected process boundary and never accepts failed process output [1.11ms]
+(pass) Codex resumed response cannot succeed without a completed assistant reply
+(pass) Codex start disables native shell execution before handing off to the process [0.20ms]
+(pass) Codex resume disables native shell execution before handing off to the process
+
+tests/session-runtime.test.ts:
+(pass) Session codex lifecycle manager connects SQLite to real fixture process for start resume and stop [76.63ms]
+(pass) Session claude lifecycle manager connects SQLite to real fixture process for start resume and stop [67.57ms]
+
+ 8 pass
+ 0 fail
+Ran 8 tests across 2 files. [186.00ms]

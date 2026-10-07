@@ -158,3 +158,7 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 ### 2026-10-07 GitHub Webhook local HTTP受信
 
 明示continuous daemonのrepo/port pairで127.0.0.1へnative HTTP受信を追加し、既存署名/公開repo scope/反射/不変冪等を再利用。native本文64KiB/idle10秒、body取得後closing再照合、shutdown listener停止/Runtime drain/DB cleanupを維持。BOM正規化で署名流用可能な具体例をRED→fatal UTF8/BOM保持decodeで修正。実HTTP→Event→Subscription→Task一件、拒否/重複/restart/occupiedport cleanupを検証。[証拠](verification/2026-10-07-github-webhook-http/)全gate506成功14skip0失敗520tests206files182.60秒、実Jev2346subjects/欠損・エラー・劣化0。公開ingress/実GitHub配送/業務指定/全体は未達。[次のCodex shell境界](superpowers/plans/2026-10-07-codex-shell-boundary.md)へ進む。
+
+### 2026-10-07 Codex native shell境界
+
+共有start/resumeへshell_tool=false固定。installed0.160.1のread-only baselineは実shell読取成功、追加設定は通常応答しshellなし、同provider resumeも成功。[証拠](verification/2026-10-07-codex-shell-boundary/) full508成功14skip0失敗522tests206files184.12秒、実Jev2347subjects/欠損・エラー・劣化0。他native tool/任意版/同UID本人隔離は未保証。[限定Sandbox credential注入](superpowers/plans/2026-10-07-sandbox-credential-injection.md)は次の未完了要件。全体未達。

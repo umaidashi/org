@@ -1,0 +1,2 @@
+{"disable":false,"status":0,"completed":true,"shellUnavailable":false,"sentinelReflected":true,"commandExecution":true,"stderrPresent":false}
+{"disable":true,"status":0,"completed":true,"shellUnavailable":true,"sentinelReflected":false,"commandExecution":false,"stderrPresent":false}

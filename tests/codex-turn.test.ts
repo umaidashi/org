@@ -86,3 +86,25 @@ test('Codex resumed response cannot succeed without a completed assistant reply'
     parseCodexTurn('{"type":"thread.started","thread_id":"thread-1"}\n{"type":"turn.completed"}'),
   );
 });
+
+for (const sessionId of [undefined, 'thread-1'])
+  test(`Codex ${sessionId === undefined ? 'start' : 'resume'} disables native shell execution before handing off to the process`, async () => {
+    const input = {
+      agent,
+      message: 'work',
+      instruction: 'Review',
+      ...(sessionId === undefined ? {} : { sessionId }),
+    };
+    await runCodexTurn(
+      async (processInput) => {
+        for (const flag of ['features.shell_tool=false']) {
+          const index = processInput.argv.indexOf(flag);
+          assert.ok(index > 0);
+          assert.equal(processInput.argv[index - 1], '-c');
+        }
+        return { reason: 'exited', exitCode: 0, stdout: transcript, stderr: '' };
+      },
+      input,
+      { executable: 'codex', cwd: '/tmp', env: {}, timeoutMs: 2000, maxOutputBytes: 4096 },
+    );
+  });

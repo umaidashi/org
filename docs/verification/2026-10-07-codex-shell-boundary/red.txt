@@ -1,0 +1,53 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/codex-turn.test.ts:
+(pass) Codex command injects role and instructions via stdin and resumes only the requested session [1.09ms]
+(pass) Codex response requires a completed turn and rejects protocol failures or inconsistent sessions [0.40ms]
+(pass) Codex turn runner uses the injected process boundary and never accepts failed process output [0.61ms]
+(pass) Codex resumed response cannot succeed without a completed assistant reply
+90 | for(const sessionId of [undefined,'thread-1'])
+91 |  test(`Codex ${sessionId===undefined?'start':'resume'} disables native shell execution before handing off to the process`,async()=>{
+92 |   const input={agent,message:'work',instruction:'Review',...(sessionId===undefined?{}:{sessionId})};
+93 |   await runCodexTurn(async(processInput)=>{
+94 |    for(const flag of ['features.shell_tool=false','features.unified_exec=false']){
+95 |     const index=processInput.argv.indexOf(flag);assert.ok(index>0);assert.equal(processInput.argv[index-1],'-c');
+                                                            ^
+AssertionError: false == true
+ generatedMessage: true,
+     actual: false,
+   expected: true,
+   operator: "==",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:95:56
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:93:28
+      at runCodexTurn (/Users/umaidashi/Documents/git/org/src/runtime/codex.ts:76:24)
+      at runCodexTurn (/Users/umaidashi/Documents/git/org/src/runtime/codex.ts:71:3)
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:93:9
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:91:123
+(fail) Codex start disables native shell execution before handing off to the process [0.98ms]
+90 | for(const sessionId of [undefined,'thread-1'])
+91 |  test(`Codex ${sessionId===undefined?'start':'resume'} disables native shell execution before handing off to the process`,async()=>{
+92 |   const input={agent,message:'work',instruction:'Review',...(sessionId===undefined?{}:{sessionId})};
+93 |   await runCodexTurn(async(processInput)=>{
+94 |    for(const flag of ['features.shell_tool=false','features.unified_exec=false']){
+95 |     const index=processInput.argv.indexOf(flag);assert.ok(index>0);assert.equal(processInput.argv[index-1],'-c');
+                                                            ^
+AssertionError: false == true
+ generatedMessage: true,
+     actual: false,
+   expected: true,
+   operator: "==",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:95:56
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:93:28
+      at runCodexTurn (/Users/umaidashi/Documents/git/org/src/runtime/codex.ts:76:24)
+      at runCodexTurn (/Users/umaidashi/Documents/git/org/src/runtime/codex.ts:71:3)
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:93:9
+      at /Users/umaidashi/Documents/git/org/tests/codex-turn.test.ts:91:123
+(fail) Codex resume disables native shell execution before handing off to the process [0.15ms]
+
+ 4 pass
+ 2 fail
+Ran 6 tests across 1 file. [31.00ms]

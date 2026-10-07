@@ -1878,3 +1878,14 @@
 - Ruling: shell実行は権限/Audit付きSandboxへ残し、Codex Runtimeではnative2flagを無効化する — 同じ処理をhost shellで迂回させない — 全外部tool/sameUID隔離の無条件保証へ広げない。generic tools.disable_defaults調査commandはglobal --ignore-user-config適用外でexit2、設定対応の証拠とは扱わない。third-party検索結果は判断根拠にせず、公式referenceとinstalled CLIだけを使用。
 
 - 最終gate terminal0: 型/Oxlint/Oxfmt/AST362files、506成功14skip0失敗520tests206files182.60秒、dry-run2346subjects/excluded0/undeclared・idle・silent空。実Jev2346subjects141warnings/missing・unsure・review・errors・degraded0、parser/runDaemon一般failure-path候補を追加拒否群/実bind障害/既存failure回帰へ照合、具体的欠陥なし。証拠とREADME/要件/監査/次計画を保存。全体未達を維持。
+
+## 2026-10-07 — Codex native shell境界
+
+- 依頼は全体達成まで継続。前unit b620df8のmain pushはterminal0、local push gate206.60秒とremote head更新を確認。
+- [計画](superpowers/plans/2026-10-07-codex-shell-boundary.md)を実行。共有codexCommandからstart/resume両方へshell_tool=falseを固定し、Process DI/native fixtureで伝達を検証。変更前2追加UT失敗、変更後8成功0失敗186ms。
+- Ruling: installed codex-cli0.160.1のunified_exec=falseは実効trueのまま。対応版公式add_shell_toolsはShellTool guardでexec_command/write_stdin登録前にreturnするため、無効な2番目flagを削除しoperative一つに限定。初期planと歴史記録を実行Rulingで置換。任意版/binary/allbuiltinsをこの結果から保証すると誤った境界になる。
+- 実Codex対照: read-onlyのみは一時非機密sentinelのshell読取成功、追加flagは通常turn完了/SHELL_UNAVAILABLE/command executionなし/値反射なし。同provider resumeでも完了しshellなし。認証情報/実私有データは保存していない。一時controlスクリプト初回は構文エラーで未実行、修正後対照を観測。
+- 全localcheck terminal0: 508成功14skip0失敗、522tests206files184.12秒、type/Oxlint/Oxfmt/非空AST/dry-run成功。実Jev2347subjects141warnings、missing/unsure/review/errors/degraded0。codexCommandの抽象failure-path warningは既存入力拒否と関連テストを照合、具体的counterexampleなし。モデルwarningだけで追加実装はしない。
+- Fresh reviewer C0/I0/M2、独立8成功180ms。予定文書整合を完了。Deferred Minor/Ponytail: 単一要素flag loopの直接assert化、net -4行候補。正しさを変えないためdefault defer。新wrapper/dependency/providerは不要。
+- Ruling: reviewerは実native/full/Jevを保留、親の実行結果とは区別する。同UID本人隔離、外部tool/任意binary、実業務API/全体完了は認定しない。Minor以外のfixなし、再レビューなし。
+- [証拠](verification/2026-10-07-codex-shell-boundary/)とREADME更新。全体は未達。[次の限定Sandbox credential注入計画](superpowers/plans/2026-10-07-sandbox-credential-injection.md)を保存して続行。
