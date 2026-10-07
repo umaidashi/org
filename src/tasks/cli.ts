@@ -838,7 +838,7 @@ export async function runTaskCommand(
       command.provider === 'linear'
         ? { mapping: linearTaskMapping(), team: linearTaskTeam() }
         : undefined;
-    const store = new SqliteTaskProvider(command.db);
+    const store = new SqliteTaskProvider(command.db, { kind: 'system', id: 'local-host' });
     try {
       if (!settings) {
         output(
@@ -900,7 +900,7 @@ export async function runTaskCommand(
   if (command.action.kind === 'request-core-linear-update') {
     const mapping = linearTaskMapping(),
       team = linearTaskTeam();
-    const store = new SqliteTaskProvider(command.db);
+    const store = new SqliteTaskProvider(command.db, { kind: 'system', id: 'local-host' });
     try {
       const agents = new SqliteAgentRepository(command.db);
       try {
@@ -956,7 +956,7 @@ export async function runTaskCommand(
         })),
       ),
     );
-    const tasks = new SqliteTaskProvider(command.db);
+    const tasks = new SqliteTaskProvider(command.db, { kind: 'system', id: 'local-host' });
     let agents: SqliteAgentRepository | undefined,
       rooms: SqliteRoomRepository | undefined,
       approvals: SqliteApprovalStore | undefined,
@@ -1067,7 +1067,7 @@ export async function runTaskCommand(
   }
   if (command.action.kind === 'sync-linear') {
     const mapping = linearTaskMapping();
-    const provider = new SqliteTaskProvider(command.db);
+    const provider = new SqliteTaskProvider(command.db, { kind: 'system', id: 'local-host' });
     try {
       const agents = new SqliteAgentRepository(command.db);
       try {
@@ -1100,7 +1100,7 @@ export async function runTaskCommand(
       { actorId: 'linear:host', reference: 'linear:read', environmentVariable: 'LINEAR_API_KEY' },
     ]);
     const id = command.action.id;
-    const provider = new SqliteTaskProvider(command.db);
+    const provider = new SqliteTaskProvider(command.db, { kind: 'system', id: 'local-host' });
     try {
       const result =
         command.action.kind === 'refresh-linear'
@@ -1128,7 +1128,7 @@ export async function runTaskCommand(
     command.action.kind === 'provider-artifact'
   )
     throw new Error('Core update requires provider');
-  const provider = new SqliteTaskProvider(command.db);
+  const provider = new SqliteTaskProvider(command.db, { kind: 'system', id: 'local-host' });
   try {
     const action = command.action;
     let result: unknown;

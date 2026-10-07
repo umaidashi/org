@@ -1,0 +1,28 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/daemon-cli.test.ts:
+68 |     const audit = run(['logs', '--task', task.id, '--json']);
+69 |     assert.equal(audit.status, 0, audit.stderr);
+70 |     const operations = JSON.parse(audit.stdout) as { tool: string; actor: unknown; eventId: string | null }[];
+71 |     const adoption = operations.filter((entry) => entry.tool === 'task.adopt');
+72 |     assert.equal(adoption.length, 1);
+73 |     assert.deepEqual(adoption[0]?.actor, { kind: 'system', id: 'core' });
+                ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
++   id: 'unspecified',
+-   id: 'core',
+    kind: 'system'
+  }
+
+      at innerFail (node:assert:36:32)
+      at deepStrictEqual (node:assert:134:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/daemon-cli.test.ts:73:12)
+(fail) daemon once creates assigned ExecutionTask and restart does not duplicate or reassign it [294.37ms]
+(pass) two concurrent CLI workers create only one Task and two original history snapshots [295.93ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [650.00ms]

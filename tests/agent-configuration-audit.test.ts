@@ -14,7 +14,7 @@ test('Agent registration and reporting changes expose immutable Audit with atomi
     collectAudit(
       { list: () => [] },
       agents,
-      { list: () => [], history: () => [] },
+      { list: () => [], history: () => [], operationHistory: () => [] },
       { list: () => [] },
       { operationHistory: () => [] },
       { operationHistory: () => [] },
@@ -68,7 +68,7 @@ test('Agent registration and reporting changes expose immutable Audit with atomi
         collectAudit(
           { list: () => [] },
           migrated,
-          { list: () => [], history: () => [] },
+          { list: () => [], history: () => [], operationHistory: () => [] },
           { list: () => [] },
           { operationHistory: () => [] },
           { operationHistory: () => [] },
@@ -100,7 +100,7 @@ test('same-timestamp Agent configuration Audit retains numeric reporting chronol
     const audit = collectAudit(
       { list: () => [] },
       agents,
-      { list: () => [], history: () => [] },
+      { list: () => [], history: () => [], operationHistory: () => [] },
       { list: () => [] },
       { operationHistory: () => [] },
       { operationHistory: () => [] },

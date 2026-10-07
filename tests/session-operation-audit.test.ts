@@ -60,7 +60,7 @@ test('same-time Session Audit preserves create and repeated Runtime chronology',
     const records = collectAudit(
       { list: () => [] },
       { configurationHistory: () => [], capabilityHistory: () => [] },
-      { list: () => [], history: () => [] },
+      { list: () => [], history: () => [], operationHistory: () => [] },
       { list: () => [] },
       { operationHistory: () => [] },
       store,
@@ -231,7 +231,7 @@ test('Task-filtered Audit retains cancellation and restart recovery terminal out
     const records = collectAudit(
       { list: () => [] },
       { configurationHistory: () => [], capabilityHistory: () => [] },
-      { list: () => [], history: () => [] },
+      { list: () => [], history: () => [], operationHistory: () => [] },
       { list: () => [] },
       { operationHistory: () => [] },
       store,

@@ -1,3 +1,5 @@
+import type { AuditActor, AuditEntry } from '../audit/domain.js';
+import type { TaskOperationContext, TaskOperationReader } from './port.js';
 import { isDeepStrictEqual } from 'node:util';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -58,15 +60,22 @@ function decode(raw: unknown): Task {
     updatedAt: text(value.updatedAt),
   };
 }
-export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, TaskReviewWriter {
+export class SqliteTaskProvider
+  implements TaskProvider, IdempotentTaskWriter, TaskReviewWriter, TaskOperationReader
+{
   private readonly db: Database;
-  constructor(path: string) {
+  constructor(
+    path: string,
+    private readonly auditActor: AuditActor = { kind: 'system', id: 'unspecified' },
+    private readonly auditNow: () => string = () => new Date().toISOString(),
+  ) {
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
     this.db = new Database(path, { create: true });
     this.db.exec('PRAGMA busy_timeout = 5000');
     try {
       this.db
-        .exec(`CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY, version INTEGER NOT NULL, data TEXT NOT NULL);
+        .exec(`CREATE TABLE IF NOT EXISTS task_operation_history (sequence INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT NOT NULL CHECK(json_valid(data)));
+        CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY, version INTEGER NOT NULL, data TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS task_history (task_id TEXT NOT NULL, version INTEGER NOT NULL, status TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(task_id, version));
         CREATE TABLE IF NOT EXISTS task_comments (task_id TEXT NOT NULL, id TEXT PRIMARY KEY, body TEXT NOT NULL, actor TEXT NOT NULL, created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS task_artifacts (task_id TEXT NOT NULL, id TEXT NOT NULL, uri TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(task_id, id));
@@ -74,6 +83,7 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
         CREATE TRIGGER IF NOT EXISTS task_history_no_update BEFORE UPDATE ON task_history BEGIN SELECT RAISE(ABORT, 'Task history is immutable'); END;
         CREATE TRIGGER IF NOT EXISTS task_history_no_delete BEFORE DELETE ON task_history BEGIN SELECT RAISE(ABORT, 'Task history is immutable'); END;`);
       for (const [table, key] of [
+        ['task_operation_history', 'sequence=NEW.sequence'],
         ['task_history', 'task_id=NEW.task_id AND version=NEW.version'],
         ['task_artifacts', 'task_id=NEW.task_id AND id=NEW.id'],
         ['task_comments', 'id=NEW.id'],
@@ -83,7 +93,12 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
           WHEN EXISTS(SELECT 1 FROM ${table} WHERE rowid=NEW.rowid OR (${key}))
           BEGIN SELECT RAISE(ABORT, 'Task original is immutable'); END;`);
       }
-      for (const table of ['task_comments', 'task_artifacts', 'task_reviews']) {
+      for (const table of [
+        'task_comments',
+        'task_artifacts',
+        'task_reviews',
+        'task_operation_history',
+      ]) {
         for (const operation of ['UPDATE', 'DELETE']) {
           this.db.exec(`CREATE TRIGGER IF NOT EXISTS ${table}_no_${operation.toLowerCase()}
             BEFORE ${operation} ON ${table} BEGIN SELECT RAISE(ABORT, 'Task original is immutable'); END;`);
@@ -115,6 +130,52 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
       )
       .run(task.id, task.version, task.status, JSON.stringify(task));
   }
+  private versionRef(task: Task): string {
+    return `org://tasks/${encodeURIComponent(task.id)}/versions/${task.version}`;
+  }
+  private appendOperation(
+    tool: string,
+    task: Task,
+    inputRef: string,
+    outputRef: string,
+    context: TaskOperationContext = {},
+  ): void {
+    const actor = context.actor ?? this.auditActor;
+    const at = this.auditNow();
+    if (
+      !['human', 'agent', 'system'].includes(actor.kind) ||
+      !actor.id.trim() ||
+      actor.id.includes('\0') ||
+      actor.id.length > 128 ||
+      !Number.isFinite(new Date(at).getTime()) ||
+      new Date(at).toISOString() !== at ||
+      (context.eventId !== undefined && (!context.eventId.trim() || context.eventId.includes('\0')))
+    )
+      throw new Error('Invalid Task Audit actor/timestamp/context');
+    const entry: Omit<AuditEntry, 'id'> = {
+      actor,
+      taskId: task.id,
+      eventId: context.eventId ?? null,
+      tool,
+      inputRef,
+      outputRef,
+      at,
+      result: 'succeeded',
+      approvalId: null,
+    };
+    this.db.query('INSERT INTO task_operation_history(data) VALUES (?)').run(JSON.stringify(entry));
+  }
+  operationHistory(): readonly AuditEntry[] {
+    return this.db
+      .query<{ sequence: number; data: string }, []>(
+        'SELECT sequence,data FROM task_operation_history ORDER BY sequence',
+      )
+      .all()
+      .map((row) => {
+        const id = `task:operation:${String(row.sequence).padStart(16, '0')}`;
+        return { ...(JSON.parse(row.data) as Omit<AuditEntry, 'id'>), id, causalId: id };
+      });
+  }
   create(task: Task): void {
     this.transaction(() => {
       this.validateReferences(task);
@@ -124,6 +185,7 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
         )
         .run(task.id, task.version, JSON.stringify(task));
       this.append(task);
+      this.appendOperation('task.create', task, this.versionRef(task), this.versionRef(task));
     });
   }
   importWorkItemOnce(task: Task): Task {
@@ -156,10 +218,11 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
         .query('INSERT INTO tasks(id, version, data) VALUES (?, ?, ?)')
         .run(task.id, task.version, JSON.stringify(task));
       this.append(task);
+      this.appendOperation('task.import', task, this.versionRef(task), this.versionRef(task));
       return task;
     });
   }
-  createAssignedOnce(task: Task, owner: string, at: string): Task {
+  createAssignedOnce(task: Task, owner: string, at: string, context?: TaskOperationContext): Task {
     if (task.status !== 'pending' || task.owner !== null || task.version !== 0)
       throw new Error('Idempotent creation requires a new pending Task');
     const assigned = changeTask(task, { owner }, at);
@@ -188,6 +251,13 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
         .query('UPDATE tasks SET version=?, data=? WHERE id=?')
         .run(assigned.version, JSON.stringify(assigned), task.id);
       this.append(assigned);
+      this.appendOperation(
+        'task.adopt',
+        assigned,
+        this.versionRef(task),
+        this.versionRef(assigned),
+        context,
+      );
       return assigned;
     });
   }
@@ -211,6 +281,7 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
         )
         .run(task.version, JSON.stringify(task), id);
       this.append(task);
+      this.appendOperation('task.update', task, this.versionRef(current), this.versionRef(task));
       return task;
     });
   }
@@ -232,6 +303,7 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
         .query('UPDATE tasks SET version=?, data=? WHERE id=?')
         .run(task.version, JSON.stringify(task), task.id);
       this.append(task);
+      this.appendOperation('task.sync', task, this.versionRef(current), this.versionRef(task));
       return task;
     });
   }
@@ -275,6 +347,12 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
       this.db
         .query('INSERT INTO task_reviews(id,task_id,task_version,data) VALUES(?,?,?,?)')
         .run(planned.id, planned.taskId, planned.taskVersion, JSON.stringify(planned));
+      this.appendOperation(
+        'task.review',
+        task,
+        `org://tasks/${encodeURIComponent(task.id)}/reviews/${encodeURIComponent(planned.id)}`,
+        this.versionRef(task),
+      );
       return task;
     });
   }
@@ -333,6 +411,12 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
           'INSERT INTO task_comments (task_id, id, body, actor, created_at) VALUES (?, ?, ?, ?, ?)',
         )
         .run(id, comment.id, comment.body, comment.actor, comment.createdAt);
+      this.appendOperation(
+        'task.comment',
+        current,
+        this.versionRef(current),
+        `org://tasks/${encodeURIComponent(id)}/comments/${encodeURIComponent(comment.id)}`,
+      );
     });
   }
   comments(id: string): readonly TaskComment[] {
@@ -371,6 +455,12 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
         )
         .run(task.version, JSON.stringify(task), id);
       this.append(task);
+      this.appendOperation(
+        'task.artifact.link',
+        task,
+        this.versionRef(current),
+        this.versionRef(task),
+      );
       return task;
     });
   }
@@ -394,6 +484,12 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
         .run(ready.version, JSON.stringify(ready), id);
       this.append(linked);
       this.append(ready);
+      this.appendOperation(
+        'task.result.stage',
+        ready,
+        this.versionRef(current),
+        this.versionRef(ready),
+      );
       return ready;
     });
   }

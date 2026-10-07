@@ -57,7 +57,7 @@ test('Room Audit preserves Task actor, immutable configuration snapshots and rol
     collectAudit(
       { list: () => [] },
       { configurationHistory: () => [], capabilityHistory: () => [] },
-      { list: () => [], history: () => [] },
+      { list: () => [], history: () => [], operationHistory: () => [] },
       { list: () => [] },
       { operationHistory: () => [] },
       { operationHistory: () => [] },

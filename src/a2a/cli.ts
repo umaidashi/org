@@ -91,7 +91,7 @@ export function runA2ACommand(command: A2ACommand, output: (line: string) => voi
   let tasks: SqliteTaskProvider | undefined;
   let agents: SqliteAgentRepository | undefined;
   try {
-    tasks = new SqliteTaskProvider(command.db);
+    tasks = new SqliteTaskProvider(command.db, { kind: 'system', id: 'local-host' });
     let result: unknown;
     if (command.action === 'adopt') {
       agents = new SqliteAgentRepository(command.db);

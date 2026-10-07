@@ -39,32 +39,36 @@ test('Audit CLI reopens atomically saved Task execution history and includes its
     );
     assert.equal(result.status, 0, result.stderr);
     const entries: unknown = JSON.parse(result.stdout);
-    assert.deepEqual(entries, [
-      {
-        id: `task:t:${running.version}`,
-        actor: { kind: 'agent', id: 'a' },
-        taskId: 't',
-        eventId: null,
-        tool: 'task.execution',
-        inputRef: `org://tasks/t/versions/${assigned.version}`,
-        outputRef: `org://tasks/t/versions/${running.version}`,
-        at: '2',
-        result: 'started',
-        approvalId: null,
-      },
-      {
-        id: `task:t:${ready.version}`,
-        actor: { kind: 'agent', id: 'a' },
-        taskId: 't',
-        eventId: null,
-        tool: 'task.execution',
-        inputRef: `org://tasks/t/versions/${ready.version - 1}`,
-        outputRef: `org://tasks/t/versions/${ready.version}`,
-        at: '3',
-        result: 'succeeded',
-        approvalId: null,
-      },
-    ]);
+    assert.ok(Array.isArray(entries));
+    assert.deepEqual(
+      entries.filter((entry) => entry.tool === 'task.execution'),
+      [
+        {
+          id: `task:t:${running.version}`,
+          actor: { kind: 'agent', id: 'a' },
+          taskId: 't',
+          eventId: null,
+          tool: 'task.execution',
+          inputRef: `org://tasks/t/versions/${assigned.version}`,
+          outputRef: `org://tasks/t/versions/${running.version}`,
+          at: '2',
+          result: 'started',
+          approvalId: null,
+        },
+        {
+          id: `task:t:${ready.version}`,
+          actor: { kind: 'agent', id: 'a' },
+          taskId: 't',
+          eventId: null,
+          tool: 'task.execution',
+          inputRef: `org://tasks/t/versions/${ready.version - 1}`,
+          outputRef: `org://tasks/t/versions/${ready.version}`,
+          at: '3',
+          result: 'succeeded',
+          approvalId: null,
+        },
+      ],
+    );
   } finally {
     tasks.close();
     rmSync(dir, { recursive: true, force: true });

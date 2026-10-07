@@ -32,7 +32,13 @@ test('receipt failure after Task success retries the same identity through injec
   );
   const ids: string[] = [];
   const taskWriter = {
-    createAssignedOnce: (task: import('../src/tasks/domain.js').Task) => {
+    createAssignedOnce: (
+      task: import('../src/tasks/domain.js').Task,
+      _owner: string,
+      _at: string,
+      context?: import('../src/tasks/port.js').TaskOperationContext,
+    ) => {
+      assert.deepEqual(context, { eventId: 'e' });
       ids.push(task.id);
       return task;
     },

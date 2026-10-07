@@ -1,0 +1,38 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-service.test.ts:
+(pass) A2A service verifies Agent and Task references before writing through the injected Room port [0.65ms]
+(pass) A2A reading leaves ordinary Room messages alone and rejects a malformed reserved envelope
+(pass) A2A reading validates referenced Tasks instead of trusting arbitrary reserved metadata [0.45ms]
+(pass) A2A reading rejects a reply whose correlation differs from its source [0.12ms]
+(pass) delegate requires an explicit sender capability before persisting Room evidence [0.19ms]
+(pass) typed delegation creates an assigned target Task from immutable source without reassigning an advanced Task [0.41ms]
+(pass) delegation result polling returns staged artifacts once and retries only the Room write after failure [1.36ms]
+
+tests/task-cli.test.ts:
+(pass) work item and internal execution task persist separately with parent and assignment history [485.54ms]
+(pass) invalid transitions and references leave persistent task and history unchanged [518.84ms]
+(pass) dependencies and cycles are enforced across independent CLI processes [439.86ms]
+(pass) task comments and output artifacts can be written and retrieved via separate CLI processes [282.92ms]
+(pass) task parser rejects malformed options before touching storage [362.24ms]
+(pass) failed tasks retain their original history and reject subsequent state changes [227.09ms]
+(pass) mistaken dependencies and parent links can be removed to unblock a task [322.82ms]
+
+tests/task-audit-cli.test.ts:
+(pass) Audit CLI reopens atomically saved Task execution history and includes its result snapshot [72.31ms]
+
+tests/task-review-cli.test.ts:
+(pass) daemon CLI reviews the observed result once and preserves the decision across reopen [889.58ms]
+
+tests/daemon-service.test.ts:
+(pass) pure delivery identity is stable and unambiguous, and disabled subscriptions do not dispatch [0.57ms]
+(pass) receipt failure after Task success retries the same identity through injected Ports
+(pass) independent polling stages continue after failure and preserve errors [0.27ms]
+
+tests/task-operation-audit.test.ts:
+(pass) Task mutation Audit reuses originals and preserves writer, real clock and operation order [1.36ms]
+(pass) Task Audit is atomic, immutable, persistent, and idempotent import/adoption/sync adds no replay [18.59ms]
+
+ 21 pass
+ 0 fail
+Ran 21 tests across 6 files. [3.68s]

@@ -2019,3 +2019,22 @@
 - 継続時の旧process 23080はUnknown process id。保存済み最終出力は527成功21skip0失敗548tests215files159.01秒、実Jev2426対象147reported/missing・unsure・review・errors 0だが、この観測だけをterminal0へ置換しない。固定treeで全check/実Jevを再実行し終了コードを確認する。
 
 - 固定tree再実行terminal0: 全check527成功21skip0失敗548tests215files167.37秒。実Jev2426対象147reported、missing/unsure/review/errors/degraded 0。[最終証拠](verification/2026-10-07-room-operation-audit/)へ保存。確認用sedの不正range読取は失敗し、JSON parseで集計を確認。変更対象を含む検査は実行済み。
+
+## 2026-10-08 — Task重要操作Audit
+
+- 前Room 1847621のmain通常push terminal0、pre-push190.52秒、local/remote main一致を確認。Taskは別feat/task-operation-auditで継続。[計画](superpowers/plans/2026-10-08-task-operation-audit.md)。Notion08の重要操作8項目をMCP再取得して照合。今回の前fetch cacheは比較根拠不足、sameBody falseを改訂発見とは扱わない。原文・秘密値は新Git/Jev対象へ出さない。
+- writerをcreate/import/adopt/update/sync/comment/artifact/result-stage/review、CLI/daemon/A2A/Sandboxまで追跡。RED0成功1失敗31ms、Task操作Reader未実装。初期GREEN1成功31ms。
+- Ruling: Actorは実writer Core/local-hostと、型が分かるA2A送信Agentを保存 — comment/review.actor scalarからhuman kindを推測できない — 人間本人認証を別保証として扱う必要がある。Event配送は実Event IDをtyped contextで保持。時計は保存時刻DIで、Task過去createdAtや宣言comment時刻を実操作時刻として偽装しない。
+- 既存Task history/comment/review URIを参照し本文/snapshotを新tableへ複製しない。全新規成功writerは同transaction不変metadataへ接続。idempotent import/adopt/sync no-opは追加しない。内部2versionでも一操作。既存task.execution投影は維持。mandatory Readerのfake7箇所を型check失敗で確認して更新。
+- 初期shared17成功4files88ms。指定した存在しないtask-client-sqlite.test.tsはrunner対象にならず、4files結果を5filesとしない。実ファイル一覧へ戻りnativeを選択。native初回9成功1失敗はaudit list未対応--taskというfixture誤り、既存logs --taskへ修正し15成功6files5.95秒。stage rollback追加fixtureがwork_itemでguard拒否した点はexecution_taskへ修正、product差分なし。
+- 親Ponytail: readonly Approval/RoomのTask ctor Actor変更を削除。writer constructor DI/共有transaction/stdlib padStart/既存原本の再利用、汎用Audit engine/dependencyなし。fresh review・全gateはこれから、全体未達。
+
+- 固定前targeted21成功6files3.68秒、static373files。legacy原本に架空主体backfillなし、同時刻順序、不変replace/update/delete/reopen、create/update/comment/artifact/stage/reviewのAudit保存障害rollback、明示A2A Actorと配送Event IDを検証。
+- Fresh reviewer C0/I1/M0、独立12成功3files59ms。Important: daemon --onceのTask ctor1035だけActor DI漏れで既知writerがsystem/unspecified保存される。実CLI RED1成功1失敗650ms→共有入口1line DI修正→23成功7files4.60秒。採用理由は実controller由来の監査欠落、one fixpass/no rereview。reviewer初回agent create未対応--jsonはfixture失敗、修正後の実反例と区別。
+- Ponytail: Lean/net0。未知human/認証、failed試行独立Audit、trusted DB改ざん防止や実Runtime証明を新保証へ広げる案はdeclined、今回のcontroller metadataと別境界。Minorなし。全check/実Jevを固定treeで実行中。[証拠](verification/2026-10-08-task-operation-audit/)。
+- 次の[Event/Schedule計画](superpowers/plans/2026-10-08-event-schedule-operation-audit.md): Event原本だけではwriter 8field metadataなし、Subscription.enabledとSchedule.enabledの変更履歴なし。実writer棚卸しを継続。全体未達。
+- 初回全gate terminal1: 520成功21skip9失敗550tests216files165.86秒。Linear comment5/Artifact4の旧Audit全列期待に、新規task.import/Artifact linkが含まれず失敗。既存Linear操作の順序/一回送信/秘密非露出/不変原本assertionを保持し、新規操作も明示列へ追加。product変更や曖昧filterで除外しない。失敗出力をbefore-expectation-update-check.txtへ保存。再レビューなし、修正済み固定treeを再gateする。
+- Linear期待更新の初回単独実行4成功5失敗7.97秒: comment fixtureはimportでなく既存create writerだった。初回全出力のArtifact側だけを見てcommentもimportと決めた読取誤りを訂正し、commentはtask.createを期待。実writerと出力に合わせ、productコードは変更しない。
+- Linearの正しい列へ更新後、9成功2files6.89秒/terminal0。新規Task操作を含め全列を照合し、既存不明結果/receipt/claim障害・一回送信・原本/秘密非露出を維持。最終固定tree全gateを再実行中。
+
+- 最終固定tree全gate terminal0: 529成功21skip0失敗550tests216files169.94秒、static373files。実Jev2431対象147reported/missing・unsure・review 0/errors・degraded空。Task writer/Reader/追加UTに新指摘なし。全結果を証拠へ保存。Event/Subscription/Scheduleと実業務受入は残件、全体未達。

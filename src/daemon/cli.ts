@@ -312,7 +312,7 @@ function openOperations(
     schedules = scheduleRepository;
     const agentRepository = new SqliteAgentRepository(db);
     agents = agentRepository;
-    const taskProvider = new SqliteTaskProvider(db);
+    const taskProvider = new SqliteTaskProvider(db, { kind: 'system', id: 'core' });
     tasks = taskProvider;
     const roomRepository = new SqliteRoomRepository(db, { kind: 'system', id: 'core' });
     rooms = roomRepository;
@@ -1032,7 +1032,7 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
       schedules = new SqliteScheduleRepository(command.db);
       pollSchedules(schedules, events, () => Date.now());
       agents = new SqliteAgentRepository(command.db);
-      tasks = new SqliteTaskProvider(command.db);
+      tasks = new SqliteTaskProvider(command.db, { kind: 'system', id: 'core' });
       result = dispatchEvents(events, agents, tasks, journal);
     }
     console.log(JSON.stringify(result, null, command.json ? undefined : 2));

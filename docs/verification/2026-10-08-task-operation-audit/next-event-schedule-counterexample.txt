@@ -1,0 +1,1 @@
+{"events":1,"subscriptionEnabled":false,"scheduleEnabled":false,"eventAuditReader":false,"scheduleAuditReader":false}

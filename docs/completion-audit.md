@@ -236,3 +236,7 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 ## 2026-10-08 Room重要操作Audit
 
 [証拠](verification/2026-10-07-room-operation-audit/): create/初回archiveの原子不変8field記録、既存Message原本投影、Task関連、Actor DI、rollback/no-op/reopen/legacy境界を実CLIと全gateで検証。527成功21skip0失敗、実Jev2426対象、fresh review C0/I0/M0。Task CRUD/review、Event/Subscription/Scheduleと実業務API受入は残件、全体未達。
+
+## 2026-10-08 Task重要操作Audit
+
+[証拠](verification/2026-10-08-task-operation-audit/): 新規成功Task更新9経路の原子不変metadata、既存原本URI、実writer/clock、明示A2A Actor/Event ID、no-op/rollback/reopen/legacy境界を実CLIで検証。fresh C0/I1/M0、daemon --once Actor漏れをRED→一fixpass→GREEN、再レビューなし。529成功21skip0失敗、実Jev2431対象で不完全判定なし。Event/Subscription/Schedule、実API業務受入と全体は未達。

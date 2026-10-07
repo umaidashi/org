@@ -128,7 +128,7 @@ export async function runSandboxCommand(
   let agents: SqliteAgentRepository | undefined;
   let rooms: SqliteRoomRepository | undefined;
   try {
-    tasks = new SqliteTaskProvider(command.db);
+    tasks = new SqliteTaskProvider(command.db, { kind: 'system', id: 'local-host' });
     agents = new SqliteAgentRepository(command.db);
     const task = tasks.get(command.taskId);
     const agent = agents.list().find((a) => a.id === task.owner);

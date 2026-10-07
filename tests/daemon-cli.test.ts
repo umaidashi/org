@@ -65,6 +65,19 @@ test('daemon once creates assigned ExecutionTask and restart does not duplicate 
     assert.equal(task.status, 'assigned');
     assert.equal(task.owner, agent);
     assert.equal(receipts[0]?.taskId, task.id);
+    const audit = run(['logs', '--task', task.id, '--json']);
+    assert.equal(audit.status, 0, audit.stderr);
+    const operations = JSON.parse(audit.stdout) as {
+      tool: string;
+      actor: unknown;
+      eventId: string | null;
+    }[];
+    const adoption = operations.filter((entry) => entry.tool === 'task.adopt');
+    assert.equal(adoption.length, 1);
+    assert.deepEqual(adoption[0]?.actor, { kind: 'system', id: 'core' });
+    assert.ok(adoption[0]?.eventId);
+    assert.equal(run(['daemon', '--once', '--json']).status, 0);
+    assert.equal(run(['logs', '--task', task.id, '--json']).stdout, audit.stdout);
     assert.equal(run(['task', 'update', task.id, '--status', 'running']).status, 0);
     const history = run(['task', 'history', task.id, '--json']).stdout;
     result = run(['daemon', '--once', '--json']);

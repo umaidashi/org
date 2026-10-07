@@ -143,6 +143,21 @@ test('daemon CLI reviews the observed result once and preserves the decision acr
     assert.equal(first.taskVersion, 5);
     assert.deepEqual(first.outputArtifacts, ['output']);
     const sourceUri = 'org://tasks/task/reviews/' + encodeURIComponent(first.id);
+    const audit = spawnSync(
+      process.execPath,
+      ['--no-env-file', cli, '--direct', '--db', db, 'logs', '--task', 'task', '--json'],
+      { encoding: 'utf8', timeout: 5000 },
+    );
+    assert.equal(audit.status, 0, audit.stderr);
+    const operations = JSON.parse(audit.stdout) as {
+      tool: string;
+      actor: unknown;
+      inputRef: string;
+    }[];
+    const reviews = operations.filter((entry) => entry.tool === 'task.review');
+    assert.equal(reviews.length, 1);
+    assert.deepEqual(reviews[0]?.actor, { kind: 'system', id: 'local-host' });
+    assert.equal(reviews[0]?.inputRef, sourceUri);
     const capture = spawnSync(
       process.execPath,
       [

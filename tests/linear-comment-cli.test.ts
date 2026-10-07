@@ -246,6 +246,7 @@ test.each(['success', 'unknown', 'receipt-failure', 'claim-failure', 'terminal-f
           return entry.tool;
         }),
         [
+          'task.create',
           'linear.comment.request',
           'approval.decide',
           'linear.comment',

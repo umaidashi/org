@@ -70,6 +70,7 @@ export function dispatchEvents(
       plan.task,
       plan.subscription.subscriberId,
       plan.event.createdAt,
+      { eventId: plan.event.id },
     );
     return journal.complete(plan.key, task.id);
   });

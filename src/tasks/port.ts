@@ -1,3 +1,4 @@
+import type { AuditActor, AuditEntry } from '../audit/domain.js';
 import type {
   Task,
   TaskKind,
@@ -8,7 +9,7 @@ import type {
   WorkItem,
 } from './domain.js';
 export interface IdempotentTaskWriter {
-  createAssignedOnce(task: Task, owner: string, at: string): Task;
+  createAssignedOnce(task: Task, owner: string, at: string, context?: TaskOperationContext): Task;
 }
 export interface TaskFilter {
   readonly kind?: TaskKind;
@@ -75,4 +76,12 @@ export interface WorkItemSynchronizer {
     at: string,
     relations?: Pick<TaskPatch, 'parentId' | 'dependencies'>,
   ): Task;
+}
+
+export interface TaskOperationContext {
+  readonly actor?: AuditActor;
+  readonly eventId?: string;
+}
+export interface TaskOperationReader {
+  operationHistory(): readonly AuditEntry[];
 }

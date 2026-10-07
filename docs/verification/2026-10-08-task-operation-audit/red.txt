@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-operation-audit.test.ts:
+11 |     store.update('task', { owner: 'agent' }, at);
+12 |     store.addComment('task', { id: 'comment', actor: 'declared', body: 'private body', createdAt: at });
+13 |     store.update('task', { status: 'running' }, at);
+14 |     const ready = store.stageExecutionResult('task', { id: 'result', uri: 'org://synthetic/result', createdAt: at }, 2);
+15 |     store.recordReview(planTaskReview(ready, { actor: 'declared', decision: 'approve', reason: 'private body', expectedVersion: ready.version }, { id: 'review', createdAt: at }));
+16 |     const entries = store.operationHistory();
+                               ^
+TypeError: store.operationHistory is not a function. (In 'store.operationHistory()', 'store.operationHistory' is undefined)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/task-operation-audit.test.ts:16:27)
+(fail) Task mutation Audit reuses originals and preserves writer, real clock and operation order [5.83ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [31.00ms]

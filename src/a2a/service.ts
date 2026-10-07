@@ -106,7 +106,9 @@ export function delegateA2ATask(
     ),
     externalRef: `org://rooms/${envelope.roomId}/messages/${envelope.id}`,
   };
-  return tasks.createAssignedOnce(task, envelope.to, envelope.createdAt);
+  return tasks.createAssignedOnce(task, envelope.to, envelope.createdAt, {
+    actor: { kind: 'agent', id: envelope.from },
+  });
 }
 
 export async function pollDelegationResults(

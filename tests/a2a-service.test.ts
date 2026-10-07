@@ -207,7 +207,9 @@ test('typed delegation creates an assigned target Task from immutable source wit
       task: import('../src/tasks/domain.js').Task,
       owner: string,
       at: string,
+      context?: import('../src/tasks/port.js').TaskOperationContext,
     ) => {
+      assert.deepEqual(context, { actor: { kind: 'agent', id: 'chief' } });
       writes++;
       planned.push(task);
       assert.equal(owner, 'cto');

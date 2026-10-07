@@ -1,0 +1,42 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/a2a-service.test.ts:
+(pass) A2A service verifies Agent and Task references before writing through the injected Room port [0.68ms]
+(pass) A2A reading leaves ordinary Room messages alone and rejects a malformed reserved envelope [0.16ms]
+(pass) A2A reading validates referenced Tasks instead of trusting arbitrary reserved metadata [0.21ms]
+(pass) A2A reading rejects a reply whose correlation differs from its source [0.12ms]
+(pass) delegate requires an explicit sender capability before persisting Room evidence [0.20ms]
+(pass) typed delegation creates an assigned target Task from immutable source without reassigning an advanced Task [0.45ms]
+(pass) delegation result polling returns staged artifacts once and retries only the Room write after failure [1.36ms]
+
+tests/task-cli.test.ts:
+(pass) work item and internal execution task persist separately with parent and assignment history [482.21ms]
+(pass) invalid transitions and references leave persistent task and history unchanged [508.48ms]
+(pass) dependencies and cycles are enforced across independent CLI processes [418.29ms]
+(pass) task comments and output artifacts can be written and retrieved via separate CLI processes [272.11ms]
+(pass) task parser rejects malformed options before touching storage [365.51ms]
+(pass) failed tasks retain their original history and reject subsequent state changes [228.53ms]
+(pass) mistaken dependencies and parent links can be removed to unblock a task [322.47ms]
+
+tests/task-audit-cli.test.ts:
+(pass) Audit CLI reopens atomically saved Task execution history and includes its result snapshot [73.88ms]
+
+tests/daemon-cli.test.ts:
+(pass) daemon once creates assigned ExecutionTask and restart does not duplicate or reassign it [663.66ms]
+(pass) two concurrent CLI workers create only one Task and two original history snapshots [307.65ms]
+
+tests/task-review-cli.test.ts:
+(pass) daemon CLI reviews the observed result once and preserves the decision across reopen [896.16ms]
+
+tests/daemon-service.test.ts:
+(pass) pure delivery identity is stable and unambiguous, and disabled subscriptions do not dispatch [0.39ms]
+(pass) receipt failure after Task success retries the same identity through injected Ports
+(pass) independent polling stages continue after failure and preserve errors [0.64ms]
+
+tests/task-operation-audit.test.ts:
+(pass) Task mutation Audit reuses originals and preserves writer, real clock and operation order [1.54ms]
+(pass) Task Audit is atomic, immutable, persistent, and idempotent import/adoption/sync adds no replay [16.17ms]
+
+ 23 pass
+ 0 fail
+Ran 23 tests across 7 files. [4.60s]

@@ -249,7 +249,14 @@ test.each(['success', 'unknown', 'claim-failure', 'receipt-failure'])(
           assert.ok(record(entry));
           return entry.tool;
         }),
-        ['linear.artifact.request', 'approval.decide', 'linear.artifact', 'linear.artifact'],
+        [
+          'task.import',
+          'task.artifact.link',
+          'linear.artifact.request',
+          'approval.decide',
+          'linear.artifact',
+          'linear.artifact',
+        ],
       );
       const last: unknown = audit.at(-1);
       assert.ok(record(last));

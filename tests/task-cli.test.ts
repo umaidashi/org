@@ -154,6 +154,21 @@ test('task comments and output artifacts can be written and retrieved via separa
   const artifacts = run(['task', 'artifacts', id(task), '--json']);
   assert.equal(artifacts.status, 0, artifacts.stderr);
   assert.match(artifacts.stdout, /file:\/\/\/tmp\/result.txt/);
+  const audit = run(['logs', '--task', id(task), '--json']);
+  assert.equal(audit.status, 0, audit.stderr);
+  const entries = JSON.parse(audit.stdout) as { tool: string; actor: unknown; outputRef: string }[];
+  assert.deepEqual(
+    entries.map((entry) => entry.tool),
+    ['task.create', 'task.comment', 'task.artifact.link'],
+  );
+  assert.ok(
+    entries.every(
+      (entry) =>
+        JSON.stringify(entry.actor) === JSON.stringify({ kind: 'system', id: 'local-host' }),
+    ),
+  );
+  assert.equal(entries[1]?.outputRef, `org://tasks/${id(task)}/comments/${String(comment.id)}`);
+  assert.equal(run(['logs', '--task', id(task), '--json']).stdout, audit.stdout);
 });
 
 test('task parser rejects malformed options before touching storage', () => {

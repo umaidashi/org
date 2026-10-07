@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-operation-audit.test.ts:
+(pass) Task mutation Audit reuses originals and preserves writer, real clock and operation order [5.22ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [31.00ms]
