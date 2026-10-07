@@ -1263,3 +1263,4 @@
 - 最終検証: `bun run check` exit 0、366 pass / 12 skip / 0 fail、378 tests / 178 files、97.86s。型・Oxlint/Oxfmt・ASTと非空のJev dry-runを含む。実Jev exit 0、1848 subjects / 115 advisory warnings、missing/unsure/review 0、errors/degradedなし。変更箇所の命名・失敗経路advisoryは原本照合と保存障害テストを確認し、全面的な障害保証や機械的renameは追加しない。
 - fresh最終レビュー: Critical/Important/Minor各0、独立対象テスト6 pass。Ponytail: Lean already. Ship. 既存Approval/Event/HTTP境界を再利用し、新規依存・table・frameworkを追加しない。再レビュー不要。
 - [検証証拠](verification/2026-10-07-approved-linear-existing-issue-comment/check.txt)と要件/MVP表を更新。実API送信・本人認証・Agent投稿・結果不明のstatus-only回収・実業務IssueからDraft PRの一周は未完了。全体目標は未達成、継続する。
+- Git記録: `ce76ce4`（native RED）→`4dce496`（実装/テスト/文書）。mainへfast-forwardし、通常push成功。pre-push commit対象検査114.15s成功。次は不明結果のstatus-only回収を設計し、投稿再送を追加しない。完了した当該planのscratch ledgerのみ削除。
