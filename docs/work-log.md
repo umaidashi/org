@@ -2038,3 +2038,26 @@
 - Linearの正しい列へ更新後、9成功2files6.89秒/terminal0。新規Task操作を含め全列を照合し、既存不明結果/receipt/claim障害・一回送信・原本/秘密非露出を維持。最終固定tree全gateを再実行中。
 
 - 最終固定tree全gate terminal0: 529成功21skip0失敗550tests216files169.94秒、static373files。実Jev2431対象147reported/missing・unsure・review 0/errors・degraded空。Task writer/Reader/追加UTに新指摘なし。全結果を証拠へ保存。Event/Subscription/Scheduleと実業務受入は残件、全体未達。
+
+## 2026-10-08 — Event・Subscription・Schedule重要操作Audit開始
+
+- 前Task ec847ec commit terminal0/pre-commit1.67秒/public1314files。mainへff済み、通常pushはpre-push実行中で成功未認定。次feat/event-schedule-operation-auditで[計画](superpowers/plans/2026-10-08-event-schedule-operation-audit.md)を開始。
+- 実adapterを追跡: Event publish/publishOnce、Subscription subscribe/setEnabled、Schedule create/setEnabled。Event原本は不変、Subscription enabledは可変、Schedule definitionは不変だがenabled履歴なし。共有transactionと不変原本URIを使い、新engineは作らない。
+- RED0成功2失敗26ms: 両operationHistory未実装。Event/SubscriptionとScheduleの別テストで未接続を確認。source実装はこれから。全体未達。
+- 前Task ec847ec main通常push terminal0/pre-push188.38秒、remote/local main一致を確認。
+- 初期GREEN2成功49ms。Event publicationは既存immutable org://events/IDを参照し本文を複製しない。Subscription変化は過去構成を操作frameへ、Scheduleはimmutable definition URI+enabled前後だけを保存。MAX(sequence)+1は同writer transaction/不変table内で採番し、固定frame URIとpadded operation IDによる同時刻順序を使う。
+- publish/publishOnceを共有private insertEventへ接続し、publishOnce transaction内でpublic publishの二重transactionを作らない。登録/enable変更とAuditは原子保存、publishOnce再送/同enabled値は新原本なし。Event/Schedule actual writer ctorへlocal-host/CoreをDI、payload文字列からhuman/Agent認証主体を推測しない。
+- mandatory Event/Schedule ReaderをcollectAuditへ、実Audit CLIはSchedule storeの所有/closeも明示。既存テストfakeを公開Port変更へ合わせ、optional空fallbackをproductへ入れない。型/static374files/実CLI5成功3files1.474秒 terminal0。create/publish/enable/disable/no-op/再読取/Core定期Event publicationを検証。
+- 親Ponytail: 既存SQLite transaction/immutable Event URIを使用、Schedule definition全文コピーなし、新dependency/汎用engineなし。保存障害/不変性/reopenの追加UT、fresh review/全gateは未実施で次に継続。全体未達。
+
+- 追加SQLite/native6成功3files1.480秒/terminal0。Event publish/publishOnce、Subscription create/change、Schedule create/changeのAudit INSERT障害で元状態/原本もrollback。immutable UPDATE/DELETE/REPLACE、legacy原本に推測Actor backfillなし、Subscription保存済みenabled前後、同時刻Schedule順序、別connection再openを確認。static374files、diff whitespace成功。fresh一review開始、source/test固定。
+- Fresh reviewer C0/I0/M1、独立6成功3files1.55秒/diff whitespace成功。全writer Actor DI/読取constructor・原子性・原本URI・CLI closeを確認。fixpassなし/再レビューなし。
+- Deferred Minor: Schedule frameのscheduleRef/前後enabledをDB JSONから直接assertする追加。現値はreviewで正しく、SQLite状態/metadata/reopen/rollbackはUT済みだがframe誤保存への直接テストは不足。この保証を強化する変更時に追加。production defectではなくC/Iへ格上げしない。
+- Ponytail candidate: src/events/sqlite.ts Subscription setEnabledの手書きBEGIN/COMMIT/ROLLBACKを既存db.transaction(work).immediate()へ寄せればnet -6lines。任意整理であり既存rollback/no-op検証が通るため今回はdefer。parentも新engine/汎用helperを追加しない判定。全gate実行中、結果を未確認で成功とは記載しない。
+- 初回全gate terminal1: 530成功21skip2失敗553tests217files161.24秒。Workflow Audit全件旧期待にevent.publish2件が追加されたため、publication2件の成功/実Actorを明示検証し、元Workflowのみ4列の期待・末尾のapproval/tool照合を維持。単独1成功410ms。Product metadataを削除しない。
+- 他失敗はtask-workflow-resume CLI障害注入fixtureが稼働daemonに対しbusy_timeoutなしでCREATE TRIGGERしSQLITE_BUSY。productionは既に5000ms待機、fixtureの同DB接続にも同設定を適用。実副作用/成果物/不明結果のproduct処理を変更せず、障害注入の到達を再検証する。途中結果を成功へ置換せず初回全出力保存。
+- Notion root/01/09をMCP再取得しAgent/Coordinator/A2A/MVP Phase1–6を照合。新raw本文はGit/Jevへ出さない。全体要件は保持し、候補NATS/RedisやGUIを未指定の追加必須へ膨張させない。
+- Workflow期待/障害注入待機を修正後、実CLI9成功2files18.93秒 terminal0。既存のauto/manual/crash/Artifact/stage障害/一回invokeとstatus-only再開を維持。固定tree最終全gateを再実行中、source/test追加変更なし。
+- .envは存在booleanだけ再確認: LINEAR_API_KEYなし/NOTION_API_KEYなし/TYPESAFE_API_KEYあり。値は出力・ログ・Git・Jevへ記録しない。connector実取得とproduct CLI REST認証は別、実業務Issue/変更repo指定を推測しない。
+
+- 最終固定tree全gate terminal0: 532成功21skip0失敗553tests217files167.31秒、static374files。実Jev2439対象146reported、missing/unsure/review 0/errors/degraded空。変更Event/Schedule writer/Reader/追加UTに新指摘なし。[最終証拠](verification/2026-10-08-event-schedule-operation-audit/)へ保存。

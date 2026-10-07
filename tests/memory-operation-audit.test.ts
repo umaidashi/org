@@ -30,8 +30,9 @@ test('Memory mutation Audit records actual actor/time, idempotency, immutable ro
       { list: () => [] },
       { configurationHistory: () => [], capabilityHistory: () => [] },
       { list: () => [], history: () => [], operationHistory: () => [] },
-      { list: () => [] },
+      { list: () => [], operationHistory: () => [] },
       store,
+      { operationHistory: () => [] },
       { operationHistory: () => [] },
       { operationHistory: () => [] },
     );

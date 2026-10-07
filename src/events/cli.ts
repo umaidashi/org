@@ -110,7 +110,7 @@ export async function runEventCommand(
   command: EventCommand,
   output: (line: string) => void = console.log,
 ): Promise<void> {
-  const bus = new SqliteEventBus(command.db);
+  const bus = new SqliteEventBus(command.db, { kind: 'system', id: 'local-host' });
   try {
     const identity = { id: randomUUID(), createdAt: new Date().toISOString() };
     let result: unknown;

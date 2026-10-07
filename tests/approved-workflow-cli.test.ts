@@ -116,14 +116,28 @@ test('native CLI invokes write Workflow only after exact human approval and neve
     assert.equal(invokes, 1);
     const audit = await json(['audit', 'list']);
     assert.ok(Array.isArray(audit));
+    const publications = audit.filter((entry: unknown) => {
+      assert.ok(record(entry));
+      return entry.tool === 'event.publish';
+    });
+    assert.equal(publications.length, 2);
+    for (const entry of publications) {
+      assert.ok(record(entry));
+      assert.equal(entry.result, 'succeeded');
+      assert.deepEqual(entry.actor, { kind: 'system', id: 'local-host' });
+    }
+    const workflowAudit = audit.filter((entry: unknown) => {
+      assert.ok(record(entry));
+      return entry.tool !== 'event.publish';
+    });
     assert.deepEqual(
-      audit.map((v: unknown) => {
+      workflowAudit.map((v: unknown) => {
         assert.ok(record(v));
         return v.result;
       }),
       ['pending', 'approved', 'pending', 'started'],
     );
-    const invoked: unknown = audit.at(-1);
+    const invoked: unknown = workflowAudit.at(-1);
     assert.ok(record(invoked));
     assert.equal(invoked.approvalId, request.id);
     assert.equal(invoked.tool, 'workflow.invoke');

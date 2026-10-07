@@ -69,7 +69,7 @@ export function parseScheduleCommand(argv: string[]): ScheduleCommand {
   throw new Error('Expected schedule create|list|get|enable|disable');
 }
 export function runScheduleCommand(command: ScheduleCommand, output: (line: string) => void): void {
-  const schedules = new SqliteScheduleRepository(command.db);
+  const schedules = new SqliteScheduleRepository(command.db, { kind: 'system', id: 'local-host' });
   try {
     const result =
       command.action === 'create'

@@ -1,0 +1,4688 @@
+$ bun --no-env-file scripts/review-semantic.ts
+{
+  "findings": [
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/domain.ts",
+      "line": 2,
+      "endLine": 7,
+      "value": 0.83,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.509,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/coordinator-claude-real.test.ts",
+      "line": 493,
+      "endLine": 497,
+      "value": 0.94,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.424,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/artifact.ts",
+      "line": 211,
+      "endLine": 306,
+      "value": 0.76,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.382,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/workflows/task-resume.ts",
+      "line": 44,
+      "endLine": 115,
+      "value": 0.76,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.382,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/lease.ts",
+      "line": 8,
+      "endLine": 24,
+      "value": 0.75,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.364,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/sandbox-docker.test.ts",
+      "line": 34,
+      "endLine": 48,
+      "value": 0.9,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.364,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/github-webhook.test.ts",
+      "line": 112,
+      "endLine": 114,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.327,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/agents/permissions.ts",
+      "line": 28,
+      "endLine": 72,
+      "value": 0.9,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.324,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/domain.ts",
+      "line": 2,
+      "endLine": 7,
+      "value": 0.9,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.324,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/approvals/domain.ts",
+      "line": 486,
+      "endLine": 497,
+      "value": 0.72,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.309,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/linear-work-item-sync.test.ts",
+      "line": 122,
+      "endLine": 125,
+      "value": 0.72,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.309,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/domain.ts",
+      "line": 31,
+      "endLine": 38,
+      "value": 0.89,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.309,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/memory-auto-extraction-cli.test.ts",
+      "line": 323,
+      "endLine": 327,
+      "value": 0.86,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.303,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/runtime/process.ts",
+      "line": 17,
+      "endLine": 127,
+      "value": 0.88,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.294,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/local-hooks.test.ts",
+      "line": 149,
+      "endLine": 160,
+      "value": 0.85,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.288,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/domain.ts",
+      "line": 18,
+      "endLine": 22,
+      "value": 0.87,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.279,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/workflows/cli.ts",
+      "line": 33,
+      "endLine": 103,
+      "value": 0.87,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.279,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/domain.ts",
+      "line": 23,
+      "endLine": 30,
+      "value": 0.86,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.265,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/domain.ts",
+      "line": 39,
+      "endLine": 57,
+      "value": 0.86,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.265,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sandbox/cli.ts",
+      "line": 107,
+      "endLine": 211,
+      "value": 0.86,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.265,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/cli.ts",
+      "line": 126,
+      "endLine": 163,
+      "value": 0.86,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.265,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tui/cli.ts",
+      "line": 6,
+      "endLine": 75,
+      "value": 0.86,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.265,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/approvals/domain.ts",
+      "line": 20,
+      "endLine": 59,
+      "value": 0.85,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.25,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/cli.ts",
+      "line": 41,
+      "endLine": 168,
+      "value": 0.85,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.25,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sandbox/credentials.ts",
+      "line": 62,
+      "endLine": 81,
+      "value": 0.85,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.25,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/notion-room-snapshot.test.ts",
+      "line": 22,
+      "endLine": 25,
+      "value": 0.68,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.236,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/a2a/cli.ts",
+      "line": 26,
+      "endLine": 88,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/cli.ts",
+      "line": 956,
+      "endLine": 1046,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/events/cli.ts",
+      "line": 30,
+      "endLine": 108,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/knowledge/cli.ts",
+      "line": 9,
+      "endLine": 40,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/consolidation.ts",
+      "line": 43,
+      "endLine": 79,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/cli.ts",
+      "line": 169,
+      "endLine": 227,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sandbox/domain.ts",
+      "line": 27,
+      "endLine": 84,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/schedules/cli.ts",
+      "line": 18,
+      "endLine": 70,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/cli.ts",
+      "line": 46,
+      "endLine": 125,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/workflows/cli.ts",
+      "line": 334,
+      "endLine": 452,
+      "value": 0.84,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.235,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-content.ts",
+      "line": 5,
+      "endLine": 21,
+      "value": 0.83,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.221,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/approvals/cli.ts",
+      "line": 36,
+      "endLine": 216,
+      "value": 0.83,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.221,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/application/cli.ts",
+      "line": 493,
+      "endLine": 534,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/audit/sandbox.ts",
+      "line": 3,
+      "endLine": 91,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/cli.ts",
+      "line": 11,
+      "endLine": 71,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/domain.ts",
+      "line": 24,
+      "endLine": 74,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tui/chat.ts",
+      "line": 86,
+      "endLine": 108,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/workflows/task-approval.ts",
+      "line": 21,
+      "endLine": 86,
+      "value": 0.82,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.206,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/knowledge/notion.ts",
+      "line": 4,
+      "endLine": 11,
+      "value": 0.66,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.2,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/extractor.ts",
+      "line": 18,
+      "endLine": 21,
+      "value": 0.66,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.2,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "catch-hides-failure",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/autonomy.ts",
+      "line": 82,
+      "endLine": 87,
+      "value": 0.66,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.2,
+      "kind": "noul",
+      "level": null,
+      "arm": "local",
+      "passes": null,
+      "message": "This catch block hides a failure the function's caller needed to know about.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/linear-agent-read.test.ts",
+      "line": 133,
+      "endLine": 152,
+      "value": 0.79,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.197,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/a2a/cli.ts",
+      "line": 89,
+      "endLine": 122,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/agents/domain.ts",
+      "line": 61,
+      "endLine": 64,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/application/cli.ts",
+      "line": 123,
+      "endLine": 259,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/approvals/cli.ts",
+      "line": 217,
+      "endLine": 350,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/approvals/domain.ts",
+      "line": 381,
+      "endLine": 471,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/lease.ts",
+      "line": 41,
+      "endLine": 98,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sandbox/repo.ts",
+      "line": 5,
+      "endLine": 66,
+      "value": 0.81,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.191,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/cli.test.ts",
+      "line": 56,
+      "endLine": 79,
+      "value": 0.78,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.182,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/daemon-parser.test.ts",
+      "line": 51,
+      "endLine": 62,
+      "value": 0.78,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.182,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/projection.ts",
+      "line": 146,
+      "endLine": 172,
+      "value": 0.8,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.176,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/provider.ts",
+      "line": 64,
+      "endLine": 78,
+      "value": 0.64,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.164,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-review.ts",
+      "line": 8,
+      "endLine": 27,
+      "value": 0.79,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.162,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/cli.ts",
+      "line": 185,
+      "endLine": 794,
+      "value": 0.79,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.162,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/client.ts",
+      "line": 1,
+      "endLine": 23,
+      "value": 0.78,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.147,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/task-resume.ts",
+      "line": 95,
+      "endLine": 201,
+      "value": 0.78,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.147,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sandbox/artifact.ts",
+      "line": 27,
+      "endLine": 59,
+      "value": 0.78,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.147,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/service.ts",
+      "line": 49,
+      "endLine": 77,
+      "value": 0.63,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.145,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/comment.ts",
+      "line": 201,
+      "endLine": 245,
+      "value": 0.63,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.145,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/update.ts",
+      "line": 265,
+      "endLine": 343,
+      "value": 0.63,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.145,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/coordinator-claude-real.test.ts",
+      "line": 70,
+      "endLine": 81,
+      "value": 0.75,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.136,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/agents/domain.ts",
+      "line": 42,
+      "endLine": 60,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/agent-read.ts",
+      "line": 14,
+      "endLine": 54,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/cli.ts",
+      "line": 66,
+      "endLine": 266,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/sqlite.ts",
+      "line": 70,
+      "endLine": 73,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sandbox/credentials.ts",
+      "line": 14,
+      "endLine": 61,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/cli.ts",
+      "line": 795,
+      "endLine": 1377,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/domain.ts",
+      "line": 43,
+      "endLine": 53,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/workflows/cli.ts",
+      "line": 141,
+      "endLine": 333,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/workflows/task.ts",
+      "line": 16,
+      "endLine": 126,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/workflows/task.ts",
+      "line": 128,
+      "endLine": 241,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/generated-code-check.ts",
+      "line": 6,
+      "endLine": 121,
+      "value": 0.77,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.132,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/session-cli.test.ts",
+      "line": 404,
+      "endLine": 421,
+      "value": 0.62,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.127,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/session-cli.test.ts",
+      "line": 422,
+      "endLine": 429,
+      "value": 0.62,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.127,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/coordinator-claude-real.test.ts",
+      "line": 487,
+      "endLine": 491,
+      "value": 0.74,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.121,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/tui-monitor.test.ts",
+      "line": 59,
+      "endLine": 73,
+      "value": 0.74,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.121,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/agents/domain.ts",
+      "line": 14,
+      "endLine": 18,
+      "value": 0.76,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.118,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/audit/workflows.ts",
+      "line": 16,
+      "endLine": 109,
+      "value": 0.76,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.118,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/consolidation.ts",
+      "line": 80,
+      "endLine": 102,
+      "value": 0.76,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.118,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/extraction.ts",
+      "line": 10,
+      "endLine": 138,
+      "value": 0.76,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.118,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/service.ts",
+      "line": 119,
+      "endLine": 135,
+      "value": 0.61,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.109,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/approval-domain.test.ts",
+      "line": 163,
+      "endLine": 192,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.106,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/cli.test.ts",
+      "line": 49,
+      "endLine": 54,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.106,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/code-git-handoff.test.ts",
+      "line": 5,
+      "endLine": 36,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.106,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "scripts/public-history.ts",
+      "line": 4,
+      "endLine": 33,
+      "value": 0.75,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.103,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/service.ts",
+      "line": 49,
+      "endLine": 77,
+      "value": 0.75,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.103,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sandbox/cli.ts",
+      "line": 31,
+      "endLine": 106,
+      "value": 0.75,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.103,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/schedules/domain.ts",
+      "line": 12,
+      "endLine": 25,
+      "value": 0.75,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.103,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/domain.ts",
+      "line": 54,
+      "endLine": 59,
+      "value": 0.75,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.103,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "catch-hides-failure",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/activation/poll.ts",
+      "line": 53,
+      "endLine": 61,
+      "value": 0.6,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.091,
+      "kind": "noul",
+      "level": null,
+      "arm": "local",
+      "passes": null,
+      "message": "This catch block hides a failure the function's caller needed to know about.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/operation.ts",
+      "line": 12,
+      "endLine": 30,
+      "value": 0.6,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.091,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/events/domain.ts",
+      "line": 89,
+      "endLine": 101,
+      "value": 0.74,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.088,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/task-approval.ts",
+      "line": 35,
+      "endLine": 70,
+      "value": 0.74,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.088,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/nightly.ts",
+      "line": 37,
+      "endLine": 41,
+      "value": 0.74,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.088,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/nightly.ts",
+      "line": 42,
+      "endLine": 81,
+      "value": 0.74,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.088,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/domain.ts",
+      "line": 165,
+      "endLine": 168,
+      "value": 0.74,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.088,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/approval-domain.test.ts",
+      "line": 9,
+      "endLine": 41,
+      "value": 0.71,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.076,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/agent-read.ts",
+      "line": 75,
+      "endLine": 143,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.074,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/domain.ts",
+      "line": 224,
+      "endLine": 231,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.074,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/runtime/codex.ts",
+      "line": 4,
+      "endLine": 48,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.074,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sandbox/domain.ts",
+      "line": 86,
+      "endLine": 104,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.074,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sessions/service.ts",
+      "line": 49,
+      "endLine": 102,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.074,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/execution.ts",
+      "line": 126,
+      "endLine": 175,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.074,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/workflows/task-resume.ts",
+      "line": 15,
+      "endLine": 166,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.074,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/code-git-handoff.ts",
+      "line": 6,
+      "endLine": 81,
+      "value": 0.73,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.074,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/coordinator-claude-real.test.ts",
+      "line": 82,
+      "endLine": 486,
+      "value": 0.59,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.073,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/cli.ts",
+      "line": 101,
+      "endLine": 277,
+      "value": 0.72,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.059,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/lease.ts",
+      "line": 25,
+      "endLine": 36,
+      "value": 0.72,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.059,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/domain.ts",
+      "line": 97,
+      "endLine": 152,
+      "value": 0.72,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.059,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/execution.ts",
+      "line": 260,
+      "endLine": 298,
+      "value": 0.72,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.059,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/artifact.ts",
+      "line": 43,
+      "endLine": 71,
+      "value": 0.58,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.055,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/extractor.ts",
+      "line": 23,
+      "endLine": 115,
+      "value": 0.58,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.055,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "catch-hides-failure",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/workflows/delivery.ts",
+      "line": 90,
+      "endLine": 95,
+      "value": 0.58,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.055,
+      "kind": "noul",
+      "level": null,
+      "arm": "local",
+      "passes": null,
+      "message": "This catch block hides a failure the function's caller needed to know about.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/quality-ast.test.ts",
+      "line": 8,
+      "endLine": 25,
+      "value": 0.69,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.045,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/client.ts",
+      "line": 27,
+      "endLine": 56,
+      "value": 0.71,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.044,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/daemon/server.ts",
+      "line": 133,
+      "endLine": 329,
+      "value": 0.71,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.044,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/operation.ts",
+      "line": 12,
+      "endLine": 30,
+      "value": 0.71,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.044,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/projection.ts",
+      "line": 34,
+      "endLine": 78,
+      "value": 0.71,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.044,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/consolidation.ts",
+      "line": 31,
+      "endLine": 42,
+      "value": 0.71,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.044,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/domain.ts",
+      "line": 180,
+      "endLine": 193,
+      "value": 0.71,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.044,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/domain.ts",
+      "line": 60,
+      "endLine": 74,
+      "value": 0.71,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.044,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/workflows/task-observe.ts",
+      "line": 72,
+      "endLine": 368,
+      "value": 0.71,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.044,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/github-webhook.test.ts",
+      "line": 126,
+      "endLine": 128,
+      "value": 0.57,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.036,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/memory-nightly-cli.test.ts",
+      "line": 44,
+      "endLine": 47,
+      "value": 0.57,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1.036,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/claude-turn.test.ts",
+      "line": 23,
+      "endLine": 41,
+      "value": 0.68,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.03,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "test-name-verifies-claim",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/public-history.test.ts",
+      "line": 55,
+      "endLine": 79,
+      "value": 0.68,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.66,
+      "margin": 1.03,
+      "kind": "noul",
+      "level": null,
+      "arm": "bare",
+      "passes": null,
+      "message": "This test would still pass if the behaviour its name claims were broken.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/a2a/service.ts",
+      "line": 114,
+      "endLine": 191,
+      "value": 0.7,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.029,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/approvals/domain.ts",
+      "line": 271,
+      "endLine": 296,
+      "value": 0.7,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.029,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/import.ts",
+      "line": 28,
+      "endLine": 31,
+      "value": 0.7,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.029,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/cli.ts",
+      "line": 267,
+      "endLine": 438,
+      "value": 0.7,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.029,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sandbox/service.ts",
+      "line": 54,
+      "endLine": 148,
+      "value": 0.7,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.029,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/task-approval.ts",
+      "line": 163,
+      "endLine": 266,
+      "value": 0.69,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.015,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/domain.ts",
+      "line": 110,
+      "endLine": 173,
+      "value": 0.69,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.015,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/sandbox/artifact.ts",
+      "line": 8,
+      "endLine": 26,
+      "value": 0.69,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.015,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/tasks/execution.ts",
+      "line": 90,
+      "endLine": 125,
+      "value": 0.69,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1.015,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/linear/fields.ts",
+      "line": 146,
+      "endLine": 165,
+      "value": 0.68,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/memory/cli.ts",
+      "line": 66,
+      "endLine": 266,
+      "value": 0.55,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "tests-cover-failure-paths",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "src/rooms/domain.ts",
+      "line": 106,
+      "endLine": 147,
+      "value": 0.68,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.68,
+      "margin": 1,
+      "kind": "noul",
+      "level": null,
+      "arm": "paired",
+      "passes": null,
+      "message": "This function ($NAME) has a failure path of its own that none of the related tests reaches.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    },
+    {
+      "rule": "fn-name-promises",
+      "severity": "warning",
+      "messageId": "flag",
+      "file": "tests/generated-code-check.ts",
+      "line": 6,
+      "endLine": 121,
+      "value": 0.55,
+      "confidence": null,
+      "explanation": null,
+      "cutoff": 0.55,
+      "margin": 1,
+      "kind": "noul",
+      "level": null,
+      "arm": "located",
+      "passes": null,
+      "message": "The body of this function does something materially different from what its name promises.",
+      "commit": null,
+      "change": null,
+      "cut": null,
+      "violates": null
+    }
+  ],
+  "review": [],
+  "stats": {
+    "subjects": 2439,
+    "reported": 146,
+    "missing": 0,
+    "unsure": 0,
+    "review": 0,
+    "byRule": {
+      "fn-name-promises": 25,
+      "test-name-verifies-claim": 17,
+      "tests-cover-failure-paths": 101,
+      "catch-hides-failure": 3
+    },
+    "byFile": {
+      "scripts/documentation-tree.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "scripts/git-snapshot.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/local-gate.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/public-content.ts": {
+        "findings": 1,
+        "subjects": 3
+      },
+      "scripts/public-history.ts": {
+        "findings": 1,
+        "subjects": 4
+      },
+      "scripts/public-review.ts": {
+        "findings": 1,
+        "subjects": 6
+      },
+      "scripts/push-input.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "scripts/review-semantic.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "scripts/semantic-result.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "scripts/semantic-review.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/a2a/cli.ts": {
+        "findings": 2,
+        "subjects": 8
+      },
+      "src/a2a/domain.ts": {
+        "findings": 0,
+        "subjects": 17
+      },
+      "src/a2a/proposal.ts": {
+        "findings": 0,
+        "subjects": 15
+      },
+      "src/a2a/service.ts": {
+        "findings": 1,
+        "subjects": 20
+      },
+      "src/activation/domain.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/activation/poll.ts": {
+        "findings": 1,
+        "subjects": 9
+      },
+      "src/activation/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/activation/sqlite.ts": {
+        "findings": 0,
+        "subjects": 19
+      },
+      "src/agents/domain.ts": {
+        "findings": 3,
+        "subjects": 21
+      },
+      "src/agents/permissions.ts": {
+        "findings": 1,
+        "subjects": 3
+      },
+      "src/agents/send.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/agents/service.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/agents/sqlite.ts": {
+        "findings": 0,
+        "subjects": 21
+      },
+      "src/application/cli.ts": {
+        "findings": 2,
+        "subjects": 13
+      },
+      "src/application/port.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "src/application/transport.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/approvals/cli.ts": {
+        "findings": 2,
+        "subjects": 8
+      },
+      "src/approvals/domain.ts": {
+        "findings": 4,
+        "subjects": 47
+      },
+      "src/approvals/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/approvals/sqlite.ts": {
+        "findings": 0,
+        "subjects": 21
+      },
+      "src/audit/domain.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "src/audit/linear.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "src/audit/logs.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/audit/sandbox.ts": {
+        "findings": 1,
+        "subjects": 3
+      },
+      "src/audit/tasks.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/audit/workflows.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/cli.ts": {
+        "findings": 1,
+        "subjects": 7
+      },
+      "src/context/builder.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "src/context/scopes.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/daemon/cli.ts": {
+        "findings": 2,
+        "subjects": 17
+      },
+      "src/daemon/client.ts": {
+        "findings": 2,
+        "subjects": 6
+      },
+      "src/daemon/domain.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/daemon/lease.ts": {
+        "findings": 3,
+        "subjects": 15
+      },
+      "src/daemon/server.ts": {
+        "findings": 1,
+        "subjects": 16
+      },
+      "src/daemon/service.ts": {
+        "findings": 2,
+        "subjects": 15
+      },
+      "src/daemon/sqlite.ts": {
+        "findings": 0,
+        "subjects": 17
+      },
+      "src/events/cli.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/events/domain.ts": {
+        "findings": 1,
+        "subjects": 28
+      },
+      "src/events/github-webhook-http.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "src/events/github-webhook.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "src/events/github.ts": {
+        "findings": 0,
+        "subjects": 8
+      },
+      "src/events/service.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "src/events/sqlite.ts": {
+        "findings": 0,
+        "subjects": 24
+      },
+      "src/knowledge/cli.ts": {
+        "findings": 1,
+        "subjects": 7
+      },
+      "src/knowledge/notion.ts": {
+        "findings": 1,
+        "subjects": 10
+      },
+      "src/knowledge/snapshot.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/linear/agent-read.ts": {
+        "findings": 2,
+        "subjects": 12
+      },
+      "src/linear/artifact.ts": {
+        "findings": 2,
+        "subjects": 22
+      },
+      "src/linear/comment.ts": {
+        "findings": 1,
+        "subjects": 28
+      },
+      "src/linear/config.ts": {
+        "findings": 0,
+        "subjects": 8
+      },
+      "src/linear/fields.ts": {
+        "findings": 1,
+        "subjects": 20
+      },
+      "src/linear/import.ts": {
+        "findings": 1,
+        "subjects": 14
+      },
+      "src/linear/operation.ts": {
+        "findings": 2,
+        "subjects": 11
+      },
+      "src/linear/projection.ts": {
+        "findings": 2,
+        "subjects": 21
+      },
+      "src/linear/provider.ts": {
+        "findings": 1,
+        "subjects": 14
+      },
+      "src/linear/read.ts": {
+        "findings": 0,
+        "subjects": 31
+      },
+      "src/linear/task-approval.ts": {
+        "findings": 2,
+        "subjects": 18
+      },
+      "src/linear/task-resume.ts": {
+        "findings": 1,
+        "subjects": 17
+      },
+      "src/linear/update.ts": {
+        "findings": 1,
+        "subjects": 35
+      },
+      "src/memory/cli.ts": {
+        "findings": 3,
+        "subjects": 12
+      },
+      "src/memory/consolidation.ts": {
+        "findings": 3,
+        "subjects": 19
+      },
+      "src/memory/domain.ts": {
+        "findings": 7,
+        "subjects": 37
+      },
+      "src/memory/extraction.ts": {
+        "findings": 1,
+        "subjects": 8
+      },
+      "src/memory/extractor.ts": {
+        "findings": 2,
+        "subjects": 6
+      },
+      "src/memory/nightly.ts": {
+        "findings": 2,
+        "subjects": 12
+      },
+      "src/memory/retrieval.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "src/memory/retriever.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "src/memory/reviews.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "src/memory/service.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/memory/sqlite.ts": {
+        "findings": 0,
+        "subjects": 23
+      },
+      "src/rooms/cli.ts": {
+        "findings": 2,
+        "subjects": 13
+      },
+      "src/rooms/domain.ts": {
+        "findings": 4,
+        "subjects": 27
+      },
+      "src/rooms/runtime.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/rooms/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/rooms/sqlite.ts": {
+        "findings": 1,
+        "subjects": 32
+      },
+      "src/runtime/claude.ts": {
+        "findings": 0,
+        "subjects": 11
+      },
+      "src/runtime/codex.ts": {
+        "findings": 1,
+        "subjects": 13
+      },
+      "src/runtime/config.ts": {
+        "findings": 0,
+        "subjects": 13
+      },
+      "src/runtime/guardian.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "src/runtime/http.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/runtime/manager.ts": {
+        "findings": 0,
+        "subjects": 10
+      },
+      "src/runtime/process.ts": {
+        "findings": 1,
+        "subjects": 11
+      },
+      "src/sandbox/artifact.ts": {
+        "findings": 2,
+        "subjects": 9
+      },
+      "src/sandbox/cli.ts": {
+        "findings": 2,
+        "subjects": 7
+      },
+      "src/sandbox/credentials.ts": {
+        "findings": 2,
+        "subjects": 12
+      },
+      "src/sandbox/docker.ts": {
+        "findings": 0,
+        "subjects": 13
+      },
+      "src/sandbox/domain.ts": {
+        "findings": 2,
+        "subjects": 12
+      },
+      "src/sandbox/jobs.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/sandbox/proposal.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/sandbox/repo.ts": {
+        "findings": 1,
+        "subjects": 5
+      },
+      "src/sandbox/service.ts": {
+        "findings": 1,
+        "subjects": 12
+      },
+      "src/schedules/cli.ts": {
+        "findings": 1,
+        "subjects": 8
+      },
+      "src/schedules/domain.ts": {
+        "findings": 1,
+        "subjects": 7
+      },
+      "src/schedules/service.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "src/schedules/sqlite.ts": {
+        "findings": 0,
+        "subjects": 13
+      },
+      "src/secrets/environment.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/secrets/keychain.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "src/sessions/cli.ts": {
+        "findings": 2,
+        "subjects": 8
+      },
+      "src/sessions/domain.ts": {
+        "findings": 1,
+        "subjects": 13
+      },
+      "src/sessions/reconstruction.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/sessions/service.ts": {
+        "findings": 2,
+        "subjects": 17
+      },
+      "src/sessions/sqlite.ts": {
+        "findings": 0,
+        "subjects": 17
+      },
+      "src/tasks/autonomy.ts": {
+        "findings": 1,
+        "subjects": 4
+      },
+      "src/tasks/cli.ts": {
+        "findings": 2,
+        "subjects": 18
+      },
+      "src/tasks/client.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "src/tasks/domain.ts": {
+        "findings": 4,
+        "subjects": 35
+      },
+      "src/tasks/execution.ts": {
+        "findings": 3,
+        "subjects": 23
+      },
+      "src/tasks/proposal.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "src/tasks/review.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "src/tasks/service.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "src/tasks/sqlite.ts": {
+        "findings": 0,
+        "subjects": 36
+      },
+      "src/tui/chat.ts": {
+        "findings": 1,
+        "subjects": 20
+      },
+      "src/tui/cli.ts": {
+        "findings": 1,
+        "subjects": 7
+      },
+      "src/tui/monitor.ts": {
+        "findings": 0,
+        "subjects": 11
+      },
+      "src/tui/room-chat.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "src/workflows/approved.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "src/workflows/cli.ts": {
+        "findings": 3,
+        "subjects": 17
+      },
+      "src/workflows/delivery.ts": {
+        "findings": 1,
+        "subjects": 5
+      },
+      "src/workflows/n8n.ts": {
+        "findings": 0,
+        "subjects": 10
+      },
+      "src/workflows/proposal.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "src/workflows/service.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "src/workflows/task-approval.ts": {
+        "findings": 1,
+        "subjects": 3
+      },
+      "src/workflows/task-observe.ts": {
+        "findings": 1,
+        "subjects": 17
+      },
+      "src/workflows/task-resume.ts": {
+        "findings": 2,
+        "subjects": 6
+      },
+      "src/workflows/task.ts": {
+        "findings": 2,
+        "subjects": 10
+      },
+      "tests/a2a-cli.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/a2a-domain.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/a2a-proposal-cli.test.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "tests/a2a-proposal.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/a2a-service.test.ts": {
+        "findings": 0,
+        "subjects": 8
+      },
+      "tests/activation-cli.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/activation-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/activation-service.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/agent-configuration-audit.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/agent-domain.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/agent-permission-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/agent-permission.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/agent-reporting-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/agent-reporting-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/agent-reporting.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/agent-room-permissions-cli.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/agent-room-permissions.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/agent-send.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/agent-service.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/agent-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/approval-cli.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/approval-domain.test.ts": {
+        "findings": 2,
+        "subjects": 5
+      },
+      "tests/approval-service.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/approval-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/approved-workflow-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/approved-workflow.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/audit-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/audit-logs.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/automatic-wake-up-cli.test.ts": {
+        "findings": 0,
+        "subjects": 11
+      },
+      "tests/claude-turn.test.ts": {
+        "findings": 1,
+        "subjects": 4
+      },
+      "tests/cli-client.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/cli-transport.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/cli.test.ts": {
+        "findings": 2,
+        "subjects": 18
+      },
+      "tests/code-git-handoff.test.ts": {
+        "findings": 1,
+        "subjects": 1
+      },
+      "tests/code-git-handoff.ts": {
+        "findings": 1,
+        "subjects": 4
+      },
+      "tests/codex-native-tools-real.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/codex-turn.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/context-builder.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/context-retrieval-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/context-retrieval.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/coordinator-claude-real.test.ts": {
+        "findings": 4,
+        "subjects": 26
+      },
+      "tests/daemon-cleanup.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/daemon-database.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-long-command.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-parser.test.ts": {
+        "findings": 1,
+        "subjects": 9
+      },
+      "tests/daemon-poll.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/daemon-recovery.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/daemon-sandbox-cli.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/daemon-server.test.ts": {
+        "findings": 0,
+        "subjects": 17
+      },
+      "tests/daemon-service.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/database-lease.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/delegation-review.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/event-cli.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/event-domain.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/event-service.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/event-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/generated-code-check.ts": {
+        "findings": 2,
+        "subjects": 4
+      },
+      "tests/github-events-cli.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/github-events.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/github-webhook-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/github-webhook-http-cli.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/github-webhook-http.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/github-webhook.test.ts": {
+        "findings": 2,
+        "subjects": 5
+      },
+      "tests/history-replace.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/keychain-real.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/keychain-secret-store.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/linear-agent-read-cli.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/linear-agent-read.test.ts": {
+        "findings": 1,
+        "subjects": 3
+      },
+      "tests/linear-artifact-cli.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/linear-artifact.test.ts": {
+        "findings": 0,
+        "subjects": 15
+      },
+      "tests/linear-comment-cli.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/linear-comment.test.ts": {
+        "findings": 0,
+        "subjects": 12
+      },
+      "tests/linear-core-projection-cli.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/linear-core-projection.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/linear-issue-cli.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/linear-issue-list.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/linear-issue.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/linear-update-cli.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/linear-update.test.ts": {
+        "findings": 0,
+        "subjects": 16
+      },
+      "tests/linear-work-item-refresh.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/linear-work-item-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/linear-work-item-sync-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/linear-work-item-sync.test.ts": {
+        "findings": 1,
+        "subjects": 5
+      },
+      "tests/linear-work-item.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/local-hooks.test.ts": {
+        "findings": 1,
+        "subjects": 12
+      },
+      "tests/logs-cli.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/memory-auto-extraction-cli.test.ts": {
+        "findings": 1,
+        "subjects": 12
+      },
+      "tests/memory-auto-extraction.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/memory-cli.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/memory-consolidation-cli.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/memory-consolidation-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/memory-consolidation.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/memory-context-scopes-cli.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/memory-context-scopes.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/memory-decision-cli.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/memory-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/memory-extraction-cli.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/memory-extraction-runtime-cli.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/memory-extraction-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/memory-extraction.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/memory-nightly-cli.test.ts": {
+        "findings": 1,
+        "subjects": 11
+      },
+      "tests/memory-nightly.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/memory-operation-audit.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/memory-retrieval.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/memory-search.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/memory-service.test.ts": {
+        "findings": 0,
+        "subjects": 8
+      },
+      "tests/memory-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/memory-validity.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/notion-knowledge-cli.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/notion-knowledge.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/notion-room-snapshot.test.ts": {
+        "findings": 1,
+        "subjects": 3
+      },
+      "tests/public-content.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/public-history.test.ts": {
+        "findings": 1,
+        "subjects": 6
+      },
+      "tests/quality-ast.test.ts": {
+        "findings": 1,
+        "subjects": 1
+      },
+      "tests/quality-lint.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/quality-types.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/reviewed-task-memory.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/room-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/room-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/room-operation-audit.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/room-rules-cli.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/room-rules.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/room-runtime.test.ts": {
+        "findings": 0,
+        "subjects": 8
+      },
+      "tests/room-service.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/room-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/room-wake-up-cli.test.ts": {
+        "findings": 0,
+        "subjects": 10
+      },
+      "tests/runtime-agent-profiles-cli.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/runtime-config.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/runtime-env.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/runtime-guardian.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/runtime-linear-approval-cli.test.ts": {
+        "findings": 0,
+        "subjects": 8
+      },
+      "tests/runtime-linear-resume.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/runtime-manager.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/runtime-process-group.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/runtime-process.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/runtime-sandbox-cli.test.ts": {
+        "findings": 0,
+        "subjects": 8
+      },
+      "tests/runtime-secret-reflection-cli.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/runtime-secret-reflection.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/sandbox-artifact.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/sandbox-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/sandbox-credentials-cli.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/sandbox-credentials.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/sandbox-docker-real.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/sandbox-docker.test.ts": {
+        "findings": 1,
+        "subjects": 5
+      },
+      "tests/sandbox-domain.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/sandbox-execution-audit.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/sandbox-jobs.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/sandbox-proposal.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/sandbox-repo.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/sandbox-task.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/schedule-cli.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/schedule-domain.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/schedule-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/secret-store.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/semantic-review.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/semantic-runner.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/session-cli.test.ts": {
+        "findings": 2,
+        "subjects": 9
+      },
+      "tests/session-domain.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/session-operation-audit.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/session-parser.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/session-read-capability-cli.test.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "tests/session-reconstruction-cli.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/session-reconstruction.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/session-runtime.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/session-service.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/session-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/task-artifact-content.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/task-audit-cli.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/task-audit.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/task-autonomy-cli.test.ts": {
+        "findings": 0,
+        "subjects": 10
+      },
+      "tests/task-autonomy.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/task-cli.test.ts": {
+        "findings": 0,
+        "subjects": 15
+      },
+      "tests/task-dispatch.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/task-domain.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/task-execution.test.ts": {
+        "findings": 0,
+        "subjects": 8
+      },
+      "tests/task-linear-approval-cli.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-linear-approval.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-linear-execution-cli.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/task-linear-execution.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-operation-audit.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/task-provider-cli.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/task-provider.test.ts": {
+        "findings": 0,
+        "subjects": 13
+      },
+      "tests/task-recovery-cli.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/task-recovery.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-result-recovery.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-result.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/task-review-cli.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-review-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/task-review.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/task-service.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/task-workflow-approval-cli.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/task-workflow-approval.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/task-workflow-resume-cli.test.ts": {
+        "findings": 0,
+        "subjects": 9
+      },
+      "tests/task-workflow-resume.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/tui-chat.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/tui-cli.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/tui-monitor.test.ts": {
+        "findings": 1,
+        "subjects": 9
+      },
+      "tests/wakeup-service.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/wakeup-sqlite.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/workflow-agent-scope.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/workflow-approval-cli.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/workflow-approval-pause.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/workflow-approval.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/workflow-audit.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/workflow-cli.test.ts": {
+        "findings": 0,
+        "subjects": 7
+      },
+      "tests/workflow-delivery.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/workflow-keychain.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/workflow-n8n-real.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "tests/workflow-n8n.test.ts": {
+        "findings": 0,
+        "subjects": 5
+      },
+      "tests/workflow-proposal.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/workflow-secret-store.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/workflow-service.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/workflow-status-poll.test.ts": {
+        "findings": 0,
+        "subjects": 1
+      },
+      "tests/workflow-task-cli.test.ts": {
+        "findings": 0,
+        "subjects": 6
+      },
+      "tests/workflow-task-observe.test.ts": {
+        "findings": 0,
+        "subjects": 4
+      },
+      "tests/workflow-task.test.ts": {
+        "findings": 0,
+        "subjects": 2
+      },
+      "src/audit/service.ts": {
+        "findings": 0,
+        "subjects": 3
+      },
+      "tests/event-schedule-operation-audit.test.ts": {
+        "findings": 0,
+        "subjects": 3
+      }
+    }
+  },
+  "degraded": [],
+  "silentRules": [],
+  "idleLanguages": [],
+  "ignored": {
+    "subjects": 0,
+    "files": [],
+    "unknownRules": []
+  },
+  "unpaired": {
+    "subjects": 7,
+    "files": [
+      "src/linear/config.ts",
+      "src/runtime/guardian.ts",
+      "src/runtime/http.ts",
+      "src/tasks/proposal.ts",
+      "src/tui/room-chat.ts"
+    ]
+  },
+  "retry": 1,
+  "spent": {
+    "calls": 50,
+    "inputTokens": 232373,
+    "outputTokens": 1953,
+    "ms": 25101,
+    "retried": 0,
+    "rateLimited": 0,
+    "tokensPerSecond": 200000,
+    "splits": 0,
+    "usd": 0.009759666,
+    "wallMs": 1164
+  },
+  "errors": [],
+  "elapsedMs": 2384
+}
+using /Users/umaidashi/Documents/git/org/.jev-lint.yaml
+recorded 2439 answer(s) to /Users/umaidashi/Documents/git/org/.jev-lint/latest-run.json

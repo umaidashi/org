@@ -1,3 +1,4 @@
+import { SqliteScheduleRepository } from '../schedules/sqlite.js';
 import { SqliteSessionStore } from '../sessions/sqlite.js';
 import { SqliteMemoryProvider } from '../memory/sqlite.js';
 import {
@@ -304,17 +305,25 @@ export function runApprovalCommand(command: ApprovalCommand, output: (line: stri
               try {
                 const rooms = new SqliteRoomRepository(command.db);
                 try {
-                  const records = collectAudit(
-                    store,
-                    agents,
-                    tasks,
-                    events,
-                    memories,
-                    sessions,
-                    rooms,
-                  );
-                  result =
-                    command.action === 'logs' ? selectAuditLogs(records, command.filter) : records;
+                  const schedules = new SqliteScheduleRepository(command.db);
+                  try {
+                    const records = collectAudit(
+                      store,
+                      agents,
+                      tasks,
+                      events,
+                      memories,
+                      sessions,
+                      rooms,
+                      schedules,
+                    );
+                    result =
+                      command.action === 'logs'
+                        ? selectAuditLogs(records, command.filter)
+                        : records;
+                  } finally {
+                    schedules.close();
+                  }
                 } finally {
                   rooms.close();
                 }

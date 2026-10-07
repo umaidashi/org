@@ -1,0 +1,9 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/event-schedule-operation-audit.test.ts:
+(pass) Event and Subscription mutations preserve writer Audit with no idempotent replay [4.06ms]
+(pass) Schedule registration and enabled changes retain writer Audit without no-op records [0.94ms]
+
+ 2 pass
+ 0 fail
+Ran 2 tests across 1 file. [49.00ms]

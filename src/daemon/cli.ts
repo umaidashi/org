@@ -306,9 +306,9 @@ function openOperations(
   try {
     const approvalStore = new SqliteApprovalStore(db);
     approvals = approvalStore;
-    const eventBus = new SqliteEventBus(db);
+    const eventBus = new SqliteEventBus(db, { kind: 'system', id: 'core' });
     events = eventBus;
-    const scheduleRepository = new SqliteScheduleRepository(db);
+    const scheduleRepository = new SqliteScheduleRepository(db, { kind: 'system', id: 'core' });
     schedules = scheduleRepository;
     const agentRepository = new SqliteAgentRepository(db);
     agents = agentRepository;
@@ -1028,8 +1028,8 @@ export async function runDaemonCommand(command: DaemonCommand): Promise<void> {
     let result: unknown;
     if (command.action === 'deliveries') result = journal.list();
     else {
-      events = new SqliteEventBus(command.db);
-      schedules = new SqliteScheduleRepository(command.db);
+      events = new SqliteEventBus(command.db, { kind: 'system', id: 'core' });
+      schedules = new SqliteScheduleRepository(command.db, { kind: 'system', id: 'core' });
       pollSchedules(schedules, events, () => Date.now());
       agents = new SqliteAgentRepository(command.db);
       tasks = new SqliteTaskProvider(command.db, { kind: 'system', id: 'core' });

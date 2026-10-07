@@ -69,6 +69,30 @@ test('events persist without recipients and subscriptions match independently ac
     assert.equal(json(['event', 'enable', String(subscription.id)]).enabled, true);
     assert.equal((JSON.parse(run(['event', 'list', '--json']).stdout) as unknown[]).length, 2);
     assert.deepEqual(json(['event', 'get', String(event.id)]), event);
+    const audit = run(['audit', 'list', '--json']);
+    assert.equal(audit.status, 0, audit.stderr);
+    const entries = JSON.parse(audit.stdout) as { tool: string; actor: unknown }[];
+    const operations = entries.filter(
+      (entry) => entry.tool === 'event.publish' || entry.tool.startsWith('subscription.'),
+    );
+    assert.deepEqual(
+      operations.map((entry) => entry.tool),
+      [
+        'event.publish',
+        'subscription.create',
+        'event.publish',
+        'subscription.disable',
+        'subscription.enable',
+      ],
+    );
+    assert.ok(
+      operations.every(
+        (entry) =>
+          JSON.stringify(entry.actor) === JSON.stringify({ kind: 'system', id: 'local-host' }),
+      ),
+    );
+    assert.equal(json(['event', 'enable', String(subscription.id)]).enabled, true);
+    assert.equal(run(['audit', 'list', '--json']).stdout, audit.stdout);
     assert.equal(
       run([
         'event',

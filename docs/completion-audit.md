@@ -240,3 +240,7 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 ## 2026-10-08 Task重要操作Audit
 
 [証拠](verification/2026-10-08-task-operation-audit/): 新規成功Task更新9経路の原子不変metadata、既存原本URI、実writer/clock、明示A2A Actor/Event ID、no-op/rollback/reopen/legacy境界を実CLIで検証。fresh C0/I1/M0、daemon --once Actor漏れをRED→一fixpass→GREEN、再レビューなし。529成功21skip0失敗、実Jev2431対象で不完全判定なし。Event/Subscription/Schedule、実API業務受入と全体は未達。
+
+## 2026-10-08 Event・Subscription・Schedule重要操作Audit
+
+[証拠](verification/2026-10-08-event-schedule-operation-audit/): 原子不変8field metadata、Event URI再利用/Subscription構成frame/Schedule definition参照+enabled前後、実writer/clock、no-op/rollback/reopen/legacyを実CLIで検証。fresh C0/I0/M1、重大指摘なし、Minor直接frame assertion追加/任意transaction短縮はdefer。532成功21skip0失敗、実Jev2439対象で不完全判定なし。DB重要操作inventoryは接続済み、実API業務受入・全体は未達。root/00–07/09/10原文を再照合し、初期Adapterと将来候補/設計中を区別した再監査を続ける。

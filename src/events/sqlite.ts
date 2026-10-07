@@ -1,3 +1,5 @@
+import type { AuditActor, AuditEntry } from '../audit/domain.js';
+import type { EventOperationReader } from './port.js';
 import { isDeepStrictEqual } from 'node:util';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -44,18 +46,30 @@ function decodeSubscription(raw: unknown): Subscription {
     enabled: v.enabled,
   };
 }
-export class SqliteEventBus implements EventBus {
+export class SqliteEventBus implements EventBus, EventOperationReader {
   private readonly db: Database;
-  constructor(path: string) {
+  constructor(
+    path: string,
+    private readonly auditActor: AuditActor = { kind: 'system', id: 'unspecified' },
+    private readonly auditNow: () => string = () => new Date().toISOString(),
+  ) {
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
     this.db = new Database(path, { create: true });
     try {
       this.db.exec(`PRAGMA busy_timeout=5000;
+        CREATE TABLE IF NOT EXISTS event_operation_history(sequence INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT NOT NULL CHECK(json_valid(data)));
         CREATE TABLE IF NOT EXISTS events(sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, data TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS subscriptions(id TEXT PRIMARY KEY, data TEXT NOT NULL);
         CREATE TRIGGER IF NOT EXISTS events_no_replace BEFORE INSERT ON events WHEN EXISTS(SELECT 1 FROM events WHERE id=NEW.id OR sequence=NEW.sequence) BEGIN SELECT RAISE(ABORT, 'Events are immutable'); END;
         CREATE TRIGGER IF NOT EXISTS events_no_update BEFORE UPDATE ON events BEGIN SELECT RAISE(ABORT, 'Events are immutable'); END;
         CREATE TRIGGER IF NOT EXISTS events_no_delete BEFORE DELETE ON events BEGIN SELECT RAISE(ABORT, 'Events are immutable'); END;`);
+      this.db.exec(
+        `CREATE TRIGGER IF NOT EXISTS event_operation_history_no_replace BEFORE INSERT ON event_operation_history WHEN EXISTS(SELECT 1 FROM event_operation_history WHERE sequence=NEW.sequence OR rowid=NEW.rowid) BEGIN SELECT RAISE(ABORT, 'Event operation is immutable'); END;`,
+      );
+      for (const operation of ['UPDATE', 'DELETE'])
+        this.db.exec(
+          `CREATE TRIGGER IF NOT EXISTS event_operation_history_no_${operation.toLowerCase()} BEFORE ${operation} ON event_operation_history BEGIN SELECT RAISE(ABORT, 'Event operation is immutable'); END;`,
+        );
     } catch (error) {
       this.db.close();
       throw error;
@@ -64,11 +78,15 @@ export class SqliteEventBus implements EventBus {
   close(): void {
     this.db.close();
   }
-  publish(event: Event): Event {
+  private insertEvent(event: Event): Event {
     this.db
       .query('INSERT INTO events(id, data) VALUES (?, ?)')
       .run(event.id, JSON.stringify(event));
+    this.appendOperation('event.publish', event);
     return event;
+  }
+  publish(event: Event): Event {
+    return this.db.transaction(() => this.insertEvent(event)).immediate();
   }
   publishOnce(event: Event): Event {
     const planned = createEvent(event, event);
@@ -80,7 +98,7 @@ export class SqliteEventBus implements EventBus {
           if (!isDeepStrictEqual(stored, planned)) throw new Error('Event idempotency conflict');
           return stored;
         }
-        return this.publish(planned);
+        return this.insertEvent(planned);
       })
       .immediate();
   }
@@ -99,10 +117,15 @@ export class SqliteEventBus implements EventBus {
       });
   }
   subscribe(subscription: Subscription): Subscription {
-    this.db
-      .query('INSERT INTO subscriptions(id, data) VALUES (?, ?)')
-      .run(subscription.id, JSON.stringify(subscription));
-    return subscription;
+    return this.db
+      .transaction(() => {
+        this.db
+          .query('INSERT INTO subscriptions(id, data) VALUES (?, ?)')
+          .run(subscription.id, JSON.stringify(subscription));
+        this.appendOperation('subscription.create', subscription);
+        return subscription;
+      })
+      .immediate();
   }
   subscriptions(): readonly Subscription[] {
     return this.db
@@ -114,19 +137,92 @@ export class SqliteEventBus implements EventBus {
       });
   }
   setEnabled(id: string, enabled: boolean): Subscription {
+    if (typeof enabled !== 'boolean') throw new Error('Invalid Subscription enabled flag');
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const row = this.db.query('SELECT data FROM subscriptions WHERE id=?').get(id);
       if (!record(row)) throw new Error('Subscription not found');
-      const subscription = { ...decodeSubscription(row.data), enabled };
+      const before = decodeSubscription(row.data);
+      if (before.enabled === enabled) {
+        this.db.exec('COMMIT');
+        return before;
+      }
+      const subscription = { ...before, enabled };
       this.db
         .query('UPDATE subscriptions SET data=? WHERE id=?')
         .run(JSON.stringify(subscription), id);
+      this.appendOperation(
+        enabled ? 'subscription.enable' : 'subscription.disable',
+        subscription,
+        before,
+      );
       this.db.exec('COMMIT');
       return subscription;
     } catch (error) {
       this.db.exec('ROLLBACK');
       throw error;
     }
+  }
+  private appendOperation(
+    tool: string,
+    original: Event | Subscription,
+    before?: Subscription,
+  ): void {
+    const actor = this.auditActor,
+      at = this.auditNow();
+    if (
+      !['human', 'agent', 'system'].includes(actor.kind) ||
+      !actor.id.trim() ||
+      actor.id.includes('\0') ||
+      actor.id.length > 128 ||
+      !Number.isFinite(new Date(at).getTime()) ||
+      new Date(at).toISOString() !== at
+    )
+      throw new Error('Invalid Event Audit actor/timestamp');
+    const row = this.db
+      .query<{ sequence: number }, []>(
+        'SELECT COALESCE(MAX(sequence),0)+1 AS sequence FROM event_operation_history',
+      )
+      .get();
+    if (!row) throw new Error('Missing Event Audit sequence');
+    const sequence = row.sequence;
+    const isEvent = tool === 'event.publish';
+    const ref = isEvent
+      ? `org://events/${encodeURIComponent(original.id)}`
+      : `org://subscription-operations/${sequence}`;
+    const entry: Omit<AuditEntry, 'id'> = {
+      actor,
+      taskId: null,
+      eventId: isEvent ? original.id : null,
+      tool,
+      inputRef: isEvent ? ref : ref + '/input',
+      outputRef: isEvent ? ref : ref + '/output',
+      at,
+      result: 'succeeded',
+      approvalId: null,
+    };
+    this.db
+      .query('INSERT INTO event_operation_history(sequence,data) VALUES (?,?)')
+      .run(
+        sequence,
+        JSON.stringify(
+          isEvent ? { entry } : { entry, input: before ?? original, output: original },
+        ),
+      );
+  }
+  operationHistory(): readonly AuditEntry[] {
+    return this.db
+      .query<{ sequence: number; data: string }, []>(
+        'SELECT sequence,data FROM event_operation_history ORDER BY sequence',
+      )
+      .all()
+      .map((row) => {
+        const id = `event:operation:${String(row.sequence).padStart(16, '0')}`;
+        return {
+          ...(JSON.parse(row.data) as { entry: Omit<AuditEntry, 'id'> }).entry,
+          id,
+          causalId: id,
+        };
+      });
   }
 }

@@ -331,6 +331,7 @@ async function proof(
       if (artifactFailure) writeFileSync(db + '.artifacts', 'owned-storage-blocker');
       if (stageFailure) {
         const fault = new Database(db);
+        fault.exec('PRAGMA busy_timeout=5000');
         try {
           fault.run(
             "CREATE TRIGGER owned_stage_fault BEFORE INSERT ON task_artifacts BEGIN SELECT RAISE(ABORT, 'owned stage fault'); END",
@@ -358,6 +359,7 @@ async function proof(
       if (artifactFailure) unlinkSync(db + '.artifacts');
       if (stageFailure) {
         const fault = new Database(db);
+        fault.exec('PRAGMA busy_timeout=5000');
         try {
           fault.run('DROP TRIGGER owned_stage_fault');
         } finally {

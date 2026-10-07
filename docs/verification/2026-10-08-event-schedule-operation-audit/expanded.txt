@@ -1,0 +1,17 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/event-cli.test.ts:
+(pass) events persist without recipients and subscriptions match independently across CLI processes [663.95ms]
+(pass) malformed event inputs return usage error before creating a database [116.83ms]
+
+tests/event-schedule-operation-audit.test.ts:
+(pass) Event and Subscription mutations preserve writer Audit with no idempotent replay [3.21ms]
+(pass) Schedule registration and enabled changes retain writer Audit without no-op records [0.73ms]
+(pass) Event and Schedule Audit storage is atomic, immutable and stable across reopen without legacy backfill [16.99ms]
+
+tests/schedule-cli.test.ts:
+(pass) Schedule CLI publishes a due Event once across worker restarts and preserves enable state [645.29ms]
+
+ 6 pass
+ 0 fail
+Ran 6 tests across 3 files. [1480.00ms]

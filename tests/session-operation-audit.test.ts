@@ -61,9 +61,10 @@ test('same-time Session Audit preserves create and repeated Runtime chronology',
       { list: () => [] },
       { configurationHistory: () => [], capabilityHistory: () => [] },
       { list: () => [], history: () => [], operationHistory: () => [] },
-      { list: () => [] },
+      { list: () => [], operationHistory: () => [] },
       { operationHistory: () => [] },
       store,
+      { operationHistory: () => [] },
       { operationHistory: () => [] },
     );
     assert.deepEqual(
@@ -232,9 +233,10 @@ test('Task-filtered Audit retains cancellation and restart recovery terminal out
       { list: () => [] },
       { configurationHistory: () => [], capabilityHistory: () => [] },
       { list: () => [], history: () => [], operationHistory: () => [] },
-      { list: () => [] },
+      { list: () => [], operationHistory: () => [] },
       { operationHistory: () => [] },
       store,
+      { operationHistory: () => [] },
       { operationHistory: () => [] },
     );
     const outcomes = selectAuditLogs(records, { taskId: 'task', limit: 100 }).filter((entry) =>

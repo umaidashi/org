@@ -342,7 +342,7 @@ export async function runWorkflowCommand(
     !configured?.workflows.some((w) => w.id === command.target)
   )
     throw new Error('Workflow is not allowed');
-  const bus = new SqliteEventBus(command.db);
+  const bus = new SqliteEventBus(command.db, { kind: 'system', id: 'local-host' });
   try {
     let result: unknown;
     if (command.action === 'list' || command.action === 'history') {

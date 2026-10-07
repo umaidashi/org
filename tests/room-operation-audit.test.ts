@@ -58,10 +58,11 @@ test('Room Audit preserves Task actor, immutable configuration snapshots and rol
       { list: () => [] },
       { configurationHistory: () => [], capabilityHistory: () => [] },
       { list: () => [], history: () => [], operationHistory: () => [] },
-      { list: () => [] },
+      { list: () => [], operationHistory: () => [] },
       { operationHistory: () => [] },
       { operationHistory: () => [] },
       store,
+      { operationHistory: () => [] },
     );
   try {
     store.create(room);

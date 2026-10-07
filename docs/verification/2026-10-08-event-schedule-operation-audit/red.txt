@@ -1,0 +1,27 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/event-schedule-operation-audit.test.ts:
+13 |     bus.publishOnce(event);
+14 |     bus.publishOnce(event);
+15 |     bus.subscribe(createSubscription({ subscriberType: 'agent', subscriberId: 'a', eventPattern: 'synthetic.*' }, { id: 'sub', createdAt: at }));
+16 |     bus.setEnabled('sub', false);
+17 |     bus.setEnabled('sub', false);
+18 |     const audit = bus.operationHistory();
+                           ^
+TypeError: bus.operationHistory is not a function. (In 'bus.operationHistory()', 'bus.operationHistory' is undefined)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/event-schedule-operation-audit.test.ts:18:23)
+(fail) Event and Subscription mutations preserve writer Audit with no idempotent replay [3.81ms]
+28 |   try {
+29 |     store.create(createSchedule({ name: 'Synthetic', everyMs: 1000, startAtMs: 0, event: { type: 'synthetic.tick', source: 'fixture' } }, { id: 's', createdAt: at }));
+30 |     store.setEnabled('s', false);
+31 |     store.setEnabled('s', false);
+32 |     store.setEnabled('s', true);
+33 |     const audit = store.operationHistory();
+                             ^
+TypeError: store.operationHistory is not a function. (In 'store.operationHistory()', 'store.operationHistory' is undefined)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/event-schedule-operation-audit.test.ts:33:25)
+(fail) Schedule registration and enabled changes retain writer Audit without no-op records [0.83ms]
+
+ 0 pass
+ 2 fail
+Ran 2 tests across 1 file. [26.00ms]

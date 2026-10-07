@@ -156,7 +156,7 @@ export async function runSandboxCommand(
       });
       proposalRef = `org://rooms/${encodeURIComponent(room.id)}/messages/${encodeURIComponent(message.id)}`;
     } else input = command.input;
-    events = new SqliteEventBus(command.db);
+    events = new SqliteEventBus(command.db, { kind: 'system', id: 'local-host' });
     const taskProvider = tasks;
     const agentRepository = agents;
     const result = await runSandboxTask(

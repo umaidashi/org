@@ -864,7 +864,7 @@ export async function runTaskCommand(
         );
         const approvals = new SqliteApprovalStore(command.db);
         try {
-          const events = new SqliteEventBus(command.db);
+          const events = new SqliteEventBus(command.db, { kind: 'system', id: 'local-host' });
           try {
             const provider = linearTaskClient(
               store,
@@ -979,7 +979,7 @@ export async function runTaskCommand(
           { id: randomUUID(), createdAt: new Date().toISOString() },
         );
       else {
-        events = new SqliteEventBus(command.db);
+        events = new SqliteEventBus(command.db, { kind: 'system', id: 'local-host' });
         result = await executeApprovedTaskLinearUpdate(
           tasks,
           agents,
@@ -1016,7 +1016,7 @@ export async function runTaskCommand(
     const agents = new SqliteAgentRepository(command.db);
     let events: SqliteEventBus | undefined;
     try {
-      events = new SqliteEventBus(command.db);
+      events = new SqliteEventBus(command.db, { kind: 'system', id: 'local-host' });
       const result = await readAgentLinearIssue(
         agents,
         scopes,
@@ -1155,7 +1155,7 @@ export async function runTaskCommand(
               createdAt: new Date().toISOString(),
             });
           else {
-            const events = new SqliteEventBus(command.db);
+            const events = new SqliteEventBus(command.db, { kind: 'system', id: 'local-host' });
             try {
               const references =
                 action.kind === 'request-linear-update' || action.kind === 'apply-linear-update'

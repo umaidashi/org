@@ -76,6 +76,24 @@ test('Schedule CLI publishes a due Event once across worker restarts and preserv
     assert.equal(enabled.enabled, true);
     assert.equal(run(['daemon', '--once']).status, 0);
     assert.deepEqual(json(['event', 'list']), events);
+    const audit = json(['audit', 'list']);
+    assert.ok(Array.isArray(audit));
+    const operations = audit.filter((entry) => String(entry.tool).startsWith('schedule.'));
+    assert.deepEqual(
+      operations.map((entry) => String(entry.tool)),
+      ['schedule.create', 'schedule.disable', 'schedule.enable'],
+    );
+    assert.ok(
+      operations.every(
+        (entry) =>
+          JSON.stringify(entry.actor) === JSON.stringify({ kind: 'system', id: 'local-host' }),
+      ),
+    );
+    const publication = audit.filter((entry) => entry.tool === 'event.publish');
+    assert.equal(publication.length, 1);
+    assert.deepEqual(publication[0]?.actor, { kind: 'system', id: 'core' });
+    json(['schedule', 'enable', created.id]);
+    assert.deepEqual(json(['audit', 'list']), audit);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

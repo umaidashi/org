@@ -1,0 +1,18 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/approved-workflow-cli.test.ts:
+(pass) native CLI invokes write Workflow only after exact human approval and never replays it [363.23ms]
+
+tests/task-workflow-resume-cli.test.ts:
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2114.52ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2186.89ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2093.79ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2358.25ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2085.22ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2445.23ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [2059.08ms]
+(pass) native daemon approves once then observes Workflow auto=%s crash=%s artifactFailure=%s stageFailure=%s without reinvoking [3176.31ms]
+
+ 9 pass
+ 0 fail
+Ran 9 tests across 2 files. [18.93s]

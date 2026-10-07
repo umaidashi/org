@@ -1,3 +1,5 @@
+import type { ScheduleOperationReader } from '../schedules/port.js';
+import type { EventOperationReader } from '../events/port.js';
 import type { RoomOperationReader } from '../rooms/port.js';
 import type { SessionOperationReader } from '../sessions/port.js';
 import type { MemoryOperationReader } from '../memory/port.js';
@@ -15,10 +17,11 @@ export function collectAudit(
   approvals: Pick<ApprovalStore, 'list'>,
   agents: AgentConfigurationReader & { capabilityHistory(): readonly CapabilityChange[] },
   tasks: Pick<TaskProvider, 'list' | 'history'> & TaskOperationReader,
-  events: Pick<EventBus, 'list'>,
+  events: Pick<EventBus, 'list'> & EventOperationReader,
   memories: MemoryOperationReader,
   sessions: SessionOperationReader,
   rooms: RoomOperationReader,
+  schedules: ScheduleOperationReader,
 ): readonly AuditEntry[] {
   const decisions = approvals.list();
   const originals = events.list();
@@ -27,6 +30,8 @@ export function collectAudit(
     ...memories.operationHistory(),
     ...sessions.operationHistory(),
     ...rooms.operationHistory(),
+    ...events.operationHistory(),
+    ...schedules.operationHistory(),
     ...tasks.operationHistory(),
     ...tasks.list().flatMap((task) => buildTaskExecutionAudit(tasks.history(task.id))),
     ...buildWorkflowAudit(originals),
