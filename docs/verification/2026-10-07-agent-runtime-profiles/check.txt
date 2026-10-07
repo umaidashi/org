@@ -1,0 +1,10 @@
+RED: config 1 pass, 2 fail, 122ms; native 0 pass, 1 fail, 5.62s.
+First targeted: 10 pass, 2 fail (explicit env null accepted; macOS tmp alias fixture mismatch).
+Final targeted: 12 pass, 0 fail, 1.55s; two Agent cwd/HOME/env + resume, default Claude, missing explicit runtime no process.
+Fast UT: 103 pass, 0 fail, 43 files, 241ms.
+Full check: 339 pass, 12 skip, 0 fail, 351 tests, 175 files, 75.94s; exit 0.
+Real jev: 1761 subjects, 112 warnings; missing 0, unsure 0, errors [], degraded []; exit 0.
+Real Claude/native Memory regression: 3 pass, 0 fail, 51.31s.
+Independent review: Critical/Important/Minor 0; independent config/adapter/Session service 14 pass, 36ms.
+Ponytail review: Lean already. Ship.
+Physical filesystem/Keychain/IPC isolation and different real Max account authentication are not claimed.

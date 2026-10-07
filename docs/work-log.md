@@ -1123,3 +1123,6 @@
 - GREEN: targeted12成功0fail1.55秒、2Agent別cwd/HOME/env alias/同Kernel・provider ID resume、共通Claude既定値、明示profileのmissing Claude→起動拒否/driver count不変を実CLIで確認。未選択host source変数/他Actor変数はchildに存在しない。高速UT103成功0fail43files241ms。
 - 全check339成功12skip0fail351tests175files75.94秒、exit0、型/lint/format/AST/dry-run非空。実jev1761対象warning112/missing・unsure0/errors・degraded空。configuredDriversの失敗経路候補は既存parse UT・missing runtime native未起動へ照合する。独立最終reviewと共有配線の実Claude Max回帰を進める。
 - Ponytail review: parseRuntimeConfigの既存Driver検証をprofileにも再利用し、configuredDriversのActor ID選択だけに接続。新runtime manager/Port/DI container/依存なし。env aliasは同child変数名にActor別sourceを選ぶ実要件のため追加、共通credentialの暗黙mergeはしない。
+- 共有配線の実Claude Max回帰3成功0fail51.31秒（実Claude48.34秒）、既存provider設定でMemory自動採用・直近30件外からfresh Session引継ぎ・原本再起動不変を確認。新Agent profileの別credential値は公開fixtureでの選択検証であり、別Maxアカウント認証の成功とは扱わない。
+- 独立最終review Critical/Important/Minor0、独立config/Codex/Claude/Session service14成功36ms。明示profile missing runtime拒否・own string env・registered Session Actor選択・cancel継続・物理隔離との区別を照合。Ponytail独立review Lean already. Ship. 再reviewなし。[証拠](verification/2026-10-07-agent-runtime-profiles/check.txt)。全体未完了は要件表に保持。
+- Next: 重要操作の権限制御を、既存Workflow host契約・Approval binding・実行前再照合へ接続する。publish/spend等の宣言済み操作に対する追加capabilityをhostが指定できる経路を、現在のPort/validatorを再利用して検証する。実業務Issue/変更先repo・実Notion/Linear認証の回答待ちだけでローカル実装を停止しない。
