@@ -6,6 +6,6 @@ Fast unit: 136pass0fail48files173ms.
 Static: type/Oxlint/Oxfmt326files/AST pass after closure string narrowing fix.
 Actual Jev: 1983 subjects119warning missing0unsure0review0 errors[]degraded[], exit0. Dry-run14requests; snapshots/credentials/DB/logs excluded.
 Jev disposition: observer name describes read+immutable observation and receipt reuse; current-content match does not prove writer. Existing parser failure-path candidate retained without exhaustive-coverage claim.
-Full gate: exit0,396pass12skip0fail408tests182files104.30s, type/Oxlint/Oxfmt/AST fixture and nonempty dry-run pass. Fresh review: pending.
+Full gate: exit0,396pass12skip0fail408tests182files104.30s, type/Oxlint/Oxfmt/AST fixture and nonempty dry-run pass. Fresh review: Ready merge yes, Critical0 Important0 Minor0; independent DI/old22pass67ms, supplied native/full/Jev evidence inspected. No code changes or rereview.
 Ponytail: Lean already. Ship. Existing query/claim/receipt/Approval/URL validator reused; no dependency/table/generic layer added.
 Limits: owned HTTP/DB fixture is not real Linear authentication/send. Empty-description server normalization unverified. Observed is historical matching-current-state evidence, not exclusive mutation attribution or ongoing sync. Human actor string is not identity authentication. Whole MVP remains active.
