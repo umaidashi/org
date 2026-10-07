@@ -1571,3 +1571,6 @@
 - Final Ruling:全checkは親のterminal終了と実測値だけを採用 — reviewerは重複/推測しない — 誤ると未終了検査を成功に数える。
 
 - 最終全bun run check終了0:462成功/14skip/0失敗、476tests/197files/161.79秒、static350files/AST成功。非空dry-run2193対象/除外・未宣言・空rule0、実Jevの欠損/通信/判定劣化0。[RED/GREEN/全gate/実Jev証拠](verification/2026-10-07-linear-priority-write/)を保存。未実行opt-inは成功へ数えず、priority前提の実装と共通write/実API/全体未達を区別する。
+
+- main通常fast-forwardとorigin/main push終了0、公開commit7f391f0、公開時点HEAD/origin/main一致。Lefthook push対象全検査/実Jev成功180.64秒。通常pushのみ、forceなし。
+- 次の[複合Linear write計画](superpowers/plans/2026-10-07-linear-combined-write.md)を保存。Core patchのcontent/status/owner/priority/labelsを一回の承認対象へ接続するため、既存shared fieldsと旧content approvalsを保持して進める。nullable descriptionのcanonical化は新fields modeに限定し、legacy digestは変更しない境界を計画に記載。共通update・全体goalはactive。
