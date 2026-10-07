@@ -36,8 +36,13 @@ import {
 import type { LinearIssueListInput } from '../linear/read.js';
 import { EnvironmentSecretStore } from '../secrets/environment.js';
 import { linearAgentScopes, linearTaskMapping, linearTaskTeam } from '../linear/config.js';
-import { linearTaskClient } from '../linear/provider.js';
-import { localTaskClient, runTaskClient, type TaskClientAction } from './client.js';
+import { linearTaskClient, requestLinearCoreUpdateApproval } from '../linear/provider.js';
+import {
+  localTaskClient,
+  runTaskClient,
+  validateTaskWriteContext,
+  type TaskClientAction,
+} from './client.js';
 import { readLinearCoreWorkItem } from '../linear/projection.js';
 import { readAgentLinearIssue } from '../linear/agent-read.js';
 import {
@@ -53,9 +58,9 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { SqliteAgentRepository } from '../agents/sqlite.js';
-import { createTask, isTaskStatus } from './domain.js';
+import { createTask, isTaskStatus, parseProviderTaskPatch } from './domain.js';
 import type { TaskInput, TaskKind, TaskPatch, TaskStatus } from './domain.js';
-import type { TaskFilter } from './port.js';
+import type { TaskFilter, TaskWriteContext } from './port.js';
 import { assignTask, readTaskRoomArtifact } from './service.js';
 import { SqliteTaskProvider } from './sqlite.js';
 import { SqliteRoomRepository } from '../rooms/sqlite.js';
@@ -64,6 +69,17 @@ import { recoverExecutionTaskResult } from './execution.js';
 import { parseLinearIssueFields, type LinearIssueFields } from '../linear/fields.js';
 
 type TaskAction =
+  | { kind: 'provider-update'; id: string; patch: TaskPatch; context: TaskWriteContext }
+  | {
+      kind: 'request-core-linear-update';
+      input: {
+        taskId: string;
+        patch: TaskPatch;
+        expectedVersion: number;
+        actor: string;
+        key: string;
+      };
+    }
   | {
       kind: 'apply-task-linear-update';
       input: { taskId: string; approvalId: string };
@@ -164,6 +180,8 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       title: { type: 'string' },
       description: { type: 'string' },
       fields: { type: 'string' },
+      patch: { type: 'string' },
+      'core-patch': { type: 'string' },
       status: { type: 'string' },
       owner: { type: 'string' },
       priority: { type: 'string' },
@@ -198,11 +216,20 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
     'request-task-linear-update': ['room', 'room-message', 'expected-version', 'key'],
     'request-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'key'],
     'apply-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'approval'],
-    'request-linear-update': ['title', 'description', 'fields', 'expected-version', 'actor', 'key'],
+    'request-linear-update': [
+      'title',
+      'description',
+      'fields',
+      'core-patch',
+      'expected-version',
+      'actor',
+      'key',
+    ],
     'apply-linear-update': [
       'title',
       'description',
       'fields',
+      'core-patch',
       'expected-version',
       'actor',
       'approval',
@@ -248,14 +275,19 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       'clear-parent',
     ],
   };
-  const options = action === undefined ? undefined : allowed[action];
+  const options =
+    values.provider !== undefined && action === 'update'
+      ? ['patch', 'expected-version', 'actor', 'approval']
+      : action === undefined
+        ? undefined
+        : allowed[action];
   if (!options) throw new Error('Expected task create/list/get/assign/update/history');
   if (
     values.provider !== undefined &&
     (!['local', 'linear'].includes(values.provider) ||
-      !['create', 'get', 'list'].includes(action ?? ''))
+      !['create', 'get', 'list', 'update'].includes(action ?? ''))
   )
-    throw new Error('Provider supports task create/get/list');
+    throw new Error('Provider supports task create/get/list/update');
   const providerOptions =
     values.provider === undefined
       ? []
@@ -279,6 +311,73 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       ? { provider: values.provider }
       : {}),
   };
+  const corePatch = (value: string | undefined): TaskPatch => {
+    try {
+      return parseProviderTaskPatch(JSON.parse(required(value, 'Core patch JSON')));
+    } catch {
+      throw new Error('Invalid Core Task patch');
+    }
+  };
+  const writeContext = (): TaskWriteContext => {
+    const context = {
+      actor: required(values.actor, '--actor'),
+      expectedVersion: priority(required(values['expected-version'], '--expected-version')),
+      ...(values.approval === undefined
+        ? {}
+        : { approvalId: required(values.approval, '--approval') }),
+    };
+    validateTaskWriteContext(context);
+    return context;
+  };
+  if (values.provider !== undefined && action === 'update')
+    return {
+      ...common,
+      action: {
+        kind: 'provider-update',
+        id: required(id, 'Task ID'),
+        patch: corePatch(values.patch),
+        context: writeContext(),
+      },
+    };
+  if (
+    (action === 'request-linear-update' || action === 'apply-linear-update') &&
+    values['core-patch'] !== undefined
+  ) {
+    if (
+      values.fields !== undefined ||
+      values.title !== undefined ||
+      values.description !== undefined
+    )
+      throw new Error('Core patch and external fields/content are exclusive');
+    const patch = corePatch(values['core-patch']),
+      context = writeContext(),
+      taskId = required(id, 'WorkItem ID');
+    linearWorkItemIssueId(taskId);
+    if (action === 'apply-linear-update')
+      return {
+        ...common,
+        provider: 'linear',
+        action: {
+          kind: 'provider-update',
+          id: taskId,
+          patch,
+          context: { ...context, approvalId: required(values.approval, '--approval') },
+        },
+      };
+    return {
+      ...common,
+      action: {
+        kind: 'request-core-linear-update',
+        input: {
+          taskId,
+          patch,
+          expectedVersion: context.expectedVersion,
+          actor: context.actor,
+          key: required(values.key, '--key'),
+        },
+      },
+    };
+  }
   if (action === 'apply-task-linear-update' || action === 'observe-task-linear-update')
     return {
       ...common,
@@ -619,8 +718,13 @@ export async function runTaskCommand(
 ): Promise<void> {
   if (command.provider !== undefined) {
     const action = command.action;
-    if (action.kind !== 'create' && action.kind !== 'get' && action.kind !== 'list')
-      throw new Error('Provider supports task create/get/list');
+    if (
+      action.kind !== 'create' &&
+      action.kind !== 'get' &&
+      action.kind !== 'list' &&
+      action.kind !== 'provider-update'
+    )
+      throw new Error('Provider supports task create/get/list/update');
     const coreAction: TaskClientAction =
       action.kind === 'create'
         ? {
@@ -633,9 +737,11 @@ export async function runTaskCommand(
               externalRef: action.externalRef ?? null,
             },
           }
-        : action.kind === 'list'
-          ? { kind: 'list', filter: action.filter }
-          : { kind: 'get', id: action.id };
+        : action.kind === 'provider-update'
+          ? { kind: 'update', id: action.id, patch: action.patch, context: action.context }
+          : action.kind === 'list'
+            ? { kind: 'list', filter: action.filter }
+            : { kind: 'get', id: action.id };
     const settings =
       command.provider === 'linear'
         ? { mapping: linearTaskMapping(), team: linearTaskTeam() }
@@ -645,7 +751,10 @@ export async function runTaskCommand(
       if (!settings) {
         output(
           JSON.stringify(
-            await runTaskClient(localTaskClient(store), coreAction),
+            await runTaskClient(
+              localTaskClient(store, () => new Date().toISOString()),
+              coreAction,
+            ),
             null,
             command.json ? undefined : 2,
           ),
@@ -654,29 +763,79 @@ export async function runTaskCommand(
       }
       const agents = new SqliteAgentRepository(command.db);
       try {
-        const secrets = new EnvironmentSecretStore([
-          {
+        const secrets = new EnvironmentSecretStore(
+          ['linear:read', 'linear:write'].map((reference) => ({
             actorId: 'linear:host',
-            reference: 'linear:read',
+            reference,
             environmentVariable: 'LINEAR_API_KEY',
-          },
-        ]);
-        const provider = linearTaskClient(
-          store,
-          fetch,
-          secrets,
-          agents,
-          settings.mapping,
-          settings.team,
-          () => new Date().toISOString(),
+          })),
         );
-        output(
-          JSON.stringify(
-            await runTaskClient(provider, coreAction),
-            null,
-            command.json ? undefined : 2,
-          ),
-        );
+        const approvals = new SqliteApprovalStore(command.db);
+        try {
+          const events = new SqliteEventBus(command.db);
+          try {
+            const provider = linearTaskClient(
+              store,
+              fetch,
+              secrets,
+              agents,
+              settings.mapping,
+              settings.team,
+              () => new Date().toISOString(),
+              { approvals, events },
+            );
+            output(
+              JSON.stringify(
+                await runTaskClient(provider, coreAction),
+                null,
+                command.json ? undefined : 2,
+              ),
+            );
+          } finally {
+            events.close();
+          }
+        } finally {
+          approvals.close();
+        }
+      } finally {
+        agents.close();
+      }
+    } finally {
+      store.close();
+    }
+    return;
+  }
+  if (command.action.kind === 'request-core-linear-update') {
+    const mapping = linearTaskMapping(),
+      team = linearTaskTeam();
+    const store = new SqliteTaskProvider(command.db);
+    try {
+      const agents = new SqliteAgentRepository(command.db);
+      try {
+        const approvals = new SqliteApprovalStore(command.db);
+        try {
+          const secrets = new EnvironmentSecretStore([
+            {
+              actorId: 'linear:host',
+              reference: 'linear:read',
+              environmentVariable: 'LINEAR_API_KEY',
+            },
+          ]);
+          const result = await requestLinearCoreUpdateApproval(
+            store,
+            approvals,
+            fetch,
+            secrets,
+            agents,
+            mapping,
+            team,
+            command.action.input,
+            { id: randomUUID(), createdAt: new Date().toISOString() },
+          );
+          output(JSON.stringify(result, null, command.json ? undefined : 2));
+        } finally {
+          approvals.close();
+        }
       } finally {
         agents.close();
       }
@@ -858,6 +1017,7 @@ export async function runTaskCommand(
     }
     return;
   }
+  if (command.action.kind === 'provider-update') throw new Error('Core update requires provider');
   const provider = new SqliteTaskProvider(command.db);
   try {
     const action = command.action;

@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-work-item-sync-sqlite.test.ts:
+(pass) Core WorkItem synchronization uses atomic CAS and immutable history, preserves Local originals and survives reopen [22.09ms]
+
+tests/linear-core-projection.test.ts:
+(pass) Core Linear projection rejects malformed mapping and incomplete or unknown remote fields without inventing authority [5.39ms]
+(pass) Core Linear projection accepts long identifier requests independently of UUID string length [0.29ms]
+(pass) Core outbound mapping requires explicit unique registered targets and keeps Local relations out of Linear fields [0.09ms]
+
+tests/task-provider.test.ts:
+(pass) same async Core consumer creates, gets and lists through both concrete adapters and propagates failures [2.63ms]
+(pass) Core consumer awaits the injected async result before reporting success [0.16ms]
+(pass) Linear client refuses invalid Core IDs and stored scope before credentials and rejects acquisition races [0.37ms]
+(pass) Linear list validates all pages before reconciliation and rejects duplicate IDs, cursor cycles, partial fields and page overflow [3.58ms]
+(pass) common update awaits Local CAS, validates closed patches and never treats external Approval as Local authorization [0.76ms]
+(pass) Linear relation-only common update is Local CAS and rejects cycles without credentials or external claims [0.43ms]
+(pass) approved common Linear update preserves receipts across read/save/CAS failures and never resends during recovery [5.95ms]
+
+ 11 pass
+ 0 fail
+Ran 11 tests across 3 files. [87.00ms]

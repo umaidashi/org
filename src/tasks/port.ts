@@ -36,6 +36,12 @@ export interface AsyncTaskProvider {
   create(task: Task): Promise<Task>;
   get(id: string): Promise<Task>;
   list(filter?: TaskFilter): Promise<readonly Task[]>;
+  update(id: string, patch: TaskPatch, context: TaskWriteContext): Promise<Task>;
+}
+export interface TaskWriteContext {
+  readonly actor: string;
+  readonly expectedVersion: number;
+  readonly approvalId?: string;
 }
 
 export interface ExecutionResultWriter {
@@ -47,5 +53,10 @@ export interface WorkItemImporter {
 }
 export interface WorkItemSynchronizer {
   get(id: string): Task;
-  syncWorkItem(snapshot: WorkItem, expectedVersion: number, at: string): Task;
+  syncWorkItem(
+    snapshot: WorkItem,
+    expectedVersion: number,
+    at: string,
+    relations?: Pick<TaskPatch, 'parentId' | 'dependencies'>,
+  ): Task;
 }

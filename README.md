@@ -613,7 +613,7 @@ daemon起動時にWorkflow claimを持つrunning Taskを検出すると、blocke
 
 ## Linear IssueをCore WorkItem形式で読む
 
-共通非同期consumerは既存`task create/get/list --provider local|linear`から使用できます。Localは既存SQLite store、Linearはhostの`ORG_LINEAR_TASK_MAPPING`と`ORG_LINEAR_TASK_TEAM`（Team key）を使います。CoreへGraphQLの応答形式を返しません。update/comment/artifactの共通非同期契約はまだ未完了です。
+共通非同期consumerは既存`task create/get/list/update --provider local|linear`から使用できます。Localは既存SQLite store、Linearはhostの`ORG_LINEAR_TASK_MAPPING`と`ORG_LINEAR_TASK_TEAM`（Team key）を使います。CoreへGraphQLの応答形式を返しません。updateは明示actor/versionとCore patchを使います。comment/artifactの共通非同期契約はまだ未完了です。
 
 ```sh
 bun run start task create Local --objective Done --provider local --id local-task --json
@@ -848,3 +848,18 @@ Runtimeはhostが示すWorkItem versionに対し、既存のclosed `linear-updat
 Approval保存と最初のTask待機保存は別々で、後者が失敗するとTaskはfailed・Approval原本は残ります。人間の承認だけではそれを実行しません。source照合→claim/外部writeの跨process原子性・外部CAS・送信後の即時権限撤回は保証しません。host scopeは起動時snapshotです。実API認証・本人認証・実業務Draft PRは引き続き未完了です。
 
 実Claude Maxでこの経路を確認する場合は `ORG_CLAUDE_LINEAR_TEST=1 bun --no-env-file test tests/runtime-linear-approval-cli.test.ts -t real-resume`。content/fieldsの閉じた提案、同provider Session、human操作承認、再起動、並行再開一回、receipt Artifactと人間結果review、再開前後のSession履歴/Message原本不変を検査します。Linear通信は固定HTTP fixtureであり、実Linear APIの認証や送信の証拠ではありません。通常gateはこの2ケースをskipします。
+
+## Core Taskの共通更新
+
+```sh
+bun run start task update TASK_ID --provider local --patch '{"title":"変更後","owner":null}' --expected-version VERSION --actor HUMAN --json
+bun --env-file=.env src/cli.ts task request-linear-update WORKITEM_ID --core-patch '{"status":"running","owner":"AGENT_ID","priority":0,"labels":["Reviewed"]}' --expected-version VERSION --actor HUMAN --key UPDATE_KEY --json
+bun run start approval decide APPROVAL_ID --actor REVIEWER --decision approve --reason '内容を確認'
+bun --env-file=.env src/cli.ts task update WORKITEM_ID --provider linear --patch '{"status":"running","owner":"AGENT_ID","priority":0,"labels":["Reviewed"]}' --expected-version VERSION --actor HUMAN --approval APPROVAL_ID --json
+```
+
+Linearは`ORG_LINEAR_TASK_MAPPING`のstates（UUID→Core状態）/owners（UUID→登録Agent ID）を一意に逆引きします。欠落/曖昧な対応を拒否します。labelsは同じ設定の任意`labels`（例`{"Reviewed":"LABEL_UUID"}`）を使い、推測検索しません。旧states/ownersだけの読取設定も使用できます。title/objective/priorityは共通field検証へ接続します。`--core-patch`は旧`--fields`/`--title`/`--description`と相互排他です。Core applyの別名`apply-linear-update --core-patch`も更新後のTaskを返します。
+
+parentId/dependenciesはLocal所有でLinearへ送らず、外部six fieldsの承認対象に含めません。明示patchに含めるとgraph検証後に外部snapshotと同じLocal CAS/history transactionで保存します。関係だけの変更はHTTP/外部承認不要です。Local更新は既存状態遷移を守り、外部Approvalを消費したと装いません。actorは宣言値で本人認証は残件です。
+
+外部receiptが確定してもCore同期が失敗した場合は、receipt IDを示して失敗します。`task observe-linear-update`で既存receiptを確認し、`task get --provider linear`でミラーを回復してください。同じ承認のwriteを再送しません。同期前には選択したCore fieldsの現在値も照合します。別writerの変更やhost labels名の不一致は成功扱いにせず、跨system原子性は保証しません。成果物/Local原本を保持します。実Linear API/業務対象の受け入れと残comment/artifactは未完了です。

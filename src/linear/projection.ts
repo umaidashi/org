@@ -1,7 +1,17 @@
 import type { AgentRepository } from '../agents/port.js';
 import type { SecretStore } from '../secrets/port.js';
-import { createTask, isTaskStatus, type TaskStatus, type WorkItem } from '../tasks/domain.js';
-import { parseLinearIssueFields, parseLinearUpdateIssue } from './fields.js';
+import {
+  createTask,
+  isTaskStatus,
+  parseProviderTaskPatch,
+  type TaskStatus,
+  type WorkItem,
+} from '../tasks/domain.js';
+import {
+  parseLinearIssueFields,
+  parseLinearUpdateIssue,
+  type LinearIssueFields,
+} from './fields.js';
 import {
   queryLinear,
   validateLinearIssueId,
@@ -16,6 +26,7 @@ const coreFields =
 export interface LinearTaskMapping {
   readonly states: Readonly<Record<string, TaskStatus>>;
   readonly owners: Readonly<Record<string, string>>;
+  readonly labels?: Readonly<Record<string, string>>;
 }
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -23,9 +34,10 @@ function record(value: unknown): value is Record<string, unknown> {
 export function parseLinearTaskMapping(value: unknown): LinearTaskMapping {
   if (
     !record(value) ||
-    Object.keys(value).length !== 2 ||
+    Object.keys(value).some((key) => !['states', 'owners', 'labels'].includes(key)) ||
     !record(value.states) ||
-    !record(value.owners)
+    !record(value.owners) ||
+    ('labels' in value && !record(value.labels))
   )
     throw new Error('Invalid Linear Task mapping');
   const states = Object.fromEntries(
@@ -49,7 +61,54 @@ export function parseLinearTaskMapping(value: unknown): LinearTaskMapping {
     Object.keys(owners).length > 256
   )
     throw new Error('Invalid Linear mapping size');
-  return { states, owners };
+  const labels =
+    'labels' in value && record(value.labels)
+      ? Object.fromEntries(
+          Object.entries(value.labels).map(([name, id]) => {
+            if (typeof id !== 'string' || !name.trim() || name.includes('\0') || name.length > 128)
+              throw new Error('Invalid Linear label mapping');
+            parseLinearIssueFields({ labelIds: [id] });
+            return [name, id];
+          }),
+        )
+      : undefined;
+  if (labels !== undefined && Object.keys(labels).length > 100)
+    throw new Error('Invalid Linear label mapping size');
+  return { states, owners, ...(labels === undefined ? {} : { labels }) };
+}
+export function linearCoreTaskPatch(
+  agents: Pick<AgentRepository, 'list'>,
+  inputMapping: LinearTaskMapping,
+  input: unknown,
+): LinearIssueFields {
+  const mapping = parseLinearTaskMapping(inputMapping),
+    patch = parseProviderTaskPatch(input);
+  validateOwners(agents, mapping);
+  const reverse = (entries: Readonly<Record<string, string>>, value: string): string => {
+    const found = Object.entries(entries).filter(([, candidate]) => candidate === value);
+    if (found.length !== 1 || !found[0])
+      throw new Error('Missing or ambiguous Linear Task mapping');
+    return found[0][0];
+  };
+  const fields = {
+    ...(patch.status === undefined ? {} : { stateId: reverse(mapping.states, patch.status) }),
+    ...(patch.owner === undefined
+      ? {}
+      : { assigneeId: patch.owner === null ? null : reverse(mapping.owners, patch.owner) }),
+    ...(patch.labels === undefined
+      ? {}
+      : {
+          labelIds: patch.labels.map((name) => {
+            const id = mapping.labels?.[name];
+            if (typeof id !== 'string') throw new Error('Unmapped Linear label');
+            return id;
+          }),
+        }),
+    ...(patch.priority === undefined ? {} : { priority: patch.priority }),
+    ...(patch.title === undefined ? {} : { title: patch.title }),
+    ...(patch.objective === undefined ? {} : { description: patch.objective }),
+  };
+  return Object.keys(fields).length ? parseLinearIssueFields(fields) : {};
 }
 function timestamp(value: unknown): string {
   if (

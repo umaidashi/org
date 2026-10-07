@@ -1594,3 +1594,26 @@
 
 - main通常fast-forwardとorigin/main push終了0、公開commit962de87、公開時点HEAD/origin/main一致。Lefthook push対象全検査/実Jev成功182.78秒。最終fast UT160成功/56files251msの証拠を保存済み。forceなし。
 - 次の[Core mappingと共通update実consumer計画](superpowers/plans/2026-10-07-linear-core-write-mapping.md)を保存。state/Agent ownerの一意逆対応とhost明示labels対応を実承認入力へ接続し、同じ検証単位でLocal/LinearのAsyncTaskProvider.updateを実消費する。準備command/pure mappingだけで完成にせず、外部receipt後のCAS同期障害を区別し再送しない。Local所有関係/原本と残comment/artifact、他の全体残件を維持する。Ponytail:既存Approval/claim/receipt/観測/mergeを再利用し、新mutation engine/背景syncを追加しない。文書git diff --check成功、全体goalはactive。
+
+## 2026-10-07 Core mappingと共通Task update
+
+- 全体達成の依頼を継続。feature `feat/core-task-update`、base6a3da91、公開source962de87。[実consumer計画](superpowers/plans/2026-10-07-linear-core-write-mapping.md)、指針/リファレンス/quality-reviewとNotion04/08を照合（再取得成功、編集2026-10-04、verification unverified、切詰めなし）。executing-plans inlineとPonytail ultra/reviewを継続。全体goalは未達。
+- RED: native0成功/1失敗873ms（Core patch option未対応）、owner nullの純粋判断3成功/1失敗50ms、明示Local関係のSQLite同期0成功/1失敗70ms。先行native fixtureは読取前に新labels設定を置き旧parserで失敗したため、更新操作直前へ設定を移して目的のREDを確認。型検査ではWorkItem narrowing、CLIの依存解放前awaitのscope、DI fixtureの新引数不足を検出・修正。テスト内Event importの相対path間違いも修正し、型検査終了0。
+- 初回GREEN:共通consumer/実CLI・daemon/HTTP・SQLite/純粋domain/mapping12成功/0失敗、5files1404ms。Local/Linear updateを実awaitし、approval pending時送信ゼロ、承認後一回送信/再送拒否/外部receipt後CAS、Local原本/成果物保存と再openを確認。混合patchのparent/dependenciesも明示反映。
+- Ruling:owner nullは解除でありpendingをassignedにしない — 既存Execution状態機械のowner/遷移規則を保持 — 誤ると無担当Taskへ実行権限を与える。
+- Ruling:parent/dependenciesはLocal所有の明示操作で外部payload/承認digestに含めない — graphを外部送信前に検査し、外部factと関係を同じLocal CAS/history transactionで保存 — 誤ると利用者が関係も外部承認対象と誤認する。外部六fieldの承認は維持、跨system原子性は保証しない。
+- Ruling:外部receipt確定後にCore同期が失敗しても送信を繰り返さない — receipt IDを持つ失敗とobserve/get回復を提供 — 誤ると外部更新が二重実行される。
+- Ruling:actorは明示宣言で本人認証ではない — 現在のhost管理境界を維持し全体の認証/Audit残件を保持 — 誤ると偽装防止まで達成と誤認する。
+- 障害DI RED6成功/1失敗57ms:外部receipt後の別writerによるselected Core field変更を同期成功にしていた。共有update経路で同期前に選択Core fieldsを比較し、配列labelsは既存projectionと同じ順序正規化。GREEN11成功/0失敗3files87ms、read/save/CAS障害・confirmed receipt保持/再送ゼロ/get回復、closed patch、Local Approval拒否、relation-only無HTTP、混合関係+history rollback、明示一意mapping/未登録Agent/未知labelsを確認。
+- 追加staticはconsumer結果unionのテストnarrowing、sort comparator、providerなし不可能actionのexhaustive switchを検出・修正。型検査/Oxlint/Oxfmt350files/AST終了0。失敗fixture callbackが同期throwしたケースはasync callbackへ修正し、実product障害と区別。
+- Ponytail review:既存changeTask/Approval/claim/receipt/sync/graph検証を再利用。Local関係の追加保存engine、背景sync、DI container、dependency/DDLは追加しない。Core patch parserは外部field parserと責任が異なる（Local関係/状態/owner解除）ため保持。selected Core比較は外部digest後に現在projectionを確認する最小guardとして必要。削減候補なし。正しさ/安全性は独立最終reviewと全gateで別途確認する。
+- 最終native1成功/0失敗1.58秒:共通update/direct/daemon/reopen、承認後state/owner曖昧・未知label・ID変更を送信ゼロで拒否し、設定復元後に一回更新。最終fast UT165成功/0失敗56files265ms。dry-run2224非空対象、excluded/undeclared/idleLanguages/silentRules0。実Jev終了0:2224subjects/134warning/missing0/unsure0/review0/errors[]/degraded[]。新候補（mapping failure tests、helper validate命名）は実否定fixture/独立reviewで判定し、モデル判定のみの改名/新frameworkは行わない。今回dry-run結果の保存確認は実Jev終了後だったが、送信対象は既読quality-reviewと前単位と同じsrc/tests/scripts+指針のみ。次回は直前dry-runも先に保存・確認する。
+- 独立最終review:Critical0/Important0/Minor1。focused15成功/0失敗4files98ms、git diff --check成功。Ponytail Lean already、削減候補なし。C/I fix pass・再reviewなし。
+- Final: minor (deferred):混合patchの同期失敗後、getは外部fieldsのみ回復する。未保存parentId/dependenciesを最新versionのrelation-only updateで回復する手順をREADMEへ追記する候補。現在の外部再送禁止/Local transaction rollbackは正しい。polishとして保留。
+- Final: Ruling:全native gate/実Jevの成否は親terminal実測だけ — reviewerの未観測を成功にしない — 誤ると未終了検査を成功に数える。
+- Final: Ruling:実Linear API・実サービス互換・実モデル提案生成は本単位で未検証 — HTTP fixtureとCore consumer接続を成果とする — 誤ると実業務受け入れを誤認する。
+- Final: Ruling:本人認証/変更主体帰属/跨system原子性/継続remote鮮度は未達 — 明示管理操作・時点読取・既存claim安全性を保持 — 誤ると偽装/競合防止まで達成と誤認する。
+- Final: Ruling:残comment/artifactと全体要件は未達 — 今回の四操作を六操作/全体完了に数えない — 誤ると未接続の実務を完成と誤認する。
+- Final: Ruling:次段階comment/artifact計画は別実装前に契約を照合する — reviewerは現変更だけを判断した — 誤ると詳細設計承認済みと誤認する。
+
+- 最終全check終了0:470成功/14skip/0失敗、484tests/197files165.05秒、static350files/AST成功。実Jev2224subjects/134warning、missing/unsure/review/errors/degraded0。[RED/GREEN/全gate/実Jev証拠](verification/2026-10-07-core-task-update/)保存、requirements/completion-audit/design/READMEを四操作の実績へ更新。skipは未実施、実API/本人認証/実業務納品/全体goal未達を保持。

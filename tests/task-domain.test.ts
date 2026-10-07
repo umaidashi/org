@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { createTask, changeTask, validateTaskReferences } from '../src/tasks/domain.js';
 const identity = { id: 'one', createdAt: '2026-10-04T00:00:00.000Z' };
+test('clearing an already unassigned pending owner does not invent an assignment', () => {
+  const task = createTask({ title: 'Test', objective: 'Done' }, identity);
+  assert.equal(changeTask(task, { owner: null }, identity.createdAt).status, 'pending');
+});
 test('pure task decisions preserve identity and reject illegal state changes', () => {
   const task = createTask({ title: 'Test', objective: 'Done' }, identity);
   assert.equal(task.id, 'one');

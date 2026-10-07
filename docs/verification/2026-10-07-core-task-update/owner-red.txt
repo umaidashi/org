@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-domain.test.ts:
+108 |   }
+109 | }
+110 | function validateTask(task: Task): void {
+111 |   validateTaskFields(task);
+112 |   if (task.status !== 'pending' && task.status !== 'failed' && task.owner === null)
+113 |     throw new Error('Task state requires an owner');
+                                                        ^
+error: Task state requires an owner
+      at validateTask (/Users/umaidashi/Documents/git/org/src/tasks/domain.ts:113:51)
+      at changeTask (/Users/umaidashi/Documents/git/org/src/tasks/domain.ts:190:3)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/task-domain.test.ts:7:16)
+(fail) clearing an already unassigned pending owner does not invent an assignment [0.79ms]
+(pass) pure task decisions preserve identity and reject illegal state changes
+(pass) task domain rejects invalid values and snapshots do not alias input arrays
+(pass) pure graph validation rejects parent cycles, dependency cycles and unfinished prerequisites [1.41ms]
+
+ 3 pass
+ 1 fail
+Ran 4 tests across 1 file. [50.00ms]

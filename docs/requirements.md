@@ -99,3 +99,7 @@ MVPのPhaseごとの現在の実装・検査・実機証拠と未達は[受け�
 ## 2026-10-07 Linear複合変更の承認付きwrite
 
 selected fieldsへtitle/descriptionを追加し、状態・担当・labels・priorityと一回の承認/digest/返却照合/不明結果観測で更新できる。UTF8 byte上限/NUL/空title、選択contentの競合・入力変更・返却mismatch、未選択変更、本文解除のnull正規化とlegacy承認互換をDI/実CLIで確認。[全gate](verification/2026-10-07-linear-combined-write/check.txt):465成功/14skip/0失敗、実Jev2195subjects/missing・errors・degraded0。共通Core update/逆mapping/comment/artifact・実API/本人認証/実業務納品と他の全体残件は未達。
+
+## 2026-10-07 共通Core Task update
+
+共通consumerの第四操作updateを両Adapterへ実接続。Core patchの明示逆mapping/承認後mapping変更拒否、外部receipt後CAS同期、Local relations/history rollback、送信後read/save/CAS/selected Core変更障害のreceipt保存・再送禁止/get回復を実CLI/daemon/HTTP fixture/SQLiteで確認。[全gate](verification/2026-10-07-core-task-update/check.txt):470成功/14skip/0失敗。実Jev2224subjects/missing・errors・degraded0。四操作の確認であり、残comment/artifactと実API・本人認証・全重要Audit・他の全体残件を完了へ変更しない。[次の計画](superpowers/plans/2026-10-07-common-task-comment-artifact.md)へ続く。

@@ -213,13 +213,18 @@ export class SqliteTaskProvider implements TaskProvider, IdempotentTaskWriter, T
       return task;
     });
   }
-  syncWorkItem(snapshot: WorkItem, expectedVersion: number, at: string): Task {
+  syncWorkItem(
+    snapshot: WorkItem,
+    expectedVersion: number,
+    at: string,
+    relations?: Pick<TaskPatch, 'parentId' | 'dependencies'>,
+  ): Task {
     if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 0)
       throw new Error('Invalid expected version');
     return this.transaction(() => {
       const current = this.get(snapshot.id);
       if (current.version !== expectedVersion) throw new Error('WorkItem version conflict');
-      const task = mergeWorkItemSnapshot(current, snapshot, at);
+      const task = mergeWorkItemSnapshot(current, snapshot, at, relations);
       if (task === current) return current;
       this.validateReferences(task);
       this.db

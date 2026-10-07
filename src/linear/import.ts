@@ -1,5 +1,5 @@
 import { createTask } from '../tasks/domain.js';
-import type { Task, WorkItem } from '../tasks/domain.js';
+import type { Task, WorkItem, TaskPatch } from '../tasks/domain.js';
 import type { TaskProvider, WorkItemImporter, WorkItemSynchronizer } from '../tasks/port.js';
 import { validateLinearIssueId } from './read.js';
 import { validateLinearUpdatedIssueUrl } from '../approvals/domain.js';
@@ -63,6 +63,7 @@ export async function syncLinearWorkItem(
   taskId: string,
   expectedVersion: number,
   now: () => string,
+  relations?: Pick<TaskPatch, 'parentId' | 'dependencies'>,
 ): Promise<Task> {
   linearWorkItemIssueId(taskId);
   if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 0)
@@ -81,5 +82,6 @@ export async function syncLinearWorkItem(
     { ...snapshot, externalRef: original.externalRef },
     expectedVersion,
     now(),
+    relations,
   );
 }

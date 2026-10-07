@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/linear-work-item-sync-sqlite.test.ts:
+72 |     assert.deepEqual(provider.history(id).slice(0, 3), history);
+73 |     assert.deepEqual(provider.artifacts(id), artifacts);
+74 |     assert.deepEqual(provider.comments(id), comments);
+75 |     const relationVersion = provider.get(id).version;
+76 |     const relations = provider.syncWorkItem({ ...snapshot, status: 'running', owner: 'agent' }, relationVersion, 'relations', { parentId: null, dependencies: [] });
+77 |     assert.equal(relations.parentId, null);
+                ^
+AssertionError: Expected values to be strictly equal:
+
+'parent' !== null
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/linear-work-item-sync-sqlite.test.ts:77:12)
+(fail) Core WorkItem synchronization uses atomic CAS and immutable history, preserves Local originals and survives reopen [17.97ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [70.00ms]

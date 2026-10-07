@@ -70,7 +70,7 @@ export interface TaskPatch {
   readonly title?: string;
   readonly objective?: string;
   readonly status?: TaskStatus;
-  readonly owner?: string;
+  readonly owner?: string | null;
   readonly priority?: number;
   readonly parentId?: string | null;
   readonly dependencies?: readonly string[];
@@ -78,6 +78,62 @@ export interface TaskPatch {
 }
 export function isTaskStatus(value: unknown): value is TaskStatus {
   return typeof value === 'string' && taskStatuses.some((status) => status === value);
+}
+export function parseProviderTaskPatch(value: unknown): TaskPatch {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    !Object.keys(value).length ||
+    Object.keys(value).some(
+      (key) =>
+        ![
+          'title',
+          'objective',
+          'status',
+          'owner',
+          'priority',
+          'parentId',
+          'dependencies',
+          'labels',
+        ].includes(key),
+    )
+  )
+    throw new Error('Invalid Core Task patch');
+  const text = (item: unknown): string => {
+    if (typeof item !== 'string' || !item.trim() || item.includes('\0'))
+      throw new Error('Invalid Core Task text');
+    return item;
+  };
+  const references = (items: unknown): readonly string[] => {
+    if (!Array.isArray(items) || items.length > 100)
+      throw new Error('Invalid Core Task references');
+    const result = Array.from(items, text);
+    if (new Set(result).size !== result.length) throw new Error('Duplicate Core Task references');
+    return result;
+  };
+  if ('status' in value && !isTaskStatus(value.status)) throw new Error('Invalid Core Task status');
+  if (
+    'priority' in value &&
+    (typeof value.priority !== 'number' ||
+      !Number.isSafeInteger(value.priority) ||
+      value.priority < 0)
+  )
+    throw new Error('Invalid Core Task priority');
+  return {
+    ...('title' in value ? { title: text(value.title) } : {}),
+    ...('objective' in value ? { objective: text(value.objective) } : {}),
+    ...('status' in value && isTaskStatus(value.status) ? { status: value.status } : {}),
+    ...('owner' in value ? { owner: value.owner === null ? null : text(value.owner) } : {}),
+    ...('priority' in value && typeof value.priority === 'number'
+      ? { priority: value.priority }
+      : {}),
+    ...('parentId' in value
+      ? { parentId: value.parentId === null ? null : text(value.parentId) }
+      : {}),
+    ...('dependencies' in value ? { dependencies: references(value.dependencies) } : {}),
+    ...('labels' in value ? { labels: references(value.labels) } : {}),
+  };
 }
 const transitions: Readonly<Record<TaskStatus, readonly TaskStatus[]>> = {
   pending: ['assigned', 'failed'],
@@ -112,7 +168,15 @@ function validateTask(task: Task): void {
   if (task.status !== 'pending' && task.status !== 'failed' && task.owner === null)
     throw new Error('Task state requires an owner');
 }
-export function mergeWorkItemSnapshot(current: Task, snapshot: WorkItem, at: string): Task {
+export function mergeWorkItemSnapshot(
+  current: Task,
+  snapshot: WorkItem,
+  at: string,
+  relations: Pick<TaskPatch, 'parentId' | 'dependencies'> = {},
+): Task {
+  if (Object.keys(relations).some((key) => !['parentId', 'dependencies'].includes(key)))
+    throw new Error('Invalid Local WorkItem relations');
+  const local = Object.keys(relations).length ? parseProviderTaskPatch(relations) : {};
   if (
     current.kind !== 'work_item' ||
     snapshot.kind !== 'work_item' ||
@@ -126,6 +190,8 @@ export function mergeWorkItemSnapshot(current: Task, snapshot: WorkItem, at: str
     throw new Error('Sync requires the same external WorkItem');
   const task = {
     ...current,
+    ...('parentId' in local ? { parentId: local.parentId ?? null } : {}),
+    dependencies: [...(local.dependencies ?? current.dependencies)],
     title: snapshot.title,
     objective: snapshot.objective,
     status: snapshot.status,
@@ -137,9 +203,18 @@ export function mergeWorkItemSnapshot(current: Task, snapshot: WorkItem, at: str
   };
   validateTaskFields(task);
   if (!Number.isSafeInteger(task.version)) throw new Error('WorkItem version overflow');
-  return (['title', 'objective', 'status', 'owner', 'priority', 'labels'] as const).every(
-    (field) => JSON.stringify(current[field]) === JSON.stringify(task[field]),
-  )
+  return (
+    [
+      'title',
+      'objective',
+      'status',
+      'owner',
+      'priority',
+      'labels',
+      'parentId',
+      'dependencies',
+    ] as const
+  ).every((field) => JSON.stringify(current[field]) === JSON.stringify(task[field]))
     ? current
     : task;
 }
@@ -169,7 +244,7 @@ export function createTask(
 }
 export function changeTask(task: Task, patch: TaskPatch, at: string): Task {
   const status =
-    patch.owner !== undefined && task.status === 'pending'
+    patch.owner !== undefined && patch.owner !== null && task.status === 'pending'
       ? 'assigned'
       : (patch.status ?? task.status);
   if (patch.owner !== undefined && patch.status !== undefined && patch.status !== status)

@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-provider-cli.test.ts:
+(pass) common async Task consumer uses Local and scoped Linear create/get/list/update with real HTTP pages and preserved Local originals [1530.86ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [1.58s]

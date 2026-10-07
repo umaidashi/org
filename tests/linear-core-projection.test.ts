@@ -1,7 +1,11 @@
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
 import { createAgent } from '../src/agents/domain.js';
-import { parseLinearTaskMapping, readLinearCoreWorkItem } from '../src/linear/projection.js';
+import {
+  linearCoreTaskPatch,
+  parseLinearTaskMapping,
+  readLinearCoreWorkItem,
+} from '../src/linear/projection.js';
 const id = '11111111-1111-4111-8111-111111111111';
 const state = '22222222-2222-4222-8222-222222222222';
 const user = '33333333-3333-4333-8333-333333333333';
@@ -109,4 +113,66 @@ test('Core Linear projection accepts long identifier requests independently of U
     identifier,
   );
   assert.equal(result.id, 'linear:issue:' + id);
+});
+
+test('Core outbound mapping requires explicit unique registered targets and keeps Local relations out of Linear fields', () => {
+  const agents = { list: () => [agent] };
+  const configured = { ...mapping, labels: { Reviewed: state } };
+  assert.deepEqual(
+    linearCoreTaskPatch(agents, configured, {
+      title: 'Changed',
+      objective: 'Objective',
+      status: 'running',
+      owner: 'reader',
+      priority: 0,
+      labels: ['Reviewed'],
+      parentId: null,
+      dependencies: [],
+    }),
+    {
+      stateId: state,
+      assigneeId: user,
+      labelIds: [state],
+      priority: 0,
+      title: 'Changed',
+      description: 'Objective',
+    },
+  );
+  assert.deepEqual(linearCoreTaskPatch(agents, configured, { owner: null, labels: [] }), {
+    assigneeId: null,
+    labelIds: [],
+  });
+  assert.deepEqual(linearCoreTaskPatch(agents, configured, { parentId: null }), {});
+  for (const patch of [
+    { status: 'completed' },
+    { owner: 'missing' },
+    { labels: ['unknown'] },
+    { priority: 5 },
+    { stateId: state },
+  ])
+    assert.throws(() => linearCoreTaskPatch(agents, configured, patch));
+  assert.throws(
+    () =>
+      linearCoreTaskPatch(
+        agents,
+        { ...configured, states: { [state]: 'running', [user]: 'running' } },
+        { status: 'running' },
+      ),
+    /ambiguous/,
+  );
+  assert.throws(
+    () =>
+      linearCoreTaskPatch(
+        agents,
+        { ...configured, owners: { [user]: 'reader', [state]: 'reader' } },
+        { owner: 'reader' },
+      ),
+    /ambiguous/,
+  );
+  assert.throws(
+    () => linearCoreTaskPatch({ list: () => [] }, configured, { title: 'Changed' }),
+    /Agent/,
+  );
+  for (const labels of [null, [], { Reviewed: 1 }, { '': state }])
+    assert.throws(() => parseLinearTaskMapping({ ...mapping, labels }));
 });

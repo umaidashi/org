@@ -1,0 +1,25 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-provider.test.ts:
+(pass) same async Core consumer creates, gets and lists through both concrete adapters and propagates failures [5.68ms]
+(pass) Core consumer awaits the injected async result before reporting success
+(pass) Linear client refuses invalid Core IDs and stored scope before credentials and rejects acquisition races [0.90ms]
+(pass) Linear list validates all pages before reconciliation and rejects duplicate IDs, cursor cycles, partial fields and page overflow [4.37ms]
+(pass) common update awaits Local CAS, validates closed patches and never treats external Approval as Local authorization [0.64ms]
+(pass) Linear relation-only common update is Local CAS and rejects cycles without credentials or external claims [0.73ms]
+AssertionError: Missing expected rejection.
+ generatedMessage: false,
+     actual: undefined,
+   expected: /confirmed by .*Core synchronization failed/,
+   operator: "rejects",
+       code: "ERR_ASSERTION"
+
+      at innerFail (node:assert:36:27)
+      at expectsError (node:assert:425:14)
+      at rejects (node:assert:473:15)
+      at processTicksAndRejections (native:7:39)
+(fail) approved common Linear update preserves receipts across read/save/CAS failures and never resends during recovery [7.30ms]
+
+ 6 pass
+ 1 fail
+Ran 7 tests across 1 file. [57.00ms]

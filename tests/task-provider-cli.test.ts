@@ -8,12 +8,14 @@ import { createAgent } from '../src/agents/domain.js';
 function record(value: unknown): asserts value is Record<string, unknown> {
   assert.ok(value !== null && typeof value === 'object' && !Array.isArray(value));
 }
-test('common async Task consumer uses Local and scoped Linear create/get/list with real HTTP pages and preserved Local originals', async () => {
+test('common async Task consumer uses Local and scoped Linear create/get/list/update with real HTTP pages and preserved Local originals', async () => {
   const home = mkdtempSync('/tmp/org-task-provider-'),
     db = home + '/org.db',
     socket = home + '/org.sock';
   const state = '33333333-3333-4333-8333-333333333333',
     completedState = '44444444-4444-4444-8444-444444444444';
+  const user = '66666666-6666-4666-8666-666666666666',
+    label = '55555555-5555-4555-8555-555555555555';
   const issues = [
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222222',
@@ -24,9 +26,9 @@ test('common async Task consumer uses Local and scoped Linear create/get/list wi
     description: 'Remote objective',
     url: `https://linear.app/org/issue/ORG-${i + 1}/existing`,
     state: { id: state },
-    assignee: null,
+    assignee: null as { id: string } | null,
     priority: 2,
-    labels: { nodes: [], pageInfo: { hasNextPage: false } },
+    labels: { nodes: [] as { id: string; name: string }[], pageInfo: { hasNextPage: false } },
     createdAt: '2026-10-01T00:00:00.000Z',
     updatedAt: '2026-10-07T00:00:00.000Z',
   }));
@@ -39,7 +41,8 @@ test('common async Task consumer uses Local and scoped Linear create/get/list wi
   );
   agents.close();
   let calls = 0,
-    listCalls = 0;
+    listCalls = 0,
+    mutations = 0;
   const server = Bun.serve({
     hostname: '127.0.0.1',
     port: 0,
@@ -56,6 +59,29 @@ test('common async Task consumer uses Local and scoped Linear create/get/list wi
           body.variables !== null &&
           typeof body.variables === 'object',
       );
+      if (body.query.startsWith('mutation KernelIssueFieldsUpdate(')) {
+        record(body.variables);
+        assert.deepEqual(body.variables.input, {
+          stateId: state,
+          assigneeId: user,
+          labelIds: [label],
+          priority: 0,
+          title: 'Core updated',
+          description: 'Core objective',
+        });
+        const first = issues[0];
+        assert.ok(first);
+        Object.assign(first, {
+          title: 'Core updated',
+          description: 'Core objective',
+          priority: 0,
+          state: { id: state },
+          assignee: { id: user },
+          labels: { nodes: [{ id: label, name: 'Reviewed' }], pageInfo: { hasNextPage: false } },
+        });
+        mutations++;
+        return Response.json({ data: { issueUpdate: { success: true, issue: first } } });
+      }
       assert.ok(body.query.startsWith('query '));
       if (body.query.startsWith('query KernelCoreWorkItems(')) {
         listCalls++;
@@ -83,7 +109,10 @@ test('common async Task consumer uses Local and scoped Linear create/get/list wi
     preload = home + '/http.ts';
   writeFileSync(
     mapping,
-    JSON.stringify({ states: { [state]: 'running', [completedState]: 'completed' }, owners: {} }),
+    JSON.stringify({
+      states: { [state]: 'running', [completedState]: 'completed' },
+      owners: { [user]: 'reader' },
+    }),
   );
   writeFileSync(
     preload,
@@ -301,13 +330,147 @@ test('common async Task consumer uses Local and scoped Linear create/get/list wi
     const rpcLocal: unknown = JSON.parse(rpcCreate.stdout);
     record(rpcLocal);
     assert.equal(rpcLocal.id, 'rpc-local');
+    writeFileSync(
+      mapping,
+      JSON.stringify({
+        states: { [state]: 'running', [completedState]: 'completed' },
+        owners: { [user]: 'reader' },
+        labels: { Reviewed: label },
+      }),
+    );
+    const patch = JSON.stringify({
+      title: 'Core updated',
+      objective: 'Core objective',
+      status: 'running',
+      owner: 'reader',
+      priority: 0,
+      labels: ['Reviewed'],
+      parentId: null,
+      dependencies: [],
+    });
+    const requested = await run(
+      [
+        'task',
+        'request-linear-update',
+        id,
+        '--core-patch',
+        patch,
+        '--expected-version',
+        '3',
+        '--actor',
+        'human',
+        '--key',
+        'core-update',
+        '--json',
+      ],
+      false,
+    );
+    assert.equal(requested.status, 0, requested.stderr);
+    const approval: unknown = JSON.parse(requested.stdout);
+    record(approval);
+    assert.ok(typeof approval.id === 'string');
+    const updateArgs = [
+      'task',
+      'update',
+      id,
+      '--provider',
+      'linear',
+      '--patch',
+      patch,
+      '--expected-version',
+      '3',
+      '--actor',
+      'human',
+      '--approval',
+      approval.id,
+      '--json',
+    ];
+    const beforeDenied = calls;
+    assert.equal((await run(updateArgs, false)).status, 1);
+    assert.equal(calls, beforeDenied);
+    assert.equal(
+      (
+        await run(
+          [
+            'approval',
+            'decide',
+            approval.id,
+            '--actor',
+            'reviewer',
+            '--decision',
+            'approve',
+            '--reason',
+            'reviewed core patch',
+          ],
+          false,
+        )
+      ).status,
+      0,
+    );
+    const configured = {
+      states: { [state]: 'running', [completedState]: 'completed' },
+      owners: { [user]: 'reader' },
+      labels: { Reviewed: label },
+    };
+    for (const invalid of [
+      { ...configured, states: { ...configured.states, [label]: 'running' } },
+      { ...configured, owners: { ...configured.owners, [label]: 'reader' } },
+      { ...configured, labels: {} },
+      { ...configured, labels: { Reviewed: state } },
+    ]) {
+      writeFileSync(mapping, JSON.stringify(invalid));
+      const before = calls;
+      const denied = await run(updateArgs, false);
+      assert.equal(denied.status, 1, denied.stderr);
+      assert.equal(calls, before);
+      assert.equal(mutations, 0);
+    }
+    writeFileSync(mapping, JSON.stringify(configured));
+    const updated = await run(updateArgs, false);
+    assert.equal(updated.status, 0, updated.stderr);
+    const updatedTask: unknown = JSON.parse(updated.stdout);
+    record(updatedTask);
+    assert.equal(updatedTask.title, 'Core updated');
+    assert.equal(updatedTask.objective, 'Core objective');
+    assert.equal(updatedTask.status, 'running');
+    assert.equal(updatedTask.owner, 'reader');
+    assert.equal(updatedTask.priority, 0);
+    assert.deepEqual(updatedTask.labels, ['Reviewed']);
+    assert.equal(updatedTask.version, 4);
+    assert.equal(updatedTask.parentId, null);
+    assert.deepEqual(updatedTask.outputArtifacts, ['output']);
+    assert.equal(updatedTask.createdAt, rpcTask.createdAt);
+    assert.equal((await run(updateArgs, false)).status, 1);
+    assert.equal(mutations, 1);
+    const localUpdated = await run(
+      [
+        'task',
+        'update',
+        'rpc-local',
+        '--provider',
+        'local',
+        '--patch',
+        '{"title":"Local updated","priority":4}',
+        '--expected-version',
+        '0',
+        '--actor',
+        'human',
+        '--json',
+      ],
+      false,
+    );
+    assert.equal(localUpdated.status, 0, localUpdated.stderr);
+    const localUpdatedTask: unknown = JSON.parse(localUpdated.stdout);
+    record(localUpdatedTask);
+    assert.equal(localUpdatedTask.title, 'Local updated');
+    assert.equal(localUpdatedTask.version, 1);
     const stopped = await run(['daemon', 'stop'], false);
     assert.equal(stopped.status, 0, stopped.stderr);
     await daemonExited;
     daemon = undefined;
     assert.deepEqual(
       JSON.parse((await run(['task', 'get', id, '--provider', 'local', '--json'])).stdout),
-      rpcTask,
+      updatedTask,
     );
     const beforeInvalid = calls;
     for (const args of [

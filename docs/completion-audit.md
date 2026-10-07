@@ -40,7 +40,7 @@ hash Artifact追加進捗: `--source-artifact org://artifacts/HASH`を既存capt
 | 00 persistent identity / ephemeral execution / immutable history | Agent/Sessionを分離したdomain・SQLite、不変Message/Event/history、Docker finally destroy | 検証あり。停電耐久・全環境の物理隔離は未証明 |
 | 00 AgentRuntime start/send/resume/stop | `src/runtime/manager.ts`、`tests/session-runtime.test.ts`、Claude/Codex実機記録 | 検証あり。API-model/Remoteは将来候補 |
 | 00 MemoryProvider / Extractor / Retriever / Consolidator / ContextBuilder | `src/memory/port.ts`、`extractor.ts`、`retriever.ts`、`consolidation.ts`、`src/context/port.ts`、DI/SQLite/native tests | 各既存処理に差し替え境界あり。残るsource/policyは下記 |
-| 00 TaskProvider create/get/update/list/addComment/linkArtifact | `src/tasks/port.ts`、`sqlite.ts`、`tests/task-cli.test.ts` | Localは検証あり。Linearの同一契約への非同期交換は未実装 |
+| 00 TaskProvider create/get/update/list/addComment/linkArtifact | `src/tasks/port.ts`、`sqlite.ts`、`tests/task-cli.test.ts` | create/get/listは両Adapterの共通consumer検証済み。updateも両Adapterで検証済み、残comment/artifact・実APIは未達 |
 | 00 WorkflowRuntime invoke/status/cancel | `src/workflows/port.ts`、`n8n.ts`、公式ローカルn8n記録、native tests | 検証あり。業務Workflow/現在の遠隔認証は未証明 |
 | 00 EventBus publish/get/list/subscribe / Scheduler | `src/events/port.ts`、SQLite、`src/schedules/port.ts`と`service.ts`の注入clock/EventBus | Local/固定間隔は検証あり。別busは必要時の候補 |
 | 00/06 SandboxRuntime / SecretStore | `src/sandbox/service.ts`のrun/save関数Port、`docker.ts`、`src/secrets/port.ts`、Environment/Keychain Adapter | DI境界あり。名前だけの空interfaceを追加しない。限定credential注入は未実装 |
@@ -86,10 +86,10 @@ hash Artifact追加進捗: `--source-artifact org://artifacts/HASH`を既存capt
 | Task id/title/objective/status/priority/owner/parent/dependencies/labels/inputArtifacts/outputArtifacts/externalRef | `src/tasks/domain.ts`、SQLite、Task domain/CLI tests | Local modelは検証あり |
 | pending/assigned/running/blocked/waiting_approval/completed/failed | domain transitions、SQLite原子history、Execution/Approval/復旧tests | 検証あり。図の一本道に限定せずblock/review復旧を扱う |
 | WorkItemと内部ExecutionTaskの分離 / 外部Taskを汚さない | kind/parent、Event/A2A生成、Linear import、内部Task原本 | 検証あり。内部Executionで新Issueを作らない |
-| WorkItem↔既存Linear Issue同期 | `linear/import.ts`のsnapshot/refresh、承認write/observe、専用scope | title/objective/選択fieldの明示操作あり。Core status/owner対応、自動双方向同期、共通Provider交換は未達 |
+| WorkItem↔既存Linear Issue同期 | `linear/import.ts`のsnapshot/refresh、承認write/observe、専用scope | title/objective/選択fieldの明示操作あり。Core status/ownerの明示読取は検証済み。明示write共通updateも両Adapterで検証済み。自動双方向同期/残comment/artifact/実APIは未達 |
 | TaskProvider create | Local create/SQLite tests | 外部新Issue作成をこの実務で行わない。既存Issueへのprojection/取込との意味を接続時に明示する |
-| TaskProvider get/list | Local tests、Linear get/listの固定GraphQL一ページ/UUID/Team/cursor tests | 二つの個別read経路あり。同一非同期Port交換は未達 |
-| TaskProvider update | Local CAS/history、Linear content/fieldsの承認/claim/observe | 共通Port交換は未達。外部writeをLocal patchとして暗黙送信しない |
+| TaskProvider get/list | Local tests、Linear get/listの固定GraphQL一ページ/UUID/Team/cursor tests | 共通AsyncTaskProviderと実await consumerで両Adapterを検証済み。実APIは未達 |
+| TaskProvider update | Local CAS/history、Linear content/fieldsの承認/claim/observe | 共通Port/明示Core patch/逆mapping/承認付きwriteはDI・実CLI・全gateで検証済み。外部writeは明示承認が必要 |
 | TaskProvider addComment/linkArtifact | Local comments/artifacts、Linear approved comment/HTTPS attachment | 個別非同期操作で検証あり。共通Port交換/実APIは未達 |
 | Event≠Task、Publisherは受信者を知らない | `events/domain.ts`/port、`daemon/domain.ts`/service、native tests | 検証あり |
 | Subscription subscriberType/subscriberId/eventPattern/filter/enabled | domain、SQLite、pattern/filter/daemon tests | Agent/Workflowの検証あり |
@@ -173,3 +173,7 @@ CLIの原文は例示だが、例示した操作の提供有無を省略しな�
 ## 2026-10-07 Linear複合変更の承認付きwrite
 
 selected fieldsへtitle/descriptionを追加し、状態・担当・labels・priorityと一回の承認/digest/返却照合/不明結果観測で更新できる。UTF8 byte上限/NUL/空title、選択contentの競合・入力変更・返却mismatch、未選択変更、本文解除のnull正規化とlegacy承認互換をDI/実CLIで確認。[全gate](verification/2026-10-07-linear-combined-write/check.txt):465成功/14skip/0失敗、実Jev2195subjects/missing・errors・degraded0。共通Core update/逆mapping/comment/artifact・実API/本人認証/実業務納品と他の全体残件は未達。
+
+## 2026-10-07 共通Core Task update
+
+Local/Linearの実AsyncTaskProvider.updateを同じawait consumerとCLI/direct/daemonへ接続。closed Core patch、state/owner一意逆mapping・host labels、human Approval/receipt後CAS/selected Core照合、Local原本/関係保存、sync障害receipt保持・再送禁止/get回復をDI/実HTTP fixture/SQLite/reopenで確認。[全gate](verification/2026-10-07-core-task-update/check.txt):470成功/14skip/0失敗、484tests/197files165.05秒。実Jev2224subjects/missing・errors・degraded0。共通四操作は検証済み、残addComment/linkArtifactと実API/本人認証/全重要Audit/Memory等の残件・実業務納品は未達。

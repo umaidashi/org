@@ -93,7 +93,11 @@ test('Core WorkItem synchronization uses atomic CAS and immutable history, prese
         "CREATE TRIGGER reject_sync_history BEFORE INSERT ON task_history WHEN NEW.status='blocked' BEGIN SELECT RAISE(ABORT,'fixture history failure'); END;",
       );
       assert.throws(
-        () => provider.syncWorkItem({ ...snapshot, status: 'blocked' }, 4, 'failed'),
+        () =>
+          provider.syncWorkItem({ ...snapshot, status: 'blocked' }, 4, 'failed', {
+            parentId: null,
+            dependencies: [],
+          }),
         /fixture history failure/,
       );
       assert.deepEqual(provider.get(id), reopened);
@@ -117,6 +121,23 @@ test('Core WorkItem synchronization uses atomic CAS and immutable history, prese
     assert.deepEqual(provider.get(execution.id), execution);
     assert.deepEqual(provider.artifacts(id), artifacts);
     assert.deepEqual(provider.comments(id), comments);
+    const relationVersion = provider.get(id).version;
+    const relations = provider.syncWorkItem(
+      { ...snapshot, status: 'running', owner: 'agent' },
+      relationVersion,
+      'relations',
+      { parentId: null, dependencies: [] },
+    );
+    assert.equal(relations.parentId, null);
+    assert.deepEqual(relations.dependencies, []);
+    assert.equal(relations.version, relationVersion + 1);
+    assert.deepEqual(relations.outputArtifacts, original.outputArtifacts);
+    assert.throws(
+      () => provider.syncWorkItem(snapshot, relations.version, 'cycle', { parentId: id }),
+      /cycle/,
+    );
+    assert.deepEqual(provider.get(id), relations);
+    assert.equal(provider.history(id).length, relations.version + 1);
   } finally {
     provider.close();
     rmSync(home, { recursive: true, force: true });
