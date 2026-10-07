@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/task-audit-cli.test.ts:
+(pass) Audit CLI reopens atomically saved Task execution history and includes its result snapshot [94.09ms]
+
+tests/approval-cli.test.ts:
+(pass) CLI applies a human-approved permission once and exposes its immutable Audit [607.82ms]
+
+tests/room-cli.test.ts:
+(pass) malformed Room creation is rejected before creating a database or directory [148.63ms]
+(pass) multiple rooms with the same Agent keep separate persistent replies and archived histories [1186.11ms]
+
+tests/session-cli.test.ts:
+(pass) Session CLI recovers persisted Task replies and drains turns with blockedWriteFailure=%s [3001.13ms]
+(pass) Session CLI recovers persisted Task replies and drains turns with blockedWriteFailure=%s [2834.07ms]
+(pass) Runtime result recovery releases Room connection when Session initialization fails [51.63ms]
+
+ 7 pass
+ 0 fail
+Ran 7 tests across 4 files. [7.99s]

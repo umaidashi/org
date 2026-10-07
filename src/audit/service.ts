@@ -1,3 +1,4 @@
+import type { RoomOperationReader } from '../rooms/port.js';
 import type { SessionOperationReader } from '../sessions/port.js';
 import type { MemoryOperationReader } from '../memory/port.js';
 import type { AgentConfigurationReader } from '../agents/port.js';
@@ -17,6 +18,7 @@ export function collectAudit(
   events: Pick<EventBus, 'list'>,
   memories: MemoryOperationReader,
   sessions: SessionOperationReader,
+  rooms: RoomOperationReader,
 ): readonly AuditEntry[] {
   const decisions = approvals.list();
   const originals = events.list();
@@ -24,6 +26,7 @@ export function collectAudit(
     ...agents.configurationHistory(),
     ...memories.operationHistory(),
     ...sessions.operationHistory(),
+    ...rooms.operationHistory(),
     ...tasks.list().flatMap((task) => buildTaskExecutionAudit(tasks.history(task.id))),
     ...buildWorkflowAudit(originals),
     ...buildSandboxAudit(originals),

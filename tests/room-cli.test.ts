@@ -221,6 +221,31 @@ test('multiple rooms with the same Agent keep separate persistent replies and ar
       message,
       reply,
     ]);
+    const rawAudit = run(['audit', 'list', '--json']);
+    assert.equal(rawAudit.status, 0, rawAudit.stderr);
+    const records: unknown = JSON.parse(rawAudit.stdout);
+    assert.ok(Array.isArray(records));
+    const roomEntries = records.filter((entry) => entry.tool.startsWith('room.'));
+    assert.equal(roomEntries.filter((entry) => entry.tool === 'room.create').length, 5);
+    assert.equal(roomEntries.filter((entry) => entry.tool === 'room.archive').length, 1);
+    assert.equal(roomEntries.filter((entry) => entry.tool === 'room.message').length, 2);
+    for (const entry of roomEntries.filter((entry) => entry.tool !== 'room.message'))
+      assert.deepEqual(entry.actor, { kind: 'system', id: 'local-host' });
+    assert.ok(
+      roomEntries.some((entry) => entry.tool === 'room.create' && entry.taskId === task.id),
+    );
+    const rawLogs = run(['logs', 'tail', agent, '--limit', '100', '--json']);
+    assert.equal(rawLogs.status, 0, rawLogs.stderr);
+    const logs: unknown = JSON.parse(rawLogs.stdout);
+    assert.ok(Array.isArray(logs));
+    assert.ok(
+      logs.some(
+        (entry) =>
+          entry.tool === 'room.message' &&
+          entry.outputRef === 'org://rooms/' + String(first.id) + '/messages/' + String(reply.id),
+      ),
+    );
+    assert.deepEqual(JSON.parse(run(['audit', 'list', '--json']).stdout), records);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

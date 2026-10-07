@@ -1,0 +1,8 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-operation-audit.test.ts:
+(pass) Room create, Message and archive originals appear in important operation Audit [4.12ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [44.00ms]

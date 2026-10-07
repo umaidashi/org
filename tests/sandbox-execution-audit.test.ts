@@ -91,6 +91,7 @@ test('Sandbox preserves actor/version-linked execution receipts without copying 
         events,
         { operationHistory: () => [] },
         { operationHistory: () => [] },
+        { operationHistory: () => [] },
       ).filter((e) => e.tool === 'sandbox.run' && e.taskId === outcome);
       assert.equal(audit.length, 2);
       assert.equal(audit[0]?.result, 'started');
@@ -305,6 +306,7 @@ test('Sandbox result Audit storage failure retains started receipt and rejects r
       { capabilityHistory: () => [], configurationHistory: () => [] },
       tasks,
       events,
+      { operationHistory: () => [] },
       { operationHistory: () => [] },
       { operationHistory: () => [] },
     ).filter((entry) => entry.tool === 'sandbox.run');

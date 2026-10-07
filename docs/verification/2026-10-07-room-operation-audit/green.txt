@@ -1,0 +1,12 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-operation-audit.test.ts:
+(pass) Room create, Message and archive originals appear in important operation Audit [3.92ms]
+(pass) Room Audit preserves Task actor, immutable configuration snapshots and rollback without copying Message contents [17.65ms]
+
+tests/room-sqlite.test.ts:
+(pass) SQLite preserves immutable Messages and rejects insertion failure without affecting history [8.35ms]
+
+ 3 pass
+ 0 fail
+Ran 3 tests across 2 files. [75.00ms]

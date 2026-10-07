@@ -2003,3 +2003,19 @@
 
 - 最終固定tree terminal0: 525成功21skip0失敗546tests214files186.89秒。type/Oxlint/Oxfmt371files/非空AST/dry-run成功。実Jev2421subjects146warnings、missing/unsure/review/errors/degraded0。変更source/test対象あり。抽象failure-path候補を拒否/rollback/CAS/Task-filtered terminal/no-op/reopen/nativeで照合し、具体未対応反例なし。
 - Notion root/08をconnectorで再fetch成功、前回content bodyと一致。raw本文の新公開・Jev送信なし。verification/独立編集時刻の証明へ言い換えない。
+
+## 2026-10-08 — Room重要操作Audit（10-07開始単位の確定検証）
+
+- 前Session c95cbc2 main通常push terminal0/localgate213.10秒/remote exact head確認。[計画](superpowers/plans/2026-10-07-room-operation-audit.md)の実writerをregisterRoom/tasks autonomyまで追跡。host identityは実clock、Core自動createも既存identity() DIを使用。
+- RED0成功1失敗74ms→初期GREEN1成功44ms。create/初回archiveの不変操作原本/入出力構成を同transaction、Messageは既存immutable sender/time/referenceを投影。新Message body copy/historyなし。mandatory Readerへ接続。
+- Ruling: Messageの既存明示senderは論理主体として投影する — 型と不変原本が既にある — 本人認証を証明する場合は別認証が要る。旧Room創設主体を推測したbackfillは行わない。archive no-opを原本再追加や状態再更新にしない。共通causal keyとcreate→保存順Message→archiveで同時刻の意味順序を維持。
+- stdlib Map.groupByでRoomごとのoperation全件再scanを避ける。新engine/dependencyなし。actor validationとUUID以外の内部IDにも固定namespace/URI encodingを維持。static初回non-null assertion禁止は既知の実operation時刻をwriterへ直接渡すことで解消。調査中に存在しないagent-log-tail-cli.test.tsの読取失敗、実logs-cli.test.tsを検索確認。空実行やテスト成功へ置換しない。
+- SQLite3成功2files75ms、snapshot/Task Actor/12Message順序/no-op/rollback/immutability/reopen/legacyを確認。native7成功4files7.99秒、実CLI5create/2Message/1archive/Agent tail/Task scope/再読取と既存回帰。
+- Fresh reviewer C0/I0/M0、独立4成功1.411秒/diff whitespace成功、fixpassなし/再レビューなし。親Ponytailも既存原本/stdlib/transaction再利用、net0追加削減候補なし。
+- 初回全check526成功21skip1失敗548tests215files28561.37秒。30秒制限のMemory Context E2Eで28375004ms経過/timeout、runnerが2dangling processを終了。環境休止/時刻経過が疑われるが原因は未断定。制限値やproductコードを変更せず、単独再実行1成功4.39秒。最終固定tree全回帰と実Jevを再実行中。
+- 棚卸し訂正: Task review原本は存在するがcollectAuditはlist/historyのexecution投影のみでreview専用Auditを呼ばない。既存の「review接続済み」を訂正し、[Task更新Audit計画](superpowers/plans/2026-10-08-task-operation-audit.md)に含める。次反例はTask history2件/Audit Readerなし、合成データのみ。
+- [証拠](verification/2026-10-07-room-operation-audit/)。Task/Event/Subscription/Scheduleと実API業務受入/全体は未達。declared Actorを本人認証/DB偽造防止へ言い換えない。
+
+- 継続時の旧process 23080はUnknown process id。保存済み最終出力は527成功21skip0失敗548tests215files159.01秒、実Jev2426対象147reported/missing・unsure・review・errors 0だが、この観測だけをterminal0へ置換しない。固定treeで全check/実Jevを再実行し終了コードを確認する。
+
+- 固定tree再実行terminal0: 全check527成功21skip0失敗548tests215files167.37秒。実Jev2426対象147reported、missing/unsure/review/errors/degraded 0。[最終証拠](verification/2026-10-07-room-operation-audit/)へ保存。確認用sedの不正range読取は失敗し、JSON parseで集計を確認。変更対象を含む検査は実行済み。

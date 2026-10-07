@@ -1,3 +1,4 @@
+import type { AuditActor, AuditEntry } from '../audit/domain.js';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { Database } from 'bun:sqlite';
@@ -84,11 +85,18 @@ function decodeMessage(raw: unknown): Message {
 }
 export class SqliteRoomRepository implements RoomRepository {
   private readonly db: Database;
-  constructor(path: string) {
+  constructor(
+    path: string,
+    private readonly auditActor: AuditActor = { kind: 'system', id: 'unspecified' },
+  ) {
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
     this.db = new Database(path, { create: true });
     try {
       this.db.exec(`PRAGMA busy_timeout=5000;
+        CREATE TABLE IF NOT EXISTS room_operation_history(id TEXT PRIMARY KEY,data TEXT NOT NULL CHECK(json_valid(data)));
+        CREATE TRIGGER IF NOT EXISTS room_operations_no_replace BEFORE INSERT ON room_operation_history WHEN EXISTS(SELECT 1 FROM room_operation_history WHERE id=NEW.id OR rowid=NEW.rowid) BEGIN SELECT RAISE(ABORT,'Room operation immutable');END;
+        CREATE TRIGGER IF NOT EXISTS room_operations_no_update BEFORE UPDATE ON room_operation_history BEGIN SELECT RAISE(ABORT,'Room operation immutable');END;
+        CREATE TRIGGER IF NOT EXISTS room_operations_no_delete BEFORE DELETE ON room_operation_history BEGIN SELECT RAISE(ABORT,'Room operation immutable');END;
         CREATE TABLE IF NOT EXISTS rooms(id TEXT PRIMARY KEY, data TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS room_messages(sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, room_id TEXT NOT NULL, data TEXT NOT NULL);
         CREATE INDEX IF NOT EXISTS room_messages_room ON room_messages(room_id, sequence);
@@ -104,8 +112,11 @@ export class SqliteRoomRepository implements RoomRepository {
     this.db.close();
   }
   create(room: Room): Room {
-    this.db.query('INSERT INTO rooms(id, data) VALUES (?, ?)').run(room.id, JSON.stringify(room));
-    return room;
+    return this.transaction(() => {
+      this.db.query('INSERT INTO rooms(id, data) VALUES (?, ?)').run(room.id, JSON.stringify(room));
+      this.appendOperation('room.create', null, room, room.createdAt);
+      return room;
+    });
   }
   get(id: string): Room {
     const row = this.db.query('SELECT data FROM rooms WHERE id=?').get(id);
@@ -121,6 +132,71 @@ export class SqliteRoomRepository implements RoomRepository {
         return decodeRoom(row.data);
       });
   }
+  private appendOperation(
+    tool: 'room.create' | 'room.archive',
+    before: Room | null,
+    after: Room,
+    at: string,
+  ): void {
+    const actor = this.auditActor;
+    if (
+      !['human', 'agent', 'system'].includes(actor.kind) ||
+      !actor.id.trim() ||
+      actor.id.includes('\0') ||
+      actor.id.length > 128
+    )
+      throw new Error('Invalid Room Audit actor');
+    const id = 'room:operation:' + encodeURIComponent(after.id) + ':' + tool;
+    const ref = 'org://room-operations/' + encodeURIComponent(id);
+    const entry: AuditEntry = {
+      id,
+      causalId: 'org://rooms/' + encodeURIComponent(after.id),
+      actor,
+      taskId: after.taskId,
+      eventId: null,
+      tool,
+      inputRef: ref + '/input',
+      outputRef: ref + '/output',
+      at,
+      result: 'succeeded',
+      approvalId: null,
+    };
+    this.db
+      .query('INSERT INTO room_operation_history(id,data) VALUES(?,?)')
+      .run(id, JSON.stringify({ entry, input: before ?? after, output: after }));
+  }
+  operationHistory(): readonly AuditEntry[] {
+    const operations = this.db
+      .query<{ data: string }, []>('SELECT data FROM room_operation_history ORDER BY rowid')
+      .all()
+      .map((row) => (JSON.parse(row.data) as { entry: AuditEntry }).entry);
+    const byRoom = Map.groupBy(operations, (entry) => entry.causalId);
+    return this.list().flatMap((room) => {
+      const causalId = 'org://rooms/' + encodeURIComponent(room.id);
+      const own = byRoom.get(causalId) ?? [];
+      return [
+        ...own.filter((entry) => entry.tool === 'room.create'),
+        ...this.messages(room.id).map((message) => {
+          const ref = causalId + '/messages/' + encodeURIComponent(message.id);
+          const entry: AuditEntry = {
+            id: 'room:message:' + encodeURIComponent(message.id),
+            causalId,
+            actor: message.sender,
+            taskId: room.taskId,
+            eventId: null,
+            tool: 'room.message',
+            inputRef: ref,
+            outputRef: ref,
+            at: message.createdAt,
+            result: 'succeeded',
+            approvalId: null,
+          };
+          return entry;
+        }),
+        ...own.filter((entry) => entry.tool === 'room.archive'),
+      ];
+    });
+  }
   private transaction<T>(operation: () => T): T {
     this.db.exec('BEGIN IMMEDIATE');
     try {
@@ -134,8 +210,11 @@ export class SqliteRoomRepository implements RoomRepository {
   }
   archive(id: string, archivedAt: string): Room {
     return this.transaction(() => {
-      const room = archiveRoom(this.get(id), archivedAt);
+      const before = this.get(id);
+      const room = archiveRoom(before, archivedAt);
+      if (before.archivedAt !== null) return before;
       this.db.query('UPDATE rooms SET data=? WHERE id=?').run(JSON.stringify(room), id);
+      this.appendOperation('room.archive', before, room, archivedAt);
       return room;
     });
   }

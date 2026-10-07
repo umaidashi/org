@@ -302,9 +302,22 @@ export function runApprovalCommand(command: ApprovalCommand, output: (line: stri
             try {
               const sessions = new SqliteSessionStore(command.db);
               try {
-                const records = collectAudit(store, agents, tasks, events, memories, sessions);
-                result =
-                  command.action === 'logs' ? selectAuditLogs(records, command.filter) : records;
+                const rooms = new SqliteRoomRepository(command.db);
+                try {
+                  const records = collectAudit(
+                    store,
+                    agents,
+                    tasks,
+                    events,
+                    memories,
+                    sessions,
+                    rooms,
+                  );
+                  result =
+                    command.action === 'logs' ? selectAuditLogs(records, command.filter) : records;
+                } finally {
+                  rooms.close();
+                }
               } finally {
                 sessions.close();
               }

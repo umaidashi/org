@@ -232,3 +232,7 @@ global/company/department/project/agent/room/taskを既存exact planner/transact
 2026-10-07 Memory更新Audit: capture/supersede/invalidate/consolidateの新規成功更新を同transactionの不変8field原本へ接続、既知主体/実保存clock/Task review Task ID、no-op不増/rollback/legacy無backfill/実CLI7scope/reopenを検証。[証拠](verification/2026-10-07-memory-operation-audit/)。失敗試行の独立監査/Sessionその他/実API業務受入/全体は未達。
 
 2026-10-07 Session重要操作Audit: create/Runtime開始・成功・失敗/stop/rebuildの不変8field原本、実入力digest DI、Task Room関連、Task別stop/recoveryログを接続。最終525成功21skip0失敗546tests214files186.89秒、実Jev2421subjects欠損・エラー・劣化0。[証拠](verification/2026-10-07-session-operation-audit/)。Room/Task/Event/Subscription/Schedule重要操作と実API業務受入/全体は未達。
+
+## 2026-10-08 Room重要操作Audit
+
+[証拠](verification/2026-10-07-room-operation-audit/): create/初回archiveの原子不変8field記録、既存Message原本投影、Task関連、Actor DI、rollback/no-op/reopen/legacy境界を実CLIと全gateで検証。527成功21skip0失敗、実Jev2426対象、fresh review C0/I0/M0。Task CRUD/review、Event/Subscription/Scheduleと実業務API受入は残件、全体未達。

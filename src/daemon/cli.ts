@@ -314,7 +314,7 @@ function openOperations(
     agents = agentRepository;
     const taskProvider = new SqliteTaskProvider(db);
     tasks = taskProvider;
-    const roomRepository = new SqliteRoomRepository(db);
+    const roomRepository = new SqliteRoomRepository(db, { kind: 'system', id: 'core' });
     rooms = roomRepository;
     const sessionStore = new SqliteSessionStore(db, { kind: 'system', id: 'core' });
     sessions = sessionStore;

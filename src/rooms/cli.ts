@@ -170,7 +170,7 @@ export function runRoomCommand(
   command: RoomCommand,
   output: (line: string) => void = console.log,
 ): void {
-  const rooms = new SqliteRoomRepository(command.db);
+  const rooms = new SqliteRoomRepository(command.db, { kind: 'system', id: 'local-host' });
   try {
     const identity = { id: randomUUID(), createdAt: new Date().toISOString() };
     let result: unknown;

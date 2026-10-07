@@ -1,0 +1,28 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/room-operation-audit.test.ts:
+ 7 |  const store=new SqliteRoomRepository(':memory:');
+ 8 |  try {
+ 9 |  const room=createRoom({title:'synthetic',type:'direct',participants:[{kind:'human',id:'h'},{kind:'agent',id:'a'}]},{id:'r',createdAt:'same'});
+10 |  store.create(room);store.append('r',{sender:{kind:'human',id:'h'},content:'synthetic'},{id:'m',createdAt:'same'});store.archive('r','same');
+11 |  const reader=store as unknown as {operationHistory?:()=>readonly {tool:string}[]};
+12 |  assert.deepEqual(reader.operationHistory?.().map(entry=>entry.tool)??[],['room.create','room.message','room.archive']);
+             ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
++ []
+- [
+-   'room.create',
+-   'room.message',
+-   'room.archive'
+- ]
+
+      at innerFail (node:assert:36:32)
+      at deepStrictEqual (node:assert:134:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/room-operation-audit.test.ts:12:9)
+(fail) Room create, Message and archive originals appear in important operation Audit [10.90ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [74.00ms]
