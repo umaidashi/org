@@ -1,3 +1,4 @@
+import { buildLinearCommentAudit } from './linear-comments.js';
 import type { ApprovalStore } from '../approvals/port.js';
 import type { TaskProvider } from '../tasks/port.js';
 import type { EventBus } from '../events/port.js';
@@ -11,8 +12,11 @@ export function collectAudit(
   tasks: Pick<TaskProvider, 'list' | 'history'>,
   events: Pick<EventBus, 'list'>,
 ): readonly AuditEntry[] {
-  return buildAudit(approvals.list(), agents.capabilityHistory(), [
+  const decisions = approvals.list();
+  const originals = events.list();
+  return buildAudit(decisions, agents.capabilityHistory(), [
     ...tasks.list().flatMap((task) => buildTaskExecutionAudit(tasks.history(task.id))),
-    ...buildWorkflowAudit(events.list()),
+    ...buildWorkflowAudit(originals),
+    ...buildLinearCommentAudit(originals, decisions),
   ]);
 }

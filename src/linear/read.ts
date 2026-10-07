@@ -14,19 +14,27 @@ export interface LinearIssue {
   readonly description: string | null;
   readonly url: string;
 }
-async function queryLinear(
+export async function queryLinear(
   request: (url: string, init: RequestInit) => Promise<Response>,
   secrets: Pick<SecretStore, 'getSecret'>,
   query: string,
   variables: Readonly<Record<string, string | number | null>>,
+  access:
+    | { readonly reference: 'linear:read' }
+    | { readonly reference: 'linear:write'; readonly beforeRequest: () => void } = {
+    reference: 'linear:read',
+  },
 ): Promise<Record<string, unknown>> {
   let credential: string;
   try {
-    credential = secrets.getSecret('linear:host', 'linear:read');
+    credential = secrets.getSecret('linear:host', access.reference);
   } catch {
     throw new Error('Linear credential unavailable');
   }
   if (!/^[\x21-\x7e]{1,4096}$/.test(credential)) throw new Error('Linear credential unavailable');
+  if (JSON.stringify(variables).includes(JSON.stringify(credential).slice(1, -1)))
+    throw new Error('Invalid Linear input');
+  if (access.reference === 'linear:write') access.beforeRequest();
   let response: Response;
   try {
     response = await request('https://api.linear.app/graphql', {

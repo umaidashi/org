@@ -58,3 +58,38 @@ test('Permission changes remain unavailable until a matching human approval', ()
     /revision/,
   );
 });
+
+test('Linear comment approval pins human, existing Issue, Task version and body digest', () => {
+  const input = {
+    key: 'linear-comment',
+    actor: { kind: 'human' as const, id: 'operator' },
+    taskId: 'linear:issue:11111111-1111-4111-8111-111111111111',
+    eventId: null,
+    operation: {
+      kind: 'linear_comment' as const,
+      issueId: '11111111-1111-4111-8111-111111111111',
+      issueUrl: 'https://linear.app/org/issue/ORG-1/existing',
+      commentId: '22222222-2222-4222-8222-222222222222',
+      taskVersion: 0,
+      inputDigest: 'a'.repeat(64),
+    },
+  };
+  const identity = { id: 'approval', createdAt: 'now' };
+  const request = createApprovalRequest(input, identity);
+  assert.deepEqual(request.operation, input.operation);
+  assert.throws(() =>
+    createApprovalRequest({ ...input, actor: { kind: 'agent', id: 'a' } }, identity),
+  );
+  assert.throws(() => createApprovalRequest({ ...input, taskId: 'other' }, identity));
+  assert.throws(() => createApprovalRequest({ ...input, eventId: 'e' }, identity));
+  for (const operation of [
+    { ...input.operation, commentId: 'not-uuid' },
+    { ...input.operation, issueId: 'ORG-1' },
+    { ...input.operation, taskVersion: -1 },
+    { ...input.operation, inputDigest: 'bad' },
+    { ...input.operation, issueUrl: 'https://evil.test/issue/ORG-1' },
+    { ...input.operation, issueUrl: input.operation.issueUrl + '?key=x' },
+    { ...input.operation, extra: true },
+  ])
+    assert.throws(() => createApprovalRequest({ ...input, operation }, identity));
+});

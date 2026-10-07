@@ -41,11 +41,15 @@ export function buildAudit(
       tool:
         request.operation.kind === 'agent_capabilities'
           ? 'agent.capabilities.request'
-          : 'workflow.invoke.request',
+          : request.operation.kind === 'linear_comment'
+            ? 'linear.comment.request'
+            : 'workflow.invoke.request',
       inputRef:
         request.operation.kind === 'agent_capabilities'
           ? `org://agents/${encodeURIComponent(request.operation.agentId)}/capabilities/${request.operation.expectedRevision}`
-          : `org://workflow-inputs/${request.operation.inputDigest}`,
+          : request.operation.kind === 'linear_comment'
+            ? `org://linear-comment-inputs/${request.operation.inputDigest}`
+            : `org://workflow-inputs/${request.operation.inputDigest}`,
       outputRef: ref,
       at: request.createdAt,
       result: 'pending',

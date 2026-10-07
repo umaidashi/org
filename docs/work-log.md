@@ -1247,3 +1247,19 @@
 - Linear公式SDLを一時領域に取得しcommentCreate/CommentCreateInputのUUID v4 ID・既存issueId/body、success/commentと返却Issue nullableを確認し計画へ反映。公式SDK追加は不要。native fixtureは5秒の子プロセス上限・20秒全体上限・finally清掃とfake credentialのみで構成。実業務コメントは送信していない。実装/DI/全check/実Jev/独立final reviewは次の作業として未完了。
 - RED fixture初回staticはclosureでのunknown narrowing、次に非await server.stopで停止。Approval IDをstring局所値へ固定し清掃stopをawaitして修正。fixtureの型/Oxlint/Oxfmt316files/ASTは成功。改めてnative RED0成功1失敗96ms、未実装requestの終了2で停止。成功経路・全テストはまだ未検証。
 - Ponytail review: Lean already. Ship. 一つの既存Issue・HTTP fixture・CLI再openで承認gateと一回投稿を検証する最小のnative testを保持。新サービス/SDK/テストframeworkは追加しない。RED testと設計ログをfeature branchだけにコミットし、mainへはGREEN/全gate/実Jev/final review後に進める。
+
+
+### 2026-10-07 承認済みLinear既存Issueコメント実装
+
+- 前goal turnはprogress: main1b15462へ実機受け入れ照合をpush、featurece76ce4に実CLI REDを保存。今回plan/coding指針/referenceとApproval全caller/SQLite/HTTP/Audit/Task CLIを読み、既存featureで継続。executing-plans workspace ledgerを作成し、Task1完了/共有interfacesを記録。
+- Approval pure RED1成功1失敗75ms、linear_comment未対応。具体operationに既存Issue UUID/URL/Task version/本文digest/hostコメントUUIDを固定し、human/WorkItemのみ許可。closed field/URL/UUID/digest/versionを検証しSQLite public parserへ接続。旧permission原本と合わせ3成功44ms。
+- 既存Linear HTTPへ実際に使うread/write grantとPOST直前callbackを追加。資格情報・入力反射チェック後にTask再照合→既存Eventへ排他的claim→固定commentCreate。成功responseのID/Issue/body/URLを照合し参照receiptを保存。不明結果/保存障害はunconfirmed、claimが残る限り自動再POSTしない。同期Core TaskProviderとWorkItem原本は更新しない。初回native GREEN1成功388ms、型検査成功。
+- Audit native RED0成功1失敗462ms、操作がworkflowと誤表示されclaim/成功が無い。既存buildAuditへ具体labelを接続し、公開Approval/Event Readerから完全一致claim/decision/receiptの投影を追加。本文はdigest/参照のみ。旧Workflow/Linear read含む11成功466ms、型/Oxlint/Oxfmt318files/AST成功。
+- DB不要DI4成功45msで未承認/reject/別actor/body/version/Task/decision、キー障害・lookup中変更・claim保存・通信不明・terminal保存・応答照合・反射拒否・Audit根拠/同時刻因果順を確認。fixture追加中にbodyの誤置換/closure narrowing/type-aware lintを検出しfixtureだけ修正した。
+- 所有HTTPとSQLite triggerで同時apply、通信503、成功receipt保存、claim保存、全terminal保存の5 nativeケースを確認。claim保存失敗はPOST0、修復後だけ一回。その他のclaim後不明は修復/再open後もPOST一回を維持、WorkItem version/URL不変。DI含め9成功2.34秒。静的検査のfixture stringify/sort指摘を修正し、再検査と全check/実Jev/final reviewを継続中。実業務Issueには送信していない。
+- 返却URLのworkspace一致を追加検証しDI RED3成功1失敗39ms（同Issue番号の別workspace URLを受理）を確認。共通pure URL境界でworkspace prefixを照合してGREEN4成功36ms。ClientとAuditへ同じ検証を適用。READMEの更新anchor誤りは書込み前assertで停止し、実見出しに合わせて更新した。
+- test:unit112成功45files145ms、型/Oxlint/Oxfmt319files/AST成功。新DIを既存高速UTリストへ追加。review:planは1848対象・33requestsの非空計画、exit0を確認（これは実意味レビューではない）。
+
+- 最終検証: `bun run check` exit 0、366 pass / 12 skip / 0 fail、378 tests / 178 files、97.86s。型・Oxlint/Oxfmt・ASTと非空のJev dry-runを含む。実Jev exit 0、1848 subjects / 115 advisory warnings、missing/unsure/review 0、errors/degradedなし。変更箇所の命名・失敗経路advisoryは原本照合と保存障害テストを確認し、全面的な障害保証や機械的renameは追加しない。
+- fresh最終レビュー: Critical/Important/Minor各0、独立対象テスト6 pass。Ponytail: Lean already. Ship. 既存Approval/Event/HTTP境界を再利用し、新規依存・table・frameworkを追加しない。再レビュー不要。
+- [検証証拠](verification/2026-10-07-approved-linear-existing-issue-comment/check.txt)と要件/MVP表を更新。実API送信・本人認証・Agent投稿・結果不明のstatus-only回収・実業務IssueからDraft PRの一周は未完了。全体目標は未達成、継続する。

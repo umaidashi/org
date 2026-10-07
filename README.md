@@ -1,6 +1,6 @@
 # org — AI Company Kernel
 
-Agent・Task・Room・Memory・Event・Runtimeを組み合わせ、AIの組織と実務をローカルで動かすTypeScriptプロジェクトです。現在はAgent registry、ローカルTaskProvider、Room・Message、Event・Subscription、EventからTaskを作る常駐daemonとローカルsocketが動きます。Sessionの永続化とCodex/Claude Runtimeへの接続も実装しています。Messageを根拠とするTyped Memoryとscope付きContextを実装しています。公開GitHub Eventの明示取込も接続しています。Linear/Notionの明示読取Adapterも実装しています。実API認証と外部への書込みは未完了です。[要件と進捗](docs/requirements.md)を参照してください。
+Agent・Task・Room・Memory・Event・Runtimeを組み合わせ、AIの組織と実務をローカルで動かすTypeScriptプロジェクトです。現在はAgent registry、ローカルTaskProvider、Room・Message、Event・Subscription、EventからTaskを作る常駐daemonとローカルsocketが動きます。Sessionの永続化とCodex/Claude Runtimeへの接続も実装しています。Messageを根拠とするTyped Memoryとscope付きContextを実装しています。公開GitHub Eventの明示取込も接続しています。Linear/Notionの明示読取Adapterも実装しています。実API認証と業務対象での検証は未完了です。既存Linear WorkItemへの明示human承認付きコメントはHTTP fixtureで検証しています。[要件と進捗](docs/requirements.md)を参照してください。
 
 ## セットアップ
 
@@ -680,6 +680,22 @@ Notion文書をRoomの不変原本へ取り込む場合は `knowledge notion PAG
 WorkItemをCoordinator Roomへ渡すには、`room create TITLE --type task --task WORK_ITEM_ID --human HUMAN_ID --agent CHIEF_ID --agent SPECIALIST_ID --coordinator CHIEF_ID`を使います。委譲から作る内部ExecutionのparentIdはWorkItemを参照し、A2A出典と外部Issue URLを分けて保持します。内部の実装・reviewでWorkItemは自動変更しません。
 
 `task refresh-linear linear:issue:UUID --expected-version N --json` は指定versionのtitle/objectiveを外部の現在値へ明示置換します。ローカルで編集した本文も置換対象です。status・owner・labels・依存・Artifact・内部Executionは保持し、出典URL変更や読取中のversion競合を拒否します。同値は履歴を追加しません。外部への書込みはありません。
+
+### 既存Linear Issueへの承認済みコメント
+
+取込済みWorkItemだけが対象です。`LINEAR_API_KEY`を設定し、次の順で操作します。
+
+```sh
+bun --env-file=.env src/cli.ts --direct task request-linear-comment linear:issue:ISSUE_UUID --expected-version VERSION --actor HUMAN --body 'コメント本文' --key COMMENT_KEY --json
+bun --no-env-file src/cli.ts --direct approval decide APPROVAL_ID --actor REVIEWER --decision approve --reason '対象と本文を確認'
+bun --env-file=.env src/cli.ts --direct task apply-linear-comment linear:issue:ISSUE_UUID --expected-version VERSION --actor HUMAN --body 'コメント本文' --approval APPROVAL_ID --json
+```
+
+対象・本文digest・WorkItem version・要求humanが承認内容と一致する場合にだけ、コメントを一回POSTします。本文は32KiBまで。通信不明や成功receipt保存障害でもclaimを残し、再POSTを拒否します。claim保存前の障害では投稿せず、修復後に試せます。`logs --task WORKITEM_ID --json`で承認と実行の参照を確認できます。
+
+WorkItem原本・versionは更新しません。Human本人認証やAgent自律投稿、投稿後の不明結果のstatus-only回収は未実装です。実Linear APIへの投稿は未検証で、所有HTTP/SQLite fixtureによる証拠と区別します。
+
+### 実Claude二Agentのコード生成
 
 実Claude二Agentのコード生成・生成Bunテスト・独立Docker検証・生成物の隔離 `bun run check`・review/Memory/restartは、`ORG_CLAUDE_CODE_TEST=1 bun test tests/coordinator-claude-real.test.ts` でopt-in実行します。DockerとClaude Maxログインが必要です。依存準備だけ公開package/lockでnetworkを使い、生成コード実行時はnetworkなし・host mountなしです。runtime-valid explicit-anyの拒否検証は `ORG_GENERATED_GATE_TEST=1`。業務IssueやDraft PRはこの専用fixtureとは別に検証します。
 

@@ -1,4 +1,12 @@
 import {
+  requestLinearCommentApproval,
+  applyApprovedLinearComment,
+  linearCommentDigest,
+  type LinearCommentInput,
+} from '../linear/comment.js';
+import { SqliteApprovalStore } from '../approvals/sqlite.js';
+import { SqliteEventBus } from '../events/sqlite.js';
+import {
   importLinearWorkItem,
   refreshLinearWorkItem,
   linearWorkItemIssueId,
@@ -29,6 +37,8 @@ import { SqliteSessionStore } from '../sessions/sqlite.js';
 import { recoverExecutionTaskResult } from './execution.js';
 
 type TaskAction =
+  | { kind: 'request-linear-comment'; input: LinearCommentInput & { readonly key: string } }
+  | { kind: 'apply-linear-comment'; input: LinearCommentInput & { readonly approvalId: string } }
   | { kind: 'linear-list'; input: LinearIssueListInput }
   | { kind: 'linear-get'; id: string }
   | { kind: 'import-linear'; id: string }
@@ -94,6 +104,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       dependency: { type: 'string', multiple: true },
       label: { type: 'string', multiple: true },
       body: { type: 'string' },
+      key: { type: 'string' },
       actor: { type: 'string' },
       decision: { type: 'string' },
       reason: { type: 'string' },
@@ -113,6 +124,8 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const [command, action, id, ...extra] = positionals;
   if (command !== 'task' || extra.length > 0) throw new Error('Unexpected task argument');
   const allowed: Record<string, readonly string[]> = {
+    'request-linear-comment': ['expected-version', 'actor', 'body', 'key'],
+    'apply-linear-comment': ['expected-version', 'actor', 'body', 'approval'],
     'linear-list': ['team', 'limit', 'after'],
     'linear-get': [],
     'import-linear': [],
@@ -155,6 +168,26 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const db = values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('The database path must not be empty');
   const common = { db, json: values.json ?? false };
+  if (action === 'request-linear-comment' || action === 'apply-linear-comment') {
+    const input = {
+      taskId: required(id, 'WorkItem ID'),
+      expectedVersion: priority(required(values['expected-version'], '--expected-version')),
+      actor: required(values.actor, '--actor'),
+      body: required(values.body, '--body'),
+    };
+    linearWorkItemIssueId(input.taskId);
+    linearCommentDigest(input.body);
+    return {
+      ...common,
+      action:
+        action === 'request-linear-comment'
+          ? { kind: action, input: { ...input, key: required(values.key, '--key') } }
+          : {
+              kind: action,
+              input: { ...input, approvalId: required(values.approval, '--approval') },
+            },
+    };
+  }
   if (action === 'linear-list') {
     if (id !== undefined) throw new Error('Unexpected Linear list argument');
     const input = {
@@ -387,6 +420,44 @@ export async function runTaskCommand(
     const action = command.action;
     let result: unknown;
     switch (action.kind) {
+      case 'request-linear-comment':
+      case 'apply-linear-comment': {
+        const approvals = new SqliteApprovalStore(command.db);
+        try {
+          if (action.kind === 'request-linear-comment')
+            result = requestLinearCommentApproval(provider, approvals, action.input, {
+              id: randomUUID(),
+              createdAt: new Date().toISOString(),
+            });
+          else {
+            const events = new SqliteEventBus(command.db);
+            try {
+              const secrets = new EnvironmentSecretStore([
+                {
+                  actorId: 'linear:host',
+                  reference: 'linear:write',
+                  environmentVariable: 'LINEAR_API_KEY',
+                },
+              ]);
+              result = await applyApprovedLinearComment(
+                provider,
+                approvals,
+                events,
+                secrets,
+                fetch,
+                action.input,
+                () => new Date().toISOString(),
+              );
+            } finally {
+              events.close();
+            }
+          }
+        } finally {
+          approvals.close();
+        }
+        break;
+      }
+
       case 'recover-result': {
         const rooms = new SqliteRoomRepository(command.db);
         try {
