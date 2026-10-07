@@ -1,3 +1,4 @@
+import type { SessionOperationContext } from './port.js';
 import { requireCapability, requireRoomPermission } from '../agents/domain.js';
 import type { AgentRepository } from '../agents/port.js';
 import type { RoomRepository } from '../rooms/port.js';
@@ -38,7 +39,11 @@ export function createSessionForAgent(
   if (agent.runtime !== 'codex' && agent.runtime !== 'claude')
     throw new Error('Unsupported Session runtime');
   const session = createSession({ ...input, runtime: agent.runtime }, identity);
-  store.create(session);
+  const taskId = rooms.get(input.roomId).taskId;
+  store.create(session, {
+    actor: { kind: 'system', id: 'runtime-manager' },
+    ...(taskId === null ? {} : { taskId }),
+  });
   return session;
 }
 export async function sendSession(
@@ -49,23 +54,28 @@ export async function sendSession(
   input: { readonly id: string; readonly message: string; readonly instruction: string },
   now: () => string,
   signal?: AbortSignal,
+  inputReference?: (input: RuntimeTurnInput) => string,
 ): Promise<{ readonly session: Session; readonly text: string }> {
   if (!input.message.trim()) throw new Error('Session message required');
   const initial = store.get(input.id);
   const agent = sessionAgent(agents, rooms, initial.agentId, initial.roomId);
   if (agent.runtime !== initial.runtime) throw new Error('Session runtime changed');
   const running = transitionSession(initial, { type: 'begin', at: now() });
-  store.save(running, initial.version);
+  const runtimeInput: RuntimeTurnInput = {
+    agent: { id: agent.id, role: agent.role },
+    message: input.message,
+    instruction: input.instruction,
+    ...(running.providerSessionId === null ? {} : { sessionId: running.providerSessionId }),
+  };
+  const taskId = rooms.get(initial.roomId).taskId;
+  const context: SessionOperationContext = {
+    actor: { kind: 'agent', id: agent.id },
+    ...(inputReference === undefined ? {} : { inputRef: inputReference(runtimeInput) }),
+    ...(taskId === null ? {} : { taskId }),
+  };
+  store.save(running, initial.version, context);
   try {
-    const reply = await run(
-      {
-        agent: { id: agent.id, role: agent.role },
-        message: input.message,
-        instruction: input.instruction,
-        ...(running.providerSessionId === null ? {} : { sessionId: running.providerSessionId }),
-      },
-      signal,
-    );
+    const reply = await run(runtimeInput, signal);
     const currentAgent = sessionAgent(agents, rooms, running.agentId, running.roomId);
     if (currentAgent.runtime !== running.runtime) throw new Error('Session runtime changed');
     const completed = transitionSession(running, {
@@ -73,7 +83,7 @@ export async function sendSession(
       providerSessionId: reply.sessionId,
       at: now(),
     });
-    store.save(completed, running.version);
+    store.save(completed, running.version, context);
     return { session: completed, text: reply.text };
   } catch (error) {
     try {
@@ -82,6 +92,7 @@ export async function sendSession(
         store.save(
           transitionSession(current, { type: 'fail', error: 'Runtime turn failed', at: now() }),
           current.version,
+          context,
         );
     } catch (persistence) {
       throw new AggregateError([error, persistence], 'Runtime turn and failure persistence failed');

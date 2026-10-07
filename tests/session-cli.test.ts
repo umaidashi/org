@@ -453,6 +453,41 @@ test.each([false, true])(
       assert.ok(record(recovered));
       assert.equal(recovered.status, 'failed');
       assert.equal(recovered.providerSessionId, 'provider');
+      json(['--socket', socket, 'session', 'stop', taskSession.session.id]);
+      const records = json(['--direct', 'audit', 'list']);
+      assert.ok(Array.isArray(records));
+      const runtimeAudit = records.filter(
+        (entry) =>
+          entry.tool === 'session.runtime' && entry.inputRef.startsWith('org://session-inputs/'),
+      );
+      assert.ok(runtimeAudit.length >= 4);
+      assert.ok(
+        runtimeAudit.some(
+          (entry) =>
+            entry.taskId === task.id &&
+            entry.actor.kind === 'agent' &&
+            entry.actor.id === list[0].id,
+        ),
+      );
+      assert.ok(runtimeAudit.some((entry) => entry.result === 'started'));
+      assert.ok(runtimeAudit.some((entry) => entry.result === 'succeeded'));
+      assert.ok(
+        records.some((entry) => entry.tool === 'session.stop' && entry.result === 'canceled'),
+      );
+      for (const entry of runtimeAudit)
+        assert.match(String(entry.inputRef), /^org:\/\/session-inputs\/[a-f0-9]{64}$/);
+      assert.deepEqual(json(['--direct', 'audit', 'list']), records);
+      const taskLogs = json(['--direct', 'logs', '--task', task.id, '--limit', '100']);
+      assert.ok(Array.isArray(taskLogs));
+      assert.ok(
+        taskLogs.some(
+          (entry) =>
+            entry.tool === 'session.stop' &&
+            entry.result === 'canceled' &&
+            entry.taskId === task.id,
+        ),
+      );
+
       assert.equal(run(['daemon', 'stop', '--socket', socket]).status, 0);
       assert.equal(await daemon.exited, 0);
       daemon = undefined;

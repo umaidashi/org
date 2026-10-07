@@ -1,0 +1,30 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-operation-audit.test.ts:
+(pass) Session Runtime state mutations expose important operation Audit [2.70ms]
+(pass) same-time Session Audit preserves create and repeated Runtime chronology [1.45ms]
+89 |     archivedAt: null,
+90 |   };
+91 |   let calls = 0;
+92 |   try {
+93 |     createSessionForAgent(store,{list:()=>[agent]},{get:()=>room},{agentId:'a',roomId:'r'},{id:'s',at:'now'});
+94 |     assert.equal(store.operationHistory()[0]?.taskId,'task');
+                ^
+AssertionError: Expected values to be strictly equal:
+
+null !== 'task'
+
+ generatedMessage: true,
+     actual: null,
+   expected: "task",
+   operator: "strictEqual",
+       code: "ERR_ASSERTION"
+
+      at /Users/umaidashi/Documents/git/org/tests/session-operation-audit.test.ts:94:12
+      at /Users/umaidashi/Documents/git/org/tests/session-operation-audit.test.ts:106:11
+(fail) Session Runtime Audit binds input reference and Task actor, persists failures without copying private input [1.73ms]
+(pass) Session Audit storage failure atomically rolls back, is immutable and survives reopen without legacy backfill [18.40ms]
+
+ 3 pass
+ 1 fail
+Ran 4 tests across 1 file. [78.00ms]

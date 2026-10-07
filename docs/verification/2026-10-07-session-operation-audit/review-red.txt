@@ -1,0 +1,31 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-operation-audit.test.ts:
+(pass) Session Runtime state mutations expose important operation Audit [2.90ms]
+(pass) same-time Session Audit preserves create and repeated Runtime chronology [1.46ms]
+(pass) Session Runtime Audit binds input reference and Task actor, persists failures without copying private input [2.08ms]
+(pass) Session Audit storage failure atomically rolls back, is immutable and survives reopen without legacy backfill [12.70ms]
+217 |    store.create(session,context);store.save(transitionSession(session,{type:'begin',at:'running'}),0,context);
+218 |   }
+219 |   stopSession(store,'stop','terminal',()=>{});recoverSessions(store,'terminal');
+220 |   const records=collectAudit({list:()=>[]},{configurationHistory:()=>[],capabilityHistory:()=>[]},{list:()=>[],history:()=>[]},{list:()=>[]},{operationHistory:()=>[]},store);
+221 |   const outcomes=selectAuditLogs(records,{taskId:'task',limit:100}).filter(entry=>['canceled','failed'].includes(entry.result));
+222 |   assert.deepEqual(outcomes.map(entry=>entry.result),['canceled','failed']);
+               ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
++ []
+- [
+-   'canceled',
+-   'failed'
+- ]
+
+      at innerFail (node:assert:36:32)
+      at deepStrictEqual (node:assert:134:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/session-operation-audit.test.ts:222:10)
+(fail) Task-filtered Audit retains cancellation and restart recovery terminal outcomes [3.02ms]
+
+ 4 pass
+ 1 fail
+Ran 5 tests across 1 file. [76.00ms]

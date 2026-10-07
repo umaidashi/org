@@ -176,6 +176,24 @@ test('CLI rebuilds a broken provider into a fresh Session with Room history, sco
     }
     assert.equal(list(['memory', 'list']).length, 3);
     assert.equal(list(['room', 'messages', room.id]).length, 3);
+    const records = list(['audit', 'list']);
+    const rebuild = records.find((entry) => record(entry) && entry.tool === 'session.rebuild');
+    assert.ok(record(rebuild));
+    assert.equal(
+      rebuild.inputRef,
+      'org://sessions/' + encodeURIComponent(oldId) + '/versions/' + failed.version,
+    );
+    assert.equal(
+      rebuild.outputRef,
+      'org://sessions/' + encodeURIComponent(rebuilt.id) + '/versions/0',
+    );
+    assert.deepEqual(rebuild.actor, { kind: 'system', id: 'runtime-manager' });
+    assert.ok(
+      records.some(
+        (entry) => record(entry) && entry.tool === 'session.runtime' && entry.result === 'failed',
+      ),
+    );
+    assert.deepEqual(list(['audit', 'list']), records);
   } finally {
     if (daemon) {
       daemon.kill('SIGTERM');

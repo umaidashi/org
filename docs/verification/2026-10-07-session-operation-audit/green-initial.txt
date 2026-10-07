@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-sqlite.test.ts:
+(pass) Session state and immutable history persist atomically and reject stale writers [36.19ms]
+(pass) Session store refuses a fabricated completion without a running turn [0.63ms]
+
+tests/session-service.test.ts:
+(pass) Session service validates references before creation and runs explicit provider resume via minimal Ports [1.12ms]
+(pass) Session failure and restart recovery preserve provider identity without persisting external error text [0.45ms]
+(pass) Session stop wins over a late runtime response and parallel turns are rejected [0.41ms]
+(pass) Session rejects legacy and missing read grants before creation, begin or Runtime invocation [0.21ms]
+(pass) Session refuses late completion after grant changes and preserves the prior provider identity [0.17ms]
+(pass) Session refuses late completion after runtime changes and preserves the prior provider identity [0.12ms]
+(pass) Session refuses late completion after archive changes and preserves the prior provider identity [0.04ms]
+(pass) Session refuses late completion after participant changes and preserves the prior provider identity
+
+tests/session-operation-audit.test.ts:
+(pass) Session Runtime state mutations expose important operation Audit [0.82ms]
+
+ 11 pass
+ 0 fail
+Ran 11 tests across 3 files. [83.00ms]

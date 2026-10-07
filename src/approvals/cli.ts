@@ -1,3 +1,4 @@
+import { SqliteSessionStore } from '../sessions/sqlite.js';
 import { SqliteMemoryProvider } from '../memory/sqlite.js';
 import {
   requestTaskWorkflowApproval,
@@ -299,9 +300,14 @@ export function runApprovalCommand(command: ApprovalCommand, output: (line: stri
           try {
             const memories = new SqliteMemoryProvider(command.db);
             try {
-              const records = collectAudit(store, agents, tasks, events, memories);
-              result =
-                command.action === 'logs' ? selectAuditLogs(records, command.filter) : records;
+              const sessions = new SqliteSessionStore(command.db);
+              try {
+                const records = collectAudit(store, agents, tasks, events, memories, sessions);
+                result =
+                  command.action === 'logs' ? selectAuditLogs(records, command.filter) : records;
+              } finally {
+                sessions.close();
+              }
             } finally {
               memories.close();
             }

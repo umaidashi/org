@@ -1,0 +1,20 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-reconstruction-cli.test.ts:
+(pass) CLI rebuilds a broken provider into a fresh Session with Room history, scoped summary and Agent memory without automatic retry [1551.09ms]
+
+tests/session-operation-audit.test.ts:
+(pass) Session Runtime state mutations expose important operation Audit [0.04ms]
+(pass) same-time Session Audit preserves create and repeated Runtime chronology [2.51ms]
+(pass) Session Runtime Audit binds input reference and Task actor, persists failures without copying private input [2.09ms]
+(pass) Session Audit storage failure atomically rolls back, is immutable and survives reopen without legacy backfill [13.71ms]
+(pass) Task-filtered Audit retains cancellation and restart recovery terminal outcomes [0.99ms]
+
+tests/session-cli.test.ts:
+(pass) Session CLI recovers persisted Task replies and drains turns with blockedWriteFailure=%s [2765.67ms]
+(pass) Session CLI recovers persisted Task replies and drains turns with blockedWriteFailure=%s [2748.46ms]
+(pass) Runtime result recovery releases Room connection when Session initialization fails [53.59ms]
+
+ 9 pass
+ 0 fail
+Ran 9 tests across 3 files. [7.19s]

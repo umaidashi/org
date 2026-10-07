@@ -1,0 +1,29 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-reconstruction.test.ts:
+(pass) Session reconstruction atomically retires a failed provider and creates fresh identity without replaying a turn [5.35ms]
+(pass) Session reconstruction validates current authority before the injected atomic store without a database [0.23ms]
+
+tests/session-sqlite.test.ts:
+(pass) Session state and immutable history persist atomically and reject stale writers [32.86ms]
+(pass) Session store refuses a fabricated completion without a running turn [1.07ms]
+
+tests/session-service.test.ts:
+(pass) Session service validates references before creation and runs explicit provider resume via minimal Ports [0.67ms]
+(pass) Session failure and restart recovery preserve provider identity without persisting external error text [0.95ms]
+(pass) Session stop wins over a late runtime response and parallel turns are rejected [0.87ms]
+(pass) Session rejects legacy and missing read grants before creation, begin or Runtime invocation [0.30ms]
+(pass) Session refuses late completion after grant changes and preserves the prior provider identity [0.23ms]
+(pass) Session refuses late completion after runtime changes and preserves the prior provider identity [0.08ms]
+(pass) Session refuses late completion after archive changes and preserves the prior provider identity [0.06ms]
+(pass) Session refuses late completion after participant changes and preserves the prior provider identity
+
+tests/session-operation-audit.test.ts:
+(pass) Session Runtime state mutations expose important operation Audit [0.43ms]
+(pass) same-time Session Audit preserves create and repeated Runtime chronology [1.68ms]
+(pass) Session Runtime Audit binds input reference and Task actor, persists failures without copying private input [1.04ms]
+(pass) Session Audit storage failure atomically rolls back, is immutable and survives reopen without legacy backfill [12.67ms]
+
+ 16 pass
+ 0 fail
+Ran 16 tests across 4 files. [92.00ms]

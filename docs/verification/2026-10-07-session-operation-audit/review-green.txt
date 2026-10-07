@@ -1,0 +1,30 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-reconstruction.test.ts:
+(pass) Session reconstruction atomically retires a failed provider and creates fresh identity without replaying a turn [5.57ms]
+(pass) Session reconstruction validates current authority before the injected atomic store without a database [0.02ms]
+
+tests/session-sqlite.test.ts:
+(pass) Session state and immutable history persist atomically and reject stale writers [33.11ms]
+(pass) Session store refuses a fabricated completion without a running turn [0.67ms]
+
+tests/session-service.test.ts:
+(pass) Session service validates references before creation and runs explicit provider resume via minimal Ports [0.64ms]
+(pass) Session failure and restart recovery preserve provider identity without persisting external error text [0.61ms]
+(pass) Session stop wins over a late runtime response and parallel turns are rejected [1.07ms]
+(pass) Session rejects legacy and missing read grants before creation, begin or Runtime invocation [0.29ms]
+(pass) Session refuses late completion after grant changes and preserves the prior provider identity [0.20ms]
+(pass) Session refuses late completion after runtime changes and preserves the prior provider identity
+(pass) Session refuses late completion after archive changes and preserves the prior provider identity
+(pass) Session refuses late completion after participant changes and preserves the prior provider identity
+
+tests/session-operation-audit.test.ts:
+(pass) Session Runtime state mutations expose important operation Audit [0.77ms]
+(pass) same-time Session Audit preserves create and repeated Runtime chronology [1.44ms]
+(pass) Session Runtime Audit binds input reference and Task actor, persists failures without copying private input [1.40ms]
+(pass) Session Audit storage failure atomically rolls back, is immutable and survives reopen without legacy backfill [13.13ms]
+(pass) Task-filtered Audit retains cancellation and restart recovery terminal outcomes [0.82ms]
+
+ 17 pass
+ 0 fail
+Ran 17 tests across 4 files. [108.00ms]

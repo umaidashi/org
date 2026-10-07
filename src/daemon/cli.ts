@@ -316,7 +316,7 @@ function openOperations(
     tasks = taskProvider;
     const roomRepository = new SqliteRoomRepository(db);
     rooms = roomRepository;
-    const sessionStore = new SqliteSessionStore(db);
+    const sessionStore = new SqliteSessionStore(db, { kind: 'system', id: 'core' });
     sessions = sessionStore;
     const runtime = new LocalAgentRuntime(
       sessionStore,
@@ -325,6 +325,8 @@ function openOperations(
       drivers,
       () => new Date().toISOString(),
       randomUUID,
+      (input) =>
+        'org://session-inputs/' + createHash('sha256').update(JSON.stringify(input)).digest('hex'),
     );
     const memoryProvider = new SqliteMemoryProvider(db, { kind: 'system', id: 'core' }, () =>
       new Date().toISOString(),

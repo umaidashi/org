@@ -1,0 +1,44 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-operation-audit.test.ts:
+(pass) Session Runtime state mutations expose important operation Audit [3.39ms]
+36 |  for(let i=0;i<6;i++){
+37 |   const running=transitionSession(session,{type:'begin',at:'same'});store.save(running,session.version);
+38 |   const completed=transitionSession(running,{type:'complete',at:'same',providerSessionId:'provider'});store.save(completed,running.version);session=completed;
+39 |  }
+40 |  const records=collectAudit({list:()=>[]},{configurationHistory:()=>[],capabilityHistory:()=>[]},{list:()=>[],history:()=>[]},{list:()=>[]},{operationHistory:()=>[]},store);
+41 |  assert.deepEqual(records.map(entry=>entry.result),['succeeded',...Array.from({length:6},()=>['started','succeeded']).flat()]);
+             ^
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
+-   'succeeded',
+    'started',
+-   'succeeded',
+    'started',
+-   'succeeded',
+    'started',
+-   'succeeded',
+    'started',
+-   'succeeded',
+    'started',
+-   'succeeded',
+    'started',
+    'succeeded',
++   'succeeded',
++   'succeeded',
++   'succeeded',
++   'succeeded',
++   'succeeded',
++   'succeeded'
+  ]
+
+      at innerFail (node:assert:36:32)
+      at deepStrictEqual (node:assert:134:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/session-operation-audit.test.ts:41:9)
+(fail) same-time Session Audit preserves create and repeated Runtime chronology [2.98ms]
+
+ 1 pass
+ 1 fail
+Ran 2 tests across 1 file. [63.00ms]

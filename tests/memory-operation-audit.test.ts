@@ -32,6 +32,7 @@ test('Memory mutation Audit records actual actor/time, idempotency, immutable ro
       { list: () => [], history: () => [] },
       { list: () => [] },
       store,
+      { operationHistory: () => [] },
     );
   try {
     store.createOnce(original('one'));

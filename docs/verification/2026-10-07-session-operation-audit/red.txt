@@ -1,0 +1,22 @@
+bun test v1.3.4 (5eb2145b)
+
+tests/session-operation-audit.test.ts:
+ 8 |  try {
+ 9 |  const session=createSession({agentId:'a',roomId:'r',runtime:'codex'},{id:'s',at:'now'});
+10 |  store.create(session);
+11 |  store.save(transitionSession(session,{type:'begin',at:'later'}),0);
+12 |  const reader=store as unknown as {operationHistory?:()=>readonly {tool:string,result:string}[]};
+13 |  assert.equal(reader.operationHistory?.().filter(entry=>entry.tool==='session.runtime'&&entry.result==='started').length??0,1);
+             ^
+AssertionError: Expected values to be strictly equal:
+
+0 !== 1
+
+      at innerFail (node:assert:36:32)
+      at strictEqual (node:assert:159:14)
+      at <anonymous> (/Users/umaidashi/Documents/git/org/tests/session-operation-audit.test.ts:13:9)
+(fail) Session Runtime state mutations expose important operation Audit [4.05ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [47.00ms]

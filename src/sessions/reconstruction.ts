@@ -28,5 +28,9 @@ export function rebuildSessionForAgent(
     ),
     rebuiltFrom: { sessionId: original.id, version: original.version },
   });
-  return store.rebuildSession(original.id, original.version, next);
+  const taskId = rooms.get(original.roomId).taskId;
+  return store.rebuildSession(original.id, original.version, next, {
+    actor: { kind: 'system', id: 'runtime-manager' },
+    ...(taskId === null ? {} : { taskId }),
+  });
 }

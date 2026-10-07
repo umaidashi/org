@@ -1987,3 +1987,19 @@
 - [証拠](verification/2026-10-07-memory-operation-audit/)と棚卸し更新。次は[Session重要操作Audit](superpowers/plans/2026-10-07-session-operation-audit.md)。全体未達、既存業務Issue/変更先repoと実Linear/Notion API認証は未指定/未設定のまま。任意外部writeはしない。
 
 - 最終tree全check terminal0: 520成功21skip0失敗、Ran 541 tests across 213 files. [186.44s]。type/lint/Oxfmt370files/非空AST/dry-run成功。次Session反例はrunning/history2/Audit Reader undefined、合成データのみ。
+
+## 2026-10-07 — Session重要操作Audit
+
+- 前Memory481baa8 main通常push terminal0/localgate215.76秒/remote exact head確認。[計画](superpowers/plans/2026-10-07-session-operation-audit.md)を実行。shared create/send/stop/recover/rebuildとLocalAgentRuntime/実daemon callerを追跡。
+- 初期RED0成功1失敗47ms→GREEN11成功83ms。既存SQLite状態/history transactionへimmutable原本とmandatory collectAudit Reader。shared Runtime入力を一度組み立て、hash参照関数をDI、実daemon entrypointで既存createHash再利用。生本文/authを複製しない。
+- 同時刻13操作が共通phase sortで開始先行になるRED1成功1失敗63ms→stdlib padStart数値ID/一操作causal keyで順序を保つ。共通sortや既存他domainのphaseを変更しない。
+- Task Room作成/再構成のTask ID欠落RED3成功1失敗78ms→既知Task関連を引継ぎ、create/rebuildのsystem/runtime-managerを記録。Runtimeは対象Agent、stop/recoveryはCore/内部未指定、実人間を推測しない。
+- 初回staticはimport置換でclassがcontext interfaceまでimplementsした誤り、続いてserviceのnode:crypto依存禁止で失敗。implementsを訂正しhashは入口へDI。native追加assertのany引数はStringへ。fixture失敗を意味的REDと混同しない。
+- 初期native4成功7.28秒、Task修正後8成功7.67秒。先に全回帰を開始後に追加したRED/修正を進めてしまい、変更途中treeで523成功21skip1失敗188.20秒、後続も稼働済み旧daemonと新assertが混じり2失敗188.24秒。最終検査と呼ばず診断ログへ保存し、最後のfix後にsource/testを固定して全gateを実行。
+- Fresh reviewer Important1/Critical0/Minor0: Task別ログからstop/cancellationとrestart recovery/failedが欠落。採用してRED4成功1失敗76ms→共有SQLite writerが直前のimmutable原本から既知Task IDを引継ぐ。Room再読取/新store/偽humanなし。review GREEN17成功108ms、native含む9成功7.19秒。一fixpass/再レビューなし。Ponytail Lean/net0。
+- Ruling: legacy内部のhash関数未設定は既存Session version参照 — 実production入口にはSHA-256 DIを配線 — 任意の内部callerにも生入力digestを必須にする場合は互換API契約の別変更が要る。旧主体のbackfillなし。stop/recoveryは新しいsystem操作主体を保ち、過去Agentを実行主体として偽装しない。
+- Declined to judge: human認証/provider内部実行証明/別process権限原子性。新Auditをこれらの保証へ広げない。
+- [証拠](verification/2026-10-07-session-operation-audit/)。次Room反例はarchive済み/Message1件/Audit Readerなし。既存Message immutable sender/timeを再利用し、[Room操作Audit計画](superpowers/plans/2026-10-07-room-operation-audit.md)へ続行。Task/Event/Subscription/Schedule/実API業務受入と全体は未達。
+
+- 最終固定tree terminal0: 525成功21skip0失敗546tests214files186.89秒。type/Oxlint/Oxfmt371files/非空AST/dry-run成功。実Jev2421subjects146warnings、missing/unsure/review/errors/degraded0。変更source/test対象あり。抽象failure-path候補を拒否/rollback/CAS/Task-filtered terminal/no-op/reopen/nativeで照合し、具体未対応反例なし。
+- Notion root/08をconnectorで再fetch成功、前回content bodyと一致。raw本文の新公開・Jev送信なし。verification/独立編集時刻の証明へ言い換えない。

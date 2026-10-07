@@ -27,6 +27,7 @@ export class LocalAgentRuntime {
     private readonly drivers: Readonly<Record<'codex' | 'claude', Driver>>,
     private readonly now: () => string,
     private readonly id: () => string,
+    private readonly inputReference?: (input: RuntimeTurnInput) => string,
   ) {}
   async start(input: {
     readonly agentId: string;
@@ -77,6 +78,7 @@ export class LocalAgentRuntime {
         { id, message, instruction },
         this.now,
         controller.signal,
+        this.inputReference,
       );
     });
     const active = { controller, completion };
