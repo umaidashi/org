@@ -79,6 +79,35 @@ export interface LinearIssueUpdateOperation extends LinearTarget {
   readonly kind: 'linear_issue_update';
   readonly baselineDigest: string;
   readonly fields?: readonly LinearIssueField[];
+  readonly binding?: LinearTaskBinding;
+}
+export type LinearTaskBinding = {
+  readonly taskId: string;
+  readonly taskVersion: number;
+  readonly proposalRef: string;
+};
+export function parseLinearTaskBinding(value: unknown): LinearTaskBinding {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    Object.keys(value).some((key) => !['taskId', 'taskVersion', 'proposalRef'].includes(key)) ||
+    !('taskId' in value) ||
+    typeof value.taskId !== 'string' ||
+    !('taskVersion' in value) ||
+    !('proposalRef' in value)
+  )
+    throw new Error('Invalid Linear Task binding');
+  text(value.taskId);
+  const binding = parseTaskWorkflowBinding({
+    taskVersion: value.taskVersion,
+    proposalRef: value.proposalRef,
+  });
+  return {
+    taskId: value.taskId,
+    taskVersion: binding.taskVersion,
+    proposalRef: binding.proposalRef,
+  };
 }
 export const linearIssueFieldNames = ['stateId', 'assigneeId', 'labelIds'] as const;
 export type LinearIssueField = (typeof linearIssueFieldNames)[number];
@@ -109,6 +138,7 @@ export function parseLinearIssueUpdateOperation(value: unknown): LinearIssueUpda
           'inputDigest',
           'baselineDigest',
           'fields',
+          'binding',
         ].includes(key),
     ) ||
     !('kind' in value) ||
@@ -123,6 +153,7 @@ export function parseLinearIssueUpdateOperation(value: unknown): LinearIssueUpda
     ...parseLinearTarget(value),
     baselineDigest: value.baselineDigest,
     ...('fields' in value ? { fields: parseLinearIssueFieldMask(value.fields) } : {}),
+    ...('binding' in value ? { binding: parseLinearTaskBinding(value.binding) } : {}),
   };
 }
 function parseLinearTarget(value: unknown): LinearTarget {
@@ -413,11 +444,12 @@ export function createApprovalRequest(
           ? parseLinearArtifactLinkOperation(input.operation)
           : parseLinearIssueUpdateOperation(input.operation);
     if (
-      input.actor.kind !== 'human' ||
+      input.actor.kind !==
+        (operation.kind === 'linear_issue_update' && operation.binding ? 'agent' : 'human') ||
       input.taskId !== `linear:issue:${operation.issueId}` ||
       input.eventId !== null
     )
-      throw new Error('Linear operation requires human and existing WorkItem');
+      throw new Error('Linear operation requires matching actor and existing WorkItem');
   } else throw new Error('Invalid Approval operation');
   return { ...input, ...identity, actor: actor(input.actor), operation };
 }

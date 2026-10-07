@@ -96,6 +96,19 @@ function baseline(issue: LinearUpdateIssue): string {
       : { title: issue.title, description: issue.description }),
   });
 }
+export async function prepareLinearUpdateOperation(
+  tasks: Pick<TaskProvider, 'get'>,
+  secrets: Pick<SecretStore, 'getSecret'>,
+  request: (url: string, init: RequestInit) => Promise<Response>,
+  input: LinearUpdateInput,
+) {
+  const original = target(tasks, input);
+  const issue = await readLinearUpdateIssue(request, secrets, original.issueId, original.fields);
+  validateLinearUpdatedIssueUrl(original, issue.url);
+  if (!isDeepStrictEqual(target(tasks, input), original))
+    throw new Error('Linear Issue update target changed');
+  return { ...original, baselineDigest: baseline(issue) };
+}
 export async function requestLinearUpdateApproval(
   tasks: Pick<TaskProvider, 'get'>,
   approvals: Pick<ApprovalStore, 'requestOnce'>,
@@ -104,11 +117,7 @@ export async function requestLinearUpdateApproval(
   input: LinearUpdateInput & { readonly key: string },
   identity: Identity,
 ) {
-  const original = target(tasks, input);
-  const issue = await readLinearUpdateIssue(request, secrets, original.issueId, original.fields);
-  validateLinearUpdatedIssueUrl(original, issue.url);
-  if (!isDeepStrictEqual(target(tasks, input), original))
-    throw new Error('Linear Issue update target changed');
+  const operation = await prepareLinearUpdateOperation(tasks, secrets, request, input);
   return approvals.requestOnce(
     createApprovalRequest(
       {
@@ -116,7 +125,7 @@ export async function requestLinearUpdateApproval(
         actor: { kind: 'human', id: input.actor },
         taskId: input.taskId,
         eventId: null,
-        operation: { ...original, baselineDigest: baseline(issue) },
+        operation,
       },
       identity,
     ),

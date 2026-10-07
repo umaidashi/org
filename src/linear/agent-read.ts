@@ -7,6 +7,7 @@ export interface LinearAgentScope {
   readonly agentId: string;
   readonly issueIds: readonly string[];
   readonly apiKeyEnv: string;
+  readonly effect?: 'write';
 }
 export function parseLinearAgentScopes(value: unknown): readonly LinearAgentScope[] {
   if (!Array.isArray(value)) throw new Error('Invalid Agent Linear scopes');
@@ -16,7 +17,10 @@ export function parseLinearAgentScopes(value: unknown): readonly LinearAgentScop
       !scope ||
       typeof scope !== 'object' ||
       Array.isArray(scope) ||
-      Object.keys(scope).some((key) => !['agentId', 'issueIds', 'apiKeyEnv'].includes(key)) ||
+      Object.keys(scope).some(
+        (key) => !['agentId', 'issueIds', 'apiKeyEnv', 'effect'].includes(key),
+      ) ||
+      ('effect' in scope && scope.effect !== 'write') ||
       !('agentId' in scope) ||
       typeof scope.agentId !== 'string' ||
       !scope.agentId.trim() ||
@@ -38,8 +42,33 @@ export function parseLinearAgentScopes(value: unknown): readonly LinearAgentScop
     });
     if (new Set(issueIds).size !== issueIds.length)
       throw new Error('Duplicate scoped Linear Issue');
-    return { agentId: scope.agentId, issueIds, apiKeyEnv: scope.apiKeyEnv };
+    return {
+      agentId: scope.agentId,
+      issueIds,
+      apiKeyEnv: scope.apiKeyEnv,
+      ...('effect' in scope ? { effect: 'write' as const } : {}),
+    };
   });
+}
+export function requireAgentLinearScope(
+  agents: Pick<AgentRepository, 'list'>,
+  scopes: readonly LinearAgentScope[],
+  input: { readonly agentId: string; readonly issueId: string; readonly effect?: 'write' },
+): void {
+  const agent = agents.list().find((a) => a.id === input.agentId);
+  if (!agent) throw new Error('Agent not found');
+  if (
+    !scopes.some(
+      (scope) =>
+        scope.agentId === input.agentId &&
+        scope.issueIds.includes(input.issueId) &&
+        (input.effect === undefined || scope.effect === 'write'),
+    )
+  )
+    throw new Error('Agent Linear Issue access denied');
+  for (const capability of ['can_read', 'can_access_network', 'can_contact_external'] as const)
+    requireCapability(agent, capability);
+  if (input.effect === 'write') requireCapability(agent, 'can_write');
 }
 export async function readAgentLinearIssue(
   agents: Pick<AgentRepository, 'list'>,
@@ -51,14 +80,7 @@ export async function readAgentLinearIssue(
   const agentId = input.agentId,
     issueId = input.issueId;
   const configured = parseLinearAgentScopes(scopes);
-  const authorize = () => {
-    const agent = agents.list().find((a) => a.id === agentId);
-    if (!agent) throw new Error('Agent not found');
-    if (!configured.some((scope) => scope.agentId === agentId && scope.issueIds.includes(issueId)))
-      throw new Error('Agent Linear Issue access denied');
-    for (const capability of ['can_read', 'can_access_network', 'can_contact_external'] as const)
-      requireCapability(agent, capability);
-  };
+  const authorize = () => requireAgentLinearScope(agents, configured, { agentId, issueId });
   authorize();
   const issue = await readLinearIssue(
     request,

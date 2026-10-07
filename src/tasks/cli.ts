@@ -36,6 +36,10 @@ import type { LinearIssueListInput } from '../linear/read.js';
 import { EnvironmentSecretStore } from '../secrets/environment.js';
 import { readFileSync } from 'node:fs';
 import { parseLinearAgentScopes, readAgentLinearIssue } from '../linear/agent-read.js';
+import {
+  requestTaskLinearUpdateApproval,
+  type TaskLinearApprovalInput,
+} from '../linear/task-approval.js';
 import { readSandboxArtifact } from '../sandbox/artifact.js';
 import { randomUUID } from 'node:crypto';
 import { reviewTaskResult } from './review.js';
@@ -55,6 +59,7 @@ import { recoverExecutionTaskResult } from './execution.js';
 import { parseLinearIssueFields, type LinearIssueFields } from '../linear/fields.js';
 
 type TaskAction =
+  | { kind: 'request-task-linear-update'; input: TaskLinearApprovalInput }
   | {
       kind: 'observe-linear-update';
       input: { readonly taskId: string; readonly actor: string; readonly approvalId: string };
@@ -134,6 +139,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
       objective: { type: 'string' },
       session: { type: 'string' },
       'room-message': { type: 'string' },
+      room: { type: 'string' },
       kind: { type: 'string' },
       title: { type: 'string' },
       description: { type: 'string' },
@@ -166,6 +172,7 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const [command, action, id, ...extra] = positionals;
   if (command !== 'task' || extra.length > 0) throw new Error('Unexpected task argument');
   const allowed: Record<string, readonly string[]> = {
+    'request-task-linear-update': ['room', 'room-message', 'expected-version', 'key'],
     'request-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'key'],
     'apply-linear-artifact': ['artifact', 'title', 'expected-version', 'actor', 'approval'],
     'request-linear-update': ['title', 'description', 'fields', 'expected-version', 'actor', 'key'],
@@ -224,6 +231,24 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   const db = values.db ?? join(homedir(), '.local', 'share', 'org', 'org.db');
   if (!db.trim()) throw new Error('The database path must not be empty');
   const common = { db, json: values.json ?? false };
+  if (action === 'request-task-linear-update') {
+    const version = required(values['expected-version'], '--expected-version');
+    if (!/^(0|[1-9][0-9]*)$/.test(version) || !Number.isSafeInteger(Number(version)))
+      throw new Error('Invalid Task version');
+    return {
+      ...common,
+      action: {
+        kind: action,
+        input: {
+          taskId: required(id, 'Execution Task ID'),
+          expectedVersion: Number(version),
+          roomId: required(values.room, '--room'),
+          messageId: required(values['room-message'], '--room-message'),
+          key: required(values.key, '--key'),
+        },
+      },
+    };
+  }
   if (action === 'request-linear-update' || action === 'apply-linear-update') {
     if (
       values.fields !== undefined &&
@@ -516,20 +541,60 @@ export function parseTaskCommand(argv: string[]): TaskCommand {
   if (Object.keys(clearedPatch).length === 0) throw new Error('Task update requires a patch');
   return { ...common, action: { kind: 'update', id: taskId, patch: clearedPatch } };
 }
+function linearAgentScopes() {
+  let value: unknown;
+  try {
+    const path = process.env.ORG_LINEAR_AGENT_SCOPES;
+    if (!path) throw new Error('Missing scope configuration');
+    value = JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    throw new Error('Agent Linear scope configuration unavailable');
+  }
+  return parseLinearAgentScopes(value);
+}
 export async function runTaskCommand(
   command: TaskCommand,
   output: (line: string) => void = console.log,
 ): Promise<void> {
-  if (command.action.kind === 'linear-get' && command.action.agentId !== undefined) {
-    let value: unknown;
+  if (command.action.kind === 'request-task-linear-update') {
+    const scopes = linearAgentScopes();
+    const secrets = new EnvironmentSecretStore(
+      scopes.map((scope) => ({
+        actorId: scope.agentId,
+        reference: 'linear:read',
+        environmentVariable: scope.apiKeyEnv,
+      })),
+    );
+    const tasks = new SqliteTaskProvider(command.db);
+    let agents: SqliteAgentRepository | undefined,
+      rooms: SqliteRoomRepository | undefined,
+      approvals: SqliteApprovalStore | undefined;
     try {
-      const path = process.env.ORG_LINEAR_AGENT_SCOPES;
-      if (!path) throw new Error('Missing scope configuration');
-      value = JSON.parse(readFileSync(path, 'utf8'));
-    } catch {
-      throw new Error('Agent Linear scope configuration unavailable');
+      agents = new SqliteAgentRepository(command.db);
+      rooms = new SqliteRoomRepository(command.db);
+      approvals = new SqliteApprovalStore(command.db);
+      const result = await requestTaskLinearUpdateApproval(
+        tasks,
+        agents,
+        rooms,
+        approvals,
+        scopes,
+        secrets,
+        fetch,
+        command.action.input,
+        { id: randomUUID(), createdAt: new Date().toISOString() },
+      );
+      output(JSON.stringify(result, null, command.json ? undefined : 2));
+    } finally {
+      approvals?.close();
+      rooms?.close();
+      agents?.close();
+      tasks.close();
     }
-    const scopes = parseLinearAgentScopes(value);
+    return;
+  }
+  if (command.action.kind === 'linear-get' && command.action.agentId !== undefined) {
+    const scopes = linearAgentScopes();
     const secrets = new EnvironmentSecretStore(
       scopes.map((scope) => ({
         actorId: scope.agentId,
